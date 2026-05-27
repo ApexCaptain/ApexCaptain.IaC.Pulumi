@@ -1,0 +1,55 @@
+services:
+  workspace:
+    container_name: apex_captain_iac_pulumi_devcon_workspace
+    build:
+      context: ./
+      dockerfile: Dockerfile.workspace
+      args:
+        USER_NAME: ${username}
+    # shm_size: '1gb'
+    environment:
+      # Timezone
+      TZ: 'Asia/Seoul'
+      # Dev Container 환경 변수
+      IS_DEV_CONTAINER: true
+      # Auto Sync 활성화
+      ENABLE_AUTO_SYNC: true
+      # Disable Corepack Download Prompt
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: 0
+      # 소유자를 변경할 디렉토리 경로 (복수 지정시 Space 구분)
+      DIR_PATHS_TO_CHANGE_OWNER: ${CONTAINER_PNPM_STORE_DIR_PATH} ${PULUMI_PLUGIN_DIR} ${PULUMI_DYNAMIC_TF_PLUGIN_DIR}
+
+    env_file:
+      - .env
+
+    command: sleep infinity
+
+    deploy:
+      resources:
+        limits:
+          memory: 6GB
+
+    volumes:
+      # Anonymous Volume
+      ## Workspace Cache
+      - ..:${containerWorkspaceFolder}:cached
+      ## Files
+      - ./data/workspace/docker-daemon.json:/etc/docker/daemon.json
+      ## Mount Secrets
+      - ${HOST_SECRETS_DIR_PATH}:${CONTAINER_SECRETS_DIR_PATH}
+
+      # Shared Volume
+      ## Pnpm Store
+      - Pnpm-Store:${CONTAINER_PNPM_STORE_DIR_PATH}
+      ## Pulumi Plugin
+      - Pulumi-Plugin:${PULUMI_PLUGIN_DIR}
+      ## Pulumi Dynamic TF Plugin
+      - Pulumi-Dynamic-TF-Plugin:${PULUMI_DYNAMIC_TF_PLUGIN_DIR}
+
+volumes:
+  Pnpm-Store:
+    name: Shared-Volume_Pnpm-Store
+  Pulumi-Plugin:
+    name: Shared-Volume_Pulumi-Plugin
+  Pulumi-Dynamic-TF-Plugin:
+    name: Shared-Volume_Pulumi-Dynamic-TF-Plugin
