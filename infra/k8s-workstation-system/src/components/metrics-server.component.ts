@@ -6,7 +6,9 @@ import * as pulumi from '@pulumi/pulumi';
 interface MetricsServerComponentArgsShape {
   namespace: string;
   version: string;
-  k8sProvider: kubernetes.Provider;
+  providers: {
+    kubernetes: kubernetes.Provider;
+  };
 }
 
 export type MetricsServerComponentArgs =
@@ -24,7 +26,7 @@ export const MetricsServerComponent = nexus.function.defineComponent(
       },
       {
         ...opts,
-        provider: args.k8sProvider,
+        provider: args.providers.kubernetes,
       },
     );
 
@@ -41,7 +43,7 @@ export const MetricsServerComponent = nexus.function.defineComponent(
       },
       {
         ...opts,
-        provider: args.k8sProvider,
+        provider: args.providers.kubernetes,
       },
     );
 

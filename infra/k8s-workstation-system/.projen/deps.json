@@ -47,6 +47,11 @@
       "type": "runtime"
     },
     {
+      "name": "@infra/cloudflare",
+      "version": "workspace:*",
+      "type": "runtime"
+    },
+    {
       "name": "@pulumi/kubernetes",
       "type": "runtime"
     },

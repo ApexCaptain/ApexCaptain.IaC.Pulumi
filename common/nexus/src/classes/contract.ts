@@ -13,17 +13,19 @@ export class Contract<Output_Type extends Object, Secret_Type extends Object> {
     private readonly projectName: string,
     private readonly inflate: () =>
       | {
-        output: pulumi.Output<Output_Type>;
-        secret: pulumi.Output<Secret_Type>;
-      }
+          output: pulumi.Output<Output_Type>;
+          secret: pulumi.Output<Secret_Type>;
+        }
       | Promise<{
-        output: pulumi.Output<Output_Type>;
-        secret: pulumi.Output<Secret_Type>;
-      }>,
+          output: pulumi.Output<Output_Type>;
+          secret: pulumi.Output<Secret_Type>;
+        }>,
   ) {
-    const inflated = pulumi.output(Promise.resolve(this.inflate()));
-    this.output = pulumi.unsecret(inflated.apply(result => result.output));
-    this.secret = inflated.apply(result => result.secret);
+    if (pulumi.getProject() == this.projectName) {
+      const inflated = pulumi.output(Promise.resolve(this.inflate()));
+      this.output = pulumi.unsecret(inflated.apply(result => result.output));
+      this.secret = inflated.apply(result => result.secret);
+    }
   }
 
   fetchOutput() {

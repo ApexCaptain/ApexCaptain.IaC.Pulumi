@@ -17,6 +17,7 @@ const k8sWorkstationSystemEscSchema = z
         metallb: z
           .object({
             ipRange: z.string(),
+            ingressGatewayIp: z.string(),
           })
           .required(),
       })

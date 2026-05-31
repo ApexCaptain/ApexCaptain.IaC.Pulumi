@@ -3,7 +3,7 @@ import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
-interface MetallbHelmChartComponentArgsShape {
+interface CertManagerChartComponentArgsShape {
   namespace: string;
   version: string;
   providers: {
@@ -11,13 +11,13 @@ interface MetallbHelmChartComponentArgsShape {
   };
 }
 
-export type MetallbHelmChartComponentArgs =
-  utils.types.DeepPulumiInput<MetallbHelmChartComponentArgsShape>;
+export type CertManagerChartComponentArgs =
+  utils.types.DeepPulumiInput<CertManagerChartComponentArgsShape>;
 
-export const MetallbHelmChartComponent = nexus.function.defineComponent(
-  'metallbHelmChart',
+export const CertManagerChartComponent = nexus.function.defineComponent(
+  'certManagerChart',
   (
-    args: MetallbHelmChartComponentArgs,
+    args: CertManagerChartComponentArgs,
     opts: pulumi.ComponentResourceOptions,
   ) => {
     const namespace = new kubernetes.core.v1.Namespace(
@@ -33,17 +33,23 @@ export const MetallbHelmChartComponent = nexus.function.defineComponent(
       },
     );
 
-    const metallbRelease = new kubernetes.helm.v3.Release(
-      'metallbRelease',
+    const certManagerRelease = new kubernetes.helm.v3.Release(
+      'certManagerRelease',
       {
-        name: 'metallb',
-        chart: 'metallb',
+        name: 'cert-manager',
+        chart: 'cert-manager',
         version: args.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
-          repo: 'https://metallb.github.io/metallb',
+          repo: 'https://charts.jetstack.io',
         },
-        waitForJobs: true,
+        values: {
+          crds: {
+            enabled: true,
+            keep: true,
+          },
+          enableCertificateOwnerRef: true,
+        },
       },
       {
         ...opts,

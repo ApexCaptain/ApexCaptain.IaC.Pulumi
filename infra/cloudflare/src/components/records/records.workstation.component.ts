@@ -5,8 +5,10 @@ import * as pulumi from '@pulumi/pulumi';
 
 interface RecordsWorkstationComponentArgsShape {
   zoneId: string;
-  cloudflareProvider: cloudflare.Provider;
   workstationDomain: string;
+  providers: {
+    cloudflare: cloudflare.Provider;
+  };
 }
 
 export type RecordsWorkstationComponentArgs =
@@ -18,24 +20,29 @@ export const RecordsWorkstationComponent = nexus.function.defineComponent(
     args: RecordsWorkstationComponentArgs,
     opts: pulumi.ComponentResourceOptions,
   ) => {
-    const authentikRecord = new cloudflare.DnsRecord(
-      'authentikRecord',
+    const jellyfinRecord = new cloudflare.DnsRecord(
+      'jellyfinRecord',
       {
-        name: 'authentik',
+        name: 'jellyfin',
         ttl: 1,
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
-        comment: 'Cloudflare DNS Record for Authentik Service',
+        proxied: false,
+        comment: 'Cloudflare DNS Record for Jellyfin Service',
       },
       {
-        provider: args.cloudflareProvider,
+        ...opts,
+        provider: args.providers.cloudflare,
       },
     );
 
     return {
-      output: pulumi.output({}),
+      output: pulumi.output({
+        domains: {
+          jellyfin: jellyfinRecord.name,
+        },
+      }),
       secret: pulumi.secret({}),
     };
   },

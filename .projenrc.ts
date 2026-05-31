@@ -1,3 +1,4 @@
+import dns from 'dns/promises';
 import path from 'node:path';
 import * as pulumiEscSdk from '@pulumi/esc-sdk';
 import { LocalWorkspace } from '@pulumi/pulumi/automation';
@@ -244,6 +245,7 @@ const inflatePulumiProject = (option: {
   stages: utils.enums.StackStage[];
   description?: string;
   commonDeps?: string[];
+  infraDeps?: string[];
   deps?: string[];
   devDeps?: string[];
   esc?: Nexus.abstract.AbstractEsc<any>[];
@@ -267,6 +269,10 @@ const inflatePulumiProject = (option: {
         outdir,
         deps: [
           ...(option.deps ?? []),
+
+          ...(option.infraDeps ?? []).map(
+            eachInfraDep => `${eachInfraDep}@workspace:*`,
+          ),
 
           ...(option.commonDeps ?? []).map(
             eachCommonDep => `${eachCommonDep}@workspace:*`,
@@ -325,7 +331,7 @@ const inflatePulumiProject = (option: {
 
   project.addScripts({
     'pulumi:preview': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
-    'pulumi:up': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} --expect-no-changes > /dev/null 2>&1 || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
+    'pulumi:up': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} --expect-no-changes || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
   });
 
   const infraDeps = [
@@ -373,6 +379,11 @@ const initPulumiEsc = async () => {
     return;
   }
   const accountName = process.env.PULUMI_APEX_CAPTAIN_ACCOUNT_NAME!!;
+
+  const workstationIpV4Address = (
+    await dns.lookup(process.env.WORKSTATION_DOMAIN_IPTIME!!)
+  ).address;
+
   const pulumiEscClient = new pulumiEscSdk.EscApi(
     new pulumiEscSdk.Configuration({
       accessToken: process.env.PULUMI_ACCESS_TOKEN!!,
@@ -384,6 +395,13 @@ const initPulumiEsc = async () => {
     pulumiEscClient,
     {
       workstationIptimeDomain: process.env.WORKSTATION_DOMAIN_IPTIME,
+      workstationIpV4Address,
+      istioNetwork: {
+        meshId: process.env.ISTIO_MESH_ID,
+        workstationClusterName: process.env.ISTIO_WORKSTATION_CLUSTER_NAME,
+        workstationClusterNetwork:
+          process.env.ISTIO_WORKSTATION_CLUSTER_NETWORK,
+      },
     },
     {
       prod: {},
@@ -407,6 +425,7 @@ const initPulumiEsc = async () => {
       loadbalancer: {
         metallb: {
           ipRange: process.env.WORKSTATION_METALLB_LOADBALANCER_IP_RANGE,
+          ingressGatewayIp: process.env.WORKSTATION_METALLB_INGRESS_GATEWAY_IP,
         },
       },
     },
@@ -450,10 +469,7 @@ void (async () => {
       bridgedProviders: [],
     });
 
-    return {
-      utils: utilsProject,
-      nexus: nexusProject,
-    };
+    return { utilsProject, nexusProject };
   })();
 
   // Init Pulumi ESC
@@ -466,8 +482,8 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD],
       deps: ['@pulumi/cloudflare'],
       commonDeps: [
-        commonProjects.utils.project.package.packageName,
-        commonProjects.nexus.project.package.packageName,
+        commonProjects.utilsProject.project.package.packageName,
+        commonProjects.nexusProject.project.package.packageName,
       ],
       esc: [Nexus.esc.commonEsc, Nexus.esc.cloudflareEsc],
     });
@@ -477,15 +493,14 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD],
       deps: ['@pulumi/kubernetes'],
       commonDeps: [
-        commonProjects.utils.project.package.packageName,
-        commonProjects.nexus.project.package.packageName,
+        commonProjects.utilsProject.project.package.packageName,
+        commonProjects.nexusProject.project.package.packageName,
       ],
-      esc: [Nexus.esc.k8sWorkstationSystemEsc],
+      infraDeps: [cloudflareProject.project.package.packageName],
+      esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationSystemEsc],
     });
 
-    return {
-      k8sWorkstationSystem: k8sWorkstationSystemProject,
-    };
+    return { cloudflareProject, k8sWorkstationSystemProject };
   })();
 
   const workspacePackageFilters = [

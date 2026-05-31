@@ -6,7 +6,9 @@ import * as pulumi from '@pulumi/pulumi';
 interface MetallbResourcesComponentArgsShape {
   namespace: string;
   ipRange: string;
-  k8sProvider: kubernetes.Provider;
+  providers: {
+    kubernetes: kubernetes.Provider;
+  };
 }
 
 export type MetallbResourcesComponentArgs =
@@ -33,7 +35,7 @@ export const MetallbResourcesComponent = nexus.function.defineComponent(
       },
       {
         ...opts,
-        provider: args.k8sProvider,
+        provider: args.providers.kubernetes,
       },
     );
 
@@ -52,7 +54,7 @@ export const MetallbResourcesComponent = nexus.function.defineComponent(
       },
       {
         ...opts,
-        provider: args.k8sProvider,
+        provider: args.providers.kubernetes,
       },
     );
 

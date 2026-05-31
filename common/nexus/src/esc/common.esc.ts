@@ -4,6 +4,14 @@ import { AbstractEsc } from '../abstract';
 const commonEscSchema = z
   .object({
     workstationIptimeDomain: z.string(),
+    workstationIpV4Address: z.string(),
+    istioNetwork: z
+      .object({
+        meshId: z.string(),
+        workstationClusterName: z.string(),
+        workstationClusterNetwork: z.string(),
+      })
+      .required(),
   })
   .required();
 

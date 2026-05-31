@@ -1,11 +1,18 @@
+import fs from 'fs';
+import path from 'path';
+
 import * as nexus from '@common/nexus';
 import * as cloudflare from '@pulumi/cloudflare';
 import * as pulumi from '@pulumi/pulumi';
+import yaml from 'yaml';
+
 import * as components from './components';
 
 export const cloudflareContract = new nexus.classes.Contract(
-  'cloudflare',
+  yaml.parse(fs.readFileSync(path.join(__dirname, '../Pulumi.yaml'), 'utf8'))
+    .name,
   async () => {
+    // ESC
     const projectEsc = nexus.esc.cloudflareEsc;
     const commonEsc = nexus.esc.commonEsc;
 
@@ -29,13 +36,20 @@ export const cloudflareContract = new nexus.classes.Contract(
     const recordsWorkstation =
       new components.records.RecordsWorkstationComponent('recordsWorkstation', {
         zoneId: apexCaptainCloudflareZone.id,
-        cloudflareProvider: apexCaptainCloudflareProvider,
         workstationDomain: commonEsc.esc.workstationIptimeDomain,
+        providers: {
+          cloudflare: apexCaptainCloudflareProvider,
+        },
       });
 
     return {
-      output: pulumi.output({}),
-      secret: pulumi.secret({}),
+      output: pulumi.output({
+        domains: recordsWorkstation.output.domains,
+      }),
+      secret: pulumi.secret({
+        apexCaptainCloudflareApiToken: projectEsc.esc.apiToken,
+        apexCaptainCloudflareEmail: projectEsc.esc.email,
+      }),
     };
   },
 );

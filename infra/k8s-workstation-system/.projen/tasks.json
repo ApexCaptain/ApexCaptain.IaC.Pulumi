@@ -119,7 +119,7 @@
           "exec": "pnpm i --no-frozen-lockfile"
         },
         {
-          "exec": "pnpm update @stylistic/eslint-plugin @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-import-resolver-typescript eslint-plugin-import eslint typescript @common/nexus @common/utils @pulumi/kubernetes @pulumi/pulumi lodash yaml"
+          "exec": "pnpm update @stylistic/eslint-plugin @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-import-resolver-typescript eslint-plugin-import eslint typescript @common/nexus @common/utils @infra/cloudflare @pulumi/kubernetes @pulumi/pulumi lodash yaml"
         },
         {
           "exec": "pnpm exec projen"
