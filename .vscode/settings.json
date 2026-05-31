@@ -1,4 +1,7 @@
 {
+  "files.associations": {
+    ".ToDo": "markdown"
+  },
   "todohighlight.toggleURI": true,
   "todohighlight.isCaseSensitive": false,
   "todohighlight.keywords": [

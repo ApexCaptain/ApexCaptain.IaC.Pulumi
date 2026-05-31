@@ -1,0 +1,14 @@
+- ## Istio
+
+- ## Authentik
+
+- ## ArgoCD
+
+- ## Nova 설치
+  - ### Fairwinds Helm 저장소 추가
+
+    helm repo add fairwinds-stable https://charts.fairwinds.com/stable
+    helm repo update
+
+  - ## Nova 설치 (예시: values.yaml을 통해 Slack 알림 설정 및 스케줄링 가능)
+    helm install nova fairwinds-stable/nova

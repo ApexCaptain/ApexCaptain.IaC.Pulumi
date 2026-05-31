@@ -241,13 +241,19 @@ const inflateCommonProject = (option: {
 
 const inflatePulumiProject = (option: {
   projectName: string;
+  stages: utils.enums.StackStage[];
   description?: string;
   commonDeps?: string[];
   deps?: string[];
   devDeps?: string[];
-  esc?: [Nexus.abstract.AbstractEsc<any>];
+  esc?: Nexus.abstract.AbstractEsc<any>[];
   bridgedProviders?: utils.classes.BridgedProvider[];
 }) => {
+  if (!option.stages.includes(utils.enums.StackStage.PROD)) {
+    throw new Error(
+      `${option.projectName} must include ${utils.enums.StackStage.PROD} stage`,
+    );
+  }
   const outdir = path.join(constants.paths.dirs.infraDir, option.projectName);
   const name = utils.functions.kebabCase(option.projectName);
   const project = new typescript.TypeScriptProject(
@@ -297,21 +303,19 @@ const inflatePulumiProject = (option: {
     editGitignore: false,
   });
 
-  const stageStacksPulumiYamlFiles = Object.values(utils.enums.StackStage).map(
-    eachStage => {
-      return new YamlFile(project, `Pulumi.${eachStage}.yaml`, {
-        obj: {
-          environment: option.esc?.map(eachEsc =>
-            eachEsc.getEscNameWithStage(eachStage),
-          ),
-        },
-        editGitignore: false,
-      });
-    },
-  );
+  const stageStacksPulumiYamlFiles = option.stages.map(eachStage => {
+    return new YamlFile(project, `Pulumi.${eachStage}.yaml`, {
+      obj: {
+        environment: option.esc?.map(eachEsc =>
+          eachEsc.getEscNameWithStage(eachStage),
+        ),
+      },
+      editGitignore: false,
+    });
+  });
 
   project.postSynthesize = async () => {
-    for (const eachStackStage of Object.values(utils.enums.StackStage)) {
+    for (const eachStackStage of option.stages) {
       await LocalWorkspace.createOrSelectStack({
         stackName: eachStackStage,
         workDir: outdir,
@@ -321,8 +325,7 @@ const inflatePulumiProject = (option: {
 
   project.addScripts({
     'pulumi:preview': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
-    // 'pulumi:up': `pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
-    'pulumi:up': `pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} --expect-no-changes --yes || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
+    'pulumi:up': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} --expect-no-changes > /dev/null 2>&1 || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
   });
 
   const infraDeps = [
@@ -376,6 +379,18 @@ const initPulumiEsc = async () => {
     }),
   );
 
+  await Nexus.esc.commonEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      workstationIptimeDomain: process.env.WORKSTATION_DOMAIN_IPTIME,
+    },
+    {
+      prod: {},
+      dev: {},
+    },
+  );
+
   await Nexus.esc.k8sWorkstationSystemEsc.upsertEsc(
     accountName,
     pulumiEscClient,
@@ -388,6 +403,29 @@ const initPulumiEsc = async () => {
           process.env.WORKSTATION_K8S_KUBECONFIG_CLIENT_CERTIFICATE_DATA,
         clientKeyData: process.env.WORKSTATION_K8S_KUBECONFIG_CLIENT_KEY_DATA,
         server: process.env.WORKSTATION_K8S_KUBECONFIG_SERVER,
+      },
+      loadbalancer: {
+        metallb: {
+          ipRange: process.env.WORKSTATION_METALLB_LOADBALANCER_IP_RANGE,
+        },
+      },
+    },
+    {
+      prod: {},
+      dev: {},
+    },
+  );
+
+  await Nexus.esc.cloudflareEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      apiToken: process.env.CLOUDFLARE_APEX_CAPTAIN_API_TOKEN,
+      email: process.env.CLOUDFLARE_APEX_CAPTAIN_EMAIL,
+      zones: {
+        ayteneve93com: {
+          id: process.env.CLOUDFLARE_APEX_CAPTAIN_AYTENEVE93_COM_ZONE_ID,
+        },
       },
     },
     {
@@ -423,12 +461,26 @@ void (async () => {
 
   // Pulumi Projects
   const pulumiProjects = (() => {
+    const cloudflareProject = inflatePulumiProject({
+      projectName: 'cloudflare',
+      stages: [utils.enums.StackStage.PROD],
+      deps: ['@pulumi/cloudflare'],
+      commonDeps: [
+        commonProjects.utils.project.package.packageName,
+        commonProjects.nexus.project.package.packageName,
+      ],
+      esc: [Nexus.esc.commonEsc, Nexus.esc.cloudflareEsc],
+    });
+
     const k8sWorkstationSystemProject = inflatePulumiProject({
       projectName: 'k8s-workstation-system',
+      stages: [utils.enums.StackStage.PROD],
       deps: ['@pulumi/kubernetes'],
-      commonDeps: [commonProjects.nexus.project.package.packageName],
+      commonDeps: [
+        commonProjects.utils.project.package.packageName,
+        commonProjects.nexus.project.package.packageName,
+      ],
       esc: [Nexus.esc.k8sWorkstationSystemEsc],
-      bridgedProviders: [],
     });
 
     return {
@@ -506,6 +558,11 @@ void (async () => {
   new VsCode(rootProject).settings.addSettings(
     utils.functions.flatley(
       {
+        files: {
+          associations: new utils.classes.VsCodeObject({
+            '.ToDo': 'markdown',
+          }),
+        },
         todohighlight: {
           toggleURI: true,
           isCaseSensitive: false,

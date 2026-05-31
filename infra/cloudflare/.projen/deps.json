@@ -47,7 +47,7 @@
       "type": "runtime"
     },
     {
-      "name": "@pulumi/kubernetes",
+      "name": "@pulumi/cloudflare",
       "type": "runtime"
     },
     {

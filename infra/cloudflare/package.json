@@ -1,5 +1,5 @@
 {
-  "name": "@infra/k8s-workstation-system",
+  "name": "@infra/cloudflare",
   "scripts": {
     "build": "projen build",
     "compile": "projen compile",
@@ -29,7 +29,7 @@
   "dependencies": {
     "@common/nexus": "workspace:*",
     "@common/utils": "workspace:*",
-    "@pulumi/kubernetes": "^4.31.1",
+    "@pulumi/cloudflare": "^6.17.0",
     "@pulumi/pulumi": "^3.242.0",
     "lodash": "^4.18.1",
     "yaml": "^2.8.3"
