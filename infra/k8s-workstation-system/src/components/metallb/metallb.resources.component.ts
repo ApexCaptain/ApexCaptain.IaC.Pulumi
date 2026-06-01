@@ -20,11 +20,9 @@ export const MetallbResourcesComponent = nexus.function.defineComponent(
     args: MetallbResourcesComponentArgs,
     opts: pulumi.ComponentResourceOptions,
   ) => {
-    const ipAddressPool = new kubernetes.apiextensions.CustomResource(
+    const ipAddressPool = new nexus.crd.metallb.IpAddressPoolV1Crd(
       'ipAddressPool',
       {
-        apiVersion: 'metallb.io/v1beta1',
-        kind: 'IPAddressPool',
         metadata: {
           name: 'ip-address-pool',
           namespace: args.namespace,
@@ -39,11 +37,9 @@ export const MetallbResourcesComponent = nexus.function.defineComponent(
       },
     );
 
-    const l2Advertisement = new kubernetes.apiextensions.CustomResource(
+    const l2Advertisement = new nexus.crd.metallb.L2AdvertisementV1Crd(
       'l2Advertisement',
       {
-        apiVersion: 'metallb.io/v1beta1',
-        kind: 'L2Advertisement',
         metadata: {
           name: 'l2-advertisement',
           namespace: args.namespace,

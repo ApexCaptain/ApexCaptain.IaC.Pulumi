@@ -36,3 +36,4 @@ jspm_packages/
 /lib
 /dist/
 !/.eslintrc.json
+!/turbo.json

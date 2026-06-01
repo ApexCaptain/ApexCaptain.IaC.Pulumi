@@ -81,9 +81,15 @@ importers:
       '@pulumi/esc-sdk':
         specifier: ^0.13.1
         version: 0.13.1
+      '@pulumi/kubernetes':
+        specifier: ^4.31.1
+        version: 4.31.1(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
       '@pulumi/pulumi':
         specifier: ^3.242.0
         version: 3.242.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
+      '@pulumi/random':
+        specifier: ^4.21.0
+        version: 4.21.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
@@ -609,6 +615,9 @@ packages:
         optional: true
       typescript:
         optional: true
+
+  '@pulumi/random@4.21.0':
+    resolution: {integrity: sha512-k4JHqQFOKXWkbSLZtX37xBlRsurfgZbLd1Zib0cLSDP4Dt3uTllR3CBWfMLSnXJGAoTr9MlwyHCer/5tmSaF0Q==}
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -2888,6 +2897,14 @@ snapshots:
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
+
+  '@pulumi/random@4.21.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.242.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+      - typescript
 
   '@rtsao/scc@1.1.0': {}
 

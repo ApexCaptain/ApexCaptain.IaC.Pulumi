@@ -334,12 +334,7 @@ const inflatePulumiProject = (option: {
     'pulumi:up': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} --expect-no-changes || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
   });
 
-  const infraDeps = [
-    ...(option.commonDeps ?? []),
-    ...(option.deps ?? []),
-  ].filter(eachDep => eachDep.startsWith('@infra/'));
-
-  if (infraDeps.length > 0) {
+  if (option.infraDeps && option.infraDeps.length > 0) {
     new JsonFile(project, 'turbo.json', {
       obj: {
         $schema: 'https://turbo.build/schema.json',
@@ -349,7 +344,7 @@ const inflatePulumiProject = (option: {
             dependsOn: [
               '^build',
               'build',
-              ...infraDeps.map(
+              ...option.infraDeps.map(
                 eachInfraDep => `${eachInfraDep}#pulumi:preview`,
               ),
             ],
@@ -358,7 +353,9 @@ const inflatePulumiProject = (option: {
             dependsOn: [
               '^build',
               'build',
-              ...infraDeps.map(eachInfraDep => `${eachInfraDep}#pulumi:up`),
+              ...option.infraDeps.map(
+                eachInfraDep => `${eachInfraDep}#pulumi:up`,
+              ),
             ],
             interactive: true,
           },
@@ -465,7 +462,13 @@ void (async () => {
     const nexusProject = inflateCommonProject({
       projectName: 'nexus',
       commonDeps: [utilsProject.project.package.packageName],
-      deps: ['@pulumi/esc-sdk', '@pulumi/command', 'zod'],
+      deps: [
+        '@pulumi/esc-sdk',
+        '@pulumi/command',
+        '@pulumi/random',
+        '@pulumi/kubernetes',
+        'zod',
+      ],
       bridgedProviders: [],
     });
 
@@ -599,11 +602,13 @@ void (async () => {
               '*.function.ts': 'fortran',
               '*.type.ts': 'toml',
               '*.esc.ts': 'key',
+              '*.crd.ts': 'kubernetes',
               'contract.ts': 'bbx',
             }),
           },
           folders: {
             associations: new utils.classes.VsCodeObject({
+              crd: 'kubernetes',
               abstract: 'class',
               '.kube': 'kubernetes',
               workstation: 'home',

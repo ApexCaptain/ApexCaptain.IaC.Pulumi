@@ -36,11 +36,10 @@ export const RecordsWorkstationComponent = nexus.function.defineComponent(
         provider: args.providers.cloudflare,
       },
     );
-
     return {
       output: pulumi.output({
-        domains: {
-          jellyfin: jellyfinRecord.name,
+        records: {
+          jellyfin: pulumi.interpolate`${jellyfinRecord.name}.${args.workstationDomain}`,
         },
       }),
       secret: pulumi.secret({}),

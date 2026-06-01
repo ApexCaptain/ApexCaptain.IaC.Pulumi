@@ -50,7 +50,15 @@
       "type": "runtime"
     },
     {
+      "name": "@pulumi/kubernetes",
+      "type": "runtime"
+    },
+    {
       "name": "@pulumi/pulumi",
+      "type": "runtime"
+    },
+    {
+      "name": "@pulumi/random",
       "type": "runtime"
     },
     {

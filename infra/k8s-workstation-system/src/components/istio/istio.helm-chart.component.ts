@@ -104,10 +104,11 @@ export const IstioHelmChartComponent = nexus.function.defineComponent(
       },
     );
 
+    const istioIngressGatewayLabel = 'ingressgateway';
     const istioIngressGatewayRelease = new kubernetes.helm.v3.Release(
       'istioIngressGatewayRelease',
       {
-        name: 'istio-ingressgateway',
+        name: `istio-${istioIngressGatewayLabel}`,
         chart: 'gateway',
         version: args.version,
         namespace: namespace.metadata.name,
@@ -131,7 +132,10 @@ export const IstioHelmChartComponent = nexus.function.defineComponent(
     );
 
     return {
-      output: pulumi.output({}),
+      output: pulumi.output({
+        namespace: namespace.metadata.name,
+        istioIngressGatewayLabel,
+      }),
       secret: pulumi.secret({}),
     };
   },

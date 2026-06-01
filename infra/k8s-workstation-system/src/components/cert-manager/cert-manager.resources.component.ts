@@ -42,12 +42,11 @@ export const CertManagerResourcesComponent = nexus.function.defineComponent(
       },
     );
 
+    const letsEncryptProdClusterIssuerName = 'lets-encrypt-prod';
     const letsEncryptProdClusterIssuer =
-      new kubernetes.apiextensions.CustomResource(
+      new nexus.crd.certManager.ClusterIssuerV1Crd(
         'letsEncryptProdClusterIssuer',
         {
-          apiVersion: 'cert-manager.io/v1',
-          kind: 'ClusterIssuer',
           metadata: {
             name: 'lets-encrypt-prod',
           },
@@ -79,12 +78,12 @@ export const CertManagerResourcesComponent = nexus.function.defineComponent(
           provider: args.providers.kubernetes,
         },
       );
+
+    const letsEncryptStagingClusterIssuerName = 'lets-encrypt-staging';
     const letsEncryptStagingClusterIssuer =
-      new kubernetes.apiextensions.CustomResource(
+      new nexus.crd.certManager.ClusterIssuerV1Crd(
         'letsEncryptStagingClusterIssuer',
         {
-          apiVersion: 'cert-manager.io/v1',
-          kind: 'ClusterIssuer',
           metadata: {
             name: 'lets-encrypt-staging',
           },
@@ -117,7 +116,10 @@ export const CertManagerResourcesComponent = nexus.function.defineComponent(
         },
       );
     return {
-      output: pulumi.output({}),
+      output: pulumi.output({
+        letsEncryptProdClusterIssuerName,
+        letsEncryptStagingClusterIssuerName,
+      }),
       secret: pulumi.secret({}),
     };
   },

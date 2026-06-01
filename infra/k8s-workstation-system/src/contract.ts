@@ -1,16 +1,12 @@
-import fs from 'fs';
-import path from 'path';
 import * as nexus from '@common/nexus';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
-import yaml from 'yaml';
 
 import * as components from './components';
 
 export const k8sWorkstationSystemContract = new nexus.classes.Contract(
-  yaml.parse(fs.readFileSync(path.join(__dirname, '../Pulumi.yaml'), 'utf8'))
-    .name,
+  __filename,
   async () => {
     // ESC
     const commonEsc = nexus.esc.commonEsc;
@@ -121,6 +117,108 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         kubernetes: workstationK8sProvider,
       },
     });
+
+    const istioGateway = new components.istio.IstioGatewayComponent(
+      'istioGateway',
+      {
+        namespace: istio.output.namespace,
+        apexCaptainCloudflareZoneName:
+          cloudflareProjectOutput.zones.ayteneve93com.domain,
+        letsEncryptProdClusterIssuerName:
+          certManagerResources.output.letsEncryptProdClusterIssuerName,
+        letsEncryptStagingClusterIssuerName:
+          certManagerResources.output.letsEncryptStagingClusterIssuerName,
+        istioIngressGatewayLabel: istio.output.istioIngressGatewayLabel,
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+      {
+        dependsOn: [metallbResources, certManagerResources, istio],
+      },
+    );
+
+    // Test
+    const testDeployment = new kubernetes.apps.v1.Deployment(
+      'testDeployment',
+      {
+        metadata: {
+          name: 'test',
+          namespace: 'default',
+        },
+        spec: {
+          replicas: 1,
+          selector: {
+            matchLabels: {
+              app: 'test',
+            },
+          },
+          template: {
+            metadata: {
+              labels: {
+                app: 'test',
+              },
+            },
+            spec: {
+              containers: [{ name: 'test', image: 'nginx:latest' }],
+            },
+          },
+        },
+      },
+      {
+        provider: workstationK8sProvider,
+      },
+    );
+
+    const testService = new kubernetes.core.v1.Service(
+      'testService',
+      {
+        metadata: {
+          name: 'test',
+          namespace: 'default',
+        },
+        spec: {
+          selector: {
+            app: 'test',
+          },
+          ports: [{ name: 'http', port: 80, targetPort: 80 }],
+        },
+      },
+      {
+        provider: workstationK8sProvider,
+      },
+    );
+
+    const testVirtualService = new nexus.crd.istio.VirtualServiceV1Crd(
+      'testVirtualService',
+      {
+        metadata: {
+          name: 'test',
+          namespace: 'default',
+        },
+        spec: {
+          hosts: [cloudflareProjectOutput.zones.ayteneve93com.records.jellyfin],
+          gateways: [istioGateway.output.istioIngressGatewayPath],
+          http: [
+            {
+              route: [
+                {
+                  destination: {
+                    host: testService.metadata.name,
+                    port: {
+                      number: 80,
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        provider: workstationK8sProvider,
+      },
+    );
 
     return {
       output: pulumi.output({
