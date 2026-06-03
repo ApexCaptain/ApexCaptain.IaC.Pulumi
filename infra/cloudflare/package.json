@@ -31,6 +31,7 @@
     "@common/utils": "workspace:*",
     "@pulumi/cloudflare": "^6.17.0",
     "@pulumi/pulumi": "^3.242.0",
+    "dedent": "^1.7.2",
     "lodash": "^4.18.1",
     "yaml": "^2.8.3"
   },

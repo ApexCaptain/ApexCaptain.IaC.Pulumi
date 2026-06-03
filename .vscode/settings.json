@@ -28,7 +28,7 @@
     "*.function.ts": "fortran",
     "*.type.ts": "toml",
     "*.esc.ts": "key",
-    "*.crd.ts": "kubernetes",
+    "*.res.ts": "scheme",
     "contract.ts": "bbx"
   },
   "material-icon-theme.folders.associations": {

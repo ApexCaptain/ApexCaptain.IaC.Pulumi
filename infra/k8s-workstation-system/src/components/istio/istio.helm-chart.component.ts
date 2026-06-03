@@ -1,4 +1,3 @@
-import * as nexus from '@common/nexus/src';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
@@ -14,6 +13,12 @@ interface IstioHelmChartComponentArgsShape {
     clusterName: string;
     network: string;
   };
+  additionalPorts: {
+    name: string;
+    port: number;
+    protocol: string;
+    description: string;
+  }[];
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -22,11 +27,12 @@ interface IstioHelmChartComponentArgsShape {
 export type IstioHelmChartComponentArgs =
   utils.types.DeepPulumiInput<IstioHelmChartComponentArgsShape>;
 
-export const IstioHelmChartComponent = nexus.function.defineComponent(
+export const IstioHelmChartComponent = utils.functions.defineComponent(
   'istioHelmChart',
   (
     args: IstioHelmChartComponentArgs,
     opts: pulumi.ComponentResourceOptions,
+    resourceName: string,
   ) => {
     const namespace = new kubernetes.core.v1.Namespace(
       'namespace',
@@ -48,7 +54,7 @@ export const IstioHelmChartComponent = nexus.function.defineComponent(
       'https://istio-release.storage.googleapis.com/charts';
 
     const istioBaseRelease = new kubernetes.helm.v3.Release(
-      'istioBaseRelease',
+      `${resourceName}-istioBaseRelease`,
       {
         name: 'istio-base',
         chart: 'base',
@@ -65,7 +71,7 @@ export const IstioHelmChartComponent = nexus.function.defineComponent(
     );
 
     const istiodRelease = new kubernetes.helm.v3.Release(
-      'istiodRelease',
+      `${resourceName}-istiodRelease`,
       {
         name: 'istiod',
         chart: 'istiod',
@@ -106,7 +112,7 @@ export const IstioHelmChartComponent = nexus.function.defineComponent(
 
     const istioIngressGatewayLabel = 'ingressgateway';
     const istioIngressGatewayRelease = new kubernetes.helm.v3.Release(
-      'istioIngressGatewayRelease',
+      `${resourceName}-istioIngressGatewayRelease`,
       {
         name: `istio-${istioIngressGatewayLabel}`,
         chart: 'gateway',
@@ -119,6 +125,36 @@ export const IstioHelmChartComponent = nexus.function.defineComponent(
         values: {
           service: {
             type: 'LoadBalancer',
+            ports: pulumi
+              .output(args.additionalPorts)
+              .apply(resolvedAdditionalPorts => [
+                {
+                  name: 'status-port',
+                  port: 15021,
+                  protocol: 'TCP',
+                  targetPort: 15021,
+                },
+                {
+                  name: 'http2',
+                  port: 80,
+                  protocol: 'TCP',
+                  targetPort: 80,
+                },
+                {
+                  name: 'https',
+                  port: 443,
+                  protocol: 'TCP',
+                  targetPort: 443,
+                },
+                ...resolvedAdditionalPorts.map(eachAdditionalPort => {
+                  return {
+                    name: utils.functions.kebabCase(eachAdditionalPort.name),
+                    port: eachAdditionalPort.port,
+                    protocol: eachAdditionalPort.protocol,
+                    targetPort: eachAdditionalPort.port,
+                  };
+                }),
+              ]),
             loadBalancerIP: args.ingressGatewayIp,
             externalIPs: [args.workstationIpV4Address],
           },

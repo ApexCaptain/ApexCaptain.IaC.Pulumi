@@ -1,4 +1,4 @@
-import * as nexus from '@common/nexus/src';
+import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
@@ -14,45 +14,48 @@ interface MetallbResourcesComponentArgsShape {
 export type MetallbResourcesComponentArgs =
   utils.types.DeepPulumiInput<MetallbResourcesComponentArgsShape>;
 
-export const MetallbResourcesComponent = nexus.function.defineComponent(
+export const MetallbResourcesComponent = utils.functions.defineComponent(
   'metallbResources',
   (
     args: MetallbResourcesComponentArgs,
     opts: pulumi.ComponentResourceOptions,
+    resourceName: string,
   ) => {
-    const ipAddressPool = new nexus.crd.metallb.IpAddressPoolV1Crd(
-      'ipAddressPool',
-      {
-        metadata: {
-          name: 'ip-address-pool',
-          namespace: args.namespace,
+    const ipAddressPool =
+      new customResources.resources.k8s.crd.metallb.IpAddressPoolV1(
+        `${resourceName}-ipAddressPool`,
+        {
+          metadata: {
+            name: 'ip-address-pool',
+            namespace: args.namespace,
+          },
+          spec: {
+            addresses: [args.ipRange],
+          },
         },
-        spec: {
-          addresses: [args.ipRange],
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
         },
-      },
-      {
-        ...opts,
-        provider: args.providers.kubernetes,
-      },
-    );
+      );
 
-    const l2Advertisement = new nexus.crd.metallb.L2AdvertisementV1Crd(
-      'l2Advertisement',
-      {
-        metadata: {
-          name: 'l2-advertisement',
-          namespace: args.namespace,
+    const l2Advertisement =
+      new customResources.resources.k8s.crd.metallb.L2AdvertisementV1(
+        `${resourceName}-l2Advertisement`,
+        {
+          metadata: {
+            name: 'l2-advertisement',
+            namespace: args.namespace,
+          },
+          spec: {
+            ipAddressPools: [ipAddressPool.metadata.name],
+          },
         },
-        spec: {
-          ipAddressPools: [ipAddressPool.metadata.name],
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
         },
-      },
-      {
-        ...opts,
-        provider: args.providers.kubernetes,
-      },
-    );
+      );
 
     return {
       output: pulumi.output({}),

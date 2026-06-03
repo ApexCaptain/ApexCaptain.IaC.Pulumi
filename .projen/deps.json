@@ -24,10 +24,6 @@
       "type": "build"
     },
     {
-      "name": "dedent",
-      "type": "build"
-    },
-    {
       "name": "eslint-config-prettier",
       "type": "build"
     },
@@ -78,6 +74,10 @@
     },
     {
       "name": "@pulumi/pulumi",
+      "type": "runtime"
+    },
+    {
+      "name": "dedent",
       "type": "runtime"
     },
     {

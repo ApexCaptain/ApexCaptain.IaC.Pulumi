@@ -1,4 +1,4 @@
-import * as nexus from '@common/nexus/src';
+import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
@@ -15,16 +15,17 @@ interface CertManagerResourcesComponentArgsShape {
 export type CertManagerResourcesComponentArgs =
   utils.types.DeepPulumiInput<CertManagerResourcesComponentArgsShape>;
 
-export const CertManagerResourcesComponent = nexus.function.defineComponent(
+export const CertManagerResourcesComponent = utils.functions.defineComponent(
   'certManagerResources',
   (
     args: CertManagerResourcesComponentArgs,
     opts: pulumi.ComponentResourceOptions,
+    resourceName: string,
   ) => {
     const cloudflareApiTokenKey = 'api-token';
 
     const cloudflareApiTokenSecret = new kubernetes.core.v1.Secret(
-      'cloudflareApiTokenSecret',
+      `${resourceName}-cloudflareApiTokenSecret`,
       {
         metadata: {
           name: 'cloudflare-api-token',
@@ -44,8 +45,8 @@ export const CertManagerResourcesComponent = nexus.function.defineComponent(
 
     const letsEncryptProdClusterIssuerName = 'lets-encrypt-prod';
     const letsEncryptProdClusterIssuer =
-      new nexus.crd.certManager.ClusterIssuerV1Crd(
-        'letsEncryptProdClusterIssuer',
+      new customResources.resources.k8s.crd.certManager.ClusterIssuerV1(
+        `${resourceName}-letsEncryptProdClusterIssuer`,
         {
           metadata: {
             name: 'lets-encrypt-prod',
@@ -81,8 +82,8 @@ export const CertManagerResourcesComponent = nexus.function.defineComponent(
 
     const letsEncryptStagingClusterIssuerName = 'lets-encrypt-staging';
     const letsEncryptStagingClusterIssuer =
-      new nexus.crd.certManager.ClusterIssuerV1Crd(
-        'letsEncryptStagingClusterIssuer',
+      new customResources.resources.k8s.crd.certManager.ClusterIssuerV1(
+        `${resourceName}-letsEncryptStagingClusterIssuer`,
         {
           metadata: {
             name: 'lets-encrypt-staging',

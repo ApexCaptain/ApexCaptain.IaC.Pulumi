@@ -37,12 +37,13 @@
       "type": "build"
     },
     {
-      "name": "@common/utils",
+      "name": "@common/custom-resources",
       "version": "workspace:*",
       "type": "runtime"
     },
     {
-      "name": "@pulumi/command",
+      "name": "@common/utils",
+      "version": "workspace:*",
       "type": "runtime"
     },
     {
@@ -50,15 +51,15 @@
       "type": "runtime"
     },
     {
-      "name": "@pulumi/kubernetes",
-      "type": "runtime"
-    },
-    {
       "name": "@pulumi/pulumi",
       "type": "runtime"
     },
     {
-      "name": "@pulumi/random",
+      "name": "@pulumi/std",
+      "type": "runtime"
+    },
+    {
+      "name": "dedent",
       "type": "runtime"
     },
     {

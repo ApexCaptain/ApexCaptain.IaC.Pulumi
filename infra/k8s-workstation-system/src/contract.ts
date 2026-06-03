@@ -1,8 +1,8 @@
+import * as customResources from '@common/custom-resources';
 import * as nexus from '@common/nexus';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
-
 import * as components from './components';
 
 export const k8sWorkstationSystemContract = new nexus.classes.Contract(
@@ -12,44 +12,47 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     const commonEsc = nexus.esc.commonEsc;
     const projectEsc = nexus.esc.k8sWorkstationSystemEsc;
 
-    // Pulumi Outputs
-    const cloudflareProjectOutput = cloudflareContract.fetchOutput();
-    const cloudflareProjectSecret = cloudflareContract.fetchSecret();
-
     // Kube Config
-    const kubeConfig = new nexus.components.KubeConfigComponent('kubeConfig', {
-      name: 'ws',
-      fileDirPath: projectEsc.esc.kubeConfig.fileDirPath,
-      clustser: {
-        certificateAuthorityData:
-          projectEsc.esc.kubeConfig.certificateAuthorityData,
-        server: projectEsc.esc.kubeConfig.server,
+    const kubeConfig = new customResources.resources.k8s.KubeConfigFileV1(
+      'kubeConfig',
+      {
+        name: 'ws',
+        clustser: {
+          certificateAuthorityData:
+            projectEsc.esc.kubeConfig.certificateAuthorityData,
+          server: projectEsc.esc.kubeConfig.server,
+        },
+        user: {
+          clientCertificateData:
+            projectEsc.esc.kubeConfig.clientCertificateData,
+          clientKeyData: projectEsc.esc.kubeConfig.clientKeyData,
+        },
       },
-      user: {
-        clientCertificateData: projectEsc.esc.kubeConfig.clientCertificateData,
-        clientKeyData: projectEsc.esc.kubeConfig.clientKeyData,
-      },
-    });
+    );
 
     // K8s Provider
     const workstationK8sProvider = new kubernetes.Provider(
       'workstationK8sProvider',
       {
-        kubeconfig: kubeConfig.output.kubeConfigFilePath,
+        kubeconfig: kubeConfig.filePath,
+      },
+      {
+        dependsOn: [kubeConfig],
       },
     );
 
     // Metrics Server
-    const metricsServer = new components.MetricsServerComponent(
-      'metricsServer',
-      {
-        namespace: 'metrics-server',
-        version: '3.13.0',
-        providers: {
-          kubernetes: workstationK8sProvider,
+    const metricsServer =
+      new components.metricsServer.MetricsServerHelmChartComponent(
+        'metricsServer',
+        {
+          namespace: 'metrics-server',
+          version: '3.13.0',
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
         },
-      },
-    );
+      );
 
     // Metallb
     const metallb = new components.metallb.MetallbHelmChartComponent(
@@ -76,16 +79,14 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     );
 
     // Cert Manager
-    const certManager = new components.certManager.CertManagerChartComponent(
-      'certManager',
-      {
+    const certManager =
+      new components.certManager.CertManagerHelmChartComponent('certManager', {
         namespace: 'cert-manager',
         version: 'v1.20.2',
         providers: {
           kubernetes: workstationK8sProvider,
         },
-      },
-    );
+      });
 
     const certManagerResources =
       new components.certManager.CertManagerResourcesComponent(
@@ -93,8 +94,8 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           namespace: certManager.output.namespace,
           cloudflareApiToken:
-            cloudflareProjectSecret.apexCaptainCloudflareApiToken,
-          cloudflareEmail: cloudflareProjectSecret.apexCaptainCloudflareEmail,
+            cloudflareContract.secret.apexCaptainCloudflareApiToken,
+          cloudflareEmail: cloudflareContract.secret.apexCaptainCloudflareEmail,
           providers: {
             kubernetes: workstationK8sProvider,
           },
@@ -103,6 +104,16 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       );
 
     // Istio
+
+    const additionalPorts = [
+      {
+        name: 'nfs-sftp',
+        port: projectEsc.esc.loadbalancer.metallb.additionalPort.nfsSftp,
+        protocol: 'TCP',
+        description: 'NFS SFTP Port',
+      },
+    ];
+
     const istio = new components.istio.IstioHelmChartComponent('istio', {
       namespace: 'istio-system',
       version: '1.30.0',
@@ -113,6 +124,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         clusterName: commonEsc.esc.istioNetwork.workstationClusterName,
         network: commonEsc.esc.istioNetwork.workstationClusterNetwork,
       },
+      additionalPorts,
       providers: {
         kubernetes: workstationK8sProvider,
       },
@@ -123,12 +135,13 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         namespace: istio.output.namespace,
         apexCaptainCloudflareZoneName:
-          cloudflareProjectOutput.zones.ayteneve93com.domain,
+          cloudflareContract.output.zones.ayteneve93com.domain,
         letsEncryptProdClusterIssuerName:
           certManagerResources.output.letsEncryptProdClusterIssuerName,
         letsEncryptStagingClusterIssuerName:
           certManagerResources.output.letsEncryptStagingClusterIssuerName,
         istioIngressGatewayLabel: istio.output.istioIngressGatewayLabel,
+        additionalPorts,
         providers: {
           kubernetes: workstationK8sProvider,
         },
@@ -138,91 +151,64 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
-    // Test
-    const testDeployment = new kubernetes.apps.v1.Deployment(
-      'testDeployment',
-      {
-        metadata: {
-          name: 'test',
-          namespace: 'default',
-        },
-        spec: {
-          replicas: 1,
-          selector: {
-            matchLabels: {
-              app: 'test',
+    // Local NFS Provisioner
+    const localNfsProvisionerBase =
+      new components.localNfsProvisioner.LocalNfsProvisionerBaseComponent(
+        'localNfsProvisionerBase',
+        {
+          namespace: 'local-nfs-provisioner',
+          nodes: {
+            node0: {
+              hostName: projectEsc.esc.nodes.node0.hostName,
             },
           },
-          template: {
-            metadata: {
-              labels: {
-                app: 'test',
-              },
-            },
-            spec: {
-              containers: [{ name: 'test', image: 'nginx:latest' }],
-            },
+          directGatewayPath: istioGateway.output.istioDirectGatewayPath,
+          hostPath: {
+            localPathHdd0: projectEsc.esc.nfs.localPathHdd0,
+            localPathSsd0: projectEsc.esc.nfs.localPathSsd0,
+            diskSizeHdd0: projectEsc.esc.nfs.diskSizeHdd0,
+            diskSizeSsd0: projectEsc.esc.nfs.diskSizeSsd0,
+          },
+          sftp: {
+            userName: projectEsc.esc.nfs.sftp.userName,
+            externalPort:
+              projectEsc.esc.loadbalancer.metallb.additionalPort.nfsSftp,
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
           },
         },
-      },
-      {
-        provider: workstationK8sProvider,
-      },
-    );
+        {
+          dependsOn: [istioGateway],
+        },
+      );
 
-    const testService = new kubernetes.core.v1.Service(
-      'testService',
-      {
-        metadata: {
-          name: 'test',
-          namespace: 'default',
-        },
-        spec: {
-          selector: {
-            app: 'test',
+    const localNfsProvisionerHelmChart =
+      new components.localNfsProvisioner.LocalNfsProvisionerHelmChartComponent(
+        'localNfsProvisionerHelmChart',
+        {
+          namespace: localNfsProvisionerBase.output.namespace,
+          version: '4.0.18',
+          nfsSharedServiceDirName:
+            localNfsProvisionerBase.output.nfsSharedServiceDirName,
+          internalNfsServerIp:
+            localNfsProvisionerBase.output.internalNfsServerIp,
+          providers: {
+            kubernetes: workstationK8sProvider,
           },
-          ports: [{ name: 'http', port: 80, targetPort: 80 }],
         },
-      },
-      {
-        provider: workstationK8sProvider,
-      },
-    );
-
-    const testVirtualService = new nexus.crd.istio.VirtualServiceV1Crd(
-      'testVirtualService',
-      {
-        metadata: {
-          name: 'test',
-          namespace: 'default',
+        {
+          dependsOn: [localNfsProvisionerBase],
         },
-        spec: {
-          hosts: [cloudflareProjectOutput.zones.ayteneve93com.records.jellyfin],
-          gateways: [istioGateway.output.istioIngressGatewayPath],
-          http: [
-            {
-              route: [
-                {
-                  destination: {
-                    host: testService.metadata.name,
-                    port: {
-                      number: 80,
-                    },
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      },
-      {
-        provider: workstationK8sProvider,
-      },
-    );
+      );
 
     return {
       output: pulumi.output({
-        kubeConfigFilePath: kubeConfig.output.kubeConfigFilePath,
+        kubeConfigFilePath: kubeConfig.filePath,
+        gatewayPaths: {
+          ingressGatewayPath: istioGateway.output.istioIngressGatewayPath,
+        },
+        storageClass: localNfsProvisionerHelmChart.output.storageClass,
       }),
       secret: pulumi.secret({}),
     };

@@ -1,4 +1,3 @@
-import * as nexus from '@common/nexus/src';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
@@ -14,14 +13,15 @@ interface MetallbHelmChartComponentArgsShape {
 export type MetallbHelmChartComponentArgs =
   utils.types.DeepPulumiInput<MetallbHelmChartComponentArgsShape>;
 
-export const MetallbHelmChartComponent = nexus.function.defineComponent(
+export const MetallbHelmChartComponent = utils.functions.defineComponent(
   'metallbHelmChart',
   (
     args: MetallbHelmChartComponentArgs,
     opts: pulumi.ComponentResourceOptions,
+    resourceName: string,
   ) => {
     const namespace = new kubernetes.core.v1.Namespace(
-      'namespace',
+      `${resourceName}-namespace`,
       {
         metadata: {
           name: args.namespace,
@@ -34,7 +34,7 @@ export const MetallbHelmChartComponent = nexus.function.defineComponent(
     );
 
     const metallbRelease = new kubernetes.helm.v3.Release(
-      'metallbRelease',
+      `${resourceName}-metallbRelease`,
       {
         name: 'metallb',
         chart: 'metallb',

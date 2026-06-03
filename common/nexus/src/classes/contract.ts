@@ -1,13 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import * as customResources from '@common/custom-resources';
 import * as pulumi from '@pulumi/pulumi';
-import * as random from '@pulumi/random';
+import * as std from '@pulumi/std';
 import _ from 'lodash';
 import yaml from 'yaml';
 
 export class Contract<Output_Type extends Object, Secret_Type extends Object> {
   private readonly projectName: string;
   private readonly stackReference: pulumi.StackReference;
+  private readonly contractHashDirPath: string;
+  private readonly isFromStackReference: boolean;
 
   readonly output!: pulumi.Output<Output_Type>;
   readonly secret!: pulumi.Output<Secret_Type>;
@@ -24,6 +27,7 @@ export class Contract<Output_Type extends Object, Secret_Type extends Object> {
         secret: pulumi.Output<Secret_Type>;
       }>,
   ) {
+    // Lazy Initialization
     let currentDirPath = fs.statSync(callerPath).isDirectory()
       ? callerPath
       : path.dirname(callerPath);
@@ -49,40 +53,45 @@ export class Contract<Output_Type extends Object, Secret_Type extends Object> {
             fs.existsSync(stackYamlFilePath) ? pulumi.getStack() : 'prod'
           }`,
         );
+        this.contractHashDirPath = path.join(
+          process.env.PULUMI_CONTRACT_HASH_DIR_PATH!!,
+          this.projectName,
+        );
         break;
       }
       currentDirPath = path.dirname(currentDirPath);
     }
+    this.isFromStackReference = pulumi.getProject() != this.projectName;
 
-    if (pulumi.getProject() == this.projectName) {
+    // Inflate Contract
+    if (this.isFromStackReference) {
+      this.output = this.stackReference.requireOutput(
+        'output',
+      ) as pulumi.Output<Output_Type>;
+      this.secret = this.stackReference.requireOutput(
+        'secret',
+      ) as pulumi.Output<Secret_Type>;
+    } else {
       const inflated = pulumi.output(Promise.resolve(this.inflate()));
       this.output = pulumi.unsecret(inflated.apply(result => result.output));
       this.secret = inflated.apply(result => result.secret);
 
-      const isOutputChnaged = new random.RandomString('isOutputChnaged', {
-        length: 32,
-        keepers: {
-          output: this.output.apply(output => JSON.stringify(output)),
-        },
+      new customResources.resources.local.TextFileV1('outputHashFile', {
+        fileDirPath: this.contractHashDirPath,
+        fileName: `${pulumi.getStack()}.output.hash`,
+        content: this.output.apply(
+          async output =>
+            (await std.md5({ input: JSON.stringify(output) })).result,
+        ),
       });
-      const isSecretChnaged = new random.RandomString('isSecretChnaged', {
-        length: 32,
-        keepers: {
-          secret: this.secret.apply(secret => JSON.stringify(secret)),
-        },
+      new customResources.resources.local.TextFileV1('secretHashFile', {
+        fileDirPath: this.contractHashDirPath,
+        fileName: `${pulumi.getStack()}.secret.hash`,
+        content: this.secret.apply(
+          async secret =>
+            (await std.md5({ input: JSON.stringify(secret) })).result,
+        ),
       });
     }
-  }
-
-  fetchOutput() {
-    return this.stackReference.requireOutput(
-      'output',
-    ) as pulumi.Output<Output_Type>;
-  }
-
-  fetchSecret() {
-    return this.stackReference.requireOutput(
-      'secret',
-    ) as pulumi.Output<Secret_Type>;
   }
 }

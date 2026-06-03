@@ -1,7 +1,6 @@
 import * as nexus from '@common/nexus';
 import * as cloudflare from '@pulumi/cloudflare';
 import * as pulumi from '@pulumi/pulumi';
-
 import * as components from './components';
 
 export const cloudflareContract = new nexus.classes.Contract(
@@ -31,6 +30,7 @@ export const cloudflareContract = new nexus.classes.Contract(
     const recordsWorkstation =
       new components.records.RecordsWorkstationComponent('recordsWorkstation', {
         zoneId: apexCaptainCloudflareZone.id,
+        zoneDomain: apexCaptainCloudflareZone.name,
         workstationDomain: commonEsc.esc.workstationIptimeDomain,
         providers: {
           cloudflare: apexCaptainCloudflareProvider,

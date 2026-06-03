@@ -1,4 +1,4 @@
-import * as nexus from '@common/nexus/src';
+import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
@@ -9,6 +9,12 @@ interface IstioGatewayComponentArgsShape {
   letsEncryptProdClusterIssuerName: string;
   letsEncryptStagingClusterIssuerName: string;
   istioIngressGatewayLabel: string;
+  additionalPorts: {
+    name: string;
+    port: number;
+    protocol: string;
+    description: string;
+  }[];
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -17,15 +23,19 @@ interface IstioGatewayComponentArgsShape {
 export type IstioGatewayComponentArgs =
   utils.types.DeepPulumiInput<IstioGatewayComponentArgsShape>;
 
-export const IstioGatewayComponent = nexus.function.defineComponent(
+export const IstioGatewayComponent = utils.functions.defineComponent(
   'istioGateway',
-  (args: IstioGatewayComponentArgs, opts: pulumi.ComponentResourceOptions) => {
+  (
+    args: IstioGatewayComponentArgs,
+    opts: pulumi.ComponentResourceOptions,
+    resourceName: string,
+  ) => {
     // Certificate
     const istioIngressGatewayWildcardProdCertSecretName =
       'istio-ingressgateway-wildcard-prod-cert';
     const istioIngressGatewayWildcardProdCertificate =
-      new nexus.crd.certManager.CertificateV1Crd(
-        'istioIngressGatewayProductionCertificate',
+      new customResources.resources.k8s.crd.certManager.CertificateV1(
+        `${resourceName}-istioIngressGatewayProductionCertificate`,
         {
           metadata: {
             name: 'istio-ingressgateway-production',
@@ -52,8 +62,8 @@ export const IstioGatewayComponent = nexus.function.defineComponent(
     const istioIngressGatewayWildcardStagingCertSecretName =
       'istio-ingressgateway-wildcard-staging-cert';
     const istioIngressGatewayWildcardStagingCert =
-      new nexus.crd.certManager.CertificateV1Crd(
-        'istioIngressGatewayStagingCertificate',
+      new customResources.resources.k8s.crd.certManager.CertificateV1(
+        `${resourceName}-istioIngressGatewayStagingCertificate`,
         {
           metadata: {
             name: 'istio-ingressgateway-staging',
@@ -80,53 +90,93 @@ export const IstioGatewayComponent = nexus.function.defineComponent(
     const istioIngressGatewayHosts = [
       pulumi.interpolate`*.${args.apexCaptainCloudflareZoneName}`,
     ];
-    const istioIngressGateway = new nexus.crd.istio.GatewayV1Crd(
-      'istioIngressGateway',
-      {
-        metadata: {
-          name: 'istio-ingressgateway',
-          namespace: args.namespace,
-        },
-        spec: {
-          selector: {
-            istio: args.istioIngressGatewayLabel,
+    const istioIngressGateway =
+      new customResources.resources.k8s.crd.istio.GatewayV1(
+        `${resourceName}-istioIngressGateway`,
+        {
+          metadata: {
+            name: 'istio-ingressgateway',
+            namespace: args.namespace,
           },
-          servers: [
-            {
-              port: {
-                number: 80,
-                name: 'http',
-                protocol: 'HTTP',
-              },
-              hosts: istioIngressGatewayHosts,
-              tls: {
-                httpsRedirect: true,
-              },
+          spec: {
+            selector: {
+              istio: args.istioIngressGatewayLabel,
             },
-            {
-              port: {
-                number: 443,
-                name: 'https',
-                protocol: 'HTTPS',
+            servers: [
+              {
+                port: {
+                  number: 80,
+                  name: 'http',
+                  protocol: 'HTTP',
+                },
+                hosts: istioIngressGatewayHosts,
+                tls: {
+                  httpsRedirect: true,
+                },
               },
-              hosts: istioIngressGatewayHosts,
-              tls: {
-                mode: 'SIMPLE',
-                credentialName: istioIngressGatewayWildcardProdCertSecretName,
+              {
+                port: {
+                  number: 443,
+                  name: 'https',
+                  protocol: 'HTTPS',
+                },
+                hosts: istioIngressGatewayHosts,
+                tls: {
+                  mode: 'SIMPLE',
+                  credentialName: istioIngressGatewayWildcardProdCertSecretName,
+                },
               },
-            },
-          ],
+            ],
+          },
         },
-      },
-      {
-        ...opts,
-        provider: args.providers.kubernetes,
-      },
-    );
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
     const istioIngressGatewayPath = pulumi.interpolate`${args.namespace}/${istioIngressGateway.metadata.name}`;
 
+    // Direct Gateway
+    const istioDirectGateway =
+      new customResources.resources.k8s.crd.istio.GatewayV1(
+        `${resourceName}-istioDirectGateway`,
+        {
+          metadata: {
+            name: 'istio-directgateway',
+            namespace: args.namespace,
+          },
+          spec: {
+            selector: {
+              istio: args.istioIngressGatewayLabel,
+            },
+            servers: pulumi
+              .output(args.additionalPorts)
+              .apply(resolvedAdditionalPorts => {
+                return resolvedAdditionalPorts.map(eachAdditionalPort => {
+                  return {
+                    port: {
+                      number: eachAdditionalPort.port,
+                      name: utils.functions.kebabCase(eachAdditionalPort.name),
+                      protocol: eachAdditionalPort.protocol,
+                    },
+                    hosts: ['*'],
+                  };
+                });
+              }),
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
+    const istioDirectGatewayPath = pulumi.interpolate`${args.namespace}/${istioDirectGateway.metadata.name}`;
+
     return {
-      output: pulumi.output({ istioIngressGatewayPath }),
+      output: pulumi.output({
+        istioIngressGatewayPath,
+        istioDirectGatewayPath,
+      }),
       secret: pulumi.secret({}),
     };
   },

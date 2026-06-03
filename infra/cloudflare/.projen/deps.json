@@ -55,6 +55,10 @@
       "type": "runtime"
     },
     {
+      "name": "dedent",
+      "type": "runtime"
+    },
+    {
       "name": "lodash",
       "type": "runtime"
     },
