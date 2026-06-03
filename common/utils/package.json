@@ -29,11 +29,13 @@
     "@pulumi/pulumi": "^3.242.0",
     "axios": "^1.15.2",
     "chalk": "^4.1.2",
+    "dedent": "^1.7.2",
     "flat": "^6.0.1",
     "flatley": "^5.2.0",
     "lodash": "^4.18.1",
     "semver": "^7.8.0",
-    "yaml": "^2.8.3"
+    "yaml": "^2.8.3",
+    "zod": "^4.4.3"
   },
   "devEngines": {
     "packageManager": {

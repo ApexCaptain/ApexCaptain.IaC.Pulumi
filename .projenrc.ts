@@ -1,3 +1,4 @@
+import dns from 'dns/promises';
 import path from 'node:path';
 import * as pulumiEscSdk from '@pulumi/esc-sdk';
 import { LocalWorkspace } from '@pulumi/pulumi/automation';
@@ -73,6 +74,17 @@ const constants = (() => {
     },
   };
 
+  const pulumiPackages = {
+    pulumi: '@pulumi/pulumi',
+    kubernetes: '@pulumi/kubernetes',
+    command: '@pulumi/command',
+    cloudflare: '@pulumi/cloudflare',
+    tls: '@pulumi/tls',
+    escSdk: '@pulumi/esc-sdk',
+    std: '@pulumi/std',
+    random: '@pulumi/random',
+  };
+
   return {
     project,
     author,
@@ -81,6 +93,7 @@ const constants = (() => {
     projenCredentials,
     isDevContainer,
     bridgedProviders,
+    pulumiPackages,
   };
 })();
 
@@ -94,7 +107,7 @@ const sharedProjectOption: Partial<TypeScriptProjectOptions> = {
       noUnusedParameters: false,
     },
   },
-  deps: ['@pulumi/pulumi', 'lodash', 'yaml'],
+  deps: [constants.pulumiPackages.pulumi, 'lodash', 'yaml', 'dedent'],
   packageManager: javascript.NodePackageManager.PNPM,
   jest: false,
   depsUpgrade: true,
@@ -178,8 +191,8 @@ const rootProject = new typescript.TypeScriptProject(
         `/${constants.paths.dirs.kubeConfigDir}`,
         `/${constants.paths.dirs.pnpmStoreDir}`,
       ],
-      deps: ['@pulumi/esc-sdk'],
-      devDeps: ['lodash', '@types/lodash', 'dedent', 'turbo'],
+      deps: [constants.pulumiPackages.escSdk],
+      devDeps: ['lodash', '@types/lodash', 'turbo'],
     },
     utils.functions.mergeCustomizer,
   ),
@@ -241,13 +254,56 @@ const inflateCommonProject = (option: {
 
 const inflatePulumiProject = (option: {
   projectName: string;
+  stages: utils.enums.StackStage[];
   description?: string;
   commonDeps?: string[];
+  infraDeps?: string[];
   deps?: string[];
   devDeps?: string[];
-  esc?: [Nexus.abstract.AbstractEsc<any>];
+  esc?: Nexus.abstract.AbstractEsc<any>[];
   bridgedProviders?: utils.classes.BridgedProvider[];
 }) => {
+  if (!option.stages.includes(utils.enums.StackStage.PROD)) {
+    throw new Error(
+      `${option.projectName} must include ${utils.enums.StackStage.PROD} stage`,
+    );
+  }
+
+  if (
+    option.infraDeps &&
+    option.infraDeps.some(each => !each.startsWith('@infra/'))
+  ) {
+    throw new Error(`${option.projectName} infraDeps must start with @infra/`);
+  }
+  if (
+    option.commonDeps &&
+    option.commonDeps.some(each => !each.startsWith('@common/'))
+  ) {
+    throw new Error(
+      `${option.projectName} commonDeps must start with @common/`,
+    );
+  }
+  if (
+    option.deps &&
+    option.deps.some(
+      each => each.startsWith('@common/') || each.startsWith('@infra/'),
+    )
+  ) {
+    throw new Error(
+      `${option.projectName} deps must not start with @common/ or @infra/`,
+    );
+  }
+  if (
+    option.devDeps &&
+    option.devDeps.some(
+      each => each.startsWith('@common/') || each.startsWith('@infra/'),
+    )
+  ) {
+    throw new Error(
+      `${option.projectName} devDeps must not start with @common/ or @infra/`,
+    );
+  }
+
   const outdir = path.join(constants.paths.dirs.infraDir, option.projectName);
   const name = utils.functions.kebabCase(option.projectName);
   const project = new typescript.TypeScriptProject(
@@ -261,6 +317,10 @@ const inflatePulumiProject = (option: {
         outdir,
         deps: [
           ...(option.deps ?? []),
+
+          ...(option.infraDeps ?? []).map(
+            eachInfraDep => `${eachInfraDep}@workspace:*`,
+          ),
 
           ...(option.commonDeps ?? []).map(
             eachCommonDep => `${eachCommonDep}@workspace:*`,
@@ -297,21 +357,19 @@ const inflatePulumiProject = (option: {
     editGitignore: false,
   });
 
-  const stageStacksPulumiYamlFiles = Object.values(utils.enums.StackStage).map(
-    eachStage => {
-      return new YamlFile(project, `Pulumi.${eachStage}.yaml`, {
-        obj: {
-          environment: option.esc?.map(eachEsc =>
-            eachEsc.getEscNameWithStage(eachStage),
-          ),
-        },
-        editGitignore: false,
-      });
-    },
-  );
+  const stageStacksPulumiYamlFiles = option.stages.map(eachStage => {
+    return new YamlFile(project, `Pulumi.${eachStage}.yaml`, {
+      obj: {
+        environment: option.esc?.map(eachEsc =>
+          eachEsc.getEscNameWithStage(eachStage),
+        ),
+      },
+      editGitignore: false,
+    });
+  });
 
   project.postSynthesize = async () => {
-    for (const eachStackStage of Object.values(utils.enums.StackStage)) {
+    for (const eachStackStage of option.stages) {
       await LocalWorkspace.createOrSelectStack({
         stackName: eachStackStage,
         workDir: outdir,
@@ -321,16 +379,10 @@ const inflatePulumiProject = (option: {
 
   project.addScripts({
     'pulumi:preview': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
-    // 'pulumi:up': `pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
-    'pulumi:up': `pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} --expect-no-changes --yes || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
+    'pulumi:up': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} --expect-no-changes || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
   });
 
-  const infraDeps = [
-    ...(option.commonDeps ?? []),
-    ...(option.deps ?? []),
-  ].filter(eachDep => eachDep.startsWith('@infra/'));
-
-  if (infraDeps.length > 0) {
+  if (option.infraDeps && option.infraDeps.length > 0) {
     new JsonFile(project, 'turbo.json', {
       obj: {
         $schema: 'https://turbo.build/schema.json',
@@ -340,7 +392,7 @@ const inflatePulumiProject = (option: {
             dependsOn: [
               '^build',
               'build',
-              ...infraDeps.map(
+              ...option.infraDeps.map(
                 eachInfraDep => `${eachInfraDep}#pulumi:preview`,
               ),
             ],
@@ -349,7 +401,9 @@ const inflatePulumiProject = (option: {
             dependsOn: [
               '^build',
               'build',
-              ...infraDeps.map(eachInfraDep => `${eachInfraDep}#pulumi:up`),
+              ...option.infraDeps.map(
+                eachInfraDep => `${eachInfraDep}#pulumi:up`,
+              ),
             ],
             interactive: true,
           },
@@ -370,18 +424,46 @@ const initPulumiEsc = async () => {
     return;
   }
   const accountName = process.env.PULUMI_APEX_CAPTAIN_ACCOUNT_NAME!!;
+
+  const workstationIpV4Address = (
+    await dns.lookup(process.env.WORKSTATION_DOMAIN_IPTIME!!)
+  ).address;
+
   const pulumiEscClient = new pulumiEscSdk.EscApi(
     new pulumiEscSdk.Configuration({
       accessToken: process.env.PULUMI_ACCESS_TOKEN!!,
     }),
   );
 
+  await Nexus.esc.commonEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      workstationIptimeDomain: process.env.WORKSTATION_DOMAIN_IPTIME,
+      workstationIpV4Address,
+      istioNetwork: {
+        meshId: process.env.ISTIO_MESH_ID,
+        workstationClusterName: process.env.ISTIO_WORKSTATION_CLUSTER_NAME,
+        workstationClusterNetwork:
+          process.env.ISTIO_WORKSTATION_CLUSTER_NETWORK,
+      },
+    },
+    {
+      prod: {},
+      dev: {},
+    },
+  );
+
   await Nexus.esc.k8sWorkstationSystemEsc.upsertEsc(
     accountName,
     pulumiEscClient,
     {
+      nodes: {
+        node0: {
+          hostName: process.env.WORKSTATION_NODE0_NAME,
+        },
+      },
       kubeConfig: {
-        fileDirPath: process.env.KUBE_CONFIG_DIR_PATH,
         certificateAuthorityData:
           process.env.WORKSTATION_K8S_KUBECONFIG_CERTIFICATE_AUTHORITY_DATA,
         clientCertificateData:
@@ -389,7 +471,55 @@ const initPulumiEsc = async () => {
         clientKeyData: process.env.WORKSTATION_K8S_KUBECONFIG_CLIENT_KEY_DATA,
         server: process.env.WORKSTATION_K8S_KUBECONFIG_SERVER,
       },
+      loadbalancer: {
+        metallb: {
+          ipRange: process.env.WORKSTATION_METALLB_LOADBALANCER_IP_RANGE,
+          ingressGatewayIp: process.env.WORKSTATION_METALLB_INGRESS_GATEWAY_IP,
+          additionalPort: {
+            nfsSftp: parseInt(
+              process.env.WORKSTATION_METALLB_ADDITIONAL_PORT_NFS_SFTP!!,
+            ),
+          },
+        },
+      },
+      nfs: {
+        localPathHdd0: process.env.WORKSTATION_NFS_LOCAL_PATH_HDD0,
+        localPathSsd0: process.env.WORKSTATION_NFS_LOCAL_PATH_SSD0,
+        diskSizeHdd0: process.env.WORKSTATION_NFS_DISK_SIZE_HDD0,
+        diskSizeSsd0: process.env.WORKSTATION_NFS_DISK_SIZE_SSD0,
+        sftp: {
+          userName: process.env.WORKSTATION_NFS_SFTP_USER_NAME,
+        },
+      },
     },
+    {
+      prod: {},
+      dev: {},
+    },
+  );
+
+  await Nexus.esc.cloudflareEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      apiToken: process.env.CLOUDFLARE_APEX_CAPTAIN_API_TOKEN,
+      email: process.env.CLOUDFLARE_APEX_CAPTAIN_EMAIL,
+      zones: {
+        ayteneve93com: {
+          id: process.env.CLOUDFLARE_APEX_CAPTAIN_AYTENEVE93_COM_ZONE_ID,
+        },
+      },
+    },
+    {
+      prod: {},
+      dev: {},
+    },
+  );
+
+  await Nexus.esc.k8sWorkstationAppsEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {},
     {
       prod: {},
       dev: {},
@@ -402,20 +532,35 @@ void (async () => {
   const commonProjects = (() => {
     const utilsProject = inflateCommonProject({
       projectName: 'utils',
-      deps: ['flatley', 'flat', 'axios', 'semver', 'chalk'],
+      deps: ['flatley', 'flat', 'axios', 'semver', 'chalk', 'zod'],
       devDeps: ['@types/semver'],
     });
-    const nexusProject = inflateCommonProject({
-      projectName: 'nexus',
+
+    const customResourcesProject = inflateCommonProject({
+      projectName: 'custom-resources',
       commonDeps: [utilsProject.project.package.packageName],
-      deps: ['@pulumi/esc-sdk', '@pulumi/command', 'zod'],
-      bridgedProviders: [],
+      deps: [
+        constants.pulumiPackages.kubernetes,
+        constants.pulumiPackages.command,
+        constants.pulumiPackages.tls,
+        constants.pulumiPackages.random,
+      ],
     });
 
-    return {
-      utils: utilsProject,
-      nexus: nexusProject,
-    };
+    const nexusProject = inflateCommonProject({
+      projectName: 'nexus',
+      commonDeps: [
+        utilsProject.project.package.packageName,
+        customResourcesProject.project.package.packageName,
+      ],
+      deps: [
+        constants.pulumiPackages.escSdk,
+        constants.pulumiPackages.std,
+        'zod',
+      ],
+    });
+
+    return { utilsProject, customResourcesProject, nexusProject };
   })();
 
   // Init Pulumi ESC
@@ -423,16 +568,62 @@ void (async () => {
 
   // Pulumi Projects
   const pulumiProjects = (() => {
+    const cloudflareProject = inflatePulumiProject({
+      projectName: 'cloudflare',
+      stages: [utils.enums.StackStage.PROD],
+      deps: [constants.pulumiPackages.cloudflare],
+      commonDeps: [
+        commonProjects.utilsProject.project.package.packageName,
+        commonProjects.nexusProject.project.package.packageName,
+      ],
+      esc: [Nexus.esc.commonEsc, Nexus.esc.cloudflareEsc],
+    });
+
     const k8sWorkstationSystemProject = inflatePulumiProject({
       projectName: 'k8s-workstation-system',
-      deps: ['@pulumi/kubernetes'],
-      commonDeps: [commonProjects.nexus.project.package.packageName],
-      esc: [Nexus.esc.k8sWorkstationSystemEsc],
-      bridgedProviders: [],
+      stages: [utils.enums.StackStage.PROD],
+      deps: [constants.pulumiPackages.kubernetes],
+      commonDeps: [
+        commonProjects.utilsProject.project.package.packageName,
+        commonProjects.customResourcesProject.project.package.packageName,
+        commonProjects.nexusProject.project.package.packageName,
+      ],
+      infraDeps: [cloudflareProject.project.package.packageName],
+      esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationSystemEsc],
+    });
+
+    const k8sWorkstationToolsProject = inflatePulumiProject({
+      projectName: 'k8s-workstation-tools',
+      stages: [utils.enums.StackStage.PROD],
+      deps: [constants.pulumiPackages.kubernetes],
+      commonDeps: [
+        commonProjects.utilsProject.project.package.packageName,
+        commonProjects.nexusProject.project.package.packageName,
+      ],
+      infraDeps: [k8sWorkstationSystemProject.project.package.packageName],
+    });
+
+    const k8sWorkstationAppsProject = inflatePulumiProject({
+      projectName: 'k8s-workstation-apps',
+      stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
+      deps: [constants.pulumiPackages.kubernetes],
+      commonDeps: [
+        commonProjects.utilsProject.project.package.packageName,
+        commonProjects.customResourcesProject.project.package.packageName,
+        commonProjects.nexusProject.project.package.packageName,
+      ],
+      infraDeps: [
+        cloudflareProject.project.package.packageName,
+        k8sWorkstationSystemProject.project.package.packageName,
+      ],
+      esc: [Nexus.esc.k8sWorkstationAppsEsc],
     });
 
     return {
-      k8sWorkstationSystem: k8sWorkstationSystemProject,
+      cloudflareProject,
+      k8sWorkstationSystemProject,
+      k8sWorkstationToolsProject,
+      k8sWorkstationAppsProject,
     };
   })();
 
@@ -506,6 +697,11 @@ void (async () => {
   new VsCode(rootProject).settings.addSettings(
     utils.functions.flatley(
       {
+        files: {
+          associations: new utils.classes.VsCodeObject({
+            '.ToDo': 'markdown',
+          }),
+        },
         todohighlight: {
           toggleURI: true,
           isCaseSensitive: false,
@@ -527,11 +723,13 @@ void (async () => {
               '*.function.ts': 'fortran',
               '*.type.ts': 'toml',
               '*.esc.ts': 'key',
+              '*.res.ts': 'scheme',
               'contract.ts': 'bbx',
             }),
           },
           folders: {
             associations: new utils.classes.VsCodeObject({
+              crd: 'kubernetes',
               abstract: 'class',
               '.kube': 'kubernetes',
               workstation: 'home',

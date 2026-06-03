@@ -21,7 +21,7 @@
     "pulumi:preview": "turbo run pulumi:preview --filter \"./infra/*\"",
     "pulumi:up": "turbo run pulumi:up --filter \"./infra/*\" --ui=tui",
     "postpulumi:up": "ts-node scripts/merge-kube-config.script.ts",
-    "pulumi:install": "pulumi install --cwd ./common/utils && pulumi install --cwd ./common/nexus && pulumi install --cwd ./infra/k8s-workstation-system",
+    "pulumi:install": "pulumi install --cwd ./common/utils && pulumi install --cwd ./common/custom-resources && pulumi install --cwd ./common/nexus && pulumi install --cwd ./infra/cloudflare && pulumi install --cwd ./infra/k8s-workstation-system && pulumi install --cwd ./infra/k8s-workstation-tools && pulumi install --cwd ./infra/k8s-workstation-apps",
     "postprojen": "pnpm build",
     "postbuild": "turbo run build --filter \"./common/*\" --filter \"./infra/*\"",
     "postupgrade": "turbo run upgrade --filter \"./common/*\" --filter \"./infra/*\" --concurrency=1"
@@ -37,7 +37,6 @@
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
     "constructs": "^10.0.0",
-    "dedent": "^1.7.2",
     "eslint": "^9",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
@@ -53,6 +52,7 @@
   "dependencies": {
     "@pulumi/esc-sdk": "^0.13.1",
     "@pulumi/pulumi": "^3.242.0",
+    "dedent": "^1.7.2",
     "lodash": "^4.18.1",
     "yaml": "^2.8.3"
   },

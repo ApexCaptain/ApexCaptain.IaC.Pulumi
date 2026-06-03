@@ -37,7 +37,22 @@
       "type": "build"
     },
     {
+      "name": "@common/custom-resources",
+      "version": "workspace:*",
+      "type": "runtime"
+    },
+    {
       "name": "@common/nexus",
+      "version": "workspace:*",
+      "type": "runtime"
+    },
+    {
+      "name": "@common/utils",
+      "version": "workspace:*",
+      "type": "runtime"
+    },
+    {
+      "name": "@infra/cloudflare",
       "version": "workspace:*",
       "type": "runtime"
     },
@@ -47,6 +62,10 @@
     },
     {
       "name": "@pulumi/pulumi",
+      "type": "runtime"
+    },
+    {
+      "name": "dedent",
       "type": "runtime"
     },
     {

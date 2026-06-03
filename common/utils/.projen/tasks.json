@@ -113,13 +113,13 @@
       },
       "steps": [
         {
-          "exec": "pnpm dlx npm-check-updates@20 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/node,@types/semver,eslint-import-resolver-typescript,eslint-plugin-import,typescript,@pulumi/pulumi,axios,chalk,flat,flatley,lodash,semver,yaml"
+          "exec": "pnpm dlx npm-check-updates@20 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/node,@types/semver,eslint-import-resolver-typescript,eslint-plugin-import,typescript,@pulumi/pulumi,axios,chalk,dedent,flat,flatley,lodash,semver,yaml,zod"
         },
         {
           "exec": "pnpm i --no-frozen-lockfile"
         },
         {
-          "exec": "pnpm update @stylistic/eslint-plugin @types/node @types/semver @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-import-resolver-typescript eslint-plugin-import eslint typescript @pulumi/pulumi axios chalk flat flatley lodash semver yaml"
+          "exec": "pnpm update @stylistic/eslint-plugin @types/node @types/semver @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-import-resolver-typescript eslint-plugin-import eslint typescript @pulumi/pulumi axios chalk dedent flat flatley lodash semver yaml zod"
         },
         {
           "exec": "pnpm exec projen"

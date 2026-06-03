@@ -18,7 +18,7 @@ type ComponentConstructor<
   secret: pulumi.Output<Secret_Type>;
 };
 
-abstract class AbstractComponent<
+export abstract class AbstractComponent<
   Args_Type extends pulumi.Inputs,
   Output_Type extends object = object,
   Secret_Type extends object = object,
@@ -32,20 +32,33 @@ abstract class AbstractComponent<
     name: string,
     args: Args_Type,
     inflate: (
+      this: AbstractComponent<Args_Type, Output_Type, Secret_Type>,
       args: Args_Type,
       opts: pulumi.ComponentResourceOptions,
-    ) => InflateResult<Output_Type, Secret_Type>,
+      resourceName: string,
+    ) =>
+      | Promise<InflateResult<Output_Type, Secret_Type>>
+      | InflateResult<Output_Type, Secret_Type>,
     opts?: pulumi.ComponentResourceOptions,
   ) {
-    super(`Nexus:Component:${type}`, name, args, opts);
+    super(`Component:${type}`, name, args, opts);
 
-    const { output, secret } = inflate(args, {
-      parent: this,
-      ...opts,
-    });
+    const inflated = pulumi.output(
+      Promise.resolve(
+        inflate.call(
+          this,
+          args,
+          {
+            ...opts,
+            parent: this,
+          },
+          name,
+        ),
+      ),
+    );
 
-    this.output = output;
-    this.secret = secret;
+    this.output = inflated.apply(result => result.output);
+    this.secret = inflated.apply(result => result.secret);
 
     this.registerOutputs({
       output: this.output,
@@ -61,9 +74,13 @@ export function defineComponent<
 >(
   type: string,
   inflate: (
+    this: AbstractComponent<Args_Type, Output_Type, Secret_Type>,
     args: Args_Type,
     opts: pulumi.ComponentResourceOptions,
-  ) => InflateResult<Output_Type, Secret_Type>,
+    resourceName: string,
+  ) =>
+    | Promise<InflateResult<Output_Type, Secret_Type>>
+    | InflateResult<Output_Type, Secret_Type>,
 ) {
   class DefinedComponent extends AbstractComponent<
     Args_Type,

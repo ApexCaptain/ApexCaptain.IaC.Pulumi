@@ -1,12 +1,10 @@
 import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
 import yaml from 'yaml';
-import { defineComponent } from '../function';
-import { TextFileComponent } from './text-file.component';
+import { TextFileV1 } from '../local/textFile.v1.res';
 
-interface KubeConfigArgsShape {
+interface KubeConfigFileV1ArgsShape {
   name: string;
-  fileDirPath: string;
   clustser: {
     certificateAuthorityData: string;
     server: string;
@@ -28,15 +26,18 @@ interface KubeConfigArgsShape {
   };
 }
 
-export type KubeConfigComponentArgs =
-  utils.types.DeepPulumiInput<KubeConfigArgsShape>;
+export type KubeConfigFileV1Args =
+  utils.types.DeepPulumiInput<KubeConfigFileV1ArgsShape>;
 
 const toKubeConfigBase64 = (data: string) =>
   Buffer.from(data.replace(/\\n/g, '\n'), 'utf8').toString('base64');
 
-export const KubeConfigComponent = defineComponent(
-  'kubeConfig',
-  (args: KubeConfigComponentArgs, opts: pulumi.ComponentResourceOptions) => {
+export class KubeConfigFileV1 extends TextFileV1 {
+  constructor(
+    name: string,
+    args: KubeConfigFileV1Args,
+    opts?: pulumi.CustomResourceOptions,
+  ) {
     const kubeConfigContent = pulumi.output(args).apply(resolvedArgs => {
       const clusterName = resolvedArgs.name;
       const contextName = clusterName;
@@ -87,24 +88,14 @@ export const KubeConfigComponent = defineComponent(
       return yaml.stringify(kubeConfig);
     });
 
-    const kubeConfigFile = new TextFileComponent(
-      'kubeConfigFile',
+    super(
+      name,
       {
         fileName: `${args.name}.yaml`,
-        fileDirPath: args.fileDirPath,
+        fileDirPath: process.env.PULUMI_GENERATED_KUBECONFIG_DIR_PATH!!,
         content: kubeConfigContent,
       },
-      {
-        ...opts,
-      },
+      opts,
     );
-
-    return {
-      output: pulumi.output({
-        kubeConfigFilePath: kubeConfigFile.output.filePath,
-        kubeConfigFileHash: kubeConfigFile.output.fileHash,
-      }),
-      secret: pulumi.secret({}),
-    };
-  },
-);
+  }
+}
