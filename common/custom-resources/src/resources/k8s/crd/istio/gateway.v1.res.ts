@@ -74,8 +74,7 @@ export class GatewayV1 extends kubernetes.apiextensions.CustomResource {
       {
         apiVersion: 'networking.istio.io/v1beta1',
         kind: 'Gateway',
-        metadata: args.metadata,
-        spec: args.spec,
+        ...args,
       },
       opts,
     );

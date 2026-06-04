@@ -53,7 +53,7 @@ export const PrivateKeyV1Component = utils.functions.defineComponent(
           process.env.PULUMI_CONTRACT_KEYS_DIR_PATH!!,
           pulumi.getProject(),
           pulumi.getStack(),
-          resolvedParentUrn.split('::')[2],
+          resolvedParentUrn.split('::')[2].split(':').join('_'),
         );
       });
 
@@ -84,9 +84,10 @@ export const PrivateKeyV1Component = utils.functions.defineComponent(
         keyFilePath: privateKeyFile.apply(
           resolvedPrivateKeyFile => resolvedPrivateKeyFile?.filePath,
         ),
+      }),
+      secret: pulumi.secret({
         publicKeyOpenSsh: privateKey.publicKeyOpenssh,
       }),
-      secret: pulumi.secret({}),
     };
   },
 );

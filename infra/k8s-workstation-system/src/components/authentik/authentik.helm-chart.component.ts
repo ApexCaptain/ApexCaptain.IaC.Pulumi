@@ -1,0 +1,423 @@
+import * as utils from '@common/utils/src';
+import * as kubernetes from '@pulumi/kubernetes';
+import * as pulumi from '@pulumi/pulumi';
+
+interface AuthentikHelmChartComponentArgsShape {
+  namespace: string;
+  helm: {
+    authentik: {
+      version: string;
+    };
+  };
+  secretKey: string;
+  host: string;
+  secrets: {
+    bootstrap: {
+      token: string;
+      email: string;
+      password: string;
+    };
+    postgresqlPassword: string;
+    redisPassword: string;
+  };
+  pvc: {
+    postgresql: {
+      storageClass: string;
+      size: string;
+    };
+    redis: {
+      storageClass: string;
+      size: string;
+    };
+  };
+  providers: {
+    kubernetes: kubernetes.Provider;
+  };
+}
+
+export type AuthentikHelmChartComponentArgs =
+  utils.types.DeepPulumiInput<AuthentikHelmChartComponentArgsShape>;
+
+export const AuthentikHelmChartComponent = utils.functions.defineComponent(
+  'authentikHelmChart',
+  (
+    args: AuthentikHelmChartComponentArgs,
+    opts: pulumi.ComponentResourceOptions,
+    resourceName: string,
+  ) => {
+    const namespace = new kubernetes.core.v1.Namespace(
+      `${resourceName}-namespace`,
+      {
+        metadata: {
+          name: args.namespace,
+          labels: {
+            'istio-injection': 'enabled',
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
+    // Secrets
+    const authentikBootstrapTokenSecret = new kubernetes.core.v1.Secret(
+      `${resourceName}-authentikBootstrapTokenSecret`,
+      {
+        metadata: {
+          name: 'authentik-bootstrap-token',
+          namespace: namespace.metadata.name,
+        },
+        stringData: {
+          AUTHENTIK_BOOTSTRAP_EMAIL: args.secrets.bootstrap.email,
+          AUTHENTIK_BOOTSTRAP_TOKEN: args.secrets.bootstrap.token,
+          AUTHENTIK_BOOTSTRAP_PASSWORD: args.secrets.bootstrap.password,
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
+    const authentikPostgresqlPasswordSecretKey =
+      'AUTHENTIK_POSTGRESQL_PASSWORD';
+    const authentikPostgresqlPasswordSecret = new kubernetes.core.v1.Secret(
+      `${resourceName}-authentikPostgresqlPasswordSecret`,
+      {
+        metadata: {
+          name: 'authentik-postgresql-password',
+          namespace: namespace.metadata.name,
+        },
+        stringData: {
+          [authentikPostgresqlPasswordSecretKey]:
+            args.secrets.postgresqlPassword,
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
+    const authentikRedisPasswordSecretKey = 'AUTHENTIK_REDIS_PASSWORD';
+    const authentikRedisPasswordSecret = new kubernetes.core.v1.Secret(
+      `${resourceName}-authentikRedisPasswordSecret`,
+      {
+        metadata: {
+          name: 'authentik-redis-password',
+          namespace: namespace.metadata.name,
+        },
+        stringData: {
+          [authentikRedisPasswordSecretKey]: args.secrets.redisPassword,
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
+    // PVCs
+    const postgresqlPvc = new kubernetes.core.v1.PersistentVolumeClaim(
+      `${resourceName}-postgresqlPvc`,
+      {
+        metadata: {
+          name: 'postgresql',
+          namespace: namespace.metadata.name,
+        },
+        spec: {
+          accessModes: ['ReadWriteOnce'],
+          storageClassName: args.pvc.postgresql.storageClass,
+          resources: {
+            requests: {
+              storage: args.pvc.postgresql.size,
+            },
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
+    const redisPvc = new kubernetes.core.v1.PersistentVolumeClaim(
+      `${resourceName}-redisPvc`,
+      {
+        metadata: {
+          name: 'redis',
+          namespace: namespace.metadata.name,
+        },
+        spec: {
+          accessModes: ['ReadWriteOnce'],
+          storageClassName: args.pvc.redis.storageClass,
+          resources: {
+            requests: {
+              storage: args.pvc.redis.size,
+            },
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
+    // Configuration
+    const authentikServiceAccountName = 'authentik';
+    const authentikPostgresqlCredSecretName = 'postgres-cred';
+    const authentikPostgresqlCredSecretMountPath = '/postgres-creds';
+    const authentikRedisCredSecretName = 'redis-cred';
+    const authentikRedisCredSecretMountPath = '/redis-creds';
+    const authentikServerServiceName = 'authentik-server';
+    const authentikServerServiceHttpPort = 80;
+
+    // Helm Chart
+    const authentikRelease = new kubernetes.helm.v3.Release(
+      `${resourceName}-authentikRelease`,
+      {
+        name: 'authentik',
+        chart: 'authentik',
+        version: args.helm.authentik.version,
+        namespace: namespace.metadata.name,
+        repositoryOpts: {
+          repo: 'https://charts.goauthentik.io',
+        },
+        waitForJobs: true,
+        values: {
+          global: {
+            envFrom: [
+              {
+                secretRef: {
+                  name: authentikBootstrapTokenSecret.metadata.name,
+                },
+              },
+            ],
+          },
+
+          authentik: {
+            secret_key: args.secretKey,
+            postgresql: {
+              password: `file://${authentikPostgresqlCredSecretMountPath}/${authentikPostgresqlPasswordSecretKey}`,
+            },
+            redis: {
+              password: `file://${authentikRedisCredSecretMountPath}/${authentikRedisPasswordSecretKey}`,
+            },
+          },
+          server: {
+            serviceAccountName: authentikServiceAccountName,
+            service: {
+              servicePortHttp: authentikServerServiceHttpPort,
+            },
+            env: [
+              {
+                name: 'AUTHENTIK_HOST',
+                value: pulumi.interpolate`https://${args.host}`,
+              },
+            ],
+            volumes: [
+              {
+                name: authentikPostgresqlCredSecretName,
+                secret: {
+                  secretName: authentikPostgresqlPasswordSecret.metadata.name,
+                },
+              },
+              {
+                name: authentikRedisCredSecretName,
+                secret: {
+                  secretName: authentikRedisPasswordSecret.metadata.name,
+                },
+              },
+              {
+                name: 'shm',
+                emptyDir: {
+                  medium: 'Memory',
+                  sizeLimit: '512Mi',
+                },
+              },
+            ],
+            volumeMounts: [
+              {
+                name: authentikPostgresqlCredSecretName,
+                mountPath: authentikPostgresqlCredSecretMountPath,
+                readOnly: true,
+              },
+              {
+                name: authentikRedisCredSecretName,
+                mountPath: authentikRedisCredSecretMountPath,
+                readOnly: true,
+              },
+              {
+                name: 'shm',
+                mountPath: '/dev/shm',
+              },
+            ],
+          },
+          worker: {
+            volumes: [
+              {
+                name: authentikPostgresqlCredSecretName,
+                secret: {
+                  secretName: authentikPostgresqlPasswordSecret.metadata.name,
+                },
+              },
+              {
+                name: authentikRedisCredSecretName,
+                secret: {
+                  secretName: authentikRedisPasswordSecret.metadata.name,
+                },
+              },
+            ],
+            volumeMounts: [
+              {
+                name: authentikPostgresqlCredSecretName,
+                mountPath: authentikPostgresqlCredSecretMountPath,
+                readOnly: true,
+              },
+              {
+                name: authentikRedisCredSecretName,
+                mountPath: authentikRedisCredSecretMountPath,
+                readOnly: true,
+              },
+            ],
+          },
+          postgresql: {
+            enabled: true,
+            auth: {
+              existingSecret: authentikPostgresqlPasswordSecret.metadata.name,
+              secretKeys: {
+                userPasswordKey: authentikPostgresqlPasswordSecretKey,
+              },
+            },
+            primary: {
+              persistence: {
+                enabled: true,
+                existingClaim: postgresqlPvc.metadata.name,
+              },
+            },
+          },
+          redis: {
+            enabled: true,
+            auth: {
+              enabled: true,
+              existingSecret: authentikRedisPasswordSecret.metadata.name,
+              existingSecretPasswordKey: authentikRedisPasswordSecretKey,
+            },
+            master: {
+              persistence: {
+                enabled: true,
+                existingClaim: redisPvc.metadata.name,
+              },
+            },
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [
+          authentikBootstrapTokenSecret,
+          authentikPostgresqlPasswordSecret,
+          authentikRedisPasswordSecret,
+          postgresqlPvc,
+          redisPvc,
+        ],
+      },
+    );
+
+    // RBAC
+    const authentikRole = new kubernetes.rbac.v1.Role(
+      `${resourceName}-authentikRole`,
+      {
+        metadata: {
+          name: 'authentik-role',
+          namespace: namespace.metadata.name,
+        },
+        rules: [
+          {
+            apiGroups: [''],
+            resources: ['pods', 'services', 'secrets'],
+            verbs: [
+              'get',
+              'list',
+              'watch',
+              'create',
+              'update',
+              'patch',
+              'delete',
+            ],
+          },
+          {
+            apiGroups: ['apps'],
+            resources: ['deployments', 'statefulsets'],
+            verbs: [
+              'get',
+              'list',
+              'watch',
+              'create',
+              'update',
+              'patch',
+              'delete',
+            ],
+          },
+        ],
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [namespace],
+      },
+    );
+
+    const authentikRoleBinding = new kubernetes.rbac.v1.RoleBinding(
+      `${resourceName}-authentikRoleBinding`,
+      {
+        metadata: {
+          name: 'authentik-role-binding',
+          namespace: namespace.metadata.name,
+        },
+        roleRef: {
+          apiGroup: 'rbac.authorization.k8s.io',
+          kind: 'Role',
+          name: authentikRole.metadata.name,
+        },
+        subjects: [
+          {
+            kind: 'ServiceAccount',
+            name: authentikServiceAccountName,
+            namespace: namespace.metadata.name,
+          },
+        ],
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [authentikRole, authentikRelease],
+      },
+    );
+
+    return {
+      output: pulumi.output({
+        namespace: namespace.metadata.name,
+
+        services: {
+          authentik: {
+            name: authentikServerServiceName,
+            port: {
+              http: authentikServerServiceHttpPort,
+            },
+          },
+        },
+      }),
+      secret: pulumi.secret({
+        authentikProviderConfig: {
+          url: pulumi.interpolate`https://${args.host}`,
+          token: args.secrets.bootstrap.token,
+        },
+      }),
+    };
+  },
+);

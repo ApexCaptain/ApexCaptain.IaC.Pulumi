@@ -1,11 +1,14 @@
+import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
 interface IstioHelmChartComponentArgsShape {
-  namespace: string;
-  version: string;
-
+  helm: {
+    istio: {
+      version: string;
+    };
+  };
   meshId: string;
   workstationIpV4Address: string;
   ingressGatewayIp: string;
@@ -19,6 +22,11 @@ interface IstioHelmChartComponentArgsShape {
     protocol: string;
     description: string;
   }[];
+  authentik: {
+    namespace: string;
+    proxyOutpostName: string;
+    proxyOutpostProviderName: string;
+  };
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -38,7 +46,7 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       'namespace',
       {
         metadata: {
-          name: args.namespace,
+          name: 'istio-system',
           labels: {
             'topology.istio.io/network': args.topology.network,
           },
@@ -58,7 +66,7 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       {
         name: 'istio-base',
         chart: 'base',
-        version: args.version,
+        version: args.helm.istio.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
           repo: istioRepositoryUrl,
@@ -75,7 +83,7 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       {
         name: 'istiod',
         chart: 'istiod',
-        version: args.version,
+        version: args.helm.istio.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
           repo: istioRepositoryUrl,
@@ -100,6 +108,19 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
             },
             trustDomain: 'cluster.local',
             accessLogFile: '/dev/stdout',
+            extensionProviders: [
+              {
+                name: args.authentik.proxyOutpostProviderName,
+                envoyExtAuthzHttp: {
+                  service: pulumi.interpolate`ak-outpost-${args.authentik.proxyOutpostName}.${args.authentik.namespace}.svc.cluster.local`,
+                  port: '9000',
+                  pathPrefix: '/outpost.goauthentik.io/auth/envoy',
+                  headersToDownstreamOnAllow: ['set-cookie'],
+                  headersToUpstreamOnAllow: ['x-authentik-*', 'cookie'],
+                  includeRequestHeadersInCheck: ['cookie'],
+                },
+              },
+            ],
           },
         },
       },
@@ -111,18 +132,23 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
     );
 
     const istioIngressGatewayLabel = 'ingressgateway';
+    const istioIngressGatewayServiceAccountName = 'istio-ingressgateway';
     const istioIngressGatewayRelease = new kubernetes.helm.v3.Release(
       `${resourceName}-istioIngressGatewayRelease`,
       {
         name: `istio-${istioIngressGatewayLabel}`,
         chart: 'gateway',
-        version: args.version,
+        version: args.helm.istio.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
           repo: istioRepositoryUrl,
         },
         waitForJobs: true,
         values: {
+          serviceAccount: {
+            create: true,
+            name: istioIngressGatewayServiceAccountName,
+          },
           service: {
             type: 'LoadBalancer',
             ports: pulumi
@@ -167,10 +193,32 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
+    const defaultPeerAuthentication =
+      new customResources.resources.k8s.crd.istio.PeerAuthenticationV1(
+        `${resourceName}-defaultPeerAuthentication`,
+        {
+          metadata: {
+            name: 'default',
+            namespace: namespace.metadata.name,
+          },
+          spec: {
+            mtls: {
+              mode: 'PERMISSIVE',
+            },
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+          dependsOn: [istiodRelease, namespace],
+        },
+      );
+
     return {
       output: pulumi.output({
         namespace: namespace.metadata.name,
         istioIngressGatewayLabel,
+        istioIngressGatewayServiceAccountName,
       }),
       secret: pulumi.secret({}),
     };

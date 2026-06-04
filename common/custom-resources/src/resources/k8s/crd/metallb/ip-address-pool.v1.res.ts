@@ -47,8 +47,7 @@ export class IpAddressPoolV1 extends kubernetes.apiextensions.CustomResource {
       {
         apiVersion: 'metallb.io/v1beta1',
         kind: 'IPAddressPool',
-        metadata: args.metadata,
-        spec: args.spec,
+        ...args,
       },
       opts,
     );

@@ -50,6 +50,20 @@ const k8sWorkstationSystemEscSchema = z
           .required(),
       })
       .required(),
+    authentik: z
+      .object({
+        secretKey: z.string(),
+        bootstrap: z
+          .object({
+            token: z.string(),
+            email: z.string(),
+            password: z.string(),
+          })
+          .required(),
+        postgresqlPassword: z.string(),
+        redisPassword: z.string(),
+      })
+      .required(),
   })
   .required();
 

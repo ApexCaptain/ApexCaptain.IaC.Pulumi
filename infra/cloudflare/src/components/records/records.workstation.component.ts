@@ -38,6 +38,23 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const authentikRecord = new cloudflare.DnsRecord(
+      `${resourceName}-authentikRecord`,
+      {
+        name: 'authentik',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Authentik Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     const jellyfinRecord = new cloudflare.DnsRecord(
       `${resourceName}-jellyfinRecord`,
       {
@@ -55,11 +72,30 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const torrentRecord = new cloudflare.DnsRecord(
+      `${resourceName}-torrentRecord`,
+      {
+        name: 'torrent',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Torrent Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     return {
       output: pulumi.output({
         records: {
           workstation: pulumi.interpolate`${directRecord.name}.${args.zoneDomain}`,
+          authentik: pulumi.interpolate`${authentikRecord.name}.${args.zoneDomain}`,
           jellyfin: pulumi.interpolate`${jellyfinRecord.name}.${args.zoneDomain}`,
+          torrent: pulumi.interpolate`${torrentRecord.name}.${args.zoneDomain}`,
         },
       }),
       secret: pulumi.secret({}),

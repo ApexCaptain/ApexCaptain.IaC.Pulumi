@@ -3,8 +3,11 @@ import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
 interface MetricsServerHelmChartComponentArgsShape {
-  namespace: string;
-  version: string;
+  helm: {
+    metricsServer: {
+      version: string;
+    };
+  };
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -24,7 +27,7 @@ export const MetricsServerHelmChartComponent = utils.functions.defineComponent(
       `${resourceName}-namespace`,
       {
         metadata: {
-          name: args.namespace,
+          name: 'metrics-server',
         },
       },
       {
@@ -38,7 +41,7 @@ export const MetricsServerHelmChartComponent = utils.functions.defineComponent(
       {
         name: 'metrics-server',
         chart: 'metrics-server',
-        version: args.version,
+        version: args.helm.metricsServer.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
           repo: 'https://kubernetes-sigs.github.io/metrics-server',

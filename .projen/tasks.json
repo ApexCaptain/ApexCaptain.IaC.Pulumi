@@ -162,13 +162,13 @@
       },
       "steps": [
         {
-          "exec": "pnpm dlx npm-check-updates@20 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/lodash,@types/node,eslint-config-prettier,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,lodash,prettier,projen,ts-node,turbo,typescript,@pulumi/esc-sdk,@pulumi/pulumi,dedent,yaml"
+          "exec": "pnpm dlx npm-check-updates@20 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@pulumi/esc-sdk,@types/lodash,@types/node,axios,eslint-config-prettier,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,lodash,prettier,projen,ts-node,turbo,typescript,@pulumi/pulumi,dedent,yaml"
         },
         {
           "exec": "pnpm i --no-frozen-lockfile"
         },
         {
-          "exec": "pnpm update @types/lodash @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser constructs eslint-config-prettier eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier eslint lodash prettier projen ts-node turbo typescript @pulumi/esc-sdk @pulumi/pulumi dedent yaml"
+          "exec": "pnpm update @pulumi/esc-sdk @types/lodash @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser axios constructs eslint-config-prettier eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier eslint lodash prettier projen ts-node turbo typescript @pulumi/pulumi dedent yaml"
         },
         {
           "exec": "pnpm exec projen"

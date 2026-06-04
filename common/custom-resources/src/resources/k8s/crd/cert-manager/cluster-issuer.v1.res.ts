@@ -86,8 +86,7 @@ export class ClusterIssuerV1 extends kubernetes.apiextensions.CustomResource {
       {
         apiVersion: 'cert-manager.io/v1',
         kind: 'ClusterIssuer',
-        metadata: args.metadata,
-        spec: args.spec,
+        ...args,
       },
       opts,
     );

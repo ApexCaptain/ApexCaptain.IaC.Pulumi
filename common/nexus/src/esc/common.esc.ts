@@ -10,6 +10,12 @@ const commonEscSchema = z
         meshId: z.string(),
         workstationClusterName: z.string(),
         workstationClusterNetwork: z.string(),
+        workstationDefaultCalcioIpv4IpPoolsCidrBlock: z.string(),
+      })
+      .required(),
+    nordLynx: z
+      .object({
+        privateKey: z.string(),
       })
       .required(),
   })

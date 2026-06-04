@@ -61,8 +61,7 @@ export class CertificateV1 extends kubernetes.apiextensions.CustomResource {
       {
         apiVersion: 'cert-manager.io/v1',
         kind: 'Certificate',
-        metadata: args.metadata,
-        spec: args.spec,
+        ...args,
       },
       opts,
     );

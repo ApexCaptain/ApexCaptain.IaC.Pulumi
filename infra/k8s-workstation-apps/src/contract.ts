@@ -24,24 +24,68 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
     // Production Only Apps
     if (pulumi.getStack() === utils.enums.StackStage.PROD) {
       // Jellyfin
-      const jellyfin = new components.jellyfin.JellyfinHelmChartComponent(
-        'jellyfin',
-        {
-          namespace: 'jellyfin',
-          version: '3.2.0',
-          jellyfinDomain:
-            cloudflareContract.output.zones.ayteneve93com.records.jellyfin,
-          ingressGatewayPath:
-            k8sWorkstationSystemContract.output.gatewayPaths.ingressGatewayPath,
-          ssdStorageClassName:
-            k8sWorkstationSystemContract.output.storageClass.ssd0,
-          hddStorageClassName:
-            k8sWorkstationSystemContract.output.storageClass.hdd0,
-          providers: {
-            kubernetes: workstationK8sProvider,
+      const jellyfinHelmChart =
+        new components.jellyfin.JellyfinHelmChartComponent(
+          'jellyfinHelmChart',
+          {
+            helm: {
+              jellyfin: {
+                version: '3.2.0',
+              },
+            },
+            pvc: {
+              jellyfinConfig: {
+                storageClass:
+                  k8sWorkstationSystemContract.output.storageClass.ssd0,
+                size: '100Mi',
+              },
+              jellyfinMedia: {
+                storageClass:
+                  k8sWorkstationSystemContract.output.storageClass.hdd0,
+                size: '2Ti',
+              },
+            },
+            providers: {
+              kubernetes: workstationK8sProvider,
+            },
           },
-        },
-      );
+        );
+
+      const jellyfinServiceMesh =
+        new components.jellyfin.JellyfinServiceMeshComponent(
+          'jellyfinServiceMesh',
+          {
+            namespace: jellyfinHelmChart.output.namespace,
+            authorizationPolicy: {
+              from: {
+                istioIngress: {
+                  namespace:
+                    k8sWorkstationSystemContract.output.namespaces.istio,
+                  serviceAccountName:
+                    k8sWorkstationSystemContract.output.serviceAccounts
+                      .istioIngressGateway,
+                },
+              },
+            },
+            ingress: {
+              jellyfinWebUi: {
+                host: cloudflareContract.output.zones.ayteneve93com.records
+                  .jellyfin,
+                serviceName: jellyfinHelmChart.output.services.jellyfin.name,
+                gatewayPath:
+                  k8sWorkstationSystemContract.output.gatewayPaths
+                    .ingressGatewayPath,
+                port: jellyfinHelmChart.output.services.jellyfin.port.webUi,
+              },
+            },
+            providers: {
+              kubernetes: workstationK8sProvider,
+            },
+          },
+          {
+            dependsOn: [jellyfinHelmChart],
+          },
+        );
     }
 
     return {

@@ -3,8 +3,11 @@ import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
 interface CertManagerHelmChartComponentArgsShape {
-  namespace: string;
-  version: string;
+  helm: {
+    certManager: {
+      version: string;
+    };
+  };
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -24,7 +27,7 @@ export const CertManagerHelmChartComponent = utils.functions.defineComponent(
       `${resourceName}-namespace`,
       {
         metadata: {
-          name: args.namespace,
+          name: 'cert-manager',
         },
       },
       {
@@ -38,7 +41,7 @@ export const CertManagerHelmChartComponent = utils.functions.defineComponent(
       {
         name: 'cert-manager',
         chart: 'cert-manager',
-        version: args.version,
+        version: args.helm.certManager.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
           repo: 'https://charts.jetstack.io',
