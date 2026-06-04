@@ -3,4 +3,5 @@
 packages:
   - common/*
   - infra/*
-allowBuilds: {}
+allowBuilds:
+  "@pulumi/authentik": true

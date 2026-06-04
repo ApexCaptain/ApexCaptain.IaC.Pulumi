@@ -5,16 +5,20 @@ import { BridgedProviderSource } from '../enums';
 
 export class BridgedProvider {
   readonly name: string;
-
+  readonly packagesToOverride: string[] = ['@pulumi/pulumi'];
   constructor(
     private readonly option: {
       name: string;
       source: BridgedProviderSource;
       version?: string;
       parameters?: string[];
+      packagesToOverride?: string[];
     },
   ) {
     this.name = option.name;
+    if (option.packagesToOverride) {
+      this.packagesToOverride.push(...option.packagesToOverride);
+    }
   }
 
   toJson() {
@@ -34,8 +38,15 @@ export class TerraformBridgedProvider extends BridgedProvider {
     converterVersion?: string;
     providerSource: string;
     providerVersion?: string;
+    packagesToOverride?: string[];
   }) {
-    const { name, converterVersion, providerSource, providerVersion } = option;
+    const {
+      name,
+      converterVersion,
+      providerSource,
+      providerVersion,
+      packagesToOverride,
+    } = option;
     super({
       name,
       source: BridgedProviderSource.TERRAFORM,
@@ -43,7 +54,9 @@ export class TerraformBridgedProvider extends BridgedProvider {
       parameters: [providerSource, providerVersion].filter(
         each => each !== undefined,
       ),
+      packagesToOverride,
     });
+
     if (providerVersion) {
       axios
         .get(

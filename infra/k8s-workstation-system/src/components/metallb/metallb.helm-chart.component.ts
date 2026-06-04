@@ -3,8 +3,11 @@ import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
 interface MetallbHelmChartComponentArgsShape {
-  namespace: string;
-  version: string;
+  helm: {
+    metallb: {
+      version: string;
+    };
+  };
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -24,7 +27,7 @@ export const MetallbHelmChartComponent = utils.functions.defineComponent(
       `${resourceName}-namespace`,
       {
         metadata: {
-          name: args.namespace,
+          name: 'metallb-system',
         },
       },
       {
@@ -38,7 +41,7 @@ export const MetallbHelmChartComponent = utils.functions.defineComponent(
       {
         name: 'metallb',
         chart: 'metallb',
-        version: args.version,
+        version: args.helm.metallb.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
           repo: 'https://metallb.github.io/metallb',

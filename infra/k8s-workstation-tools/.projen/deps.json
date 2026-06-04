@@ -37,12 +37,22 @@
       "type": "build"
     },
     {
+      "name": "@common/custom-resources",
+      "version": "workspace:*",
+      "type": "runtime"
+    },
+    {
       "name": "@common/nexus",
       "version": "workspace:*",
       "type": "runtime"
     },
     {
       "name": "@common/utils",
+      "version": "workspace:*",
+      "type": "runtime"
+    },
+    {
+      "name": "@infra/cloudflare",
       "version": "workspace:*",
       "type": "runtime"
     },
@@ -65,6 +75,10 @@
     },
     {
       "name": "lodash",
+      "type": "runtime"
+    },
+    {
+      "name": "timezone-enum",
       "type": "runtime"
     },
     {

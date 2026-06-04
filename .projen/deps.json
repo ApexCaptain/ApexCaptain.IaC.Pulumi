@@ -1,6 +1,10 @@
 {
   "dependencies": [
     {
+      "name": "@pulumi/esc-sdk",
+      "type": "build"
+    },
+    {
       "name": "@types/lodash",
       "type": "build"
     },
@@ -16,6 +20,10 @@
     {
       "name": "@typescript-eslint/parser",
       "version": "^8",
+      "type": "build"
+    },
+    {
+      "name": "axios",
       "type": "build"
     },
     {
@@ -67,10 +75,6 @@
     {
       "name": "typescript",
       "type": "build"
-    },
-    {
-      "name": "@pulumi/esc-sdk",
-      "type": "runtime"
     },
     {
       "name": "@pulumi/pulumi",

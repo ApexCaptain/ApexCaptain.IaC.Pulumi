@@ -4,7 +4,11 @@ import * as pulumi from '@pulumi/pulumi';
 
 interface LocalNfsProvisionerHelmChartComponentArgsShape {
   namespace: string;
-  version: string;
+  helm: {
+    localNfsProvisioner: {
+      version: string;
+    };
+  };
   nfsSharedServiceDirName: string;
   internalNfsServerIp: {
     hdd0: string;
@@ -38,7 +42,7 @@ export const LocalNfsProvisionerHelmChartComponent =
         {
           name: 'hdd0-nfs-subdir-provisioner',
           chart: chartName,
-          version: args.version,
+          version: args.helm.localNfsProvisioner.version,
           namespace: args.namespace,
           repositoryOpts: {
             repo: chartUrl,
@@ -69,7 +73,7 @@ export const LocalNfsProvisionerHelmChartComponent =
         {
           name: 'ssd0-nfs-subdir-provisioner',
           chart: chartName,
-          version: args.version,
+          version: args.helm.localNfsProvisioner.version,
           namespace: args.namespace,
           repositoryOpts: {
             repo: chartUrl,

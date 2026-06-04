@@ -2,6 +2,7 @@ import dns from 'dns/promises';
 import path from 'node:path';
 import * as pulumiEscSdk from '@pulumi/esc-sdk';
 import { LocalWorkspace } from '@pulumi/pulumi/automation';
+import axios from 'axios';
 import _ from 'lodash';
 import { javascript, JsonFile, typescript, YamlFile } from 'projen';
 import { GithubCredentials } from 'projen/lib/github/github-credentials';
@@ -66,11 +67,13 @@ const constants = (() => {
 
   const bridgedProviders = {
     terraform: {
-      // local: new utils.classes.TerraformBridgedProvider({
-      //   name: 'local',
-      //   providerSource: 'hashicorp/local',
-      //   providerVersion: '2.9.0',
-      // }),
+      // https://app.pulumi.com/ApexCaptain/idp/registry/opentofu/goauthentik/authentik
+      authentik: new utils.classes.TerraformBridgedProvider({
+        name: 'authentik',
+        providerSource: 'goauthentik/authentik',
+        providerVersion: '2026.2.0',
+        packagesToOverride: ['typescript'],
+      }),
     },
   };
 
@@ -191,8 +194,14 @@ const rootProject = new typescript.TypeScriptProject(
         `/${constants.paths.dirs.kubeConfigDir}`,
         `/${constants.paths.dirs.pnpmStoreDir}`,
       ],
-      deps: [constants.pulumiPackages.escSdk],
-      devDeps: ['lodash', '@types/lodash', 'turbo'],
+      deps: [],
+      devDeps: [
+        constants.pulumiPackages.escSdk,
+        'lodash',
+        '@types/lodash',
+        'turbo',
+        'axios',
+      ],
     },
     utils.functions.mergeCustomizer,
   ),
@@ -446,6 +455,21 @@ const initPulumiEsc = async () => {
         workstationClusterName: process.env.ISTIO_WORKSTATION_CLUSTER_NAME,
         workstationClusterNetwork:
           process.env.ISTIO_WORKSTATION_CLUSTER_NETWORK,
+        workstationDefaultCalcioIpv4IpPoolsCidrBlock:
+          process.env.WORKSTATION_DEFAULT_CALCIO_IPV4_IP_POOLS_CIDR_BLOCK,
+      },
+      nordLynx: {
+        privateKey: (
+          await axios.get(
+            'https://api.nordvpn.com/v1/users/services/credentials',
+            {
+              auth: {
+                username: 'token',
+                password: process.env.NORD_VPN_APEX_CAPTAIN_ACCESS_TOKEN!!,
+              },
+            },
+          )
+        ).data.nordlynx_private_key as string,
       },
     },
     {
@@ -491,10 +515,19 @@ const initPulumiEsc = async () => {
           userName: process.env.WORKSTATION_NFS_SFTP_USER_NAME,
         },
       },
+      authentik: {
+        secretKey: process.env.AUTHENTIK_SECRET_KEY,
+        bootstrap: {
+          token: process.env.AUTHENTIK_BOOTSTRAP_TOKEN,
+          email: process.env.AUTHENTIK_BOOTSTRAP_EMAIL,
+          password: process.env.AUTHENTIK_BOOTSTRAP_PASSWORD,
+        },
+        postgresqlPassword: process.env.AUTHENTIK_POSTGRESQL_PASSWORD,
+        redisPassword: process.env.AUTHENTIK_REDIS_PASSWORD,
+      },
     },
     {
       prod: {},
-      dev: {},
     },
   );
 
@@ -512,7 +545,6 @@ const initPulumiEsc = async () => {
     },
     {
       prod: {},
-      dev: {},
     },
   );
 
@@ -523,6 +555,23 @@ const initPulumiEsc = async () => {
     {
       prod: {},
       dev: {},
+    },
+  );
+
+  await Nexus.esc.k8sWorkstationToolsEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      qbittorrent: {
+        authentik: {
+          authorizationBypass: {
+            ipBlocksToBypass: [`${workstationIpV4Address}/32`],
+          },
+        },
+      },
+    },
+    {
+      prod: {},
     },
   );
 };
@@ -590,17 +639,24 @@ void (async () => {
       ],
       infraDeps: [cloudflareProject.project.package.packageName],
       esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationSystemEsc],
+      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
     });
 
     const k8sWorkstationToolsProject = inflatePulumiProject({
       projectName: 'k8s-workstation-tools',
       stages: [utils.enums.StackStage.PROD],
-      deps: [constants.pulumiPackages.kubernetes],
+      deps: [constants.pulumiPackages.kubernetes, 'timezone-enum'],
       commonDeps: [
         commonProjects.utilsProject.project.package.packageName,
+        commonProjects.customResourcesProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
       ],
-      infraDeps: [k8sWorkstationSystemProject.project.package.packageName],
+      infraDeps: [
+        cloudflareProject.project.package.packageName,
+        k8sWorkstationSystemProject.project.package.packageName,
+      ],
+      esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationToolsEsc],
+      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
     });
 
     const k8sWorkstationAppsProject = inflatePulumiProject({
@@ -619,11 +675,29 @@ void (async () => {
       esc: [Nexus.esc.k8sWorkstationAppsEsc],
     });
 
+    const authentikOutpostProject = inflatePulumiProject({
+      projectName: 'authentik-outpost',
+      stages: [utils.enums.StackStage.PROD],
+      deps: [],
+      commonDeps: [
+        commonProjects.utilsProject.project.package.packageName,
+        commonProjects.nexusProject.project.package.packageName,
+      ],
+      infraDeps: [
+        cloudflareProject.project.package.packageName,
+        k8sWorkstationToolsProject.project.package.packageName,
+        k8sWorkstationAppsProject.project.package.packageName,
+        k8sWorkstationSystemProject.project.package.packageName,
+      ],
+      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
+    });
+
     return {
       cloudflareProject,
       k8sWorkstationSystemProject,
       k8sWorkstationToolsProject,
       k8sWorkstationAppsProject,
+      authentikOutpostProject,
     };
   })();
 
@@ -760,8 +834,31 @@ void (async () => {
         `${constants.paths.dirs.infraDir}/*`,
       ],
       // Bridged Providers에 공통 네이밍 컨벤션이 있을 경우 Dynamic하게 설정될 수 있도록 변경
-      allowBuilds: {},
+      allowBuilds: Object.fromEntries(
+        Object.values(constants.bridgedProviders)
+          .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
+          .map(eachBridgedProvider => {
+            return [`@pulumi/${eachBridgedProvider.name}`, true];
+          }),
+      ),
     },
+  });
+
+  // Override Bridged Provider sub-pacakges
+  rootProject.package.addField('pnpm', {
+    overrides: Object.fromEntries(
+      Object.values(constants.bridgedProviders)
+        .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
+        .map(eachBridgedProvider => {
+          return eachBridgedProvider.packagesToOverride.map(eachPackage => {
+            return [
+              `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
+              `$${eachPackage}`,
+            ];
+          });
+        })
+        .flat(),
+    ),
   });
 
   rootProject.synth();

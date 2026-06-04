@@ -6,13 +6,11 @@ import * as pulumi from '@pulumi/pulumi';
 import dedent from 'dedent';
 
 interface LocalNfsProvisionerBaseComponentArgsShape {
-  namespace: string;
   nodes: {
     node0: {
       hostName: string;
     };
   };
-  directGatewayPath: string;
 
   hostPath: {
     localPathHdd0: string;
@@ -43,7 +41,7 @@ export const LocalNfsProvisionerBaseComponent = utils.functions.defineComponent(
       `${resourceName}-namespace`,
       {
         metadata: {
-          name: args.namespace,
+          name: 'local-nfs-provisioner',
         },
       },
       {
@@ -419,7 +417,7 @@ export const LocalNfsProvisionerBaseComponent = utils.functions.defineComponent(
           namespace: namespace.metadata.name,
         },
         data: {
-          'ssh-public-key': sftpPrivateKey.output.publicKeyOpenSsh,
+          'ssh-public-key': sftpPrivateKey.secret.publicKeyOpenSsh,
         },
       },
       {
@@ -585,51 +583,18 @@ export const LocalNfsProvisionerBaseComponent = utils.functions.defineComponent(
       },
     );
 
-    const sftpVirtualService =
-      new customResources.resources.k8s.crd.istio.VirtualServiceV1(
-        `${resourceName}-sftpVirtualService`,
-        {
-          metadata: {
-            name: 'sftp-server',
-            namespace: namespace.metadata.name,
-          },
-          spec: {
-            hosts: ['*'],
-            gateways: [args.directGatewayPath],
-            tcp: [
-              {
-                match: [
-                  {
-                    port: args.sftp.externalPort,
-                  },
-                ],
-                route: [
-                  {
-                    destination: {
-                      host: sftpService.metadata.name,
-                      port: {
-                        number: sftpPort,
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        },
-        {
-          ...opts,
-          provider: args.providers.kubernetes,
-          dependsOn: [sftpService, namespace],
-        },
-      );
-
     return {
       output: pulumi.output({
         namespace: namespace.metadata.name,
-
+        services: {
+          sftp: {
+            name: sftpService.metadata.name,
+            port: {
+              sftp: sftpPort,
+            },
+          },
+        },
         nfsSharedServiceDirName,
-
         internalNfsServerIp: {
           hdd0: hdd0NfsServerService.spec.clusterIP,
           ssd0: ssd0NfsServerService.spec.clusterIP,

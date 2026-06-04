@@ -242,8 +242,7 @@ export class VirtualServiceV1 extends kubernetes.apiextensions.CustomResource {
       {
         apiVersion: 'networking.istio.io/v1beta1',
         kind: 'VirtualService',
-        metadata: args.metadata,
-        spec: args.spec,
+        ...args,
       },
       opts,
     );

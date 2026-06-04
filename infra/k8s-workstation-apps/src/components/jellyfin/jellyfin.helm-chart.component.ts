@@ -4,12 +4,21 @@ import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
 interface JellyfinHelmChartComponentArgsShape {
-  namespace: string;
-  version: string;
-  jellyfinDomain: string;
-  ingressGatewayPath: string;
-  ssdStorageClassName: string;
-  hddStorageClassName: string;
+  helm: {
+    jellyfin: {
+      version: string;
+    };
+  };
+  pvc: {
+    jellyfinConfig: {
+      storageClass: string;
+      size: string;
+    };
+    jellyfinMedia: {
+      storageClass: string;
+      size: string;
+    };
+  };
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -29,7 +38,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
       `${resourceName}-namespace`,
       {
         metadata: {
-          name: args.namespace,
+          name: 'jellyfin',
           labels: {
             'istio-injection': 'enabled',
           },
@@ -51,10 +60,10 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
         },
         spec: {
           accessModes: ['ReadWriteOnce'],
-          storageClassName: args.ssdStorageClassName,
+          storageClassName: args.pvc.jellyfinConfig.storageClass,
           resources: {
             requests: {
-              storage: '10Gi',
+              storage: args.pvc.jellyfinConfig.size,
             },
           },
         },
@@ -74,10 +83,10 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
         },
         spec: {
           accessModes: ['ReadWriteOnce'],
-          storageClassName: args.hddStorageClassName,
+          storageClassName: args.pvc.jellyfinMedia.storageClass,
           resources: {
             requests: {
-              storage: '2Ti',
+              storage: args.pvc.jellyfinMedia.size,
             },
           },
         },
@@ -99,7 +108,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
       {
         name: 'jellyfin',
         chart: 'jellyfin',
-        version: args.version,
+        version: args.helm.jellyfin.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
           repo: 'https://jellyfin.github.io/jellyfin-helm',
@@ -131,43 +140,18 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
         provider: args.providers.kubernetes,
       },
     );
-
-    const jellyfinVirtualService =
-      new customResources.resources.k8s.crd.istio.VirtualServiceV1(
-        `${resourceName}-jellyfinVirtualService`,
-        {
-          metadata: {
-            name: 'jellyfin',
-            namespace: namespace.metadata.name,
-          },
-          spec: {
-            hosts: [args.jellyfinDomain],
-            gateways: [args.ingressGatewayPath],
-            http: [
-              {
-                route: [
-                  {
-                    destination: {
-                      host: serviceName,
-                      port: {
-                        number: webServicePort,
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-        },
-        {
-          ...opts,
-          provider: args.providers.kubernetes,
-          dependsOn: [jellyfinHelmChartRelease, namespace],
-        },
-      );
-
     return {
-      output: pulumi.output({}),
+      output: pulumi.output({
+        namespace: namespace.metadata.name,
+        services: {
+          jellyfin: {
+            name: serviceName,
+            port: {
+              webUi: webServicePort,
+            },
+          },
+        },
+      }),
       secret: pulumi.secret({}),
     };
   },

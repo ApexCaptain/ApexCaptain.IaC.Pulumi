@@ -8,6 +8,7 @@
       "dependsOn": [
         "^build",
         "build",
+        "@infra/cloudflare#pulumi:preview",
         "@infra/k8s-workstation-system#pulumi:preview"
       ]
     },
@@ -15,6 +16,7 @@
       "dependsOn": [
         "^build",
         "build",
+        "@infra/cloudflare#pulumi:up",
         "@infra/k8s-workstation-system#pulumi:up"
       ],
       "interactive": true

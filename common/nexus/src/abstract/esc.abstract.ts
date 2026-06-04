@@ -29,7 +29,7 @@ export abstract class AbstractEsc<
     escClient: pulumiEscSdk.EscApi,
     defaultSecret: utils.types.DeepPartial<z.infer<ESC_Schema>>,
     stageSecrets: {
-      [key in utils.enums.StackStage]: utils.types.DeepPartial<
+      [key in utils.enums.StackStage]?: utils.types.DeepPartial<
         z.infer<ESC_Schema>
       >;
     },

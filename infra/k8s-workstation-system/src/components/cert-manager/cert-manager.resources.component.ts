@@ -31,10 +31,8 @@ export const CertManagerResourcesComponent = utils.functions.defineComponent(
           name: 'cloudflare-api-token',
           namespace: args.namespace,
         },
-        data: {
-          [cloudflareApiTokenKey]: pulumi
-            .output(args.cloudflareApiToken)
-            .apply(tokenValue => Buffer.from(tokenValue).toString('base64')),
+        stringData: {
+          [cloudflareApiTokenKey]: args.cloudflareApiToken,
         },
       },
       {
