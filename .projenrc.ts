@@ -524,6 +524,13 @@ const initPulumiEsc = async () => {
         },
         postgresqlPassword: process.env.AUTHENTIK_POSTGRESQL_PASSWORD,
         redisPassword: process.env.AUTHENTIK_REDIS_PASSWORD,
+        oauth: {
+          allowedEmails: process.env.AUTHENTIK_ALLOWED_EMAILS!!.split(','),
+          google: {
+            clientId: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_SECRET,
+          },
+        },
       },
     },
     {
@@ -593,7 +600,9 @@ void (async () => {
         constants.pulumiPackages.command,
         constants.pulumiPackages.tls,
         constants.pulumiPackages.random,
+        'axios',
       ],
+      bridgedProviders: [],
     });
 
     const nexusProject = inflateCommonProject({
@@ -798,6 +807,7 @@ void (async () => {
               '*.type.ts': 'toml',
               '*.esc.ts': 'key',
               '*.res.ts': 'scheme',
+              '*.data.ts': 'scheme',
               'contract.ts': 'bbx',
             }),
           },

@@ -269,7 +269,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             },
           },
           secretKey: projectEsc.esc.authentik.secretKey,
-          host: cloudflareContract.output.zones.ayteneve93com.records.authentik,
+          host: cloudflareContract.output.zones.ayteneve93com.records.auth,
           secrets: {
             bootstrap: {
               token: projectEsc.esc.authentik.bootstrap.token,
@@ -308,8 +308,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           rootDomain: cloudflareContract.output.zones.ayteneve93com.domain,
           ingress: {
             authentikWebUi: {
-              host: cloudflareContract.output.zones.ayteneve93com.records
-                .authentik,
+              host: cloudflareContract.output.zones.ayteneve93com.records.auth,
               serviceName: authentikHelmChart.output.services.authentik.name,
               gatewayPath: istioGateway.output.istioIngressGatewayPath,
               port: authentikHelmChart.output.services.authentik.port.http,
@@ -336,6 +335,14 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       new components.authentik.AuthentikResourcesComponent(
         'authentikResources',
         {
+          isFirstDeploy: false,
+          oauth: {
+            google: {
+              clientId: projectEsc.esc.authentik.oauth.google.clientId,
+              clientSecret: projectEsc.esc.authentik.oauth.google.clientSecret,
+            },
+          },
+          allowedEmails: projectEsc.esc.authentik.oauth.allowedEmails,
           providers: {
             authentik: authentikProvider,
           },
@@ -380,6 +387,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         authentik: {
           serviceConnections: authentikResources.output.serviceConnections,
           flow: authentikResources.output.flow,
+          groupIds: authentikResources.output.groupIds,
           authentikProxyOutpostName,
           authentikProxyOutpostProviderName,
         },

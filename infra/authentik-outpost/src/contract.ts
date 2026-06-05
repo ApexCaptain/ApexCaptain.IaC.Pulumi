@@ -20,7 +20,7 @@ export const authentikOutpostContract = new nexus.classes.Contract(
     const proxyOutpost = new components.proxyOutpost.ProxyOutpostComponent(
       'proxyOutpost',
       {
-        host: cloudflareContract.output.zones.ayteneve93com.records.authentik,
+        host: cloudflareContract.output.zones.ayteneve93com.records.auth,
         outpostName:
           k8sWorkstationSystemContract.output.authentik
             .authentikProxyOutpostName,

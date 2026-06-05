@@ -29,6 +29,7 @@
     "*.type.ts": "toml",
     "*.esc.ts": "key",
     "*.res.ts": "scheme",
+    "*.data.ts": "scheme",
     "contract.ts": "bbx"
   },
   "material-icon-theme.folders.associations": {

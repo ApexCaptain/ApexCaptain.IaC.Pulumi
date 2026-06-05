@@ -62,6 +62,10 @@
       "type": "runtime"
     },
     {
+      "name": "axios",
+      "type": "runtime"
+    },
+    {
       "name": "dedent",
       "type": "runtime"
     },
