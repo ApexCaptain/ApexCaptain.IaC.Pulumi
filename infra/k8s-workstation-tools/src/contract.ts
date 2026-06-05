@@ -35,6 +35,10 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
         },
 
         pvc: {
+          qbittorrentModCache: {
+            storageClass: k8sWorkstationSystemContract.output.storageClass.ssd0,
+            size: '100Mi',
+          },
           qbittorrentConfig: {
             storageClass: k8sWorkstationSystemContract.output.storageClass.ssd0,
             size: '200Mi',
@@ -76,6 +80,9 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
             },
           },
           authentik: {
+            allowedGroupId:
+              k8sWorkstationSystemContract.output.authentik.groupIds
+                .toolsManagerGroup,
             proxyOutpostProviderName:
               k8sWorkstationSystemContract.output.authentik
                 .authentikProxyOutpostProviderName,
@@ -87,11 +94,11 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                 k8sWorkstationSystemContract.output.authentik.flow
                   .defaultInvalidationFlowId,
             },
-            authorizationBypass: {
-              ipBlocksToBypass:
-                nexus.esc.k8sWorkstationToolsEsc.esc.qbittorrent.authentik
-                  .authorizationBypass.ipBlocksToBypass,
-            },
+            // authorizationBypass: {
+            //   ipBlocksToBypass:
+            //     nexus.esc.k8sWorkstationToolsEsc.esc.qbittorrent.authentik
+            //       .authorizationBypass.ipBlocksToBypass,
+            // },
           },
           providers: {
             kubernetes: workstationK8sProvider,

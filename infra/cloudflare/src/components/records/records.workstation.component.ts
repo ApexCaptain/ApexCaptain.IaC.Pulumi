@@ -38,16 +38,16 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
-    const authentikRecord = new cloudflare.DnsRecord(
-      `${resourceName}-authentikRecord`,
+    const authRecord = new cloudflare.DnsRecord(
+      `${resourceName}-authRecord`,
       {
-        name: 'authentik',
+        name: 'auth',
         ttl: 1,
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
         proxied: true,
-        comment: 'Cloudflare DNS Record for Authentik Service',
+        comment: 'Cloudflare DNS Record for Auth Service',
       },
       {
         ...opts,
@@ -93,7 +93,7 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       output: pulumi.output({
         records: {
           workstation: pulumi.interpolate`${directRecord.name}.${args.zoneDomain}`,
-          authentik: pulumi.interpolate`${authentikRecord.name}.${args.zoneDomain}`,
+          auth: pulumi.interpolate`${authRecord.name}.${args.zoneDomain}`,
           jellyfin: pulumi.interpolate`${jellyfinRecord.name}.${args.zoneDomain}`,
           torrent: pulumi.interpolate`${torrentRecord.name}.${args.zoneDomain}`,
         },

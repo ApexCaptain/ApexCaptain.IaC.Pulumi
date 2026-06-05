@@ -17,6 +17,7 @@ interface QbittorrentServiceMeshComponentArgsShape {
     };
   };
   authentik: {
+    allowedGroupId: string;
     proxyOutpostProviderName: string;
     flow: {
       authorizationFlowId: string;
@@ -100,6 +101,19 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
         protocolProvider: qbittorrentAuthentikProxyProvider.id.apply(id =>
           parseInt(id),
         ),
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    new authentik.PolicyBinding(
+      `${resourceName}-qbittorrentAuthentikApplicationGroupBinding`,
+      {
+        target: qbittorrentAuthentikApplication.uuid,
+        group: args.authentik.allowedGroupId,
+        order: 0,
       },
       {
         ...opts,

@@ -10,6 +10,10 @@ interface QbittorrentAppComponentArgsShape {
     privateKey: string;
   };
   pvc: {
+    qbittorrentModCache: {
+      storageClass: string;
+      size: string;
+    };
     qbittorrentConfig: {
       storageClass: string;
       size: string;
@@ -74,6 +78,29 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
     );
 
     // PVCs
+    const qbittorrentModCachePvc = new kubernetes.core.v1.PersistentVolumeClaim(
+      `${resourceName}-qbittorrentModCachePvc`,
+      {
+        metadata: {
+          name: 'qbittorrent-modcache',
+          namespace: namespace.metadata.name,
+        },
+        spec: {
+          accessModes: ['ReadWriteOnce'],
+          storageClassName: args.pvc.qbittorrentModCache.storageClass,
+          resources: {
+            requests: {
+              storage: args.pvc.qbittorrentModCache.size,
+            },
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
     const qbittorrentConfigPvc = new kubernetes.core.v1.PersistentVolumeClaim(
       `${resourceName}-qbittorrentConfigPvc`,
       {
@@ -152,11 +179,14 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       'app.kubernetes.io/name': 'qbittorrent',
     };
     const qbittorrentWebUiPort = 8080;
+    const qbittorrentModCacheVolumeName = 'qbittorrent-modcache';
     const qbittorrentConfigVolumeName = 'qbittorrent-config';
     const qbittorrentCompleteDownloadsVolumeName =
       'qbittorrent-complete-downloads';
     const qbittorrentIncompleteDownloadsVolumeName =
       'qbittorrent-incomplete-downloads';
+    const tunDeviceVolumeName = 'tun-device';
+    const gluetunStateVolumeName = 'gluetun-state';
 
     // Service
     const qbittorrentService = new kubernetes.core.v1.Service(
@@ -183,6 +213,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
     );
 
     // Deployment
+
     const qbittorrentDeployment = new kubernetes.apps.v1.Deployment(
       `${resourceName}-qbittorrentDeployment`,
       {
@@ -200,6 +231,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
               labels: qbittorrentLabel,
             },
             spec: {
+              terminationGracePeriodSeconds: 60,
               securityContext: {
                 fsGroup: 1000,
               },
@@ -211,12 +243,115 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                     '/bin/sh',
                     '-c',
                     dedent`
-                      sysctl -w net.ipv6.conf.all.disable_ipv6=1
                       sysctl -w net.ipv4.conf.all.src_valid_mark=1
+                      sysctl -w net.ipv6.conf.all.disable_ipv6=1
                     `,
                   ],
                   securityContext: {
                     privileged: true,
+                  },
+                },
+                {
+                  // K8s native sidecar: VPN must be up before qbittorrent starts
+                  name: 'gluetun',
+                  image: 'qmcgaw/gluetun:v3.41.1',
+                  imagePullPolicy: 'Always',
+                  restartPolicy: 'Always',
+                  env: [
+                    {
+                      name: 'TZ',
+                      value: Timezone['Asia/Seoul'],
+                    },
+                    {
+                      name: 'VPN_SERVICE_PROVIDER',
+                      value: 'nordvpn',
+                    },
+                    {
+                      name: 'VPN_TYPE',
+                      value: 'wireguard',
+                    },
+                    {
+                      name: 'WIREGUARD_PRIVATE_KEY',
+                      valueFrom: {
+                        secretKeyRef: {
+                          name: nordLynxPrivateKeySecret.metadata.name,
+                          key: nordLynxPrivateKeySecretDataKey,
+                        },
+                      },
+                    },
+                    {
+                      name: 'SERVER_COUNTRIES',
+                      value: 'Japan',
+                    },
+                    {
+                      name: 'SERVER_CATEGORIES',
+                      value: 'P2P',
+                    },
+                    {
+                      name: 'FIREWALL_OUTBOUND_SUBNETS',
+                      value: args.nordLynx.netLocal,
+                    },
+                    {
+                      name: 'FIREWALL_INPUT_PORTS',
+                      value: qbittorrentWebUiPort.toString(),
+                    },
+                    {
+                      // NordVPN does not support port forwarding; use DoT DNS
+                      // instead of plain UDP to avoid firewall/DNS leaks.
+                      name: 'DNS_UPSTREAM_RESOLVER_TYPE',
+                      value: 'dot',
+                    },
+                    {
+                      name: 'DNS_UPSTREAM_RESOLVERS',
+                      value: 'cloudflare,google',
+                    },
+                    {
+                      name: 'DNS_UPSTREAM_IPV6',
+                      value: 'off',
+                    },
+                    {
+                      name: 'FIREWALL',
+                      value: 'on',
+                    },
+                  ],
+                  volumeMounts: [
+                    {
+                      name: tunDeviceVolumeName,
+                      mountPath: '/dev/net/tun',
+                    },
+                    {
+                      name: gluetunStateVolumeName,
+                      mountPath: '/tmp/gluetun',
+                    },
+                  ],
+                  securityContext: {
+                    capabilities: {
+                      add: ['NET_ADMIN'],
+                    },
+                    allowPrivilegeEscalation: true,
+                  },
+                  startupProbe: {
+                    exec: {
+                      command: [
+                        '/bin/sh',
+                        '-c',
+                        'wget -qO- http://127.0.0.1:9999/ > /dev/null',
+                      ],
+                    },
+                    initialDelaySeconds: 5,
+                    periodSeconds: 5,
+                    failureThreshold: 30,
+                  },
+                  readinessProbe: {
+                    exec: {
+                      command: [
+                        '/bin/sh',
+                        '-c',
+                        'wget -qO- http://127.0.0.1:9999/ > /dev/null',
+                      ],
+                    },
+                    periodSeconds: 10,
+                    failureThreshold: 3,
                   },
                 },
               ],
@@ -255,6 +390,10 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                   ],
                   volumeMounts: [
                     {
+                      name: qbittorrentModCacheVolumeName,
+                      mountPath: '/modcache',
+                    },
+                    {
                       name: qbittorrentConfigVolumeName,
                       mountPath: '/config',
                     },
@@ -267,71 +406,41 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                       mountPath: '/incomplete',
                     },
                   ],
-                  // livenessProbe: {
-                  //   exec: {
-                  //     command: [
-                  //       '/bin/sh',
-                  //       '-c',
-                  //       dedent`
-                  //         curl -fsS http://localhost:${qbittorrentWebUiPort}
-                  //       `,
-                  //     ],
-                  //   },
-                  //   initialDelaySeconds: 30,
-                  //   timeoutSeconds: 5,
-                  //   periodSeconds: 15,
-                  //   successThreshold: 1,
-                  //   failureThreshold: 3,
-                  // },
-                },
-                {
-                  name: 'nordlynx',
-                  image: 'ghcr.io/bubuntux/nordlynx:latest',
-                  imagePullPolicy: 'Always',
-                  env: [
-                    {
-                      name: 'TZ',
-                      value: Timezone['Asia/Seoul'],
+                  startupProbe: {
+                    tcpSocket: {
+                      port: qbittorrentWebUiPort,
                     },
-                    {
-                      name: 'NET_LOCAL',
-                      value: args.nordLynx.netLocal,
+                    initialDelaySeconds: 10,
+                    periodSeconds: 5,
+                    failureThreshold: 12,
+                  },
+                  livenessProbe: {
+                    tcpSocket: {
+                      port: qbittorrentWebUiPort,
                     },
-                    {
-                      name: 'ALLOW_LIST',
-                      value: pulumi.interpolate`${qbittorrentService.metadata.name}.${namespace.metadata.name}.svc.cluster.local`,
-                    },
-                    {
-                      name: 'DNS',
-                      value: '1.1.1.1,8.8.8.8',
-                    },
-                    {
-                      name: 'PRIVATE_KEY',
-                      valueFrom: {
-                        secretKeyRef: {
-                          name: nordLynxPrivateKeySecret.metadata.name,
-                          key: nordLynxPrivateKeySecretDataKey,
-                        },
-                      },
-                    },
-                    {
-                      name: 'QUERY',
-                      value:
-                        'filters\\[servers_groups\\]\\[identifier\\]=legacy_p2p',
-                    },
-                    {
-                      name: 'COUNTRY_CODE',
-                      value: 'JP',
-                    },
-                  ],
-                  securityContext: {
-                    capabilities: {
-                      add: ['NET_ADMIN'],
-                    },
+                    periodSeconds: 15,
+                    failureThreshold: 3,
                   },
                 },
               ],
               volumes: [
+                {
+                  name: tunDeviceVolumeName,
+                  hostPath: {
+                    path: '/dev/net/tun',
+                    type: 'CharDevice',
+                  },
+                },
+                {
+                  name: gluetunStateVolumeName,
+                  emptyDir: {},
+                },
+                {
+                  name: qbittorrentModCacheVolumeName,
+                  persistentVolumeClaim: {
+                    claimName: qbittorrentModCachePvc.metadata.name,
+                  },
+                },
                 {
                   name: qbittorrentConfigVolumeName,
                   persistentVolumeClaim: {
@@ -359,6 +468,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
         ...opts,
         provider: args.providers.kubernetes,
         dependsOn: [
+          qbittorrentModCachePvc,
           qbittorrentConfigPvc,
           qbittorrentCompleteDownloadsPvc,
           qbittorrentIncompleteDownloadsPvc,

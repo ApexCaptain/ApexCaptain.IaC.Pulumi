@@ -62,6 +62,17 @@ const k8sWorkstationSystemEscSchema = z
           .required(),
         postgresqlPassword: z.string(),
         redisPassword: z.string(),
+        oauth: z
+          .object({
+            allowedEmails: z.array(z.string()),
+            google: z
+              .object({
+                clientId: z.string(),
+                clientSecret: z.string(),
+              })
+              .required(),
+          })
+          .required(),
       })
       .required(),
   })
