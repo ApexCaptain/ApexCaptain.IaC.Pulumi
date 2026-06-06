@@ -137,6 +137,7 @@ const sharedProjectOption: Partial<TypeScriptProjectOptions> = {
       trailingComma: javascript.TrailingComma.ALL,
     },
   },
+  addPackageManagerToDevEngines: false,
 };
 
 const rootProject = new typescript.TypeScriptProject(
