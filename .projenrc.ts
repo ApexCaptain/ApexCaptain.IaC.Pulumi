@@ -196,7 +196,6 @@ const rootProject = new typescript.TypeScriptProject(
         '.DS_STORE',
         'Pulumi*.yaml',
         'Pulumi*.yml',
-        'sdks',
         constants.paths.dirs.turboDir,
         constants.paths.dirs.tmpDir,
 

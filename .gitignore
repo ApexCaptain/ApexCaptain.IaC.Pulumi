@@ -32,7 +32,6 @@ jspm_packages/
 .DS_STORE
 Pulumi*.yaml
 Pulumi*.yml
-sdks
 .turbo
 tmp
 /.secrets
