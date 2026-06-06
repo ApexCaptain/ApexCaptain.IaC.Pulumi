@@ -37,41 +37,6 @@
       "type": "build"
     },
     {
-      "name": "@common/bridged-provider",
-      "version": "workspace:*",
-      "type": "runtime"
-    },
-    {
-      "name": "@common/nexus",
-      "version": "workspace:*",
-      "type": "runtime"
-    },
-    {
-      "name": "@common/utils",
-      "version": "workspace:*",
-      "type": "runtime"
-    },
-    {
-      "name": "@infra/cloudflare",
-      "version": "workspace:*",
-      "type": "runtime"
-    },
-    {
-      "name": "@infra/k8s-workstation-apps",
-      "version": "workspace:*",
-      "type": "runtime"
-    },
-    {
-      "name": "@infra/k8s-workstation-system",
-      "version": "workspace:*",
-      "type": "runtime"
-    },
-    {
-      "name": "@infra/k8s-workstation-tools",
-      "version": "workspace:*",
-      "type": "runtime"
-    },
-    {
       "name": "@pulumi/pulumi",
       "type": "runtime"
     },

@@ -1,7 +1,7 @@
+import { authentik } from '@common/bridged-provider';
 import * as customResources from '@common/custom-resources';
 import * as nexus from '@common/nexus';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
-import * as authentik from '@pulumi/authentik';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import * as components from './components';

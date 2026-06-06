@@ -27,6 +27,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "@common/bridged-provider": "workspace:*",
     "@common/custom-resources": "workspace:*",
     "@common/nexus": "workspace:*",
     "@common/utils": "workspace:*",

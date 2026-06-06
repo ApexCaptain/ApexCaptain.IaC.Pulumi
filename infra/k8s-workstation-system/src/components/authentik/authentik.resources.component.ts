@@ -1,6 +1,6 @@
+import { authentik } from '@common/bridged-provider';
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
-import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
 import dedent from 'dedent';
 

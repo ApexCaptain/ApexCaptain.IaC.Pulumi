@@ -185,8 +185,8 @@ const rootProject = new typescript.TypeScriptProject(
 
       gitignore: [
         '.DS_STORE',
-        'Pulumi.*.yaml',
-        'Pulumi.*.yml',
+        'Pulumi*.yaml',
+        'Pulumi*.yml',
         constants.paths.dirs.turboDir,
         constants.paths.dirs.tmpDir,
 
@@ -206,6 +206,26 @@ const rootProject = new typescript.TypeScriptProject(
     utils.functions.mergeCustomizer,
   ),
 );
+
+const modifyUpgradeWorkflow = async () => {
+  const upgradeWorkflow = rootProject.upgradeWorkflow;
+  if (!upgradeWorkflow) return;
+
+  const upgradeJob = upgradeWorkflow.workflows[0].jobs.upgrade as Job;
+
+  const upgradeJobSteps = upgradeJob.steps;
+
+  upgradeJobSteps.splice(
+    upgradeJobSteps.findIndex(
+      eachStep => eachStep.name == 'Install dependencies',
+    ) + 1,
+    0,
+    {
+      name: 'Initialize Projen',
+      run: 'pnpm exec projen',
+    },
+  );
+};
 
 const inflateCommonProject = (option: {
   projectName: string;
@@ -240,27 +260,26 @@ const inflateCommonProject = (option: {
 
   if (option.bridgedProviders && option.bridgedProviders.length > 0) {
     commonProjectWithBridgedProviderOrder.push(project);
+    const pulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {
+      obj: {
+        name,
+        runtime: {
+          name: 'nodejs',
+        },
+        packages: option.bridgedProviders
+          ? Object.fromEntries(
+              option.bridgedProviders.map(eachBridgedProvider => [
+                eachBridgedProvider.name,
+                eachBridgedProvider.toJson(),
+              ]),
+            )
+          : undefined,
+      },
+      editGitignore: false,
+    });
   }
 
-  const pulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {
-    obj: {
-      name,
-      runtime: {
-        name: 'nodejs',
-      },
-      packages: option.bridgedProviders
-        ? Object.fromEntries(
-            option.bridgedProviders.map(eachBridgedProvider => [
-              eachBridgedProvider.name,
-              eachBridgedProvider.toJson(),
-            ]),
-          )
-        : undefined,
-    },
-    editGitignore: false,
-  });
-
-  return { project, pulumiYamlFile };
+  return { project };
 };
 
 const inflatePulumiProject = (option: {
@@ -580,8 +599,15 @@ const initPulumiEsc = async () => {
 };
 
 void (async () => {
+  await modifyUpgradeWorkflow();
+
   // Common
   const commonProjects = (() => {
+    const bridgedProviderProject = inflateCommonProject({
+      projectName: 'bridged-provider',
+      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
+    });
+
     const utilsProject = inflateCommonProject({
       projectName: 'utils',
       deps: ['flatley', 'flat', 'axios', 'semver', 'chalk', 'zod'],
@@ -598,7 +624,6 @@ void (async () => {
         constants.pulumiPackages.random,
         'axios',
       ],
-      bridgedProviders: [],
     });
 
     const nexusProject = inflateCommonProject({
@@ -614,7 +639,12 @@ void (async () => {
       ],
     });
 
-    return { utilsProject, customResourcesProject, nexusProject };
+    return {
+      bridgedProviderProject,
+      utilsProject,
+      customResourcesProject,
+      nexusProject,
+    };
   })();
 
   // Init Pulumi ESC
@@ -638,13 +668,13 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD],
       deps: [constants.pulumiPackages.kubernetes],
       commonDeps: [
+        commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.customResourcesProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
       ],
       infraDeps: [cloudflareProject.project.package.packageName],
       esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationSystemEsc],
-      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
     });
 
     const k8sWorkstationToolsProject = inflatePulumiProject({
@@ -652,6 +682,7 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD],
       deps: [constants.pulumiPackages.kubernetes, 'timezone-enum'],
       commonDeps: [
+        commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.customResourcesProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
@@ -661,7 +692,6 @@ void (async () => {
         k8sWorkstationSystemProject.project.package.packageName,
       ],
       esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationToolsEsc],
-      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
     });
 
     const k8sWorkstationAppsProject = inflatePulumiProject({
@@ -669,6 +699,7 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
       deps: [constants.pulumiPackages.kubernetes],
       commonDeps: [
+        commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.customResourcesProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
@@ -685,6 +716,7 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD],
       deps: [],
       commonDeps: [
+        commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
       ],
@@ -694,7 +726,6 @@ void (async () => {
         k8sWorkstationAppsProject.project.package.packageName,
         k8sWorkstationSystemProject.project.package.packageName,
       ],
-      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
     });
 
     return {

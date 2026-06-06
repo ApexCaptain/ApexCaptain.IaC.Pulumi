@@ -1,9 +1,9 @@
+import { authentik } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import { k8sWorkstationAppsContract } from '@infra/k8s-workstation-apps/src/contract';
 import { k8sWorkstationSystemContract } from '@infra/k8s-workstation-system/src/contract';
 import { k8sWorkstationToolsContract } from '@infra/k8s-workstation-tools/src/contract';
-import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
 import * as components from './components';
 
