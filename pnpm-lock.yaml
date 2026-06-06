@@ -433,6 +433,9 @@ importers:
       '@infra/cloudflare':
         specifier: workspace:*
         version: link:../cloudflare
+      '@pulumi/authentik':
+        specifier: file:sdks/authentik
+        version: file:infra/k8s-workstation-system/sdks/authentik(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))
       '@pulumi/kubernetes':
         specifier: ^4.31.1
         version: 4.31.1(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
@@ -857,6 +860,9 @@ packages:
 
   '@pulumi/authentik@file:infra/authentik-outpost/sdks/authentik':
     resolution: {directory: infra/authentik-outpost/sdks/authentik, type: directory}
+
+  '@pulumi/authentik@file:infra/k8s-workstation-system/sdks/authentik':
+    resolution: {directory: infra/k8s-workstation-system/sdks/authentik, type: directory}
 
   '@pulumi/authentik@file:infra/k8s-workstation-tools/sdks/authentik':
     resolution: {directory: infra/k8s-workstation-tools/sdks/authentik, type: directory}
@@ -3114,6 +3120,15 @@ snapshots:
   '@protobufjs/utf8@1.1.1': {}
 
   '@pulumi/authentik@file:infra/authentik-outpost/sdks/authentik(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))':
+    dependencies:
+      '@pulumi/pulumi': 3.242.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
+      '@types/node': 20.19.42
+      typescript: 6.0.3
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+
+  '@pulumi/authentik@file:infra/k8s-workstation-system/sdks/authentik(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))':
     dependencies:
       '@pulumi/pulumi': 3.242.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
       '@types/node': 20.19.42
