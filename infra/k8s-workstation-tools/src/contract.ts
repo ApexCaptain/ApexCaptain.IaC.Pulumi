@@ -94,11 +94,6 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                 k8sWorkstationSystemContract.output.authentik.flow
                   .defaultInvalidationFlowId,
             },
-            // authorizationBypass: {
-            //   ipBlocksToBypass:
-            //     nexus.esc.k8sWorkstationToolsEsc.esc.qbittorrent.authentik
-            //       .authorizationBypass.ipBlocksToBypass,
-            // },
           },
           providers: {
             kubernetes: workstationK8sProvider,

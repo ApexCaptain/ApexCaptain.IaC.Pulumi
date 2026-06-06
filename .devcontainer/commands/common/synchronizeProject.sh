@@ -27,7 +27,7 @@ pnpm approve-builds --all
 echo "✅ Approved pnpm builds"
 
 echo "🔄 Installing dependencies"
-pnpm i --config.confirmModulesPurge=false --no-frozen-lockfile
+pnpm i -w --config.confirmModulesPurge=false --no-frozen-lockfile
 echo "✅ Installed dependencies"
 
 

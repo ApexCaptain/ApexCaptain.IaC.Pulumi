@@ -6,6 +6,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { javascript, JsonFile, typescript, YamlFile } from 'projen';
 import { GithubCredentials } from 'projen/lib/github/github-credentials';
+import { Job } from 'projen/lib/github/workflows-model';
 import { ArrowParens } from 'projen/lib/javascript';
 import {
   TypeScriptProject,
@@ -33,9 +34,9 @@ const constants = (() => {
   const srcDir = 'src';
   const scriptDir = 'scripts';
   const infraDir = 'infra';
-  const kubeConfigDir = process.env.KUBE_CONFIG_DIR_NAME!!;
+  const kubeConfigDir = process.env.KUBE_CONFIG_DIR_NAME || '.kube';
   const commonDir = 'common';
-  const secretsDir = process.env.SECRETS_DIR_NAME!!;
+  const secretsDir = process.env.SECRETS_DIR_NAME || '.secrets';
   const pnpmStoreDir = '.pnpm-store';
   const turboDir = '.turbo';
   const tmpDir = 'tmp';
@@ -206,6 +207,30 @@ const rootProject = new typescript.TypeScriptProject(
     utils.functions.mergeCustomizer,
   ),
 );
+
+const modifyUpgradeWorkflow = async () => {
+  const upgradeWorkflow = rootProject.upgradeWorkflow;
+  if (!upgradeWorkflow) return;
+
+  const upgradeJob = upgradeWorkflow.workflows[0].jobs.upgrade as Job;
+
+  const upgradeJobSteps = upgradeJob.steps;
+
+  upgradeJobSteps.splice(
+    upgradeJobSteps.findIndex(
+      eachStep => eachStep.name == 'Install dependencies',
+    ),
+    1,
+    {
+      name: 'Install dependencies',
+      run: 'pnpm i -w --frozen-lockfile',
+    },
+    {
+      name: 'Initialize Projen',
+      run: 'pnpm exec projen',
+    },
+  );
+};
 
 const inflateCommonProject = (option: {
   projectName: string;
@@ -568,15 +593,7 @@ const initPulumiEsc = async () => {
   await Nexus.esc.k8sWorkstationToolsEsc.upsertEsc(
     accountName,
     pulumiEscClient,
-    {
-      qbittorrent: {
-        authentik: {
-          authorizationBypass: {
-            ipBlocksToBypass: [`${workstationIpV4Address}/32`],
-          },
-        },
-      },
-    },
+    {},
     {
       prod: {},
     },
@@ -584,6 +601,8 @@ const initPulumiEsc = async () => {
 };
 
 void (async () => {
+  await modifyUpgradeWorkflow();
+
   // Common
   const commonProjects = (() => {
     const utilsProject = inflateCommonProject({

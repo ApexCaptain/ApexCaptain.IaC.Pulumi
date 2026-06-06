@@ -1001,8 +1001,8 @@ packages:
   '@types/lodash@4.17.24':
     resolution: {integrity: sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ==}
 
-  '@types/node@20.19.41':
-    resolution: {integrity: sha512-ECymXOukMnOoVkC2bb1Vc/w/836DXncOg5m8Xj1RH7xSHZJWNYY6Zh7EH477vcnD5egKNNfy2RpNOmuChhFPgQ==}
+  '@types/node@20.19.42':
+    resolution: {integrity: sha512-5L7SUaFC1RyDraj2yRhyBzHTobyXHmohD100CChNtyPyleoq37Mqab5Gn8XEKI04dfN/oqPdpHk38MgcQWHbZg==}
 
   '@types/node@25.9.1':
     resolution: {integrity: sha512-xfrlY7UD5rMJk3ZVJP8BNzS28J36YJg+xp+LPXV1TdWxr8uMH5A860QNxYDGQe/ylDSgjxE52Q9VnO7p75tJxg==}
@@ -3122,7 +3122,7 @@ snapshots:
   '@pulumi/authentik@file:infra/authentik-outpost/sdks/authentik(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))':
     dependencies:
       '@pulumi/pulumi': 3.242.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
-      '@types/node': 20.19.41
+      '@types/node': 20.19.42
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -3131,7 +3131,7 @@ snapshots:
   '@pulumi/authentik@file:infra/k8s-workstation-system/sdks/authentik(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))':
     dependencies:
       '@pulumi/pulumi': 3.242.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
-      '@types/node': 20.19.41
+      '@types/node': 20.19.42
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -3140,7 +3140,7 @@ snapshots:
   '@pulumi/authentik@file:infra/k8s-workstation-tools/sdks/authentik(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))':
     dependencies:
       '@pulumi/pulumi': 3.242.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
-      '@types/node': 20.19.41
+      '@types/node': 20.19.42
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -3333,7 +3333,7 @@ snapshots:
 
   '@types/lodash@4.17.24': {}
 
-  '@types/node@20.19.41':
+  '@types/node@20.19.42':
     dependencies:
       undici-types: 6.21.0
 
