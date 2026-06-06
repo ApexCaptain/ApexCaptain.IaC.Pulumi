@@ -901,17 +901,6 @@ void (async () => {
     ),
   );
 
-  const bridgedProviderOverrides = Object.fromEntries(
-    Object.values(constants.bridgedProviders)
-      .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-      .flatMap(eachBridgedProvider =>
-        eachBridgedProvider.packagesToOverride.map(eachPackage => [
-          `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
-          `$${eachPackage}`,
-        ]),
-      ),
-  );
-
   // pnpm-workspace.yaml file
   new YamlFile(rootProject, 'pnpm-workspace.yaml', {
     obj: {
@@ -933,7 +922,16 @@ void (async () => {
           true,
         ]),
       ]),
-      overrides: bridgedProviderOverrides,
+      overrides: Object.fromEntries(
+        Object.values(constants.bridgedProviders)
+          .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
+          .flatMap(eachBridgedProvider =>
+            eachBridgedProvider.packagesToOverride.map(eachPackage => [
+              `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
+              `$${eachPackage}`,
+            ]),
+          ),
+      ),
     },
   });
 
