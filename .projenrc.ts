@@ -217,14 +217,23 @@ const modifyUpgradeWorkflow = async () => {
   const upgradeJobSteps = upgradeJob.steps;
 
   upgradeJobSteps.splice(
+    upgradeJobSteps.findIndex(eachStep => eachStep.name == 'Setup pnpm') + 1,
+    0,
+    {
+      name: 'Setup pulumi',
+      uses: 'pulumi/actions@v4',
+    },
+    {
+      name: 'Pulumi Install',
+      run: 'pnpm pulumi:install',
+    },
+  );
+
+  upgradeJobSteps.splice(
     upgradeJobSteps.findIndex(
       eachStep => eachStep.name == 'Install dependencies',
-    ),
-    1,
-    {
-      name: 'Install dependencies',
-      run: 'pnpm i --ignore-workspace --frozen-lockfile',
-    },
+    ) + 1,
+    0,
     {
       name: 'Initialize Projen',
       run: 'pnpm exec projen',
@@ -280,7 +289,7 @@ const inflateCommonProject = (option: {
           )
         : undefined,
     },
-    editGitignore: false,
+    editGitignore: true,
   });
 
   return { project, pulumiYamlFile };
