@@ -244,6 +244,7 @@ const modifyUpgradeWorkflow = async () => {
       name: 'Upgrade dependencies',
       run: 'pnpm exec projen upgrade',
       env: {
+        CI: '0',
         PULUMI_ACCESS_TOKEN: '${{ secrets.PULUMI_ACCESS_TOKEN }}',
       },
     },
@@ -768,9 +769,16 @@ void (async () => {
   const infraPackageFilter = `"./${constants.paths.dirs.infraDir}/*"`;
 
   // Scripts & Tasks
-  rootProject.defaultTask?.addSteps({
-    exec: `pnpm pulumi:install`,
-  });
+  rootProject.defaultTask?.env('CI', '0');
+
+  rootProject.defaultTask?.addSteps(
+    {
+      exec: `pnpm pulumi:install`,
+    },
+    {
+      exec: 'pnpm i --no-frozen-lockfile',
+    },
+  );
 
   rootProject.addScripts({
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,

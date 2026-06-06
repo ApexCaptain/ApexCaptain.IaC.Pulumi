@@ -28,6 +28,7 @@ jobs:
         run: pnpm build:workspaces
       - name: Upgrade dependencies
         env:
+          CI: "0"
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
         run: pnpm exec projen upgrade
       - name: Find mutations

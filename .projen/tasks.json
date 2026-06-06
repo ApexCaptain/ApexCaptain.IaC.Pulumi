@@ -68,12 +68,18 @@
     "default": {
       "name": "default",
       "description": "Synthesize project files",
+      "env": {
+        "CI": "0"
+      },
       "steps": [
         {
           "exec": "ts-node --project tsconfig.dev.json .projenrc.ts"
         },
         {
           "exec": "pnpm pulumi:install"
+        },
+        {
+          "exec": "pnpm i --no-frozen-lockfile"
         }
       ]
     },
