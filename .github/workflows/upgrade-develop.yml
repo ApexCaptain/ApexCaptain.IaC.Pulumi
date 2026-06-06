@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: pnpm i --frozen-lockfile
       - name: Build Projects
-        run: pnpm build
+        run: pnpm build:workspaces
       - name: Upgrade dependencies
         run: pnpm exec projen upgrade
       - name: Find mutations

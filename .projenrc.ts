@@ -231,7 +231,7 @@ const modifyUpgradeWorkflow = async () => {
     0,
     {
       name: 'Build Projects',
-      run: 'pnpm build',
+      run: 'pnpm build:workspaces',
     },
     // {
     //   name: 'Initialize Projen',

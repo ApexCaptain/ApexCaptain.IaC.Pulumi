@@ -27,6 +27,10 @@ echo "🔄 Installing dependencies"
 pnpm i --no-frozen-lockfile
 echo "✅ Installed dependencies"
 
+echo "🔄 Building projects"
+pnpm build:workspaces
+echo "✅ Built projects"
+
 echo "🔄 Initializing Projen"
 pnpm projen
 echo "✅ Initialized Projen"
