@@ -223,7 +223,7 @@ const modifyUpgradeWorkflow = async () => {
     1,
     {
       name: 'Install dependencies',
-      run: 'pnpm i -w --frozen-lockfile',
+      run: 'pnpm i --ignore-workspace --frozen-lockfile',
     },
     {
       name: 'Initialize Projen',
