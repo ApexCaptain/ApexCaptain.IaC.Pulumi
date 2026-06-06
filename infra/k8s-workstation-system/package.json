@@ -31,7 +31,6 @@
     "@common/nexus": "workspace:*",
     "@common/utils": "workspace:*",
     "@infra/cloudflare": "workspace:*",
-    "@pulumi/authentik": "file:sdks/authentik",
     "@pulumi/kubernetes": "^4.31.1",
     "@pulumi/pulumi": "^3.242.0",
     "dedent": "^1.7.2",

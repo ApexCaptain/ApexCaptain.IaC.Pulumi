@@ -845,7 +845,7 @@ void (async () => {
         safe: true,
         coercion: [
           {
-            test: (__, value) => {
+            test: (__: string, value: any) => {
               return utils.classes.VsCodeObject.isVscodeObject(value);
             },
             transform: (value: utils.classes.VsCodeObject<any>) => value.object,
