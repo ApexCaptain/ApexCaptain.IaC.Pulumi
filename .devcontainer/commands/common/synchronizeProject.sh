@@ -22,14 +22,14 @@ sed -i \
 } >> "$BASHRC_FILE"
 echo "✅ Aliases set up"
 
-echo "Approve pnpm builds"
-pnpm approve-builds --all
-echo "✅ Approved pnpm builds"
 
 echo "🔄 Installing dependencies"
-pnpm i --config.confirmModulesPurge=false --no-frozen-lockfile
+pnpm i --no-frozen-lockfile
 echo "✅ Installed dependencies"
 
+echo "🔄 Building projects"
+pnpm build:workspaces
+echo "✅ Built projects"
 
 echo "🔄 Initializing Projen"
 pnpm projen

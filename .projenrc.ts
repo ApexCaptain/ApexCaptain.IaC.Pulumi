@@ -6,6 +6,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { javascript, JsonFile, typescript, YamlFile } from 'projen';
 import { GithubCredentials } from 'projen/lib/github/github-credentials';
+import { Job } from 'projen/lib/github/workflows-model';
 import { ArrowParens } from 'projen/lib/javascript';
 import {
   TypeScriptProject,
@@ -33,9 +34,9 @@ const constants = (() => {
   const srcDir = 'src';
   const scriptDir = 'scripts';
   const infraDir = 'infra';
-  const kubeConfigDir = process.env.KUBE_CONFIG_DIR_NAME!!;
+  const kubeConfigDir = process.env.KUBE_CONFIG_DIR_NAME || '.kube';
   const commonDir = 'common';
-  const secretsDir = process.env.SECRETS_DIR_NAME!!;
+  const secretsDir = process.env.SECRETS_DIR_NAME || '.secrets';
   const pnpmStoreDir = '.pnpm-store';
   const turboDir = '.turbo';
   const tmpDir = 'tmp';
@@ -72,7 +73,7 @@ const constants = (() => {
         name: 'authentik',
         providerSource: 'goauthentik/authentik',
         providerVersion: '2026.2.0',
-        packagesToOverride: ['typescript'],
+        packagesToOverride: ['typescript', '@types/node'],
       }),
     },
   };
@@ -88,6 +89,14 @@ const constants = (() => {
     random: '@pulumi/random',
   };
 
+  const packagesAllowingBuildScripts = [
+    pulumiPackages.command,
+    pulumiPackages.kubernetes,
+    pulumiPackages.std,
+    'protobufjs',
+    'unrs-resolver',
+  ];
+
   return {
     project,
     author,
@@ -97,11 +106,12 @@ const constants = (() => {
     isDevContainer,
     bridgedProviders,
     pulumiPackages,
+    packagesAllowingBuildScripts,
   };
 })();
 
-const commonProjectOrder: TypeScriptProject[] = [];
-const pulumiProjectOrder: TypeScriptProject[] = [];
+const commonProjectWithBridgedProviderOrder: TypeScriptProject[] = [];
+const pulumiProjectWithBridgedProviderOrder: TypeScriptProject[] = [];
 
 const sharedProjectOption: Partial<TypeScriptProjectOptions> = {
   tsconfig: {
@@ -186,7 +196,6 @@ const rootProject = new typescript.TypeScriptProject(
         '.DS_STORE',
         'Pulumi*.yaml',
         'Pulumi*.yml',
-        'sdks',
         constants.paths.dirs.turboDir,
         constants.paths.dirs.tmpDir,
 
@@ -206,6 +215,41 @@ const rootProject = new typescript.TypeScriptProject(
     utils.functions.mergeCustomizer,
   ),
 );
+
+const modifyUpgradeWorkflow = async () => {
+  const upgradeWorkflow = rootProject.upgradeWorkflow;
+  if (!upgradeWorkflow) return;
+
+  const upgradeJob = upgradeWorkflow.workflows[0].jobs.upgrade as Job;
+
+  const upgradeJobSteps = upgradeJob.steps;
+
+  upgradeJobSteps.splice(
+    upgradeJobSteps.findIndex(
+      eachStep => eachStep.name == 'Install dependencies',
+    ) + 1,
+    0,
+    {
+      name: 'Build Projects',
+      run: 'pnpm build:workspaces',
+    },
+  );
+
+  upgradeJobSteps.splice(
+    upgradeJobSteps.findIndex(
+      eachStep => eachStep.name == 'Upgrade dependencies',
+    ),
+    1,
+    {
+      name: 'Upgrade dependencies',
+      run: 'pnpm exec projen upgrade',
+      env: {
+        CI: '0',
+        PULUMI_ACCESS_TOKEN: '${{ secrets.PULUMI_ACCESS_TOKEN }}',
+      },
+    },
+  );
+};
 
 const inflateCommonProject = (option: {
   projectName: string;
@@ -228,6 +272,11 @@ const inflateCommonProject = (option: {
         deps: [
           ...(option.deps ?? []),
 
+          ...(option.bridgedProviders ?? []).map(
+            eachBridgedProvider =>
+              `@pulumi/${eachBridgedProvider.name}@file:sdks/${eachBridgedProvider.name}`,
+          ),
+
           ...(option.commonDeps ?? []).map(
             eachCommonDep => `${eachCommonDep}@workspace:*`,
           ),
@@ -238,27 +287,28 @@ const inflateCommonProject = (option: {
     ),
   );
 
-  commonProjectOrder.push(project);
-
-  const pulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {
-    obj: {
-      name,
-      runtime: {
-        name: 'nodejs',
+  if (option.bridgedProviders && option.bridgedProviders.length > 0) {
+    commonProjectWithBridgedProviderOrder.push(project);
+    const pulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {
+      obj: {
+        name,
+        runtime: {
+          name: 'nodejs',
+        },
+        packages: option.bridgedProviders
+          ? Object.fromEntries(
+              option.bridgedProviders.map(eachBridgedProvider => [
+                eachBridgedProvider.name,
+                eachBridgedProvider.toJson(),
+              ]),
+            )
+          : undefined,
       },
-      packages: option.bridgedProviders
-        ? Object.fromEntries(
-            option.bridgedProviders.map(eachBridgedProvider => [
-              eachBridgedProvider.name,
-              eachBridgedProvider.toJson(),
-            ]),
-          )
-        : undefined,
-    },
-    editGitignore: false,
-  });
+      editGitignore: false,
+    });
+  }
 
-  return { project, pulumiYamlFile };
+  return { project };
 };
 
 const inflatePulumiProject = (option: {
@@ -341,7 +391,9 @@ const inflatePulumiProject = (option: {
     ),
   );
 
-  pulumiProjectOrder.push(project);
+  if (option.bridgedProviders && option.bridgedProviders.length > 0) {
+    pulumiProjectWithBridgedProviderOrder.push(project);
+  }
 
   const defaultPulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {
     obj: {
@@ -568,15 +620,7 @@ const initPulumiEsc = async () => {
   await Nexus.esc.k8sWorkstationToolsEsc.upsertEsc(
     accountName,
     pulumiEscClient,
-    {
-      qbittorrent: {
-        authentik: {
-          authorizationBypass: {
-            ipBlocksToBypass: [`${workstationIpV4Address}/32`],
-          },
-        },
-      },
-    },
+    {},
     {
       prod: {},
     },
@@ -584,8 +628,15 @@ const initPulumiEsc = async () => {
 };
 
 void (async () => {
+  await modifyUpgradeWorkflow();
+
   // Common
   const commonProjects = (() => {
+    const bridgedProviderProject = inflateCommonProject({
+      projectName: 'bridged-provider',
+      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
+    });
+
     const utilsProject = inflateCommonProject({
       projectName: 'utils',
       deps: ['flatley', 'flat', 'axios', 'semver', 'chalk', 'zod'],
@@ -602,7 +653,6 @@ void (async () => {
         constants.pulumiPackages.random,
         'axios',
       ],
-      bridgedProviders: [],
     });
 
     const nexusProject = inflateCommonProject({
@@ -618,7 +668,12 @@ void (async () => {
       ],
     });
 
-    return { utilsProject, customResourcesProject, nexusProject };
+    return {
+      bridgedProviderProject,
+      utilsProject,
+      customResourcesProject,
+      nexusProject,
+    };
   })();
 
   // Init Pulumi ESC
@@ -642,13 +697,13 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD],
       deps: [constants.pulumiPackages.kubernetes],
       commonDeps: [
+        commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.customResourcesProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
       ],
       infraDeps: [cloudflareProject.project.package.packageName],
       esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationSystemEsc],
-      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
     });
 
     const k8sWorkstationToolsProject = inflatePulumiProject({
@@ -656,6 +711,7 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD],
       deps: [constants.pulumiPackages.kubernetes, 'timezone-enum'],
       commonDeps: [
+        commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.customResourcesProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
@@ -665,7 +721,6 @@ void (async () => {
         k8sWorkstationSystemProject.project.package.packageName,
       ],
       esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationToolsEsc],
-      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
     });
 
     const k8sWorkstationAppsProject = inflatePulumiProject({
@@ -673,6 +728,7 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
       deps: [constants.pulumiPackages.kubernetes],
       commonDeps: [
+        commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.customResourcesProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
@@ -689,6 +745,7 @@ void (async () => {
       stages: [utils.enums.StackStage.PROD],
       deps: [],
       commonDeps: [
+        commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
       ],
@@ -698,7 +755,6 @@ void (async () => {
         k8sWorkstationAppsProject.project.package.packageName,
         k8sWorkstationSystemProject.project.package.packageName,
       ],
-      bridgedProviders: [constants.bridgedProviders.terraform.authentik],
     });
 
     return {
@@ -718,22 +774,31 @@ void (async () => {
   const infraPackageFilter = `"./${constants.paths.dirs.infraDir}/*"`;
 
   // Scripts & Tasks
-  rootProject.defaultTask?.addSteps({
-    exec: `pnpm pulumi:install`,
-  });
+  rootProject.defaultTask?.env('CI', '0');
+
+  rootProject.defaultTask?.addSteps(
+    {
+      exec: `pnpm pulumi:install`,
+    },
+    {
+      exec: 'pnpm i --no-frozen-lockfile',
+    },
+  );
 
   rootProject.addScripts({
-    preprojen: 'pnpm approve-builds --all',
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
     'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
     'postpulumi:up': `ts-node scripts/merge-kube-config.script.ts`,
-    'pulumi:install': [...commonProjectOrder, ...pulumiProjectOrder]
-      .flatMap(
+    'pulumi:install': [
+      ...commonProjectWithBridgedProviderOrder,
+      ...pulumiProjectWithBridgedProviderOrder,
+    ]
+      .map(
         eachProject =>
-          `pulumi install --cwd ./${path.relative(rootProject.outdir, eachProject.outdir)}`,
+          `pulumi install --no-dependencies --cwd ./${path.relative(rootProject.outdir, eachProject.outdir)}`,
       )
       .join(' && '),
 
@@ -826,7 +891,7 @@ void (async () => {
         safe: true,
         coercion: [
           {
-            test: (__, value) => {
+            test: (__: string, value: any) => {
               return utils.classes.VsCodeObject.isVscodeObject(value);
             },
             transform: (value: utils.classes.VsCodeObject<any>) => value.object,
@@ -839,36 +904,35 @@ void (async () => {
   // pnpm-workspace.yaml file
   new YamlFile(rootProject, 'pnpm-workspace.yaml', {
     obj: {
+      confirmModulesPurge: false,
       packages: [
         `${constants.paths.dirs.commonDir}/*`,
         `${constants.paths.dirs.infraDir}/*`,
       ],
       // Bridged Providers에 공통 네이밍 컨벤션이 있을 경우 Dynamic하게 설정될 수 있도록 변경
-      allowBuilds: Object.fromEntries(
+      allowBuilds: Object.fromEntries([
+        ...Object.values(constants.bridgedProviders)
+          .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
+          .map(eachBridgedProvider => [
+            `@pulumi/${eachBridgedProvider.name}`,
+            true,
+          ]),
+        ...constants.packagesAllowingBuildScripts.map(eachPackage => [
+          eachPackage,
+          true,
+        ]),
+      ]),
+      overrides: Object.fromEntries(
         Object.values(constants.bridgedProviders)
           .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-          .map(eachBridgedProvider => {
-            return [`@pulumi/${eachBridgedProvider.name}`, true];
-          }),
-      ),
-    },
-  });
-
-  // Override Bridged Provider sub-pacakges
-  rootProject.package.addField('pnpm', {
-    overrides: Object.fromEntries(
-      Object.values(constants.bridgedProviders)
-        .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-        .map(eachBridgedProvider => {
-          return eachBridgedProvider.packagesToOverride.map(eachPackage => {
-            return [
+          .flatMap(eachBridgedProvider =>
+            eachBridgedProvider.packagesToOverride.map(eachPackage => [
               `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
               `$${eachPackage}`,
-            ];
-          });
-        })
-        .flat(),
-    ),
+            ]),
+          ),
+      ),
+    },
   });
 
   rootProject.synth();

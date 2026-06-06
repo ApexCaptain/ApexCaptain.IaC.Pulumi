@@ -15,13 +15,12 @@
     "upgrade": "projen upgrade",
     "watch": "projen watch",
     "projen": "projen",
-    "preprojen": "pnpm approve-builds --all",
     "build:workspaces": "turbo run build --filter \"./common/*\" --filter \"./infra/*\"",
     "build:infra": "turbo run build --filter \"./infra/*\"",
     "pulumi:preview": "turbo run pulumi:preview --filter \"./infra/*\"",
     "pulumi:up": "turbo run pulumi:up --filter \"./infra/*\" --ui=tui",
     "postpulumi:up": "ts-node scripts/merge-kube-config.script.ts",
-    "pulumi:install": "pulumi install --cwd ./common/utils && pulumi install --cwd ./common/custom-resources && pulumi install --cwd ./common/nexus && pulumi install --cwd ./infra/cloudflare && pulumi install --cwd ./infra/k8s-workstation-system && pulumi install --cwd ./infra/k8s-workstation-tools && pulumi install --cwd ./infra/k8s-workstation-apps && pulumi install --cwd ./infra/authentik-outpost",
+    "pulumi:install": "pulumi install --no-dependencies --cwd ./common/bridged-provider",
     "postprojen": "pnpm build",
     "postbuild": "turbo run build --filter \"./common/*\" --filter \"./infra/*\"",
     "postupgrade": "turbo run upgrade --filter \"./common/*\" --filter \"./infra/*\" --concurrency=1"
@@ -32,37 +31,32 @@
     "organization": false
   },
   "devDependencies": {
-    "@pulumi/esc-sdk": "^v0.13.1",
+    "@pulumi/esc-sdk": "^0.13.1",
     "@types/lodash": "^4.17.24",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.2",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
-    "axios": "^1.15.2",
+    "axios": "^1.17.0",
     "constructs": "^10.0.0",
     "eslint": "^9",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-prettier": "^5.5.6",
     "lodash": "^4.18.1",
     "prettier": "^3.8.3",
-    "projen": "^0.99.62",
+    "projen": "^0.99.70",
     "ts-node": "^10.9.2",
-    "turbo": "^2.9.14",
+    "turbo": "^2.9.16",
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@pulumi/pulumi": "^3.242.0",
+    "@pulumi/pulumi": "^3.245.0",
     "dedent": "^1.7.2",
     "lodash": "^4.18.1",
-    "yaml": "^2.8.3"
+    "yaml": "^2.9.0"
   },
-  "pnpm": {
-    "overrides": {
-      "@pulumi/authentik>@pulumi/pulumi": "$@pulumi/pulumi",
-      "@pulumi/authentik>typescript": "$typescript"
-    }
-  },
+  "pnpm": {},
   "devEngines": {
     "packageManager": {
       "name": "pnpm",

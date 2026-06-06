@@ -37,6 +37,11 @@
       "type": "build"
     },
     {
+      "name": "@common/bridged-provider",
+      "version": "workspace:*",
+      "type": "runtime"
+    },
+    {
       "name": "@common/nexus",
       "version": "workspace:*",
       "type": "runtime"
