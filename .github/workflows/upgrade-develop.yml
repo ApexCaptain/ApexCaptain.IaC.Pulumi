@@ -22,14 +22,8 @@ jobs:
         uses: pnpm/action-setup@v5
         with:
           version: 10.33.0
-      - name: Setup pulumi
-        uses: pulumi/actions@v4
-      - name: Pulumi Install
-        run: pnpm pulumi:install
       - name: Install dependencies
         run: pnpm i --frozen-lockfile
-      - name: Initialize Projen
-        run: pnpm exec projen
       - name: Upgrade dependencies
         run: pnpm exec projen upgrade
       - name: Find mutations

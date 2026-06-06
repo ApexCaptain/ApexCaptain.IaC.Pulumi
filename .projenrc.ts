@@ -101,8 +101,8 @@ const constants = (() => {
   };
 })();
 
-const commonProjectOrder: TypeScriptProject[] = [];
-const pulumiProjectOrder: TypeScriptProject[] = [];
+const commonProjectWithBridgedProviderOrder: TypeScriptProject[] = [];
+const pulumiProjectWithBridgedProviderOrder: TypeScriptProject[] = [];
 
 const sharedProjectOption: Partial<TypeScriptProjectOptions> = {
   tsconfig: {
@@ -185,9 +185,8 @@ const rootProject = new typescript.TypeScriptProject(
 
       gitignore: [
         '.DS_STORE',
-        'Pulumi*.yaml',
-        'Pulumi*.yml',
-        'sdks',
+        'Pulumi.*.yaml',
+        'Pulumi.*.yml',
         constants.paths.dirs.turboDir,
         constants.paths.dirs.tmpDir,
 
@@ -207,39 +206,6 @@ const rootProject = new typescript.TypeScriptProject(
     utils.functions.mergeCustomizer,
   ),
 );
-
-const modifyUpgradeWorkflow = async () => {
-  const upgradeWorkflow = rootProject.upgradeWorkflow;
-  if (!upgradeWorkflow) return;
-
-  const upgradeJob = upgradeWorkflow.workflows[0].jobs.upgrade as Job;
-
-  const upgradeJobSteps = upgradeJob.steps;
-
-  upgradeJobSteps.splice(
-    upgradeJobSteps.findIndex(eachStep => eachStep.name == 'Setup pnpm') + 1,
-    0,
-    {
-      name: 'Setup pulumi',
-      uses: 'pulumi/actions@v4',
-    },
-    {
-      name: 'Pulumi Install',
-      run: 'pnpm pulumi:install',
-    },
-  );
-
-  upgradeJobSteps.splice(
-    upgradeJobSteps.findIndex(
-      eachStep => eachStep.name == 'Install dependencies',
-    ) + 1,
-    0,
-    {
-      name: 'Initialize Projen',
-      run: 'pnpm exec projen',
-    },
-  );
-};
 
 const inflateCommonProject = (option: {
   projectName: string;
@@ -272,7 +238,9 @@ const inflateCommonProject = (option: {
     ),
   );
 
-  commonProjectOrder.push(project);
+  if (option.bridgedProviders && option.bridgedProviders.length > 0) {
+    commonProjectWithBridgedProviderOrder.push(project);
+  }
 
   const pulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {
     obj: {
@@ -289,7 +257,7 @@ const inflateCommonProject = (option: {
           )
         : undefined,
     },
-    editGitignore: true,
+    editGitignore: false,
   });
 
   return { project, pulumiYamlFile };
@@ -375,7 +343,9 @@ const inflatePulumiProject = (option: {
     ),
   );
 
-  pulumiProjectOrder.push(project);
+  if (option.bridgedProviders && option.bridgedProviders.length > 0) {
+    pulumiProjectWithBridgedProviderOrder.push(project);
+  }
 
   const defaultPulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {
     obj: {
@@ -610,8 +580,6 @@ const initPulumiEsc = async () => {
 };
 
 void (async () => {
-  await modifyUpgradeWorkflow();
-
   // Common
   const commonProjects = (() => {
     const utilsProject = inflateCommonProject({
@@ -758,8 +726,11 @@ void (async () => {
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
     'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
     'postpulumi:up': `ts-node scripts/merge-kube-config.script.ts`,
-    'pulumi:install': [...commonProjectOrder, ...pulumiProjectOrder]
-      .flatMap(
+    'pulumi:install': [
+      ...commonProjectWithBridgedProviderOrder,
+      ...pulumiProjectWithBridgedProviderOrder,
+    ]
+      .map(
         eachProject =>
           `pulumi install --cwd ./${path.relative(rootProject.outdir, eachProject.outdir)}`,
       )

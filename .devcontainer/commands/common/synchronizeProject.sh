@@ -27,7 +27,7 @@ pnpm approve-builds --all
 echo "✅ Approved pnpm builds"
 
 echo "🔄 Installing dependencies"
-pnpm i --ignore-workspace --frozen-lockfile
+pnpm i --frozen-lockfile
 echo "✅ Installed dependencies"
 
 

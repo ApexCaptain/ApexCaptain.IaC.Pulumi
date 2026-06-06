@@ -21,7 +21,7 @@
     "pulumi:preview": "turbo run pulumi:preview --filter \"./infra/*\"",
     "pulumi:up": "turbo run pulumi:up --filter \"./infra/*\" --ui=tui",
     "postpulumi:up": "ts-node scripts/merge-kube-config.script.ts",
-    "pulumi:install": "pulumi install --cwd ./common/utils && pulumi install --cwd ./common/custom-resources && pulumi install --cwd ./common/nexus && pulumi install --cwd ./infra/cloudflare && pulumi install --cwd ./infra/k8s-workstation-system && pulumi install --cwd ./infra/k8s-workstation-tools && pulumi install --cwd ./infra/k8s-workstation-apps && pulumi install --cwd ./infra/authentik-outpost",
+    "pulumi:install": "pulumi install --cwd ./infra/k8s-workstation-system && pulumi install --cwd ./infra/k8s-workstation-tools && pulumi install --cwd ./infra/authentik-outpost",
     "postprojen": "pnpm build",
     "postbuild": "turbo run build --filter \"./common/*\" --filter \"./infra/*\"",
     "postupgrade": "turbo run upgrade --filter \"./common/*\" --filter \"./infra/*\" --concurrency=1"
