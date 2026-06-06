@@ -196,6 +196,7 @@ const rootProject = new typescript.TypeScriptProject(
         '.DS_STORE',
         'Pulumi*.yaml',
         'Pulumi*.yml',
+        'sdks',
         constants.paths.dirs.turboDir,
         constants.paths.dirs.tmpDir,
 
@@ -271,6 +272,11 @@ const inflateCommonProject = (option: {
         outdir,
         deps: [
           ...(option.deps ?? []),
+
+          ...(option.bridgedProviders ?? []).map(
+            eachBridgedProvider =>
+              `@pulumi/${eachBridgedProvider.name}@file:sdks/${eachBridgedProvider.name}`,
+          ),
 
           ...(option.commonDeps ?? []).map(
             eachCommonDep => `${eachCommonDep}@workspace:*`,
@@ -793,7 +799,7 @@ void (async () => {
     ]
       .map(
         eachProject =>
-          `pulumi install --cwd ./${path.relative(rootProject.outdir, eachProject.outdir)}`,
+          `pulumi install --no-dependencies --cwd ./${path.relative(rootProject.outdir, eachProject.outdir)}`,
       )
       .join(' && '),
 

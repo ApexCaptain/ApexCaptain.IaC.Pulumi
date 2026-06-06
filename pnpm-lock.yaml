@@ -80,6 +80,9 @@ importers:
 
   common/bridged-provider:
     dependencies:
+      '@pulumi/authentik':
+        specifier: file:sdks/authentik
+        version: file:common/bridged-provider/sdks/authentik(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))
       '@pulumi/pulumi':
         specifier: ^3.242.0
         version: 3.245.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
@@ -904,6 +907,9 @@ packages:
 
   '@protobufjs/utf8@1.1.1':
     resolution: {integrity: sha512-oOAWABowe8EAbMyWKM0tYDKi8Yaox52D+HWZhAIJqQXbqe0xI/GV7FhLWqlEKreMkfDjshR5FKgi3mnle0h6Eg==}
+
+  '@pulumi/authentik@file:common/bridged-provider/sdks/authentik':
+    resolution: {directory: common/bridged-provider/sdks/authentik, type: directory}
 
   '@pulumi/cloudflare@6.17.0':
     resolution: {integrity: sha512-sIL1rfjNavy+yZQ/OjyFHD4owe2E/TpHLFCVsogQJOC+Y6Bj7JxrhoTfsJdxVEXEFBGlNCu68T+g9im8iEZM9A==}
@@ -3166,6 +3172,15 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.1': {}
+
+  '@pulumi/authentik@file:common/bridged-provider/sdks/authentik(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))':
+    dependencies:
+      '@pulumi/pulumi': 3.245.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
+      '@types/node': 25.9.1
+      typescript: 6.0.3
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
 
   '@pulumi/cloudflare@6.17.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)':
     dependencies:

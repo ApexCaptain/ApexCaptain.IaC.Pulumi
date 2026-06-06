@@ -37,6 +37,11 @@
       "type": "build"
     },
     {
+      "name": "@pulumi/authentik",
+      "version": "file:sdks/authentik",
+      "type": "runtime"
+    },
+    {
       "name": "@pulumi/pulumi",
       "type": "runtime"
     },

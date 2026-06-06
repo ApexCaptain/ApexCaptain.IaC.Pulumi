@@ -20,7 +20,7 @@
     "pulumi:preview": "turbo run pulumi:preview --filter \"./infra/*\"",
     "pulumi:up": "turbo run pulumi:up --filter \"./infra/*\" --ui=tui",
     "postpulumi:up": "ts-node scripts/merge-kube-config.script.ts",
-    "pulumi:install": "pulumi install --cwd ./common/bridged-provider",
+    "pulumi:install": "pulumi install --no-dependencies --cwd ./common/bridged-provider",
     "postprojen": "pnpm build",
     "postbuild": "turbo run build --filter \"./common/*\" --filter \"./infra/*\"",
     "postupgrade": "turbo run upgrade --filter \"./common/*\" --filter \"./infra/*\" --concurrency=1"
