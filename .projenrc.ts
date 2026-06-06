@@ -73,7 +73,7 @@ const constants = (() => {
         name: 'authentik',
         providerSource: 'goauthentik/authentik',
         providerVersion: '2026.2.0',
-        packagesToOverride: ['typescript'],
+        packagesToOverride: ['typescript', '@types/node'],
       }),
     },
   };
@@ -89,6 +89,14 @@ const constants = (() => {
     random: '@pulumi/random',
   };
 
+  const packagesAllowingBuildScripts = [
+    pulumiPackages.command,
+    pulumiPackages.kubernetes,
+    pulumiPackages.std,
+    'protobufjs',
+    'unrs-resolver',
+  ];
+
   return {
     project,
     author,
@@ -98,6 +106,7 @@ const constants = (() => {
     isDevContainer,
     bridgedProviders,
     pulumiPackages,
+    packagesAllowingBuildScripts,
   };
 })();
 
@@ -221,9 +230,13 @@ const modifyUpgradeWorkflow = async () => {
     ) + 1,
     0,
     {
-      name: 'Initialize Projen',
-      run: 'pnpm exec projen',
+      name: 'Build Projects',
+      run: 'pnpm build',
     },
+    // {
+    //   name: 'Initialize Projen',
+    //   run: 'pnpm exec projen',
+    // },
   );
 };
 
@@ -750,7 +763,6 @@ void (async () => {
   });
 
   rootProject.addScripts({
-    preprojen: 'pnpm approve-builds --all',
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 
@@ -866,39 +878,40 @@ void (async () => {
     ),
   );
 
+  const bridgedProviderOverrides = Object.fromEntries(
+    Object.values(constants.bridgedProviders)
+      .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
+      .flatMap(eachBridgedProvider =>
+        eachBridgedProvider.packagesToOverride.map(eachPackage => [
+          `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
+          `$${eachPackage}`,
+        ]),
+      ),
+  );
+
   // pnpm-workspace.yaml file
   new YamlFile(rootProject, 'pnpm-workspace.yaml', {
     obj: {
+      confirmModulesPurge: false,
       packages: [
         `${constants.paths.dirs.commonDir}/*`,
         `${constants.paths.dirs.infraDir}/*`,
       ],
       // Bridged Providers에 공통 네이밍 컨벤션이 있을 경우 Dynamic하게 설정될 수 있도록 변경
-      allowBuilds: Object.fromEntries(
-        Object.values(constants.bridgedProviders)
+      allowBuilds: Object.fromEntries([
+        ...Object.values(constants.bridgedProviders)
           .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-          .map(eachBridgedProvider => {
-            return [`@pulumi/${eachBridgedProvider.name}`, true];
-          }),
-      ),
+          .map(eachBridgedProvider => [
+            `@pulumi/${eachBridgedProvider.name}`,
+            true,
+          ]),
+        ...constants.packagesAllowingBuildScripts.map(eachPackage => [
+          eachPackage,
+          true,
+        ]),
+      ]),
+      overrides: bridgedProviderOverrides,
     },
-  });
-
-  // Override Bridged Provider sub-pacakges
-  rootProject.package.addField('pnpm', {
-    overrides: Object.fromEntries(
-      Object.values(constants.bridgedProviders)
-        .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-        .map(eachBridgedProvider => {
-          return eachBridgedProvider.packagesToOverride.map(eachPackage => {
-            return [
-              `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
-              `$${eachPackage}`,
-            ];
-          });
-        })
-        .flat(),
-    ),
   });
 
   rootProject.synth();

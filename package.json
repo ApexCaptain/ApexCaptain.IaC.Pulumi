@@ -15,7 +15,6 @@
     "upgrade": "projen upgrade",
     "watch": "projen watch",
     "projen": "projen",
-    "preprojen": "pnpm approve-builds --all",
     "build:workspaces": "turbo run build --filter \"./common/*\" --filter \"./infra/*\"",
     "build:infra": "turbo run build --filter \"./infra/*\"",
     "pulumi:preview": "turbo run pulumi:preview --filter \"./infra/*\"",
@@ -57,12 +56,7 @@
     "lodash": "^4.18.1",
     "yaml": "^2.8.3"
   },
-  "pnpm": {
-    "overrides": {
-      "@pulumi/authentik>@pulumi/pulumi": "$@pulumi/pulumi",
-      "@pulumi/authentik>typescript": "$typescript"
-    }
-  },
+  "pnpm": {},
   "devEngines": {
     "packageManager": {
       "name": "pnpm",

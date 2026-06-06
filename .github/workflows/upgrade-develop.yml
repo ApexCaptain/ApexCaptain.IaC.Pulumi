@@ -24,8 +24,8 @@ jobs:
           version: 10.33.0
       - name: Install dependencies
         run: pnpm i --frozen-lockfile
-      - name: Initialize Projen
-        run: pnpm exec projen
+      - name: Build Projects
+        run: pnpm build
       - name: Upgrade dependencies
         run: pnpm exec projen upgrade
       - name: Find mutations
