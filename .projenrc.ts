@@ -233,10 +233,20 @@ const modifyUpgradeWorkflow = async () => {
       name: 'Build Projects',
       run: 'pnpm build:workspaces',
     },
-    // {
-    //   name: 'Initialize Projen',
-    //   run: 'pnpm exec projen',
-    // },
+  );
+
+  upgradeJobSteps.splice(
+    upgradeJobSteps.findIndex(
+      eachStep => eachStep.name == 'Upgrade dependencies',
+    ),
+    1,
+    {
+      name: 'Upgrade dependencies',
+      run: 'pnpm exec projen upgrade',
+      env: {
+        PULUMI_ACCESS_TOKEN: '${{ secrets.PULUMI_ACCESS_TOKEN }}',
+      },
+    },
   );
 };
 
