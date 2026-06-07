@@ -55,6 +55,10 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           helm: {
             metricsServer: {
               version: '3.13.0',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls[
+                  'kubernetes-sigs.github.io/metrics-server'
+                ],
             },
           },
           providers: {
@@ -70,6 +74,8 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         helm: {
           metallb: {
             version: '0.16.1',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls['metallb.github.io/metallb'],
           },
         },
         providers: {
@@ -98,6 +104,8 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           helm: {
             certManager: {
               version: 'v1.20.2',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['charts.jetstack.io'],
             },
           },
           providers: {
@@ -137,6 +145,10 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         helm: {
           istio: {
             version: '1.30.0',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls[
+                'istio-release.storage.googleapis.com/charts'
+              ],
           },
         },
         meshId: commonEsc.esc.istioNetwork.meshId,
@@ -242,6 +254,10 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           helm: {
             localNfsProvisioner: {
               version: '4.0.18',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls[
+                  'kubernetes-sigs.github.io/nfs-subdir-external-provisioner'
+                ],
             },
           },
           nfsSharedServiceDirName:
@@ -266,6 +282,8 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           helm: {
             authentik: {
               version: '2026.5.2',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
             },
           },
           secretKey: projectEsc.esc.authentik.secretKey,

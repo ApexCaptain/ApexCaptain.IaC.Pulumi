@@ -6,6 +6,7 @@
     ".github/workflows/pull-request-lint.yml",
     ".github/workflows/upgrade-develop.yml",
     ".gitignore",
+    ".nova-config.json",
     ".prettierignore",
     ".prettierrc.json",
     ".projen/deps.json",
@@ -14,6 +15,7 @@
     ".vscode/settings.json",
     "LICENSE",
     "pnpm-workspace.yaml",
+    "README.md",
     "tsconfig.dev.json",
     "tsconfig.json",
     "turbo.json"

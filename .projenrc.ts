@@ -1,10 +1,12 @@
 import dns from 'dns/promises';
+import fs from 'fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import * as pulumiEscSdk from '@pulumi/esc-sdk';
 import { LocalWorkspace } from '@pulumi/pulumi/automation';
 import axios from 'axios';
 import _ from 'lodash';
-import { javascript, JsonFile, typescript, YamlFile } from 'projen';
+import { javascript, JsonFile, TextFile, typescript, YamlFile } from 'projen';
 import { GithubCredentials } from 'projen/lib/github/github-credentials';
 import { Job } from 'projen/lib/github/workflows-model';
 import { ArrowParens } from 'projen/lib/javascript';
@@ -31,6 +33,7 @@ const constants = (() => {
     develop: 'develop',
   };
 
+  // Dirs
   const srcDir = 'src';
   const scriptDir = 'scripts';
   const infraDir = 'infra';
@@ -40,6 +43,10 @@ const constants = (() => {
   const pnpmStoreDir = '.pnpm-store';
   const turboDir = '.turbo';
   const tmpDir = 'tmp';
+  const diagnosisDir = process.env.DIAGNOSIS_DIR_NAME || '.diagnosis';
+
+  // Files
+  const novaConfigFile = process.env.NOVA_CONFIG_FILE_NAME || 'nova.json';
 
   const paths = {
     dirs: {
@@ -52,8 +59,11 @@ const constants = (() => {
       pnpmStoreDir,
       turboDir,
       tmpDir,
+      diagnosisDir,
     },
-    files: {},
+    files: {
+      novaConfigFile,
+    },
   };
 
   const projenCredentials = {
@@ -97,6 +107,20 @@ const constants = (() => {
     'unrs-resolver',
   ];
 
+  const helmChartRepositoryUrls = {
+    'jellyfin.github.io/jellyfin-helm':
+      'https://jellyfin.github.io/jellyfin-helm',
+    'istio-release.storage.googleapis.com/charts':
+      'https://istio-release.storage.googleapis.com/charts',
+    'metallb.github.io/metallb': 'https://metallb.github.io/metallb',
+    'kubernetes-sigs.github.io/metrics-server':
+      'https://kubernetes-sigs.github.io/metrics-server',
+    'charts.jetstack.io': 'https://charts.jetstack.io',
+    'charts.goauthentik.io': 'https://charts.goauthentik.io',
+    'kubernetes-sigs.github.io/nfs-subdir-external-provisioner':
+      'https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner',
+  };
+
   return {
     project,
     author,
@@ -107,6 +131,7 @@ const constants = (() => {
     bridgedProviders,
     pulumiPackages,
     packagesAllowingBuildScripts,
+    helmChartRepositoryUrls,
   };
 })();
 
@@ -199,6 +224,7 @@ const rootProject = new typescript.TypeScriptProject(
         'Pulumi*.yml',
         constants.paths.dirs.turboDir,
         constants.paths.dirs.tmpDir,
+        constants.paths.dirs.diagnosisDir,
 
         `/${constants.paths.dirs.secretsDir}`,
         `/${constants.paths.dirs.kubeConfigDir}`,
@@ -207,10 +233,18 @@ const rootProject = new typescript.TypeScriptProject(
       deps: [],
       devDeps: [
         constants.pulumiPackages.escSdk,
-        'lodash',
-        '@types/lodash',
+
         'turbo',
         'axios',
+
+        'lodash',
+        '@types/lodash',
+
+        'semver',
+        '@types/semver',
+
+        'json2md',
+        '@types/json2md',
       ],
     },
     utils.functions.mergeCustomizer,
@@ -511,6 +545,7 @@ const initPulumiEsc = async () => {
         workstationDefaultCalcioIpv4IpPoolsCidrBlock:
           process.env.WORKSTATION_DEFAULT_CALCIO_IPV4_IP_POOLS_CIDR_BLOCK,
       },
+
       nordLynx: {
         privateKey: (
           await axios.get(
@@ -524,6 +559,7 @@ const initPulumiEsc = async () => {
           )
         ).data.nordlynx_private_key as string,
       },
+      helmRepositoryUrls: constants.helmChartRepositoryUrls,
     },
     {
       prod: {},
@@ -738,7 +774,7 @@ void (async () => {
         cloudflareProject.project.package.packageName,
         k8sWorkstationSystemProject.project.package.packageName,
       ],
-      esc: [Nexus.esc.k8sWorkstationAppsEsc],
+      esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationAppsEsc],
     });
 
     const authentikOutpostProject = inflatePulumiProject({
@@ -790,9 +826,12 @@ void (async () => {
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 
+    'script@mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
+    'script@generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
+
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
     'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
-    'postpulumi:up': `ts-node scripts/merge-kube-config.script.ts`,
+    'postpulumi:up': `pnpm script@mergeKubeConfig && pnpm script@generateNovaDiagnosis`,
     'pulumi:install': [
       ...commonProjectWithBridgedProviderOrder,
       ...pulumiProjectWithBridgedProviderOrder,
@@ -874,6 +913,7 @@ void (async () => {
               '*.esc.ts': 'key',
               '*.res.ts': 'scheme',
               '*.data.ts': 'scheme',
+              '*.diagnosis.md': 'document',
               'contract.ts': 'bbx',
             }),
           },
@@ -884,6 +924,7 @@ void (async () => {
               '.kube': 'kubernetes',
               workstation: 'home',
               '.projen': 'project',
+              '.diagnosis': 'resource',
             }),
           },
         },
@@ -934,6 +975,28 @@ void (async () => {
           ),
       ),
     },
+  });
+
+  const novaConfigFile = new JsonFile(
+    rootProject,
+    constants.paths.files.novaConfigFile,
+    {
+      obj: {
+        'poll-artifacthub': false,
+        url: Object.values(constants.helmChartRepositoryUrls),
+      },
+    },
+  );
+
+  const readmeFile = new TextFile(rootProject, 'README.md', {
+    lines: [
+      '# Diagnosis',
+      ...fs.readdirSync(constants.paths.dirs.diagnosisDir).map(eachFileName => {
+        return readFileSync(
+          path.join(constants.paths.dirs.diagnosisDir, eachFileName),
+        ).toString();
+      }),
+    ],
   });
 
   rootProject.synth();

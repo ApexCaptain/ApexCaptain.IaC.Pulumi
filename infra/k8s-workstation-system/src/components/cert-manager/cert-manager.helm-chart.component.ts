@@ -6,6 +6,7 @@ interface CertManagerHelmChartComponentArgsShape {
   helm: {
     certManager: {
       version: string;
+      repositoryUrl: string;
     };
   };
   providers: {
@@ -44,7 +45,7 @@ export const CertManagerHelmChartComponent = utils.functions.defineComponent(
         version: args.helm.certManager.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
-          repo: 'https://charts.jetstack.io',
+          repo: args.helm.certManager.repositoryUrl,
         },
         values: {
           crds: {

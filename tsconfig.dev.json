@@ -25,8 +25,10 @@
     "stripInternal": true,
     "target": "ES2020",
     "types": [
+      "json2md",
       "lodash",
-      "node"
+      "node",
+      "semver"
     ]
   },
   "include": [

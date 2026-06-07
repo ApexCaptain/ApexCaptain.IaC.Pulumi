@@ -7,6 +7,7 @@ interface LocalNfsProvisionerHelmChartComponentArgsShape {
   helm: {
     localNfsProvisioner: {
       version: string;
+      repositoryUrl: string;
     };
   };
   nfsSharedServiceDirName: string;
@@ -32,8 +33,6 @@ export const LocalNfsProvisionerHelmChartComponent =
     ) => {
       // Common Configuration
       const chartName = 'nfs-subdir-external-provisioner';
-      const chartUrl =
-        'https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner';
 
       // HDD 0
       const nfsSubDirHdd0StorageClassName = 'nfs-subdir-hdd0';
@@ -45,7 +44,7 @@ export const LocalNfsProvisionerHelmChartComponent =
           version: args.helm.localNfsProvisioner.version,
           namespace: args.namespace,
           repositoryOpts: {
-            repo: chartUrl,
+            repo: args.helm.localNfsProvisioner.repositoryUrl,
           },
           values: {
             nfs: {
@@ -76,7 +75,7 @@ export const LocalNfsProvisionerHelmChartComponent =
           version: args.helm.localNfsProvisioner.version,
           namespace: args.namespace,
           repositoryOpts: {
-            repo: chartUrl,
+            repo: args.helm.localNfsProvisioner.repositoryUrl,
           },
           values: {
             nfs: {

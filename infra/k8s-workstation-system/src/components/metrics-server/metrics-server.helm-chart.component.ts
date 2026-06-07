@@ -6,6 +6,7 @@ interface MetricsServerHelmChartComponentArgsShape {
   helm: {
     metricsServer: {
       version: string;
+      repositoryUrl: string;
     };
   };
   providers: {
@@ -44,7 +45,7 @@ export const MetricsServerHelmChartComponent = utils.functions.defineComponent(
         version: args.helm.metricsServer.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
-          repo: 'https://kubernetes-sigs.github.io/metrics-server',
+          repo: args.helm.metricsServer.repositoryUrl,
         },
       },
       {

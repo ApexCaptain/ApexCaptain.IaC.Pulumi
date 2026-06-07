@@ -34,6 +34,7 @@ Pulumi*.yaml
 Pulumi*.yml
 .turbo
 tmp
+.diagnosis
 /.secrets
 /.kube
 /.pnpm-store
@@ -51,4 +52,6 @@ tmp
 !/turbo.json
 !/.vscode/settings.json
 !/pnpm-workspace.yaml
+!/.nova-config.json
+!/README.md
 !/.projenrc.ts
