@@ -224,7 +224,6 @@ const rootProject = new typescript.TypeScriptProject(
         'Pulumi*.yml',
         constants.paths.dirs.turboDir,
         constants.paths.dirs.tmpDir,
-        constants.paths.dirs.diagnosisDir,
 
         `/${constants.paths.dirs.secretsDir}`,
         `/${constants.paths.dirs.kubeConfigDir}`,
