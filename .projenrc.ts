@@ -46,7 +46,8 @@ const constants = (() => {
   const diagnosisDir = process.env.DIAGNOSIS_DIR_NAME || '.diagnosis';
 
   // Files
-  const novaConfigFile = process.env.NOVA_CONFIG_FILE_NAME || 'nova.json';
+  const novaConfigFile =
+    process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
 
   const paths = {
     dirs: {
