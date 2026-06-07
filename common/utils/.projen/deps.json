@@ -10,10 +10,6 @@
       "type": "build"
     },
     {
-      "name": "@types/semver",
-      "type": "build"
-    },
-    {
       "name": "@typescript-eslint/eslint-plugin",
       "version": "^8",
       "type": "build"
@@ -45,31 +41,11 @@
       "type": "runtime"
     },
     {
-      "name": "axios",
-      "type": "runtime"
-    },
-    {
-      "name": "chalk",
-      "type": "runtime"
-    },
-    {
       "name": "dedent",
       "type": "runtime"
     },
     {
-      "name": "flat",
-      "type": "runtime"
-    },
-    {
-      "name": "flatley",
-      "type": "runtime"
-    },
-    {
       "name": "lodash",
-      "type": "runtime"
-    },
-    {
-      "name": "semver",
       "type": "runtime"
     },
     {

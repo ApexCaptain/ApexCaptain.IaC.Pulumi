@@ -31,10 +31,6 @@
       "type": "build"
     },
     {
-      "name": "axios",
-      "type": "build"
-    },
-    {
       "name": "constructs",
       "version": "^10.0.0",
       "type": "build"
@@ -77,10 +73,6 @@
       "type": "build"
     },
     {
-      "name": "semver",
-      "type": "build"
-    },
-    {
       "name": "ts-node",
       "type": "build"
     },
@@ -97,11 +89,31 @@
       "type": "runtime"
     },
     {
+      "name": "axios",
+      "type": "runtime"
+    },
+    {
+      "name": "chalk",
+      "type": "runtime"
+    },
+    {
       "name": "dedent",
       "type": "runtime"
     },
     {
+      "name": "flat",
+      "type": "runtime"
+    },
+    {
+      "name": "flatley",
+      "type": "runtime"
+    },
+    {
       "name": "lodash",
+      "type": "runtime"
+    },
+    {
+      "name": "semver",
       "type": "runtime"
     },
     {

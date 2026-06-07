@@ -1,2 +1,2 @@
-export * from './vscode-object.class';
 export * from './bridged-provider.class';
+export * from './vscode-object.class';
