@@ -7,6 +7,7 @@ interface AuthentikHelmChartComponentArgsShape {
   helm: {
     authentik: {
       version: string;
+      repositoryUrl: string;
     };
   };
   secretKey: string;
@@ -184,7 +185,7 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
         version: args.helm.authentik.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
-          repo: 'https://charts.goauthentik.io',
+          repo: args.helm.authentik.repositoryUrl,
         },
         waitForJobs: true,
         values: {

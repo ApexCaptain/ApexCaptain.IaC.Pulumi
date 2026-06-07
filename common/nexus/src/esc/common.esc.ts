@@ -18,6 +18,18 @@ const commonEscSchema = z
         privateKey: z.string(),
       })
       .required(),
+
+    helmRepositoryUrls: z
+      .object({
+        'jellyfin.github.io/jellyfin-helm': z.string(),
+        'istio-release.storage.googleapis.com/charts': z.string(),
+        'metallb.github.io/metallb': z.string(),
+        'kubernetes-sigs.github.io/metrics-server': z.string(),
+        'charts.jetstack.io': z.string(),
+        'charts.goauthentik.io': z.string(),
+        'kubernetes-sigs.github.io/nfs-subdir-external-provisioner': z.string(),
+      })
+      .required(),
   })
   .required();
 

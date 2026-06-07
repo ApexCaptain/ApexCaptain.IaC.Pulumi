@@ -32,6 +32,7 @@ sed -i \
 } >> "$BASHRC_FILE"
 echo "✅ Aliases set up"
 
+# Parallel Installations
 install_oci() {
     echo "🔄 Installing OCI CLI"
     bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" -- --accept-all-defaults
@@ -51,7 +52,15 @@ install_pnpm() {
     echo "✅ pnpm installed"
 }
 
-export -f install_oci install_helm install_pnpm
-parallel --jobs 10 ::: install_oci install_helm install_pnpm
+install_nova() {
+    echo "🔄 Installing Fairwinds Nova"
+    asdf plugin-add nova
+    asdf install nova latest
+    asdf global nova 3.12.0
+    echo "✅ Fairwinds Nova installed"
+}
+
+export -f install_oci install_helm install_pnpm install_nova
+parallel --jobs 10 ::: install_oci install_helm install_pnpm install_nova
 
 ./.devcontainer/commands/common/synchronizeProject.sh

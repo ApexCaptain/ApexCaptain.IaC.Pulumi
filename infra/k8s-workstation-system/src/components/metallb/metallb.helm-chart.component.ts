@@ -6,6 +6,7 @@ interface MetallbHelmChartComponentArgsShape {
   helm: {
     metallb: {
       version: string;
+      repositoryUrl: string;
     };
   };
   providers: {
@@ -44,7 +45,7 @@ export const MetallbHelmChartComponent = utils.functions.defineComponent(
         version: args.helm.metallb.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
-          repo: 'https://metallb.github.io/metallb',
+          repo: args.helm.metallb.repositoryUrl,
         },
         waitForJobs: true,
       },

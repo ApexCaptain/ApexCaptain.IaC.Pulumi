@@ -7,6 +7,7 @@ interface IstioHelmChartComponentArgsShape {
   helm: {
     istio: {
       version: string;
+      repositoryUrl: string;
     };
   };
   meshId: string;
@@ -58,9 +59,6 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
-    const istioRepositoryUrl =
-      'https://istio-release.storage.googleapis.com/charts';
-
     const istioBaseRelease = new kubernetes.helm.v3.Release(
       `${resourceName}-istioBaseRelease`,
       {
@@ -69,7 +67,7 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
         version: args.helm.istio.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
-          repo: istioRepositoryUrl,
+          repo: args.helm.istio.repositoryUrl,
         },
       },
       {
@@ -86,7 +84,7 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
         version: args.helm.istio.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
-          repo: istioRepositoryUrl,
+          repo: args.helm.istio.repositoryUrl,
         },
         waitForJobs: true,
         values: {
@@ -141,7 +139,7 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
         version: args.helm.istio.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
-          repo: istioRepositoryUrl,
+          repo: args.helm.istio.repositoryUrl,
         },
         waitForJobs: true,
         values: {

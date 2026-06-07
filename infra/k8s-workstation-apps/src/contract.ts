@@ -31,6 +31,10 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
             helm: {
               jellyfin: {
                 version: '3.2.0',
+                repositoryUrl:
+                  commonEsc.esc.helmRepositoryUrls[
+                    'jellyfin.github.io/jellyfin-helm'
+                  ],
               },
             },
             pvc: {

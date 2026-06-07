@@ -7,7 +7,7 @@ settings:
 overrides:
   '@pulumi/authentik>@pulumi/pulumi': ^3.245.0
   '@pulumi/authentik>typescript': ^6.0.3
-  '@pulumi/authentik>@types/node': ^25.9.2
+  '@pulumi/authentik>@types/node': ^25.9.1
 
 importers:
 
@@ -15,7 +15,7 @@ importers:
     dependencies:
       '@pulumi/pulumi':
         specifier: ^3.245.0
-        version: 3.245.0(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3))(typescript@6.0.3)
+        version: 3.245.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
       dedent:
         specifier: ^1.7.2
         version: 1.7.2
@@ -29,12 +29,18 @@ importers:
       '@pulumi/esc-sdk':
         specifier: ^0.13.1
         version: 0.13.1
+      '@types/json2md':
+        specifier: ^1.5.4
+        version: 1.5.4
       '@types/lodash':
         specifier: ^4.17.24
         version: 4.17.24
       '@types/node':
-        specifier: ^25.9.2
-        version: 25.9.2
+        specifier: ^25.9.1
+        version: 25.9.1
+      '@types/semver':
+        specifier: ^7.7.1
+        version: 7.7.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^8
         version: 8.60.1(@typescript-eslint/parser@8.60.1(eslint@9.39.4)(typescript@6.0.3))(eslint@9.39.4)(typescript@6.0.3)
@@ -62,15 +68,21 @@ importers:
       eslint-plugin-prettier:
         specifier: ^5.5.6
         version: 5.5.6(eslint-config-prettier@10.1.8(eslint@9.39.4))(eslint@9.39.4)(prettier@3.8.3)
+      json2md:
+        specifier: ^2.0.3
+        version: 2.0.3
       prettier:
         specifier: ^3.8.3
         version: 3.8.3
       projen:
         specifier: ^0.99.70
         version: 0.99.70(constructs@10.6.0)
+      semver:
+        specifier: ^7.8.2
+        version: 7.8.2
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@25.9.2)(typescript@6.0.3)
+        version: 10.9.2(@types/node@25.9.1)(typescript@6.0.3)
       turbo:
         specifier: ^2.9.16
         version: 2.9.16
@@ -1039,6 +1051,9 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
+  '@types/json2md@1.5.4':
+    resolution: {integrity: sha512-OFTAYD7Nnyu7FZPGnDwYbGOTKqzDfX71uFSgTbGhcr0aHCi17QkSOY3wO5H4yv5h23Ly+7suvf2lzHcdeDIH2Q==}
+
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
 
@@ -1047,9 +1062,6 @@ packages:
 
   '@types/node@25.9.1':
     resolution: {integrity: sha512-xfrlY7UD5rMJk3ZVJP8BNzS28J36YJg+xp+LPXV1TdWxr8uMH5A860QNxYDGQe/ylDSgjxE52Q9VnO7p75tJxg==}
-
-  '@types/node@25.9.2':
-    resolution: {integrity: sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw==}
 
   '@types/semver@7.7.1':
     resolution: {integrity: sha512-FmgJfu+MOcQ370SD0ev7EI8TlCAfKYU+B4m5T3yXc1CiRN94g/SZPtsCkk506aUDtlMnFZvasDwHHUcZUEaYuA==}
@@ -1880,6 +1892,9 @@ packages:
     resolution: {integrity: sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==}
     engines: {node: '>=0.8.19'}
 
+  indento@1.1.14:
+    resolution: {integrity: sha512-K4cK97v4M/ucCAbe3LUpg994folYL0WnEiCFxHXAIowKLbBb/Ahiazkz3Ao5gRar4i9pDr3imcpq4suOu0FbNw==}
+
   ini@2.0.0:
     resolution: {integrity: sha512-7PnF4oN3CvZF23ADhA5wRaYEQpJ8qygSkbtTXWBeXWXmEVRXK+1ITciHWwHhsjv1TmW0MgacIv6hEi5pX5NQdA==}
     engines: {node: '>=10'}
@@ -2044,6 +2059,9 @@ packages:
   json-stringify-nice@1.1.4:
     resolution: {integrity: sha512-5Z5RFW63yxReJ7vANgW6eZFGWaQvnPE3WNmZoOJrSkGju2etKA2L5rrOa1sm877TVTFt57A80BH1bArcmlLfPw==}
 
+  json2md@2.0.3:
+    resolution: {integrity: sha512-ZPzh6Djvqz8grJMxKllfCHo0p+p7BsbZ1J95KcCJgvvfdoy7myuKrrkUp80Kpy+wGauykC0dYljLqLY0kENaOw==}
+
   json5@1.0.2:
     resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==}
     hasBin: true
@@ -2178,8 +2196,8 @@ packages:
     resolution: {integrity: sha512-pyFS63ptit/P5WqUkt+UUfe+4oevH+bFeIiPPdfb0pFeYEu/1ELnJu5l+5EcTKYL5M7zaAa7S8ddywgXypqKCw==}
     engines: {node: '>= 0.4'}
 
-  node-gyp@12.3.0:
-    resolution: {integrity: sha512-QNcUWM+HgJplcPzBvFBZ9VXacyGZ4+VTOb80PwWR+TlVzoHbRKULNEzpRsnaoxG3Wzr7Qh7BYxGDU3CbKib2Yg==}
+  node-gyp@12.4.0:
+    resolution: {integrity: sha512-OMcPNvqTCFUnNaBlmdgq+lfNqY7gTiSmNRDjY3uAXRyudeKZEZxu3CLtjMQrx4zZxCX2b/mpNqTtwuCJgXhHkw==}
     engines: {node: ^20.17.0 || >=22.9.0}
     hasBin: true
 
@@ -3022,7 +3040,7 @@ snapshots:
       '@npmcli/node-gyp': 5.0.0
       '@npmcli/package-json': 7.0.5
       '@npmcli/promise-spawn': 9.0.1
-      node-gyp: 12.3.0
+      node-gyp: 12.4.0
       proc-log: 6.1.0
 
   '@opentelemetry/api-logs@0.57.2':
@@ -3179,7 +3197,7 @@ snapshots:
   '@pulumi/authentik@file:common/bridged-provider/sdks/authentik(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))':
     dependencies:
       '@pulumi/pulumi': 3.245.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
-      '@types/node': 25.9.2
+      '@types/node': 25.9.1
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -3251,41 +3269,6 @@ snapshots:
       upath: 1.2.0
     optionalDependencies:
       ts-node: 10.9.2(@types/node@25.9.1)(typescript@6.0.3)
-      typescript: 6.0.3
-    transitivePeerDependencies:
-      - supports-color
-
-  '@pulumi/pulumi@3.245.0(ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3))(typescript@6.0.3)':
-    dependencies:
-      '@grpc/grpc-js': 1.14.4
-      '@logdna/tail-file': 2.2.0
-      '@npmcli/arborist': 9.7.0
-      '@opentelemetry/api': 1.9.1
-      '@opentelemetry/exporter-trace-otlp-grpc': 0.57.2(@opentelemetry/api@1.9.1)
-      '@opentelemetry/exporter-zipkin': 1.30.1(@opentelemetry/api@1.9.1)
-      '@opentelemetry/instrumentation': 0.57.2(@opentelemetry/api@1.9.1)
-      '@opentelemetry/instrumentation-grpc': 0.57.2(@opentelemetry/api@1.9.1)
-      '@opentelemetry/resources': 1.30.1(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-trace-node': 1.30.1(@opentelemetry/api@1.9.1)
-      '@types/google-protobuf': 3.15.12
-      '@types/semver': 7.7.1
-      '@types/tmp': 0.2.6
-      execa: 5.1.1
-      fdir: 6.5.0(picomatch@4.0.4)
-      google-protobuf: 3.21.4
-      ini: 2.0.0
-      js-yaml: 3.14.2
-      minimist: 1.2.8
-      normalize-package-data: 6.0.2
-      picomatch: 4.0.4
-      require-from-string: 2.0.2
-      semver: 7.8.2
-      source-map-support: 0.5.21
-      tmp: 0.2.7
-      upath: 1.2.0
-    optionalDependencies:
-      ts-node: 10.9.2(@types/node@25.9.2)(typescript@6.0.3)
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -3404,15 +3387,13 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
+  '@types/json2md@1.5.4': {}
+
   '@types/json5@0.0.29': {}
 
   '@types/lodash@4.17.24': {}
 
   '@types/node@25.9.1':
-    dependencies:
-      undici-types: 7.24.6
-
-  '@types/node@25.9.2':
     dependencies:
       undici-types: 7.24.6
 
@@ -4325,6 +4306,8 @@ snapshots:
 
   imurmurhash@0.1.4: {}
 
+  indento@1.1.14: {}
+
   ini@2.0.0: {}
 
   ini@6.0.0: {}
@@ -4482,6 +4465,10 @@ snapshots:
 
   json-stringify-nice@1.1.4: {}
 
+  json2md@2.0.3:
+    dependencies:
+      indento: 1.1.14
+
   json5@1.0.2:
     dependencies:
       minimist: 1.2.8
@@ -4609,7 +4596,7 @@ snapshots:
       object.entries: 1.1.9
       semver: 6.3.1
 
-  node-gyp@12.3.0:
+  node-gyp@12.4.0:
     dependencies:
       env-paths: 2.2.1
       exponential-backoff: 3.1.3
@@ -4833,7 +4820,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.1
-      '@types/node': 25.9.2
+      '@types/node': 25.9.1
       long: 5.3.2
 
   proxy-from-env@2.1.0: {}
@@ -5129,25 +5116,6 @@ snapshots:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 25.9.1
-      acorn: 8.16.0
-      acorn-walk: 8.3.5
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.4
-      make-error: 1.3.6
-      typescript: 6.0.3
-      v8-compile-cache-lib: 3.0.1
-      yn: 3.1.1
-    optional: true
-
-  ts-node@10.9.2(@types/node@25.9.2)(typescript@6.0.3):
-    dependencies:
-      '@cspotcode/source-map-support': 0.8.1
-      '@tsconfig/node10': 1.0.12
-      '@tsconfig/node12': 1.0.11
-      '@tsconfig/node14': 1.0.3
-      '@tsconfig/node16': 1.0.4
-      '@types/node': 25.9.2
       acorn: 8.16.0
       acorn-walk: 8.3.5
       arg: 4.1.3

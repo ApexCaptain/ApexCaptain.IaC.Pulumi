@@ -7,6 +7,7 @@ interface JellyfinHelmChartComponentArgsShape {
   helm: {
     jellyfin: {
       version: string;
+      repositoryUrl: string;
     };
   };
   pvc: {
@@ -111,7 +112,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
         version: args.helm.jellyfin.version,
         namespace: namespace.metadata.name,
         repositoryOpts: {
-          repo: 'https://jellyfin.github.io/jellyfin-helm',
+          repo: args.helm.jellyfin.repositoryUrl,
         },
         waitForJobs: true,
         values: {

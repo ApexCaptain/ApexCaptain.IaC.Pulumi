@@ -5,11 +5,19 @@
       "type": "build"
     },
     {
+      "name": "@types/json2md",
+      "type": "build"
+    },
+    {
       "name": "@types/lodash",
       "type": "build"
     },
     {
       "name": "@types/node",
+      "type": "build"
+    },
+    {
+      "name": "@types/semver",
       "type": "build"
     },
     {
@@ -53,6 +61,10 @@
       "type": "build"
     },
     {
+      "name": "json2md",
+      "type": "build"
+    },
+    {
       "name": "lodash",
       "type": "build"
     },
@@ -62,6 +74,10 @@
     },
     {
       "name": "projen",
+      "type": "build"
+    },
+    {
+      "name": "semver",
       "type": "build"
     },
     {
