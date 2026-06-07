@@ -65,6 +65,9 @@ importers:
       constructs:
         specifier: ^10.0.0
         version: 10.6.0
+      cron-time-generator:
+        specifier: ^2.0.3
+        version: 2.0.3
       eslint:
         specifier: ^9
         version: 9.39.4
@@ -89,6 +92,9 @@ importers:
       projen:
         specifier: ^0.99.70
         version: 0.99.70(constructs@10.6.0)
+      timezone-enum:
+        specifier: ^1.0.4
+        version: 1.0.4
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@25.9.1)(typescript@6.0.3)
@@ -1414,6 +1420,9 @@ packages:
 
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
+
+  cron-time-generator@2.0.3:
+    resolution: {integrity: sha512-02Ab5okFEMpcDernEwUXY16hLCryUxATAFGYyzyLymin0xl/udC50LkBFHX+qOeXnwXMRyK+uH4doXzUSpOoQA==}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -3757,6 +3766,8 @@ snapshots:
   constructs@10.6.0: {}
 
   create-require@1.1.1: {}
+
+  cron-time-generator@2.0.3: {}
 
   cross-spawn@7.0.6:
     dependencies:
