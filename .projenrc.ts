@@ -5,6 +5,7 @@ import path from 'node:path';
 import * as pulumiEscSdk from '@pulumi/esc-sdk';
 import { LocalWorkspace } from '@pulumi/pulumi/automation';
 import axios from 'axios';
+import CronTime from 'cron-time-generator';
 import dedent from 'dedent';
 import _ from 'lodash';
 import { javascript, JsonFile, TextFile, typescript, YamlFile } from 'projen';
@@ -16,6 +17,7 @@ import {
   TypeScriptProjectOptions,
 } from 'projen/lib/typescript';
 import { VsCode } from 'projen/lib/vscode';
+import Timezone from 'timezone-enum';
 import * as Nexus from './common/nexus/src';
 import * as utils from './common/utils/src';
 import * as src from './src';
@@ -79,6 +81,7 @@ const rootProject = new typescript.TypeScriptProject(
       depsUpgradeOptions: {
         workflowOptions: {
           schedule: javascript.UpgradeDependenciesSchedule.WEEKLY,
+
           assignees: [src.constants.author.name],
           branches: [src.constants.branches.develop],
         },
@@ -106,6 +109,7 @@ const rootProject = new typescript.TypeScriptProject(
 
       gitignore: [
         '.DS_STORE',
+        'commit-message.txt',
         'Pulumi*.yaml',
         'Pulumi*.yml',
         src.constants.paths.dirs.turboDir,
@@ -118,6 +122,10 @@ const rootProject = new typescript.TypeScriptProject(
       deps: ['chalk', 'axios', 'semver', 'flat', 'flatley'],
       devDeps: [
         src.constants.pulumiPackages.escSdk,
+
+        'cron-time-generator',
+
+        'timezone-enum',
 
         'turbo',
 
@@ -139,9 +147,20 @@ const modifyUpgradeWorkflow = async () => {
   if (!upgradeWorkflow) return;
 
   const upgradeJob = upgradeWorkflow.workflows[0].jobs.upgrade as Job;
-
   const upgradeJobSteps = upgradeJob.steps;
 
+  // @Note Workflow Schedule에 강제로 Timezone 설정. 매우 지저분, 눈이 썩을 거 같음.
+  // @ToDo Timezone 설정 나온지 3개월은 되었는데 Projen 이놈들 이거 언제 업뎃 해주려나? Issue 한 번 올려서 물어봐야 할듯
+  upgradeWorkflow.workflows[0].on({
+    schedule: [
+      {
+        cron: CronTime.everyWeekAt(1, 6), // 매주 월요일 아침 6시
+        timezone: Timezone['Asia/Seoul'],
+      } as any,
+    ],
+  });
+
+  // Build Projects Step 추가
   upgradeJobSteps.splice(
     upgradeJobSteps.findIndex(
       eachStep => eachStep.name == 'Install dependencies',
@@ -153,6 +172,7 @@ const modifyUpgradeWorkflow = async () => {
     },
   );
 
+  // Deps Upgrade Step에 Pulumi Access Token 및 기타 환경변수 추가
   upgradeJobSteps.splice(
     upgradeJobSteps.findIndex(
       eachStep => eachStep.name == 'Upgrade dependencies',
