@@ -109,6 +109,7 @@ const rootProject = new typescript.TypeScriptProject(
 
       gitignore: [
         '.DS_STORE',
+        'commit-message.txt',
         'Pulumi*.yaml',
         'Pulumi*.yml',
         src.constants.paths.dirs.turboDir,
@@ -153,7 +154,7 @@ const modifyUpgradeWorkflow = async () => {
   upgradeWorkflow.workflows[0].on({
     schedule: [
       {
-        cron: CronTime.everyWeekAt(1, 1), // 매주 월요일 새벽 1시
+        cron: CronTime.everyWeekAt(1, 6), // 매주 월요일 아침 6시
         timezone: Timezone['Asia/Seoul'],
       } as any,
     ],

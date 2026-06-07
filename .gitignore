@@ -30,6 +30,7 @@ jspm_packages/
 .yarn-integrity
 .cache
 .DS_STORE
+commit-message.txt
 Pulumi*.yaml
 Pulumi*.yml
 .turbo
