@@ -26,6 +26,7 @@
     "upgrade": {
       "cache": false
     },
+    "eslint": {},
     "pulumi:preview": {
       "dependsOn": [
         "^build",

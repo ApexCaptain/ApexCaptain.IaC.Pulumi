@@ -34,7 +34,6 @@ Pulumi*.yaml
 Pulumi*.yml
 .turbo
 tmp
-.diagnosis
 /.secrets
 /.kube
 /.pnpm-store

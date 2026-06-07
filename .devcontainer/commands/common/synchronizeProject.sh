@@ -22,7 +22,6 @@ sed -i \
 } >> "$BASHRC_FILE"
 echo "✅ Aliases set up"
 
-
 echo "🔄 Installing dependencies"
 pnpm i --no-frozen-lockfile
 echo "✅ Installed dependencies"
@@ -34,5 +33,9 @@ echo "✅ Built projects"
 echo "🔄 Initializing Projen"
 pnpm projen
 echo "✅ Initialized Projen"
+
+echo "🔄 Installing Husky"
+npx -y husky
+echo "✅ Initialized Husky"
 
 echo "✅ Synchronization completed"

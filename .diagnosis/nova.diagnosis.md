@@ -1,4 +1,3 @@
-# Diagnosis
 # Nova Diagnosis Report
 
 Generated at ```2026-06-07T13:28:31.609Z```

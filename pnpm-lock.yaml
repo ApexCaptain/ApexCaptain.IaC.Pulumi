@@ -16,12 +16,27 @@ importers:
       '@pulumi/pulumi':
         specifier: ^3.245.0
         version: 3.245.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
+      axios:
+        specifier: ^1.17.0
+        version: 1.17.0
+      chalk:
+        specifier: ^4.1.2
+        version: 4.1.2
       dedent:
         specifier: ^1.7.2
         version: 1.7.2
+      flat:
+        specifier: ^6.0.1
+        version: 6.0.1
+      flatley:
+        specifier: ^5.2.0
+        version: 5.2.0
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
+      semver:
+        specifier: ^7.8.2
+        version: 7.8.2
       yaml:
         specifier: ^2.9.0
         version: 2.9.0
@@ -47,9 +62,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^8
         version: 8.60.1(eslint@9.39.4)(typescript@6.0.3)
-      axios:
-        specifier: ^1.17.0
-        version: 1.17.0
       constructs:
         specifier: ^10.0.0
         version: 10.6.0
@@ -77,9 +89,6 @@ importers:
       projen:
         specifier: ^0.99.70
         version: 0.99.70(constructs@10.6.0)
-      semver:
-        specifier: ^7.8.2
-        version: 7.8.2
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@25.9.1)(typescript@6.0.3)
@@ -251,27 +260,12 @@ importers:
       '@pulumi/pulumi':
         specifier: ^3.242.0
         version: 3.245.0(ts-node@10.9.2(@types/node@25.9.1)(typescript@6.0.3))(typescript@6.0.3)
-      axios:
-        specifier: ^1.15.2
-        version: 1.17.0
-      chalk:
-        specifier: ^4.1.2
-        version: 4.1.2
       dedent:
         specifier: ^1.7.2
         version: 1.7.2
-      flat:
-        specifier: ^6.0.1
-        version: 6.0.1
-      flatley:
-        specifier: ^5.2.0
-        version: 5.2.0
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
-      semver:
-        specifier: ^7.8.0
-        version: 7.8.2
       yaml:
         specifier: ^2.8.3
         version: 2.9.0
@@ -285,9 +279,6 @@ importers:
       '@types/node':
         specifier: ^25.9.1
         version: 25.9.1
-      '@types/semver':
-        specifier: ^7.7.1
-        version: 7.7.1
       '@typescript-eslint/eslint-plugin':
         specifier: ^8
         version: 8.60.1(@typescript-eslint/parser@8.60.1(eslint@9.39.4)(typescript@6.0.3))(eslint@9.39.4)(typescript@6.0.3)

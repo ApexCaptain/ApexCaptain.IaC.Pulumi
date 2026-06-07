@@ -1,0 +1,7 @@
+if ! command -v pnpm >/dev/null 2>&1; then
+  exit 0
+fi
+
+pnpm projen
+pnpm eslint
+git add .
