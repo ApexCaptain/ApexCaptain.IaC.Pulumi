@@ -1,13 +1,14 @@
+import { randomBytes } from 'crypto';
 import dns from 'dns/promises';
 import fs from 'fs';
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import * as pulumiEscSdk from '@pulumi/esc-sdk';
 import { LocalWorkspace } from '@pulumi/pulumi/automation';
 import axios from 'axios';
 import CronTime from 'cron-time-generator';
 import dedent from 'dedent';
-import _ from 'lodash';
+import Handlebars from 'handlebars';
+import _, { constant } from 'lodash';
 import { javascript, JsonFile, TextFile, typescript, YamlFile } from 'projen';
 import { GithubCredentials } from 'projen/lib/github/github-credentials';
 import { Job } from 'projen/lib/github/workflows-model';
@@ -17,6 +18,7 @@ import {
   TypeScriptProjectOptions,
 } from 'projen/lib/typescript';
 import { VsCode } from 'projen/lib/vscode';
+import { sha512 } from 'sha512-crypt-ts';
 import Timezone from 'timezone-enum';
 import * as Nexus from './common/nexus/src';
 import * as utils from './common/utils/src';
@@ -80,8 +82,6 @@ const rootProject = new typescript.TypeScriptProject(
       depsUpgrade: true,
       depsUpgradeOptions: {
         workflowOptions: {
-          schedule: javascript.UpgradeDependenciesSchedule.WEEKLY,
-
           assignees: [src.constants.author.name],
           branches: [src.constants.branches.develop],
         },
@@ -110,6 +110,7 @@ const rootProject = new typescript.TypeScriptProject(
       gitignore: [
         '.DS_STORE',
         'commit-message.txt',
+        'pull-request.md',
         'Pulumi*.yaml',
         'Pulumi*.yml',
         src.constants.paths.dirs.turboDir,
@@ -118,6 +119,7 @@ const rootProject = new typescript.TypeScriptProject(
         `/${src.constants.paths.dirs.secretsDir}`,
         `/${src.constants.paths.dirs.kubeConfigDir}`,
         `/${src.constants.paths.dirs.pnpmStoreDir}`,
+        `/${src.constants.paths.dirs.ventoyUserDataDir}`,
       ],
       deps: ['chalk', 'axios', 'semver', 'flat', 'flatley'],
       devDeps: [
@@ -136,6 +138,10 @@ const rootProject = new typescript.TypeScriptProject(
 
         'json2md',
         '@types/json2md',
+
+        'sha512-crypt-ts',
+
+        'handlebars',
       ],
     }))(),
     utils.functions.mergeCustomizer,
@@ -154,7 +160,7 @@ const modifyUpgradeWorkflow = async () => {
   upgradeWorkflow.workflows[0].on({
     schedule: [
       {
-        cron: CronTime.everyWeekAt(1, 6), // 매주 월요일 아침 6시
+        cron: CronTime.everyWeekAt(1, 1), // 매주 월요일 새벽 1시
         timezone: Timezone['Asia/Seoul'],
       } as any,
     ],
@@ -472,7 +478,43 @@ const initPulumiEsc = async () => {
     },
     {
       prod: {},
+    },
+  );
+
+  await Nexus.esc.ociEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      auth: 'ApiKey',
+      fingerprint: process.env.APEX_CAPTAIN_OCI_FINGERPRINT,
+      privateKey: process.env.APEX_CAPTAIN_OCI_PRIVATE_KEY!!.replace(
+        /\\n/g,
+        '\n',
+      ),
+      region: process.env.APEX_CAPTAIN_OCI_REGION,
+      tenancyOcid: process.env.APEX_CAPTAIN_OCI_TENANCY_OCID,
+      userOcid: process.env.APEX_CAPTAIN_OCI_USER_OCID,
+    },
+    {
+      prod: {},
       dev: {},
+    },
+  );
+
+  await Nexus.esc.cloudflareEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      apiToken: process.env.CLOUDFLARE_APEX_CAPTAIN_API_TOKEN,
+      email: process.env.CLOUDFLARE_APEX_CAPTAIN_EMAIL,
+      zones: {
+        ayteneve93com: {
+          id: process.env.CLOUDFLARE_APEX_CAPTAIN_AYTENEVE93_COM_ZONE_ID,
+        },
+      },
+    },
+    {
+      prod: {},
     },
   );
 
@@ -528,23 +570,6 @@ const initPulumiEsc = async () => {
             clientId: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_ID,
             clientSecret: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_SECRET,
           },
-        },
-      },
-    },
-    {
-      prod: {},
-    },
-  );
-
-  await Nexus.esc.cloudflareEsc.upsertEsc(
-    accountName,
-    pulumiEscClient,
-    {
-      apiToken: process.env.CLOUDFLARE_APEX_CAPTAIN_API_TOKEN,
-      email: process.env.CLOUDFLARE_APEX_CAPTAIN_EMAIL,
-      zones: {
-        ayteneve93com: {
-          id: process.env.CLOUDFLARE_APEX_CAPTAIN_AYTENEVE93_COM_ZONE_ID,
         },
       },
     },
@@ -640,7 +665,10 @@ void (async () => {
     const k8sWorkstationSystemProject = inflatePulumiProject({
       projectName: 'k8s-workstation-system',
       stages: [utils.enums.StackStage.PROD],
-      deps: [src.constants.pulumiPackages.kubernetes],
+      deps: [
+        src.constants.pulumiPackages.kubernetes,
+        src.constants.pulumiPackages.oci,
+      ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
@@ -648,7 +676,11 @@ void (async () => {
         commonProjects.nexusProject.project.package.packageName,
       ],
       infraDeps: [cloudflareProject.project.package.packageName],
-      esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationSystemEsc],
+      esc: [
+        Nexus.esc.commonEsc,
+        Nexus.esc.ociEsc,
+        Nexus.esc.k8sWorkstationSystemEsc,
+      ],
     });
 
     const k8sWorkstationToolsProject = inflatePulumiProject({
@@ -734,14 +766,14 @@ void (async () => {
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 
-    posteslint: `turbo run eslint --filter ${workspacePackageFilters}`,
+    posteslint: `turbo run eslint --filter ${workspacePackageFilters} --concurrency=3`,
 
-    'script@mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
-    'script@generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
+    'script:mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
+    'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
 
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
     'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
-    'postpulumi:up': `pnpm script@mergeKubeConfig && pnpm script@generateNovaDiagnosis`,
+    'postpulumi:up': `pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis`,
     'pulumi:install': [
       ...commonProjectWithBridgedProviderOrder,
       ...pulumiProjectWithBridgedProviderOrder,
@@ -799,6 +831,7 @@ void (async () => {
         files: {
           associations: new src.classes.VsCodeObject({
             '.ToDo': 'markdown',
+            '*.yaml.tpl': 'helm',
           }),
         },
         todohighlight: {
@@ -836,6 +869,7 @@ void (async () => {
               workstation: 'home',
               '.projen': 'project',
               '.diagnosis': 'resource',
+              ventoy: 'robot',
             }),
           },
         },
@@ -900,6 +934,78 @@ void (async () => {
     },
   );
 
+  // Ventoy
+  const ventoyWorkstationNodeUserDataTemplate = fs.readFileSync(
+    path.join(
+      rootProject.outdir,
+      src.constants.paths.dirs.ventoyDir,
+      'templates',
+      'workstation-node.yaml.tpl',
+    ),
+    'utf-8',
+  );
+
+  const ventoyWorkstationNodeUserDataFilePath = path.join(
+    rootProject.outdir,
+    src.constants.paths.dirs.ventoyUserDataDir,
+    'workstation-node.yaml',
+  );
+
+  if (src.constants.isDevContainer) {
+    fs.writeFileSync(
+      ventoyWorkstationNodeUserDataFilePath,
+      Handlebars.compile(ventoyWorkstationNodeUserDataTemplate)({
+        gatewayIp: process.env.WORKSTATION_BOOTSTRAP_GATEWAY_IP,
+        nameServersAddresses: [
+          process.env.WORKSTATION_BOOTSTRAP_NAMESERVER_ADDRESS_0,
+          process.env.WORKSTATION_BOOTSTRAP_NAMESERVER_ADDRESS_1,
+        ],
+        hostname: process.env.WORKSTATION_BOOTSTRAP_TEMPORARY_HOST_NAME,
+        userName: process.env.WORKSTATION_BOOTSTRAP_USERNAME,
+        passwordHash: sha512.crypt(
+          process.env.WORKSTATION_BOOTSTRAP_PASSWORD!!,
+          `$6$rounds=4096$${randomBytes(8)
+            .toString('base64')
+            .replace(/[^a-zA-Z0-9]/g, '')
+            .slice(0, 16)}`,
+        ),
+        authorizedKeys: [process.env.WORKSTATION_BOOTSTRAP_SSH_PUBLIC_KEY],
+        nodes: [
+          {
+            id: 'workstation-0',
+            macAddress: process.env.WORKSTATION_BOOTSTRAP_NODE_0_MACADDRESS,
+            addressCidr: `${process.env.WORKSTATION_BOOTSTRAP_NODE_0_STATIC_IP}/24`,
+          },
+        ],
+        slackWebhookUrl: process.env.SLACK_WEBHOOK_URL_VENTOY_AUTO_INSTALL,
+      }),
+    );
+  }
+
+  const ubuntu2604LiveServerIsoPath = '/ubuntu-26.04-live-server-amd64.iso';
+  const ventoyJsonFile = new JsonFile(
+    rootProject,
+    path.join(src.constants.paths.dirs.ventoyDir, 'ventoy.json'),
+    {
+      obj: {
+        auto_install: [
+          {
+            image: ubuntu2604LiveServerIsoPath,
+            template: `/${path.relative(rootProject.outdir, ventoyWorkstationNodeUserDataFilePath)}`,
+            autosel: 1,
+          },
+        ],
+        // @See https://www.ventoy.net/en/plugin_control.html
+        control: [
+          { VTOY_MENU_TIMEOUT: '5' },
+          { VTOY_DEFAULT_IMAGE: ubuntu2604LiveServerIsoPath },
+          { VTOY_SECONDARY_BOOT_MENU: '1' },
+          { VTOY_SECONDARY_TIMEOUT: '5' },
+        ],
+      },
+    },
+  );
+
   // Readme File
   const readmeFile = new TextFile(rootProject, 'README.md', {
     lines: [
@@ -907,9 +1013,11 @@ void (async () => {
       ...fs
         .readdirSync(src.constants.paths.dirs.diagnosisDir)
         .map(eachFileName => {
-          return readFileSync(
-            path.join(src.constants.paths.dirs.diagnosisDir, eachFileName),
-          ).toString();
+          return fs
+            .readFileSync(
+              path.join(src.constants.paths.dirs.diagnosisDir, eachFileName),
+            )
+            .toString();
         }),
     ],
   });
@@ -933,6 +1041,25 @@ void (async () => {
       `,
     },
   });
+
+  // Cursor
+  const mcpJsonConfig: src.interfaces.CursorMcpConfig = {
+    mcpServers: {
+      context7: {
+        url: 'https://mcp.context7.com/mcp',
+        headers: {
+          CONTEXT7_API_KEY: '${env:CONTEXT7_API_KEY}',
+        },
+      },
+    },
+  };
+  const mcpJsonFile = new JsonFile(
+    rootProject,
+    src.constants.paths.files.cursorMcpJsonFile,
+    {
+      obj: mcpJsonConfig,
+    },
+  );
 
   rootProject.synth();
 })();

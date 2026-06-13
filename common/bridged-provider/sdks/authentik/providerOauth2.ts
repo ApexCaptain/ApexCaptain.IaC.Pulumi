@@ -57,6 +57,10 @@ export class ProviderOauth2 extends pulumi.CustomResource {
     declare public readonly clientType: pulumi.Output<string | undefined>;
     declare public readonly encryptionKey: pulumi.Output<string | undefined>;
     /**
+     * Generated.
+     */
+    declare public readonly grantTypes: pulumi.Output<string[]>;
+    /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     declare public readonly includeClaimsInIdToken: pulumi.Output<boolean | undefined>;
@@ -134,6 +138,7 @@ export class ProviderOauth2 extends pulumi.CustomResource {
             resourceInputs["clientSecret"] = state?.clientSecret;
             resourceInputs["clientType"] = state?.clientType;
             resourceInputs["encryptionKey"] = state?.encryptionKey;
+            resourceInputs["grantTypes"] = state?.grantTypes;
             resourceInputs["includeClaimsInIdToken"] = state?.includeClaimsInIdToken;
             resourceInputs["invalidationFlow"] = state?.invalidationFlow;
             resourceInputs["issuerMode"] = state?.issuerMode;
@@ -169,6 +174,7 @@ export class ProviderOauth2 extends pulumi.CustomResource {
             resourceInputs["clientSecret"] = args?.clientSecret ? pulumi.secret(args.clientSecret) : undefined;
             resourceInputs["clientType"] = args?.clientType;
             resourceInputs["encryptionKey"] = args?.encryptionKey;
+            resourceInputs["grantTypes"] = args?.grantTypes;
             resourceInputs["includeClaimsInIdToken"] = args?.includeClaimsInIdToken;
             resourceInputs["invalidationFlow"] = args?.invalidationFlow;
             resourceInputs["issuerMode"] = args?.issuerMode;
@@ -220,6 +226,10 @@ export interface ProviderOauth2State {
      */
     clientType?: pulumi.Input<string | undefined>;
     encryptionKey?: pulumi.Input<string | undefined>;
+    /**
+     * Generated.
+     */
+    grantTypes?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
@@ -305,6 +315,10 @@ export interface ProviderOauth2Args {
      */
     clientType?: pulumi.Input<string | undefined>;
     encryptionKey?: pulumi.Input<string | undefined>;
+    /**
+     * Generated.
+     */
+    grantTypes?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */

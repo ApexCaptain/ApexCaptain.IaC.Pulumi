@@ -58,6 +58,7 @@ export class Brand extends pulumi.CustomResource {
     declare public readonly flowAuthentication: pulumi.Output<string | undefined>;
     declare public readonly flowDeviceCode: pulumi.Output<string | undefined>;
     declare public readonly flowInvalidation: pulumi.Output<string | undefined>;
+    declare public readonly flowLockdown: pulumi.Output<string | undefined>;
     declare public readonly flowRecovery: pulumi.Output<string | undefined>;
     declare public readonly flowUnenrollment: pulumi.Output<string | undefined>;
     declare public readonly flowUserSettings: pulumi.Output<string | undefined>;
@@ -90,6 +91,7 @@ export class Brand extends pulumi.CustomResource {
             resourceInputs["flowAuthentication"] = state?.flowAuthentication;
             resourceInputs["flowDeviceCode"] = state?.flowDeviceCode;
             resourceInputs["flowInvalidation"] = state?.flowInvalidation;
+            resourceInputs["flowLockdown"] = state?.flowLockdown;
             resourceInputs["flowRecovery"] = state?.flowRecovery;
             resourceInputs["flowUnenrollment"] = state?.flowUnenrollment;
             resourceInputs["flowUserSettings"] = state?.flowUserSettings;
@@ -113,6 +115,7 @@ export class Brand extends pulumi.CustomResource {
             resourceInputs["flowAuthentication"] = args?.flowAuthentication;
             resourceInputs["flowDeviceCode"] = args?.flowDeviceCode;
             resourceInputs["flowInvalidation"] = args?.flowInvalidation;
+            resourceInputs["flowLockdown"] = args?.flowLockdown;
             resourceInputs["flowRecovery"] = args?.flowRecovery;
             resourceInputs["flowUnenrollment"] = args?.flowUnenrollment;
             resourceInputs["flowUserSettings"] = args?.flowUserSettings;
@@ -153,6 +156,7 @@ export interface BrandState {
     flowAuthentication?: pulumi.Input<string | undefined>;
     flowDeviceCode?: pulumi.Input<string | undefined>;
     flowInvalidation?: pulumi.Input<string | undefined>;
+    flowLockdown?: pulumi.Input<string | undefined>;
     flowRecovery?: pulumi.Input<string | undefined>;
     flowUnenrollment?: pulumi.Input<string | undefined>;
     flowUserSettings?: pulumi.Input<string | undefined>;
@@ -189,6 +193,7 @@ export interface BrandArgs {
     flowAuthentication?: pulumi.Input<string | undefined>;
     flowDeviceCode?: pulumi.Input<string | undefined>;
     flowInvalidation?: pulumi.Input<string | undefined>;
+    flowLockdown?: pulumi.Input<string | undefined>;
     flowRecovery?: pulumi.Input<string | undefined>;
     flowUnenrollment?: pulumi.Input<string | undefined>;
     flowUserSettings?: pulumi.Input<string | undefined>;

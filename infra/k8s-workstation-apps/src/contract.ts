@@ -22,6 +22,7 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
     );
 
     // Production Only Apps
+    /*
     if (pulumi.getStack() === utils.enums.StackStage.PROD) {
       // Jellyfin
       const jellyfinHelmChart =
@@ -91,6 +92,7 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
           },
         );
     }
+    */
 
     return {
       output: pulumi.output({}),

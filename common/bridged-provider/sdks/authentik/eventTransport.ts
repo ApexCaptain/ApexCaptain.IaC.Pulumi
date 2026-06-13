@@ -54,6 +54,7 @@ export class EventTransport extends pulumi.CustomResource {
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     declare public readonly sendOnce: pulumi.Output<boolean | undefined>;
+    declare public readonly webhookCa: pulumi.Output<string | undefined>;
     declare public readonly webhookMappingBody: pulumi.Output<string | undefined>;
     declare public readonly webhookMappingHeaders: pulumi.Output<string | undefined>;
     declare public readonly webhookUrl: pulumi.Output<string | undefined>;
@@ -77,6 +78,7 @@ export class EventTransport extends pulumi.CustomResource {
             resourceInputs["mode"] = state?.mode;
             resourceInputs["name"] = state?.name;
             resourceInputs["sendOnce"] = state?.sendOnce;
+            resourceInputs["webhookCa"] = state?.webhookCa;
             resourceInputs["webhookMappingBody"] = state?.webhookMappingBody;
             resourceInputs["webhookMappingHeaders"] = state?.webhookMappingHeaders;
             resourceInputs["webhookUrl"] = state?.webhookUrl;
@@ -91,6 +93,7 @@ export class EventTransport extends pulumi.CustomResource {
             resourceInputs["mode"] = args?.mode;
             resourceInputs["name"] = args?.name;
             resourceInputs["sendOnce"] = args?.sendOnce;
+            resourceInputs["webhookCa"] = args?.webhookCa;
             resourceInputs["webhookMappingBody"] = args?.webhookMappingBody;
             resourceInputs["webhookMappingHeaders"] = args?.webhookMappingHeaders;
             resourceInputs["webhookUrl"] = args?.webhookUrl;
@@ -126,6 +129,7 @@ export interface EventTransportState {
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     sendOnce?: pulumi.Input<boolean | undefined>;
+    webhookCa?: pulumi.Input<string | undefined>;
     webhookMappingBody?: pulumi.Input<string | undefined>;
     webhookMappingHeaders?: pulumi.Input<string | undefined>;
     webhookUrl?: pulumi.Input<string | undefined>;
@@ -157,6 +161,7 @@ export interface EventTransportArgs {
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     sendOnce?: pulumi.Input<boolean | undefined>;
+    webhookCa?: pulumi.Input<string | undefined>;
     webhookMappingBody?: pulumi.Input<string | undefined>;
     webhookMappingHeaders?: pulumi.Input<string | undefined>;
     webhookUrl?: pulumi.Input<string | undefined>;

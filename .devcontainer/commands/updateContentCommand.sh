@@ -48,7 +48,7 @@ install_helm() {
 install_pnpm() {
     echo "🔄 Installing pnpm"
     corepack enable pnpm
-    corepack use pnpm@latest
+    corepack prepare pnpm@latest --activate
     echo "✅ pnpm installed"
 }
 

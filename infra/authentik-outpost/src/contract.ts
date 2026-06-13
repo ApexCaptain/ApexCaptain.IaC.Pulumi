@@ -11,12 +11,13 @@ export const authentikOutpostContract = new nexus.classes.Contract(
   __filename,
   async () => {
     // Authentik Provider
-    const authentikProvider = new authentik.Provider(
-      'authentikProvider',
-      k8sWorkstationSystemContract.secret.providerConfigs.authentik,
-    );
+    // const authentikProvider = new authentik.Provider(
+    //   'authentikProvider',
+    //   k8sWorkstationSystemContract.secret.providerConfigs.authentik,
+    // );
 
     // Proxy Outpost
+    /*
     const proxyOutpost = new components.proxyOutpost.ProxyOutpostComponent(
       'proxyOutpost',
       {
@@ -36,6 +37,7 @@ export const authentikOutpostContract = new nexus.classes.Contract(
         },
       },
     );
+    */
 
     return {
       output: pulumi.output({}),

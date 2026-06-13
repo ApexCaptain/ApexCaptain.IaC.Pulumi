@@ -11,3 +11,5 @@ export * as metricsServer from './metrics-server';
 export * as test from './test';
 
 export * as authentik from './authentik';
+
+export * as vault from './vault';

@@ -61,6 +61,10 @@ export class SourceSaml extends pulumi.CustomResource {
     declare public readonly encryptionKp: pulumi.Output<string | undefined>;
     declare public readonly enrollmentFlow: pulumi.Output<string | undefined>;
     /**
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     */
+    declare public readonly forceAuthn: pulumi.Output<boolean | undefined>;
+    /**
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`identifier`" pulumi-lang-dotnet="`Identifier`" pulumi-lang-go="`identifier`" pulumi-lang-python="`identifier`" pulumi-lang-yaml="`identifier`" pulumi-lang-java="`identifier`" pulumi-lang-hcl="`identifier`">`identifier`</span>
      *   - <span pulumi-lang-nodejs="`nameLink`" pulumi-lang-dotnet="`NameLink`" pulumi-lang-go="`nameLink`" pulumi-lang-python="`name_link`" pulumi-lang-yaml="`nameLink`" pulumi-lang-java="`nameLink`" pulumi-lang-hcl="`name_link`">`nameLink`</span>
@@ -170,6 +174,7 @@ export class SourceSaml extends pulumi.CustomResource {
             resourceInputs["enabled"] = state?.enabled;
             resourceInputs["encryptionKp"] = state?.encryptionKp;
             resourceInputs["enrollmentFlow"] = state?.enrollmentFlow;
+            resourceInputs["forceAuthn"] = state?.forceAuthn;
             resourceInputs["groupMatchingMode"] = state?.groupMatchingMode;
             resourceInputs["issuer"] = state?.issuer;
             resourceInputs["metadata"] = state?.metadata;
@@ -211,6 +216,7 @@ export class SourceSaml extends pulumi.CustomResource {
             resourceInputs["enabled"] = args?.enabled;
             resourceInputs["encryptionKp"] = args?.encryptionKp;
             resourceInputs["enrollmentFlow"] = args?.enrollmentFlow;
+            resourceInputs["forceAuthn"] = args?.forceAuthn;
             resourceInputs["groupMatchingMode"] = args?.groupMatchingMode;
             resourceInputs["issuer"] = args?.issuer;
             resourceInputs["name"] = args?.name;
@@ -272,6 +278,10 @@ export interface SourceSamlState {
     enabled?: pulumi.Input<boolean | undefined>;
     encryptionKp?: pulumi.Input<string | undefined>;
     enrollmentFlow?: pulumi.Input<string | undefined>;
+    /**
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     */
+    forceAuthn?: pulumi.Input<boolean | undefined>;
     /**
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`identifier`" pulumi-lang-dotnet="`Identifier`" pulumi-lang-go="`identifier`" pulumi-lang-python="`identifier`" pulumi-lang-yaml="`identifier`" pulumi-lang-java="`identifier`" pulumi-lang-hcl="`identifier`">`identifier`</span>
@@ -395,6 +405,10 @@ export interface SourceSamlArgs {
     enabled?: pulumi.Input<boolean | undefined>;
     encryptionKp?: pulumi.Input<string | undefined>;
     enrollmentFlow?: pulumi.Input<string | undefined>;
+    /**
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     */
+    forceAuthn?: pulumi.Input<boolean | undefined>;
     /**
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`identifier`" pulumi-lang-dotnet="`Identifier`" pulumi-lang-go="`identifier`" pulumi-lang-python="`identifier`" pulumi-lang-yaml="`identifier`" pulumi-lang-java="`identifier`" pulumi-lang-hcl="`identifier`">`identifier`</span>

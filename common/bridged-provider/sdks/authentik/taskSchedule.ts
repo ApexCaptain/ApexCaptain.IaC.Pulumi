@@ -141,6 +141,7 @@ export class TaskSchedule extends pulumi.CustomResource {
      *   - `authentik_brands.brand`
      *   - `authentik_blueprints.blueprintinstance`
      *   - `authentik_endpoints_connectors_fleet.fleetconnector`
+     *   - `authentik_endpoints_connectors_google_chrome.googlechromeconnector`
      *   - `authentik_lifecycle.lifecyclerule`
      *   - `authentik_lifecycle.lifecycleiteration`
      *   - `authentik_lifecycle.review`
@@ -152,6 +153,7 @@ export class TaskSchedule extends pulumi.CustomResource {
      *   - `authentik_providers_ssf.ssfprovider`
      *   - `authentik_providers_ws_federation.wsfederationprovider`
      *   - `authentik_reports.dataexport`
+     *   - `authentik_stages_account_lockdown.accountlockdownstage`
      *   - `authentik_stages_authenticator_endpoint_gdtc.authenticatorendpointgdtcstage`
      *   - `authentik_stages_mtls.mutualtlsstage`
      *   - `authentik_stages_source.sourcestage`
@@ -323,6 +325,7 @@ export interface TaskScheduleState {
      *   - `authentik_brands.brand`
      *   - `authentik_blueprints.blueprintinstance`
      *   - `authentik_endpoints_connectors_fleet.fleetconnector`
+     *   - `authentik_endpoints_connectors_google_chrome.googlechromeconnector`
      *   - `authentik_lifecycle.lifecyclerule`
      *   - `authentik_lifecycle.lifecycleiteration`
      *   - `authentik_lifecycle.review`
@@ -334,6 +337,7 @@ export interface TaskScheduleState {
      *   - `authentik_providers_ssf.ssfprovider`
      *   - `authentik_providers_ws_federation.wsfederationprovider`
      *   - `authentik_reports.dataexport`
+     *   - `authentik_stages_account_lockdown.accountlockdownstage`
      *   - `authentik_stages_authenticator_endpoint_gdtc.authenticatorendpointgdtcstage`
      *   - `authentik_stages_mtls.mutualtlsstage`
      *   - `authentik_stages_source.sourcestage`
@@ -464,6 +468,7 @@ export interface TaskScheduleArgs {
      *   - `authentik_brands.brand`
      *   - `authentik_blueprints.blueprintinstance`
      *   - `authentik_endpoints_connectors_fleet.fleetconnector`
+     *   - `authentik_endpoints_connectors_google_chrome.googlechromeconnector`
      *   - `authentik_lifecycle.lifecyclerule`
      *   - `authentik_lifecycle.lifecycleiteration`
      *   - `authentik_lifecycle.review`
@@ -475,6 +480,7 @@ export interface TaskScheduleArgs {
      *   - `authentik_providers_ssf.ssfprovider`
      *   - `authentik_providers_ws_federation.wsfederationprovider`
      *   - `authentik_reports.dataexport`
+     *   - `authentik_stages_account_lockdown.accountlockdownstage`
      *   - `authentik_stages_authenticator_endpoint_gdtc.authenticatorendpointgdtcstage`
      *   - `authentik_stages_mtls.mutualtlsstage`
      *   - `authentik_stages_source.sourcestage`

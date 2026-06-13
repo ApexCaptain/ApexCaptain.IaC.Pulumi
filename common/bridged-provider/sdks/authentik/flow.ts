@@ -40,6 +40,7 @@ export class Flow extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`requireSuperuser`" pulumi-lang-dotnet="`RequireSuperuser`" pulumi-lang-go="`requireSuperuser`" pulumi-lang-python="`require_superuser`" pulumi-lang-yaml="`requireSuperuser`" pulumi-lang-java="`requireSuperuser`" pulumi-lang-hcl="`require_superuser`">`requireSuperuser`</span>
      *   - <span pulumi-lang-nodejs="`requireRedirect`" pulumi-lang-dotnet="`RequireRedirect`" pulumi-lang-go="`requireRedirect`" pulumi-lang-python="`require_redirect`" pulumi-lang-yaml="`requireRedirect`" pulumi-lang-java="`requireRedirect`" pulumi-lang-hcl="`require_redirect`">`requireRedirect`</span>
      *   - <span pulumi-lang-nodejs="`requireOutpost`" pulumi-lang-dotnet="`RequireOutpost`" pulumi-lang-go="`requireOutpost`" pulumi-lang-python="`require_outpost`" pulumi-lang-yaml="`requireOutpost`" pulumi-lang-java="`requireOutpost`" pulumi-lang-hcl="`require_outpost`">`requireOutpost`</span>
+     *   - <span pulumi-lang-nodejs="`requireToken`" pulumi-lang-dotnet="`RequireToken`" pulumi-lang-go="`requireToken`" pulumi-lang-python="`require_token`" pulumi-lang-yaml="`requireToken`" pulumi-lang-java="`requireToken`" pulumi-lang-hcl="`require_token`">`requireToken`</span>
      *  Defaults to <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>.
      */
     declare public readonly authentication: pulumi.Output<string | undefined>;
@@ -160,6 +161,7 @@ export interface FlowState {
      *   - <span pulumi-lang-nodejs="`requireSuperuser`" pulumi-lang-dotnet="`RequireSuperuser`" pulumi-lang-go="`requireSuperuser`" pulumi-lang-python="`require_superuser`" pulumi-lang-yaml="`requireSuperuser`" pulumi-lang-java="`requireSuperuser`" pulumi-lang-hcl="`require_superuser`">`requireSuperuser`</span>
      *   - <span pulumi-lang-nodejs="`requireRedirect`" pulumi-lang-dotnet="`RequireRedirect`" pulumi-lang-go="`requireRedirect`" pulumi-lang-python="`require_redirect`" pulumi-lang-yaml="`requireRedirect`" pulumi-lang-java="`requireRedirect`" pulumi-lang-hcl="`require_redirect`">`requireRedirect`</span>
      *   - <span pulumi-lang-nodejs="`requireOutpost`" pulumi-lang-dotnet="`RequireOutpost`" pulumi-lang-go="`requireOutpost`" pulumi-lang-python="`require_outpost`" pulumi-lang-yaml="`requireOutpost`" pulumi-lang-java="`requireOutpost`" pulumi-lang-hcl="`require_outpost`">`requireOutpost`</span>
+     *   - <span pulumi-lang-nodejs="`requireToken`" pulumi-lang-dotnet="`RequireToken`" pulumi-lang-go="`requireToken`" pulumi-lang-python="`require_token`" pulumi-lang-yaml="`requireToken`" pulumi-lang-java="`requireToken`" pulumi-lang-hcl="`require_token`">`requireToken`</span>
      *  Defaults to <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>.
      */
     authentication?: pulumi.Input<string | undefined>;
@@ -227,6 +229,7 @@ export interface FlowArgs {
      *   - <span pulumi-lang-nodejs="`requireSuperuser`" pulumi-lang-dotnet="`RequireSuperuser`" pulumi-lang-go="`requireSuperuser`" pulumi-lang-python="`require_superuser`" pulumi-lang-yaml="`requireSuperuser`" pulumi-lang-java="`requireSuperuser`" pulumi-lang-hcl="`require_superuser`">`requireSuperuser`</span>
      *   - <span pulumi-lang-nodejs="`requireRedirect`" pulumi-lang-dotnet="`RequireRedirect`" pulumi-lang-go="`requireRedirect`" pulumi-lang-python="`require_redirect`" pulumi-lang-yaml="`requireRedirect`" pulumi-lang-java="`requireRedirect`" pulumi-lang-hcl="`require_redirect`">`requireRedirect`</span>
      *   - <span pulumi-lang-nodejs="`requireOutpost`" pulumi-lang-dotnet="`RequireOutpost`" pulumi-lang-go="`requireOutpost`" pulumi-lang-python="`require_outpost`" pulumi-lang-yaml="`requireOutpost`" pulumi-lang-java="`requireOutpost`" pulumi-lang-hcl="`require_outpost`">`requireOutpost`</span>
+     *   - <span pulumi-lang-nodejs="`requireToken`" pulumi-lang-dotnet="`RequireToken`" pulumi-lang-go="`requireToken`" pulumi-lang-python="`require_token`" pulumi-lang-yaml="`requireToken`" pulumi-lang-java="`requireToken`" pulumi-lang-hcl="`require_token`">`requireToken`</span>
      *  Defaults to <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>.
      */
     authentication?: pulumi.Input<string | undefined>;

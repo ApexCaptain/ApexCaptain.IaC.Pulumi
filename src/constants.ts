@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { TerraformBridgedProvider } from './classes';
 
 export const constants = (() => {
@@ -26,10 +27,14 @@ export const constants = (() => {
   const turboDir = '.turbo';
   const tmpDir = 'tmp';
   const diagnosisDir = process.env.DIAGNOSIS_DIR_NAME || '.diagnosis';
+  const cursorDir = '.cursor';
+  const ventoyDir = 'ventoy';
+  const ventoyUserDataDir = path.join(ventoyDir, 'user-data');
 
   // Files
   const novaConfigFile =
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
+  const cursorMcpJsonFile = path.join(cursorDir, 'mcp.json');
 
   const paths = {
     dirs: {
@@ -43,9 +48,13 @@ export const constants = (() => {
       turboDir,
       tmpDir,
       diagnosisDir,
+      cursorDir,
+      ventoyDir,
+      ventoyUserDataDir,
     },
     files: {
       novaConfigFile,
+      cursorMcpJsonFile,
     },
   };
 
@@ -59,7 +68,7 @@ export const constants = (() => {
       authentik: new TerraformBridgedProvider({
         name: 'authentik',
         providerSource: 'goauthentik/authentik',
-        providerVersion: '2026.2.0',
+        providerVersion: '2026.5.0',
         packagesToOverride: ['typescript', '@types/node'],
       }),
     },
@@ -74,6 +83,7 @@ export const constants = (() => {
     escSdk: '@pulumi/esc-sdk',
     std: '@pulumi/std',
     random: '@pulumi/random',
+    oci: '@pulumi/oci',
   };
 
   const packagesAllowingBuildScripts = [
@@ -96,6 +106,7 @@ export const constants = (() => {
     'charts.goauthentik.io': 'https://charts.goauthentik.io',
     'kubernetes-sigs.github.io/nfs-subdir-external-provisioner':
       'https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner',
+    'helm.releases.hashicorp.com': 'https://helm.releases.hashicorp.com',
   };
 
   return {

@@ -52,11 +52,11 @@ export class StageCaptcha extends pulumi.CustomResource {
     declare public readonly privateKey: pulumi.Output<string>;
     declare public readonly publicKey: pulumi.Output<string>;
     /**
-     * Defaults to `0.5`.
+     * Defaults to <span pulumi-lang-nodejs="`1`" pulumi-lang-dotnet="`1`" pulumi-lang-go="`1`" pulumi-lang-python="`1`" pulumi-lang-yaml="`1`" pulumi-lang-java="`1`" pulumi-lang-hcl="`1`">`1`</span>.
      */
     declare public readonly scoreMaxThreshold: pulumi.Output<number | undefined>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`1`" pulumi-lang-dotnet="`1`" pulumi-lang-go="`1`" pulumi-lang-python="`1`" pulumi-lang-yaml="`1`" pulumi-lang-java="`1`" pulumi-lang-hcl="`1`">`1`</span>.
+     * Defaults to `0.5`.
      */
     declare public readonly scoreMinThreshold: pulumi.Output<number | undefined>;
     declare public readonly stageCaptchaId: pulumi.Output<string>;
@@ -134,11 +134,11 @@ export interface StageCaptchaState {
     privateKey?: pulumi.Input<string | undefined>;
     publicKey?: pulumi.Input<string | undefined>;
     /**
-     * Defaults to `0.5`.
+     * Defaults to <span pulumi-lang-nodejs="`1`" pulumi-lang-dotnet="`1`" pulumi-lang-go="`1`" pulumi-lang-python="`1`" pulumi-lang-yaml="`1`" pulumi-lang-java="`1`" pulumi-lang-hcl="`1`">`1`</span>.
      */
     scoreMaxThreshold?: pulumi.Input<number | undefined>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`1`" pulumi-lang-dotnet="`1`" pulumi-lang-go="`1`" pulumi-lang-python="`1`" pulumi-lang-yaml="`1`" pulumi-lang-java="`1`" pulumi-lang-hcl="`1`">`1`</span>.
+     * Defaults to `0.5`.
      */
     scoreMinThreshold?: pulumi.Input<number | undefined>;
     stageCaptchaId?: pulumi.Input<string | undefined>;
@@ -168,11 +168,11 @@ export interface StageCaptchaArgs {
     privateKey: pulumi.Input<string>;
     publicKey: pulumi.Input<string>;
     /**
-     * Defaults to `0.5`.
+     * Defaults to <span pulumi-lang-nodejs="`1`" pulumi-lang-dotnet="`1`" pulumi-lang-go="`1`" pulumi-lang-python="`1`" pulumi-lang-yaml="`1`" pulumi-lang-java="`1`" pulumi-lang-hcl="`1`">`1`</span>.
      */
     scoreMaxThreshold?: pulumi.Input<number | undefined>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`1`" pulumi-lang-dotnet="`1`" pulumi-lang-go="`1`" pulumi-lang-python="`1`" pulumi-lang-yaml="`1`" pulumi-lang-java="`1`" pulumi-lang-hcl="`1`">`1`</span>.
+     * Defaults to `0.5`.
      */
     scoreMinThreshold?: pulumi.Input<number | undefined>;
     stageCaptchaId?: pulumi.Input<string | undefined>;

@@ -33,6 +33,7 @@
     "@common/utils": "workspace:*",
     "@infra/cloudflare": "workspace:*",
     "@pulumi/kubernetes": "^4.31.1",
+    "@pulumi/oci": "^4.14.0",
     "@pulumi/pulumi": "^3.242.0",
     "dedent": "^1.7.2",
     "lodash": "^4.18.1",

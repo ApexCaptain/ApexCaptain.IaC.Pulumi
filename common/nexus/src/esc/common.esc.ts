@@ -28,6 +28,7 @@ const commonEscSchema = z
         'charts.jetstack.io': z.string(),
         'charts.goauthentik.io': z.string(),
         'kubernetes-sigs.github.io/nfs-subdir-external-provisioner': z.string(),
+        'helm.releases.hashicorp.com': z.string(),
       })
       .required(),
   })

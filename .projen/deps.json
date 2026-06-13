@@ -61,6 +61,10 @@
       "type": "build"
     },
     {
+      "name": "handlebars",
+      "type": "build"
+    },
+    {
       "name": "json2md",
       "type": "build"
     },
@@ -74,6 +78,10 @@
     },
     {
       "name": "projen",
+      "type": "build"
+    },
+    {
+      "name": "sha512-crypt-ts",
       "type": "build"
     },
     {

@@ -74,6 +74,9 @@ export class StagePromptField extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`separator`" pulumi-lang-dotnet="`Separator`" pulumi-lang-go="`separator`" pulumi-lang-python="`separator`" pulumi-lang-yaml="`separator`" pulumi-lang-java="`separator`" pulumi-lang-hcl="`separator`">`separator`</span>
      *   - <span pulumi-lang-nodejs="`hidden`" pulumi-lang-dotnet="`Hidden`" pulumi-lang-go="`hidden`" pulumi-lang-python="`hidden`" pulumi-lang-yaml="`hidden`" pulumi-lang-java="`hidden`" pulumi-lang-hcl="`hidden`">`hidden`</span>
      *   - <span pulumi-lang-nodejs="`static`" pulumi-lang-dotnet="`Static`" pulumi-lang-go="`static`" pulumi-lang-python="`static`" pulumi-lang-yaml="`static`" pulumi-lang-java="`static`" pulumi-lang-hcl="`static`">`static`</span>
+     *   - <span pulumi-lang-nodejs="`alertInfo`" pulumi-lang-dotnet="`AlertInfo`" pulumi-lang-go="`alertInfo`" pulumi-lang-python="`alert_info`" pulumi-lang-yaml="`alertInfo`" pulumi-lang-java="`alertInfo`" pulumi-lang-hcl="`alert_info`">`alertInfo`</span>
+     *   - <span pulumi-lang-nodejs="`alertWarning`" pulumi-lang-dotnet="`AlertWarning`" pulumi-lang-go="`alertWarning`" pulumi-lang-python="`alert_warning`" pulumi-lang-yaml="`alertWarning`" pulumi-lang-java="`alertWarning`" pulumi-lang-hcl="`alert_warning`">`alertWarning`</span>
+     *   - <span pulumi-lang-nodejs="`alertDanger`" pulumi-lang-dotnet="`AlertDanger`" pulumi-lang-go="`alertDanger`" pulumi-lang-python="`alert_danger`" pulumi-lang-yaml="`alertDanger`" pulumi-lang-java="`alertDanger`" pulumi-lang-hcl="`alert_danger`">`alertDanger`</span>
      *   - `ak-locale`
      */
     declare public readonly type: pulumi.Output<string>;
@@ -178,6 +181,9 @@ export interface StagePromptFieldState {
      *   - <span pulumi-lang-nodejs="`separator`" pulumi-lang-dotnet="`Separator`" pulumi-lang-go="`separator`" pulumi-lang-python="`separator`" pulumi-lang-yaml="`separator`" pulumi-lang-java="`separator`" pulumi-lang-hcl="`separator`">`separator`</span>
      *   - <span pulumi-lang-nodejs="`hidden`" pulumi-lang-dotnet="`Hidden`" pulumi-lang-go="`hidden`" pulumi-lang-python="`hidden`" pulumi-lang-yaml="`hidden`" pulumi-lang-java="`hidden`" pulumi-lang-hcl="`hidden`">`hidden`</span>
      *   - <span pulumi-lang-nodejs="`static`" pulumi-lang-dotnet="`Static`" pulumi-lang-go="`static`" pulumi-lang-python="`static`" pulumi-lang-yaml="`static`" pulumi-lang-java="`static`" pulumi-lang-hcl="`static`">`static`</span>
+     *   - <span pulumi-lang-nodejs="`alertInfo`" pulumi-lang-dotnet="`AlertInfo`" pulumi-lang-go="`alertInfo`" pulumi-lang-python="`alert_info`" pulumi-lang-yaml="`alertInfo`" pulumi-lang-java="`alertInfo`" pulumi-lang-hcl="`alert_info`">`alertInfo`</span>
+     *   - <span pulumi-lang-nodejs="`alertWarning`" pulumi-lang-dotnet="`AlertWarning`" pulumi-lang-go="`alertWarning`" pulumi-lang-python="`alert_warning`" pulumi-lang-yaml="`alertWarning`" pulumi-lang-java="`alertWarning`" pulumi-lang-hcl="`alert_warning`">`alertWarning`</span>
+     *   - <span pulumi-lang-nodejs="`alertDanger`" pulumi-lang-dotnet="`AlertDanger`" pulumi-lang-go="`alertDanger`" pulumi-lang-python="`alert_danger`" pulumi-lang-yaml="`alertDanger`" pulumi-lang-java="`alertDanger`" pulumi-lang-hcl="`alert_danger`">`alertDanger`</span>
      *   - `ak-locale`
      */
     type?: pulumi.Input<string | undefined>;
@@ -229,6 +235,9 @@ export interface StagePromptFieldArgs {
      *   - <span pulumi-lang-nodejs="`separator`" pulumi-lang-dotnet="`Separator`" pulumi-lang-go="`separator`" pulumi-lang-python="`separator`" pulumi-lang-yaml="`separator`" pulumi-lang-java="`separator`" pulumi-lang-hcl="`separator`">`separator`</span>
      *   - <span pulumi-lang-nodejs="`hidden`" pulumi-lang-dotnet="`Hidden`" pulumi-lang-go="`hidden`" pulumi-lang-python="`hidden`" pulumi-lang-yaml="`hidden`" pulumi-lang-java="`hidden`" pulumi-lang-hcl="`hidden`">`hidden`</span>
      *   - <span pulumi-lang-nodejs="`static`" pulumi-lang-dotnet="`Static`" pulumi-lang-go="`static`" pulumi-lang-python="`static`" pulumi-lang-yaml="`static`" pulumi-lang-java="`static`" pulumi-lang-hcl="`static`">`static`</span>
+     *   - <span pulumi-lang-nodejs="`alertInfo`" pulumi-lang-dotnet="`AlertInfo`" pulumi-lang-go="`alertInfo`" pulumi-lang-python="`alert_info`" pulumi-lang-yaml="`alertInfo`" pulumi-lang-java="`alertInfo`" pulumi-lang-hcl="`alert_info`">`alertInfo`</span>
+     *   - <span pulumi-lang-nodejs="`alertWarning`" pulumi-lang-dotnet="`AlertWarning`" pulumi-lang-go="`alertWarning`" pulumi-lang-python="`alert_warning`" pulumi-lang-yaml="`alertWarning`" pulumi-lang-java="`alertWarning`" pulumi-lang-hcl="`alert_warning`">`alertWarning`</span>
+     *   - <span pulumi-lang-nodejs="`alertDanger`" pulumi-lang-dotnet="`AlertDanger`" pulumi-lang-go="`alertDanger`" pulumi-lang-python="`alert_danger`" pulumi-lang-yaml="`alertDanger`" pulumi-lang-java="`alertDanger`" pulumi-lang-hcl="`alert_danger`">`alertDanger`</span>
      *   - `ak-locale`
      */
     type: pulumi.Input<string>;

@@ -41,7 +41,6 @@ export const CertManagerResourcesComponent = utils.functions.defineComponent(
       },
     );
 
-    const letsEncryptProdClusterIssuerName = 'lets-encrypt-prod';
     const letsEncryptProdClusterIssuer =
       new customResources.resources.k8s.crd.certManager.ClusterIssuerV1(
         `${resourceName}-letsEncryptProdClusterIssuer`,
@@ -78,7 +77,6 @@ export const CertManagerResourcesComponent = utils.functions.defineComponent(
         },
       );
 
-    const letsEncryptStagingClusterIssuerName = 'lets-encrypt-staging';
     const letsEncryptStagingClusterIssuer =
       new customResources.resources.k8s.crd.certManager.ClusterIssuerV1(
         `${resourceName}-letsEncryptStagingClusterIssuer`,
@@ -114,10 +112,13 @@ export const CertManagerResourcesComponent = utils.functions.defineComponent(
           provider: args.providers.kubernetes,
         },
       );
+
     return {
       output: pulumi.output({
-        letsEncryptProdClusterIssuerName,
-        letsEncryptStagingClusterIssuerName,
+        letsEncryptProdClusterIssuerName:
+          letsEncryptProdClusterIssuer.metadata.name,
+        letsEncryptStagingClusterIssuerName:
+          letsEncryptStagingClusterIssuer.metadata.name,
       }),
       secret: pulumi.secret({}),
     };

@@ -18,12 +18,13 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
     );
 
     // Authentik Provider
-    const authentikProvider = new authentik.Provider(
-      'authentikProvider',
-      k8sWorkstationSystemContract.secret.providerConfigs.authentik,
-    );
+    // const authentikProvider = new authentik.Provider(
+    //   'authentikProvider',
+    //   k8sWorkstationSystemContract.secret.providerConfigs.authentik,
+    // );
 
     // Qbittorrent
+    /*
     const qbittorrentApp = new components.qbittorrent.QbittorrentAppComponent(
       'qbittorrentApp',
       {
@@ -101,13 +102,14 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
           },
         },
       );
+      */
 
     return {
       output: pulumi.output({
-        authentik: {
-          qbittorrentAuthentikProxyProviderId:
-            qbittorrentServiceMesh.output.authentikProxyProviderId,
-        },
+        // authentik: {
+        //   qbittorrentAuthentikProxyProviderId:
+        //     qbittorrentServiceMesh.output.authentikProxyProviderId,
+        // },
       }),
       secret: pulumi.secret({}),
     };

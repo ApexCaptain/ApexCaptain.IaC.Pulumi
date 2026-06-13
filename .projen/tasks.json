@@ -168,13 +168,13 @@
       },
       "steps": [
         {
-          "exec": "pnpm dlx npm-check-updates@20 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@pulumi/esc-sdk,@types/json2md,@types/lodash,@types/node,@types/semver,cron-time-generator,eslint-config-prettier,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,json2md,lodash,prettier,projen,timezone-enum,ts-node,turbo,typescript,@pulumi/pulumi,axios,chalk,dedent,flat,flatley,semver,yaml"
+          "exec": "pnpm dlx npm-check-updates@20 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@pulumi/esc-sdk,@types/json2md,@types/lodash,@types/node,@types/semver,cron-time-generator,eslint-config-prettier,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,handlebars,json2md,lodash,prettier,projen,sha512-crypt-ts,timezone-enum,ts-node,turbo,typescript,@pulumi/pulumi,axios,chalk,dedent,flat,flatley,semver,yaml"
         },
         {
           "exec": "pnpm i --no-frozen-lockfile"
         },
         {
-          "exec": "pnpm update @pulumi/esc-sdk @types/json2md @types/lodash @types/node @types/semver @typescript-eslint/eslint-plugin @typescript-eslint/parser constructs cron-time-generator eslint-config-prettier eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier eslint json2md lodash prettier projen timezone-enum ts-node turbo typescript @pulumi/pulumi axios chalk dedent flat flatley semver yaml"
+          "exec": "pnpm update @pulumi/esc-sdk @types/json2md @types/lodash @types/node @types/semver @typescript-eslint/eslint-plugin @typescript-eslint/parser constructs cron-time-generator eslint-config-prettier eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier eslint handlebars json2md lodash prettier projen sha512-crypt-ts timezone-enum ts-node turbo typescript @pulumi/pulumi axios chalk dedent flat flatley semver yaml"
         },
         {
           "exec": "pnpm exec projen"

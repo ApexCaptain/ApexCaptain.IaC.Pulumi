@@ -3,6 +3,7 @@ import * as customResources from '@common/custom-resources';
 import * as nexus from '@common/nexus';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import * as kubernetes from '@pulumi/kubernetes';
+import * as oci from '@pulumi/oci';
 import * as pulumi from '@pulumi/pulumi';
 import * as components from './components';
 
@@ -31,6 +32,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    /*
     const authentikNamespace = 'authentik';
     const authentikProxyOutpostName = 'authentik-proxy-outpost';
     const authentikProxyOutpostProviderName =
@@ -46,6 +48,16 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         dependsOn: [kubeConfig],
       },
     );
+
+    // OCI Provider
+    const ociProvider = new oci.Provider('ociProvider', {
+      auth: nexus.esc.ociEsc.esc.auth,
+      fingerprint: nexus.esc.ociEsc.esc.fingerprint,
+      privateKey: nexus.esc.ociEsc.esc.privateKey,
+      region: nexus.esc.ociEsc.esc.region,
+      tenancyOcid: nexus.esc.ociEsc.esc.tenancyOcid,
+      userOcid: nexus.esc.ociEsc.esc.userOcid,
+    });
 
     // Metrics Server
     const metricsServerHelmChart =
@@ -369,8 +381,46 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           dependsOn: [authentikServiceMesh, authentikHelmChart],
         },
       );
+      */
+
+    // Vault
+    /*
+    const vaultKms = new components.vault.VaultKmsComponent('vaultKms', {
+      tenancyOcid: nexus.esc.ociEsc.esc.tenancyOcid,
+      providers: {
+        oci: ociProvider,
+      },
+    });
+
+    const vaultCoreHelmChart = new components.vault.VaultCoreHelmChartComponent(
+      'vaultCoreHelmChart',
+      {
+        helm: {
+          vault: {
+            version: '0.33.0',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
+          },
+        },
+        kms: {
+          oci: {
+            keyId: vaultKms.secret.keyId,
+            cryptoEndpoint: vaultKms.secret.cryptoEndpoint,
+            managementEndpoint: vaultKms.secret.managementEndpoint,
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+      {
+        dependsOn: [certManagerHelmChart, vaultKms],
+      },
+    );
+    */
 
     // Test
+    /*
     const test = new components.test.TestComponent(
       'test',
       {
@@ -383,37 +433,38 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         dependsOn: [istioHelmChart],
       },
     );
+    */
 
     return {
       output: pulumi.output({
         kubeConfigFilePath: kubeConfig.filePath,
-        namespaces: {
-          istio: istioHelmChart.output.namespace,
-        },
-        serviceMesh: {
-          istioIngressGatewayLabel:
-            istioHelmChart.output.istioIngressGatewayLabel,
-        },
-        serviceAccounts: {
-          istioIngressGateway:
-            istioHelmChart.output.istioIngressGatewayServiceAccountName,
-        },
-        gatewayPaths: {
-          ingressGatewayPath: istioGateway.output.istioIngressGatewayPath,
-        },
-        storageClass: localNfsProvisionerHelmChart.output.storageClass,
-        authentik: {
-          serviceConnections: authentikResources.output.serviceConnections,
-          flow: authentikResources.output.flow,
-          groupIds: authentikResources.output.groupIds,
-          authentikProxyOutpostName,
-          authentikProxyOutpostProviderName,
-        },
+        // namespaces: {
+        //   istio: istioHelmChart.output.namespace,
+        // },
+        // serviceMesh: {
+        //   istioIngressGatewayLabel:
+        //     istioHelmChart.output.istioIngressGatewayLabel,
+        // },
+        // serviceAccounts: {
+        //   istioIngressGateway:
+        //     istioHelmChart.output.istioIngressGatewayServiceAccountName,
+        // },
+        // gatewayPaths: {
+        //   ingressGatewayPath: istioGateway.output.istioIngressGatewayPath,
+        // },
+        // storageClass: localNfsProvisionerHelmChart.output.storageClass,
+        // authentik: {
+        //   serviceConnections: authentikResources.output.serviceConnections,
+        //   flow: authentikResources.output.flow,
+        //   groupIds: authentikResources.output.groupIds,
+        //   authentikProxyOutpostName,
+        //   authentikProxyOutpostProviderName,
+        // },
       }),
       secret: pulumi.secret({
-        providerConfigs: {
-          authentik: authentikHelmChart.secret.authentikProviderConfig,
-        },
+        // providerConfigs: {
+        //   authentik: authentikHelmChart.secret.authentikProviderConfig,
+        // },
       }),
     };
   },

@@ -31,6 +31,7 @@ jspm_packages/
 .cache
 .DS_STORE
 commit-message.txt
+pull-request.md
 Pulumi*.yaml
 Pulumi*.yml
 .turbo
@@ -38,6 +39,7 @@ tmp
 /.secrets
 /.kube
 /.pnpm-store
+/ventoy/user-data
 !/.github/workflows/upgrade-develop.yml
 !/.github/pull_request_template.md
 !/.prettierignore
@@ -53,5 +55,7 @@ tmp
 !/.vscode/settings.json
 !/pnpm-workspace.yaml
 !/.nova-config.json
+!/ventoy/ventoy.json
 !/README.md
+!/.cursor/mcp.json
 !/.projenrc.ts

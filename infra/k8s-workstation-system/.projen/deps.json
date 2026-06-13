@@ -66,6 +66,10 @@
       "type": "runtime"
     },
     {
+      "name": "@pulumi/oci",
+      "type": "runtime"
+    },
+    {
       "name": "@pulumi/pulumi",
       "type": "runtime"
     },

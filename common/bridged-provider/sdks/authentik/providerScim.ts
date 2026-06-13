@@ -53,6 +53,8 @@ export class ProviderScim extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`aws`" pulumi-lang-dotnet="`Aws`" pulumi-lang-go="`aws`" pulumi-lang-python="`aws`" pulumi-lang-yaml="`aws`" pulumi-lang-java="`aws`" pulumi-lang-hcl="`aws`">`aws`</span>
      *   - <span pulumi-lang-nodejs="`slack`" pulumi-lang-dotnet="`Slack`" pulumi-lang-go="`slack`" pulumi-lang-python="`slack`" pulumi-lang-yaml="`slack`" pulumi-lang-java="`slack`" pulumi-lang-hcl="`slack`">`slack`</span>
      *   - <span pulumi-lang-nodejs="`sfdc`" pulumi-lang-dotnet="`Sfdc`" pulumi-lang-go="`sfdc`" pulumi-lang-python="`sfdc`" pulumi-lang-yaml="`sfdc`" pulumi-lang-java="`sfdc`" pulumi-lang-hcl="`sfdc`">`sfdc`</span>
+     *   - <span pulumi-lang-nodejs="`webex`" pulumi-lang-dotnet="`Webex`" pulumi-lang-go="`webex`" pulumi-lang-python="`webex`" pulumi-lang-yaml="`webex`" pulumi-lang-java="`webex`" pulumi-lang-hcl="`webex`">`webex`</span>
+     *   - <span pulumi-lang-nodejs="`vcenter`" pulumi-lang-dotnet="`Vcenter`" pulumi-lang-go="`vcenter`" pulumi-lang-python="`vcenter`" pulumi-lang-yaml="`vcenter`" pulumi-lang-java="`vcenter`" pulumi-lang-hcl="`vcenter`">`vcenter`</span>
      *  Defaults to <span pulumi-lang-nodejs="`default`" pulumi-lang-dotnet="`Default`" pulumi-lang-go="`default`" pulumi-lang-python="`default`" pulumi-lang-yaml="`default`" pulumi-lang-java="`default`" pulumi-lang-hcl="`default`">`default`</span>.
      */
     declare public readonly compatibilityMode: pulumi.Output<string | undefined>;
@@ -164,6 +166,8 @@ export interface ProviderScimState {
      *   - <span pulumi-lang-nodejs="`aws`" pulumi-lang-dotnet="`Aws`" pulumi-lang-go="`aws`" pulumi-lang-python="`aws`" pulumi-lang-yaml="`aws`" pulumi-lang-java="`aws`" pulumi-lang-hcl="`aws`">`aws`</span>
      *   - <span pulumi-lang-nodejs="`slack`" pulumi-lang-dotnet="`Slack`" pulumi-lang-go="`slack`" pulumi-lang-python="`slack`" pulumi-lang-yaml="`slack`" pulumi-lang-java="`slack`" pulumi-lang-hcl="`slack`">`slack`</span>
      *   - <span pulumi-lang-nodejs="`sfdc`" pulumi-lang-dotnet="`Sfdc`" pulumi-lang-go="`sfdc`" pulumi-lang-python="`sfdc`" pulumi-lang-yaml="`sfdc`" pulumi-lang-java="`sfdc`" pulumi-lang-hcl="`sfdc`">`sfdc`</span>
+     *   - <span pulumi-lang-nodejs="`webex`" pulumi-lang-dotnet="`Webex`" pulumi-lang-go="`webex`" pulumi-lang-python="`webex`" pulumi-lang-yaml="`webex`" pulumi-lang-java="`webex`" pulumi-lang-hcl="`webex`">`webex`</span>
+     *   - <span pulumi-lang-nodejs="`vcenter`" pulumi-lang-dotnet="`Vcenter`" pulumi-lang-go="`vcenter`" pulumi-lang-python="`vcenter`" pulumi-lang-yaml="`vcenter`" pulumi-lang-java="`vcenter`" pulumi-lang-hcl="`vcenter`">`vcenter`</span>
      *  Defaults to <span pulumi-lang-nodejs="`default`" pulumi-lang-dotnet="`Default`" pulumi-lang-go="`default`" pulumi-lang-python="`default`" pulumi-lang-yaml="`default`" pulumi-lang-java="`default`" pulumi-lang-hcl="`default`">`default`</span>.
      */
     compatibilityMode?: pulumi.Input<string | undefined>;
@@ -218,6 +222,8 @@ export interface ProviderScimArgs {
      *   - <span pulumi-lang-nodejs="`aws`" pulumi-lang-dotnet="`Aws`" pulumi-lang-go="`aws`" pulumi-lang-python="`aws`" pulumi-lang-yaml="`aws`" pulumi-lang-java="`aws`" pulumi-lang-hcl="`aws`">`aws`</span>
      *   - <span pulumi-lang-nodejs="`slack`" pulumi-lang-dotnet="`Slack`" pulumi-lang-go="`slack`" pulumi-lang-python="`slack`" pulumi-lang-yaml="`slack`" pulumi-lang-java="`slack`" pulumi-lang-hcl="`slack`">`slack`</span>
      *   - <span pulumi-lang-nodejs="`sfdc`" pulumi-lang-dotnet="`Sfdc`" pulumi-lang-go="`sfdc`" pulumi-lang-python="`sfdc`" pulumi-lang-yaml="`sfdc`" pulumi-lang-java="`sfdc`" pulumi-lang-hcl="`sfdc`">`sfdc`</span>
+     *   - <span pulumi-lang-nodejs="`webex`" pulumi-lang-dotnet="`Webex`" pulumi-lang-go="`webex`" pulumi-lang-python="`webex`" pulumi-lang-yaml="`webex`" pulumi-lang-java="`webex`" pulumi-lang-hcl="`webex`">`webex`</span>
+     *   - <span pulumi-lang-nodejs="`vcenter`" pulumi-lang-dotnet="`Vcenter`" pulumi-lang-go="`vcenter`" pulumi-lang-python="`vcenter`" pulumi-lang-yaml="`vcenter`" pulumi-lang-java="`vcenter`" pulumi-lang-hcl="`vcenter`">`vcenter`</span>
      *  Defaults to <span pulumi-lang-nodejs="`default`" pulumi-lang-dotnet="`Default`" pulumi-lang-go="`default`" pulumi-lang-python="`default`" pulumi-lang-yaml="`default`" pulumi-lang-java="`default`" pulumi-lang-hcl="`default`">`default`</span>.
      */
     compatibilityMode?: pulumi.Input<string | undefined>;

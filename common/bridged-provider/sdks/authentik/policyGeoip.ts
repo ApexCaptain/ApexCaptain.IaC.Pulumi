@@ -88,7 +88,6 @@ export class PolicyGeoip extends pulumi.CustomResource {
      *   - `CO`
      *   - `KM`
      *   - `CG`
-     *   - `CD`
      *   - `CK`
      *   - `CR`
      *   - `CI`
@@ -97,6 +96,7 @@ export class PolicyGeoip extends pulumi.CustomResource {
      *   - `CW`
      *   - `CY`
      *   - `CZ`
+     *   - `CD`
      *   - `DK`
      *   - `DJ`
      *   - `DM`
@@ -135,7 +135,6 @@ export class PolicyGeoip extends pulumi.CustomResource {
      *   - `GY`
      *   - `HT`
      *   - `HM`
-     *   - `VA`
      *   - `HN`
      *   - `HK`
      *   - `HU`
@@ -277,6 +276,7 @@ export class PolicyGeoip extends pulumi.CustomResource {
      *   - `UY`
      *   - `UZ`
      *   - `VU`
+     *   - `VA`
      *   - `VE`
      *   - `VN`
      *   - `VG`
@@ -414,7 +414,6 @@ export interface PolicyGeoipState {
      *   - `CO`
      *   - `KM`
      *   - `CG`
-     *   - `CD`
      *   - `CK`
      *   - `CR`
      *   - `CI`
@@ -423,6 +422,7 @@ export interface PolicyGeoipState {
      *   - `CW`
      *   - `CY`
      *   - `CZ`
+     *   - `CD`
      *   - `DK`
      *   - `DJ`
      *   - `DM`
@@ -461,7 +461,6 @@ export interface PolicyGeoipState {
      *   - `GY`
      *   - `HT`
      *   - `HM`
-     *   - `VA`
      *   - `HN`
      *   - `HK`
      *   - `HU`
@@ -603,6 +602,7 @@ export interface PolicyGeoipState {
      *   - `UY`
      *   - `UZ`
      *   - `VU`
+     *   - `VA`
      *   - `VE`
      *   - `VN`
      *   - `VG`
@@ -698,7 +698,6 @@ export interface PolicyGeoipArgs {
      *   - `CO`
      *   - `KM`
      *   - `CG`
-     *   - `CD`
      *   - `CK`
      *   - `CR`
      *   - `CI`
@@ -707,6 +706,7 @@ export interface PolicyGeoipArgs {
      *   - `CW`
      *   - `CY`
      *   - `CZ`
+     *   - `CD`
      *   - `DK`
      *   - `DJ`
      *   - `DM`
@@ -745,7 +745,6 @@ export interface PolicyGeoipArgs {
      *   - `GY`
      *   - `HT`
      *   - `HM`
-     *   - `VA`
      *   - `HN`
      *   - `HK`
      *   - `HU`
@@ -887,6 +886,7 @@ export interface PolicyGeoipArgs {
      *   - `UY`
      *   - `UZ`
      *   - `VU`
+     *   - `VA`
      *   - `VE`
      *   - `VN`
      *   - `VG`
