@@ -1,5 +1,7 @@
 - ## Ansible
 
+  git submodule add -b release-2.31 https://github.com/kubernetes-sigs/kubespray.git ./ansible/third_party/kubespray
+
 - ## ESM
 
 - ## lint-staged

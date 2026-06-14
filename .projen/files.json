@@ -17,6 +17,7 @@
     "LICENSE",
     "pnpm-workspace.yaml",
     "README.md",
+    "requirements.txt",
     "tsconfig.dev.json",
     "tsconfig.json",
     "turbo.json",

@@ -40,6 +40,7 @@ tmp
 /.kube
 /.pnpm-store
 /ventoy/user-data
+/.venv
 !/.github/workflows/upgrade-develop.yml
 !/.github/pull_request_template.md
 !/.prettierignore
@@ -57,5 +58,6 @@ tmp
 !/.nova-config.json
 !/ventoy/ventoy.json
 !/README.md
+!/requirements.txt
 !/.cursor/mcp.json
 !/.projenrc.ts

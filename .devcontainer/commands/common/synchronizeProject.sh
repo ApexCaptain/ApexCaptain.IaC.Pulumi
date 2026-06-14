@@ -7,9 +7,10 @@ if [ "$ENABLE_AUTO_SYNC" = false ]; then
     exit 0
 fi
 
-echo "🔄 Setting up aliases"
 BASHRC_FILE="$HOME/.bashrc"
 touch "$BASHRC_FILE"
+
+echo "🔄 Setting up aliases"
 sed -i \
     -e '/^alias k=kubectl$/d' \
     -e '/^alias h=helm$/d' \
@@ -21,6 +22,24 @@ sed -i \
     echo "alias d=docker"
 } >> "$BASHRC_FILE"
 echo "✅ Aliases set up"
+
+echo "🔄 Setup python3 venv"
+# venv 설정
+python3 -m venv $VIRTUAL_ENV_DIR_NAME
+# 현재 세션에 venv 활성화
+source ${VIRTUAL_ENV_DIR_PATH}/bin/activate
+# bashrc에 venv 활성화 명령어 추가
+sed -i \
+    -e '/^# BEGIN PYTHON_VENV$/,/^# END PYTHON_VENV$/d' \
+    "$BASHRC_FILE"
+{
+    echo "# BEGIN PYTHON_VENV"
+    echo "if [ -f \"${VIRTUAL_ENV_DIR_PATH}/bin/activate\" ]; then"
+    echo "  source \"${VIRTUAL_ENV_DIR_PATH}/bin/activate\""
+    echo "fi"
+    echo "# END PYTHON_VENV"
+} >> "$BASHRC_FILE"
+echo "✅ Setup python3 venv"
 
 echo "🔄 Installing dependencies"
 pnpm i --no-frozen-lockfile

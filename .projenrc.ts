@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto';
 import dns from 'dns/promises';
 import fs from 'fs';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
 import * as pulumiEscSdk from '@pulumi/esc-sdk';
 import { LocalWorkspace } from '@pulumi/pulumi/automation';
@@ -9,10 +10,18 @@ import CronTime from 'cron-time-generator';
 import dedent from 'dedent';
 import Handlebars from 'handlebars';
 import _, { constant } from 'lodash';
-import { javascript, JsonFile, TextFile, typescript, YamlFile } from 'projen';
+import {
+  IniFile,
+  javascript,
+  JsonFile,
+  TextFile,
+  typescript,
+  YamlFile,
+} from 'projen';
 import { GithubCredentials } from 'projen/lib/github/github-credentials';
 import { Job } from 'projen/lib/github/workflows-model';
 import { ArrowParens } from 'projen/lib/javascript';
+import { RequirementsFile } from 'projen/lib/python';
 import {
   TypeScriptProject,
   TypeScriptProjectOptions,
@@ -120,6 +129,7 @@ const rootProject = new typescript.TypeScriptProject(
         `/${src.constants.paths.dirs.kubeConfigDir}`,
         `/${src.constants.paths.dirs.pnpmStoreDir}`,
         `/${src.constants.paths.dirs.ventoyUserDataDir}`,
+        `/${src.constants.paths.dirs.venvDir}`,
       ],
       deps: ['chalk', 'axios', 'semver', 'flat', 'flatley'],
       devDeps: [
@@ -762,33 +772,6 @@ void (async () => {
     },
   );
 
-  rootProject.addScripts({
-    'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
-    'build:infra': `turbo run build --filter ${infraPackageFilter}`,
-
-    posteslint: `turbo run eslint --filter ${workspacePackageFilters} --concurrency=3`,
-
-    'script:mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
-    'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
-
-    'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
-    'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
-    'postpulumi:up': `pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis`,
-    'pulumi:install': [
-      ...commonProjectWithBridgedProviderOrder,
-      ...pulumiProjectWithBridgedProviderOrder,
-    ]
-      .map(
-        eachProject =>
-          `pulumi install --no-dependencies --cwd ./${path.relative(rootProject.outdir, eachProject.outdir)}`,
-      )
-      .join(' && '),
-
-    postprojen: `pnpm build`,
-    postbuild: `turbo run build --filter ${workspacePackageFilters}`,
-    postupgrade: `turbo run upgrade --filter ${workspacePackageFilters} --concurrency=1`,
-  });
-
   // Turbo.json file
   new JsonFile(rootProject, 'turbo.json', {
     obj: {
@@ -978,6 +961,10 @@ void (async () => {
           },
         ],
         slackWebhookUrl: process.env.SLACK_WEBHOOK_URL_VENTOY_AUTO_INSTALL,
+        disk: {
+          minDiskSize: '240G',
+          rootPartitionSize: '200G',
+        },
       }),
     );
   }
@@ -1042,6 +1029,19 @@ void (async () => {
     },
   });
 
+  // Requirements File
+  const requirementsFile = new RequirementsFile(
+    rootProject,
+    'requirements.txt',
+    {},
+  );
+  requirementsFile.addPackages(
+    'ansible==11.13.0',
+    'cryptography==46.0.7',
+    'jmespath==1.1.0',
+    'netaddr==1.3.0',
+  );
+
   // Cursor
   const mcpJsonConfig: src.interfaces.CursorMcpConfig = {
     mcpServers: {
@@ -1060,6 +1060,46 @@ void (async () => {
       obj: mcpJsonConfig,
     },
   );
+
+  // Scripts
+  rootProject.addScripts({
+    'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
+    'build:infra': `turbo run build --filter ${infraPackageFilter}`,
+
+    posteslint: `turbo run eslint --filter ${workspacePackageFilters} --concurrency=3`,
+
+    'script:mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
+    'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
+
+    'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
+    'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
+    'postpulumi:up': `pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis`,
+    'pulumi:install': [
+      ...commonProjectWithBridgedProviderOrder,
+      ...pulumiProjectWithBridgedProviderOrder,
+    ]
+      .map(
+        eachProject =>
+          `pulumi install --no-dependencies --cwd ./${path.relative(rootProject.outdir, eachProject.outdir)}`,
+      )
+      .join(' && '),
+
+    postprojen: 'pnpm build',
+    postbuild: `turbo run build --filter ${workspacePackageFilters}`,
+    postupgrade: `turbo run upgrade --filter ${workspacePackageFilters} --concurrency=1`,
+  });
+
+  rootProject.postSynthesize = async () => {
+    if (src.constants.isDevContainer) {
+      // Git Submodule Update
+      execSync('git submodule update --init --recursive');
+      // Python Dependencies Install
+      const pythonInstallLog = execSync(
+        `pip install -r ${path.relative(rootProject.outdir, requirementsFile.path)}`,
+      ).toString();
+      console.log(pythonInstallLog);
+    }
+  };
 
   rootProject.synth();
 })();

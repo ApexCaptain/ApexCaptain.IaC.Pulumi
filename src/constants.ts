@@ -30,6 +30,9 @@ export const constants = (() => {
   const cursorDir = '.cursor';
   const ventoyDir = 'ventoy';
   const ventoyUserDataDir = path.join(ventoyDir, 'user-data');
+  const ansibleDir = 'ansible';
+  const ansibleThirdPartyDir = path.join(ansibleDir, 'third_party');
+  const venvDir = process.env.VIRTUAL_ENV_DIR_NAME || '.venv';
 
   // Files
   const novaConfigFile =
@@ -51,6 +54,9 @@ export const constants = (() => {
       cursorDir,
       ventoyDir,
       ventoyUserDataDir,
+      ansibleDir,
+      ansibleThirdPartyDir,
+      venvDir,
     },
     files: {
       novaConfigFile,
