@@ -30,7 +30,8 @@
       "json2md",
       "lodash",
       "node",
-      "semver"
+      "semver",
+      "ssh2"
     ]
   },
   "include": [

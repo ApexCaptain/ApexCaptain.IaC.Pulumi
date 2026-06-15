@@ -1,0 +1,8 @@
+# Cilium CNI — Istio(서비스 메시/L7) + MetalLB(Pulumi)와 역할 분리
+# @Ref https://github.com/kubernetes-sigs/kubespray/blob/master/inventory/sample/group_vars/k8s_cluster/k8s-net-cilium.yml
+
+# Service LoadBalancer는 Pulumi MetalLB 사용 (Cilium L2 announcement 비활성)
+cilium_l2announcements: false
+
+# Cilium Operator용 노드가 1개라서 1로 설정
+cilium_operator_replicas: 1

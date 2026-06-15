@@ -1,6 +1,6 @@
 # Nova Diagnosis Report
 
-Generated at ```2026-06-12T16:01:22.004Z```
+Generated at ```2026-06-15T18:31:45.951Z```
 
 ## Context: ```ws```
 
@@ -12,9 +12,11 @@ No outdated or deprecated Helm releases found.
 
 | Image | Current Version | Latest Version | Latest Minor | Latest Patch |
 | ----- | --------------- | -------------- | ------------ | ------------ |
-| registry.k8s.io/nfd/node-feature-discovery | v0.18.2 | v0.18.3 | v0.18.2 | v0.18.3 |
-| coredns/coredns | 1.13.1 | 11.0.0 | 1.14.4 | 1.13.2 |
-| nvcr.io/nvidia/k8s-device-plugin | v0.18.0 | v0.19.2 | v0.18.0 | v0.18.2 |
-| nvcr.io/nvidia/gpu-operator | v25.10.0 | v26.3.2 | v25.10.1 | v25.10.1 |
-| nvcr.io/nvidia/k8s/dcgm-exporter | 4.4.1-4.6.0-distroless | 4.5.3-4.8.2-distroless | 4.4.1-4.6.0-distroless | 4.4.1-4.6.0-distroless |
-| nvcr.io/nvidia/k8s/container-toolkit | v1.18.0 | v1.19.1 | v1.19.1 | v1.18.2 |
+| ghcr.io/kube-vip/kube-vip | v1.0.3 | v1.2.0 | v1.2.0 | v1.0.4 |
+| registry.k8s.io/cpa/cluster-proportional-autoscaler | v1.8.8 | v1.10.3 | v1.10.3 | v1.8.9 |
+| registry.k8s.io/coredns/coredns | v1.12.0 | v1.14.3 | v1.14.3 | v1.12.4 |
+| registry.k8s.io/dns/k8s-dns-node-cache | 1.25.0 | 1.26.8 | 1.26.8 | 1.25.0 |
+| registry.k8s.io/kube-proxy | v1.33.11 | v1.36.2 | v1.36.2 | v1.33.13 |
+| registry.k8s.io/kube-scheduler | v1.33.11 | v1.36.2 | v1.36.2 | v1.33.13 |
+| registry.k8s.io/kube-controller-manager | v1.33.11 | v1.36.2 | v1.36.2 | v1.33.13 |
+| registry.k8s.io/kube-apiserver | v1.33.11 | v1.36.2 | v1.36.2 | v1.33.13 |

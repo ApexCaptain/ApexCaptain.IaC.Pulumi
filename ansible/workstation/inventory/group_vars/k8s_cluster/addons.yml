@@ -1,0 +1,10 @@
+# Add-on 컴포넌트
+# @Ref https://github.com/kubernetes-sigs/kubespray/blob/master/inventory/sample/group_vars/k8s_cluster/addons.yml
+
+kube_vip_enabled: true
+kube_vip_address: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_VIP') }}"
+kube_vip_arp_enabled: true
+kube_vip_controlplane_enabled: true
+loadbalancer_apiserver:
+  address: '{{ kube_vip_address }}'
+  port: 6443

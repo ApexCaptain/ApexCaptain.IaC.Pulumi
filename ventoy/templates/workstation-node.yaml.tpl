@@ -46,58 +46,12 @@ autoinstall:
         {{/each}}
 
   storage:
-    version: 1
-    config:
-      # 1. 대상 물리 디스크 조건 지정 (NVMe 전용)
-      - id: main-disk
-        type: disk
-        match:
-          # 물리 NVMe SSD 최소 크기
-          size:
-            min: {{ disk.minDiskSize }}
-          # [SATA 제외] 오직 NVMe 디스크 경로만 검사 목록에 등록
-          path:
-            - /dev/nvme0n1
-            - /dev/nvme1n1
-            - /dev/nvme2n1
-        # 만약 위 목록에 부합하는 디스크가 없으면 인스톨러가 에러를 내며 멈춤
-
-      # 2. UEFI 부팅을 위한 필수 ESP 파티션 생성 (1GB)
-      - id: esp-partition
-        type: partition
-        device: main-disk
-        size: 1024M
-        flag: boot
-
-      # 3. ESP 파티션 포맷 (FAT32)
-      - id: esp-format
-        type: format
-        volume: esp-partition
-        fstype: fat32
-
-      # 4. ESP 마운트 위치 지정 (/boot/efi)
-      - id: esp-mount
-        type: mount
-        device: esp-format
-        path: /boot/efi
-
-      # 5. 루트(/) 파티션 생성
-      - id: root-partition
-        type: partition
-        device: main-disk
-        size: {{ disk.rootPartitionSize }}
-
-      # 6. 루트 파티션 포맷 (ext4)
-      - id: root-format
-        type: format
-        volume: root-partition
-        fstype: ext4
-
-      # 7. 루트 마운트 위치 지정 (/)
-      - id: root-mount
-        type: mount
-        device: root-format
-        path: /
+    layout:
+      name: direct # LVM 없이 디스크 전체 사용
+      match:
+        - path: /dev/nvme0n1
+        - path: /dev/nvme1n1
+        - path: /dev/nvme2n1
 
   updates: security # 보안 업데이트만 자동 적용
 

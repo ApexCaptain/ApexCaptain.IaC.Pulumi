@@ -33,12 +33,15 @@ export const constants = (() => {
   const ansibleDir = 'ansible';
   const ansibleThirdPartyDir = path.join(ansibleDir, 'third_party');
   const venvDir = process.env.VIRTUAL_ENV_DIR_NAME || '.venv';
-
+  const keysDir = process.env.KEYS_DIR_NAME || '.keys';
   // Files
   const novaConfigFile =
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
   const cursorMcpJsonFile = path.join(cursorDir, 'mcp.json');
-
+  const workstationSshPrivateKeyFile = path.join(
+    keysDir,
+    process.env.WORKSTATION_SSH_PRIVATE_KEY_FILE_NAME || 'workstation.key',
+  );
   const paths = {
     dirs: {
       srcDir,
@@ -57,10 +60,12 @@ export const constants = (() => {
       ansibleDir,
       ansibleThirdPartyDir,
       venvDir,
+      keysDir,
     },
     files: {
       novaConfigFile,
       cursorMcpJsonFile,
+      workstationSshPrivateKeyFile,
     },
   };
 

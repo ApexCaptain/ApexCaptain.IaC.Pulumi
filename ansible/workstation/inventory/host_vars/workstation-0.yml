@@ -1,0 +1,4 @@
+ansible_host: "{{ lookup('env', 'WORKSTATION_DOMAIN_IPTIME') }}"
+ansible_port: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_EXTERNAL_SSH_PORT') }}"
+ip: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_STATIC_IP') }}"
+etcd_member_name: workstation-0

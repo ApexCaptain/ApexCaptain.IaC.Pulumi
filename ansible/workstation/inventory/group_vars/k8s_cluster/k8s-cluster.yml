@@ -1,0 +1,32 @@
+# 클러스터 전역 K8s 설정
+# @Ref https://github.com/kubernetes-sigs/kubespray/blob/master/inventory/sample/group_vars/k8s_cluster/k8s-cluster.yml
+
+kube_version: 1.35.4
+kube_owner: root
+
+# Pod / Service CIDR
+kube_network_plugin: cilium
+kube_pods_subnet: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_KUBE_PODS_SUBNET') }}"
+kube_service_addresses: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_KUBE_SERVICE_ADDRESSES') }}"
+
+# 단일 노드: control plane에 workload 스케줄 허용
+# 나중에 Node 역할 분리 가능할 정도로 늘어나면 false로 변경
+kubeadm_control_plane_schedulable: true
+
+# container runtime
+container_manager: containerd
+
+# cluster DNS
+dns_mode: coredns
+
+# Kube-VIP ARP (addons.yml) + 기본 kube_proxy_mode: ipvs
+kube_proxy_strict_arp: true
+
+# 외부 kubectl TLS — ws.yaml DDNS
+supplementary_addresses_in_ssl_keys:
+  - "{{ lookup('env', 'WORKSTATION_DOMAIN_IPTIME') }}"
+
+kubeconfig_localhost: false
+
+upstream_dns_servers:
+  - "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NAMESERVER_ADDRESS_0') }}"

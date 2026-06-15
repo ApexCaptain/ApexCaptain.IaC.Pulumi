@@ -124,7 +124,7 @@ const rootProject = new typescript.TypeScriptProject(
         'Pulumi*.yml',
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
-
+        `/${src.constants.paths.dirs.keysDir}`,
         `/${src.constants.paths.dirs.secretsDir}`,
         `/${src.constants.paths.dirs.kubeConfigDir}`,
         `/${src.constants.paths.dirs.pnpmStoreDir}`,
@@ -152,6 +152,9 @@ const rootProject = new typescript.TypeScriptProject(
         'sha512-crypt-ts',
 
         'handlebars',
+
+        'ssh2',
+        '@types/ssh2',
       ],
     }))(),
     utils.functions.mergeCustomizer,
@@ -822,7 +825,12 @@ void (async () => {
           isCaseSensitive: false,
           keywords: new src.classes.VsCodeObject([
             { text: '@' + 'ToDo', color: 'red', backgroundColor: 'black' },
-            { text: '@' + 'note', color: 'blue', backgroundColor: 'lightblue' },
+            { text: '@' + 'Note', color: 'blue', backgroundColor: 'lightblue' },
+            {
+              text: '@' + 'Ref',
+              color: 'green',
+              backgroundColor: 'lightgreen',
+            },
           ]),
           exclude: ['**/node_modules/**', '.vscode'],
         },
@@ -961,10 +969,6 @@ void (async () => {
           },
         ],
         slackWebhookUrl: process.env.SLACK_WEBHOOK_URL_VENTOY_AUTO_INSTALL,
-        disk: {
-          minDiskSize: '240G',
-          rootPartitionSize: '200G',
-        },
       }),
     );
   }
@@ -1040,6 +1044,20 @@ void (async () => {
     'cryptography==46.0.7',
     'jmespath==1.1.0',
     'netaddr==1.3.0',
+    'paramiko==3.5.1',
+  );
+
+  // Keys
+  const workstationSshPrivateKey = new TextFile(
+    rootProject,
+    src.constants.paths.files.workstationSshPrivateKeyFile,
+    {
+      lines: process.env.WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY
+        ? process.env.WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY.split('\\n')
+        : [],
+      committed: false,
+      readonly: true,
+    },
   );
 
   // Cursor
@@ -1061,6 +1079,19 @@ void (async () => {
     },
   );
 
+  const ansibleKubesprayPrefix = dedent`
+      ANSIBLE_CONFIG=${src.constants.paths.dirs.ansibleThirdPartyDir}/kubespray/ansible.cfg \
+      ansible-playbook -i \
+        ansible/workstation/inventory/inventory.ini
+    `;
+
+  const generateKubesprayPlaybookScript = (playbook: string) => dedent`
+    ANSIBLE_CONFIG=${src.constants.paths.dirs.ansibleThirdPartyDir}/kubespray/ansible.cfg \
+    ansible-playbook -b -i \
+      ansible/workstation/inventory/inventory.ini \
+      ${src.constants.paths.dirs.ansibleThirdPartyDir}/kubespray/${playbook}.yml
+  `;
+
   // Scripts
   rootProject.addScripts({
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
@@ -1070,6 +1101,7 @@ void (async () => {
 
     'script:mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
     'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
+    'script:fetchWorkstationKubeconfig': `ts-node scripts/fetch-workstation-kubeconfig.script.ts`,
 
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
     'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
@@ -1087,6 +1119,10 @@ void (async () => {
     postprojen: 'pnpm build',
     postbuild: `turbo run build --filter ${workspacePackageFilters}`,
     postupgrade: `turbo run upgrade --filter ${workspacePackageFilters} --concurrency=1`,
+
+    'kubespray:cluster': generateKubesprayPlaybookScript('cluster'),
+    'kubespray:upgradeCluster':
+      generateKubesprayPlaybookScript('upgrade-cluster'),
   });
 
   rootProject.postSynthesize = async () => {
@@ -1098,6 +1134,8 @@ void (async () => {
         `pip install -r ${path.relative(rootProject.outdir, requirementsFile.path)}`,
       ).toString();
       console.log(pythonInstallLog);
+      // SSH Private Key Permission Change
+      execSync(`chmod 400 ${workstationSshPrivateKey.path}`);
     }
   };
 

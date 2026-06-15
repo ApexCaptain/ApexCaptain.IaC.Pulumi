@@ -12,9 +12,14 @@
       "backgroundColor": "black"
     },
     {
-      "text": "@note",
+      "text": "@Note",
       "color": "blue",
       "backgroundColor": "lightblue"
+    },
+    {
+      "text": "@Ref",
+      "color": "green",
+      "backgroundColor": "lightgreen"
     }
   ],
   "todohighlight.exclude": [

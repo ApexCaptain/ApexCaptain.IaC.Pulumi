@@ -20,13 +20,16 @@
     "posteslint": "turbo run eslint --filter \"./common/*\" --filter \"./infra/*\" --concurrency=3",
     "script:mergeKubeConfig": "ts-node scripts/merge-kube-config.script.ts",
     "script:generateNovaDiagnosis": "ts-node scripts/generate-nova-diagnosis.script.ts",
+    "script:fetchWorkstationKubeconfig": "ts-node scripts/fetch-workstation-kubeconfig.script.ts",
     "pulumi:preview": "turbo run pulumi:preview --filter \"./infra/*\"",
     "pulumi:up": "turbo run pulumi:up --filter \"./infra/*\" --ui=tui",
     "postpulumi:up": "pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis",
     "pulumi:install": "pulumi install --no-dependencies --cwd ./common/bridged-provider",
     "postprojen": "pnpm build",
     "postbuild": "turbo run build --filter \"./common/*\" --filter \"./infra/*\"",
-    "postupgrade": "turbo run upgrade --filter \"./common/*\" --filter \"./infra/*\" --concurrency=1"
+    "postupgrade": "turbo run upgrade --filter \"./common/*\" --filter \"./infra/*\" --concurrency=1",
+    "kubespray:cluster": "ANSIBLE_CONFIG=ansible/third_party/kubespray/ansible.cfg ansible-playbook -b -i ansible/workstation/inventory/inventory.ini ansible/third_party/kubespray/cluster.yml",
+    "kubespray:upgradeCluster": "ANSIBLE_CONFIG=ansible/third_party/kubespray/ansible.cfg ansible-playbook -b -i ansible/workstation/inventory/inventory.ini ansible/third_party/kubespray/upgrade-cluster.yml"
   },
   "author": {
     "name": "ApexCaptain",
@@ -39,6 +42,7 @@
     "@types/lodash": "^4.17.24",
     "@types/node": "^25.9.3",
     "@types/semver": "^7.7.1",
+    "@types/ssh2": "^1.15.5",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
     "constructs": "^10.0.0",
@@ -54,6 +58,7 @@
     "prettier": "^3.8.4",
     "projen": "^0.99.74",
     "sha512-crypt-ts": "^0.1.27",
+    "ssh2": "^1.17.0",
     "timezone-enum": "^1.0.4",
     "ts-node": "^10.9.2",
     "turbo": "^2.9.18",

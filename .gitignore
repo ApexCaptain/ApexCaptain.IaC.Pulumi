@@ -36,6 +36,7 @@ Pulumi*.yaml
 Pulumi*.yml
 .turbo
 tmp
+/.keys
 /.secrets
 /.kube
 /.pnpm-store
@@ -59,5 +60,6 @@ tmp
 !/ventoy/ventoy.json
 !/README.md
 !/requirements.txt
+/.keys/workstation.key
 !/.cursor/mcp.json
 !/.projenrc.ts
