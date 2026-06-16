@@ -1,6 +1,7 @@
 # Add-on 컴포넌트
 # @Ref https://github.com/kubernetes-sigs/kubespray/blob/master/inventory/sample/group_vars/k8s_cluster/addons.yml
 
+# Kube VIP
 kube_vip_enabled: true
 kube_vip_address: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_VIP') }}"
 kube_vip_arp_enabled: true
@@ -8,3 +9,12 @@ kube_vip_controlplane_enabled: true
 loadbalancer_apiserver:
   address: '{{ kube_vip_address }}'
   port: 6443
+
+# Metrics Server deployment
+metrics_server_enabled: true
+metrics_server_container_port: 10250
+metrics_server_kubelet_insecure_tls: true
+metrics_server_metric_resolution: 15s
+metrics_server_kubelet_preferred_address_types: 'InternalIP,ExternalIP,Hostname'
+metrics_server_host_network: false
+metrics_server_replicas: 1

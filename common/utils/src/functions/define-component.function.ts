@@ -21,7 +21,7 @@ export type ComponentConstructor<
   name: string,
   args: Args_Type,
   opts?: pulumi.ComponentResourceOptions,
-) => ComponentInstance<Output_Type, Secret_Type>;
+) => ComponentInstance<Output_Type, Secret_Type> & pulumi.ComponentResource;
 
 export abstract class AbstractComponent<
   Args_Type extends pulumi.Inputs,

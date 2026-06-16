@@ -57,11 +57,18 @@ install_nova() {
     echo "🔄 Installing Fairwinds Nova"
     asdf plugin-add nova
     asdf install nova latest
-    asdf global nova 3.12.0
+    asdf global nova ${NOVA_VERSION}
     echo "✅ Fairwinds Nova installed"
 }
 
-export -f install_oci install_helm install_pnpm install_nova
-parallel --jobs 10 ::: install_oci install_helm install_pnpm install_nova
+install_istioctl() {
+    echo "🔄 Installing istioctl ${ISTIOCTL_VERSION}"
+    curl -fsSL "https://github.com/istio/istio/releases/download/${ISTIOCTL_VERSION}/istioctl-${ISTIOCTL_VERSION}-linux-amd64.tar.gz" \
+        | sudo tar -xz -C /usr/local/bin istioctl
+    echo "✅ istioctl ${ISTIOCTL_VERSION} installed"
+}
+
+export -f install_oci install_helm install_pnpm install_nova install_istioctl
+parallel --jobs 10 ::: install_oci install_helm install_pnpm install_nova install_istioctl
 
 ./.devcontainer/commands/common/synchronizeProject.sh

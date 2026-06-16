@@ -12,40 +12,13 @@ const k8sWorkstationSystemEscSchema = z
           .required(),
       })
       .required(),
-    kubeConfig: z
-      .object({
-        certificateAuthorityData: z.string(),
-        clientCertificateData: z.string(),
-        clientKeyData: z.string(),
-        server: z.url(),
-      })
-      .required(),
     loadbalancer: z
       .object({
         metallb: z
           .object({
             ipRange: z.string(),
             ingressGatewayIp: z.string(),
-            additionalPort: z
-              .object({
-                nfsSftp: z.number(),
-              })
-              .required(),
-          })
-          .required(),
-      })
-      .required(),
-    nfs: z
-      .object({
-        localPathHdd0: z.string(),
-        localPathSsd0: z.string(),
-
-        diskSizeHdd0: z.string(),
-        diskSizeSsd0: z.string(),
-
-        sftp: z
-          .object({
-            userName: z.string(),
+            additionalPort: z.object({}).required(),
           })
           .required(),
       })

@@ -463,6 +463,7 @@ const initPulumiEsc = async () => {
     accountName,
     pulumiEscClient,
     {
+      workstationKubeconfig: process.env.KUBE_CONFIG_WORKSTATION_FILE_PATH,
       workstationIptimeDomain: process.env.WORKSTATION_DOMAIN_IPTIME,
       workstationIpV4Address,
       istioNetwork: {
@@ -540,32 +541,11 @@ const initPulumiEsc = async () => {
           hostName: process.env.WORKSTATION_NODE0_NAME,
         },
       },
-      kubeConfig: {
-        certificateAuthorityData:
-          process.env.WORKSTATION_K8S_KUBECONFIG_CERTIFICATE_AUTHORITY_DATA,
-        clientCertificateData:
-          process.env.WORKSTATION_K8S_KUBECONFIG_CLIENT_CERTIFICATE_DATA,
-        clientKeyData: process.env.WORKSTATION_K8S_KUBECONFIG_CLIENT_KEY_DATA,
-        server: process.env.WORKSTATION_K8S_KUBECONFIG_SERVER,
-      },
       loadbalancer: {
         metallb: {
           ipRange: process.env.WORKSTATION_METALLB_LOADBALANCER_IP_RANGE,
           ingressGatewayIp: process.env.WORKSTATION_METALLB_INGRESS_GATEWAY_IP,
-          additionalPort: {
-            nfsSftp: parseInt(
-              process.env.WORKSTATION_METALLB_ADDITIONAL_PORT_NFS_SFTP!!,
-            ),
-          },
-        },
-      },
-      nfs: {
-        localPathHdd0: process.env.WORKSTATION_NFS_LOCAL_PATH_HDD0,
-        localPathSsd0: process.env.WORKSTATION_NFS_LOCAL_PATH_SSD0,
-        diskSizeHdd0: process.env.WORKSTATION_NFS_DISK_SIZE_HDD0,
-        diskSizeSsd0: process.env.WORKSTATION_NFS_DISK_SIZE_SSD0,
-        sftp: {
-          userName: process.env.WORKSTATION_NFS_SFTP_USER_NAME,
+          additionalPort: {},
         },
       },
       authentik: {

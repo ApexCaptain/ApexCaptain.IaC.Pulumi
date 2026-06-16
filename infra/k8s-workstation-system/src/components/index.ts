@@ -4,9 +4,7 @@ export * as certManager from './cert-manager';
 
 export * as istio from './istio';
 
-export * as localNfsProvisioner from './local-nfs-provisioner';
-
-export * as metricsServer from './metrics-server';
+export * as longhorn from './longhorn';
 
 export * as test from './test';
 

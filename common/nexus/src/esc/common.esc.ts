@@ -3,6 +3,7 @@ import { AbstractEsc } from '../abstract';
 
 const commonEscSchema = z
   .object({
+    workstationKubeconfig: z.string(),
     workstationIptimeDomain: z.string(),
     workstationIpV4Address: z.string(),
     istioNetwork: z
@@ -24,11 +25,10 @@ const commonEscSchema = z
         'jellyfin.github.io/jellyfin-helm': z.string(),
         'istio-release.storage.googleapis.com/charts': z.string(),
         'metallb.github.io/metallb': z.string(),
-        'kubernetes-sigs.github.io/metrics-server': z.string(),
         'charts.jetstack.io': z.string(),
         'charts.goauthentik.io': z.string(),
-        'kubernetes-sigs.github.io/nfs-subdir-external-provisioner': z.string(),
         'helm.releases.hashicorp.com': z.string(),
+        'charts.longhorn.io': z.string(),
       })
       .required(),
   })

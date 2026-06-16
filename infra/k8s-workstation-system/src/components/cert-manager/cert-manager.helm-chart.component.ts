@@ -47,6 +47,7 @@ export const CertManagerHelmChartComponent = utils.functions.defineComponent(
         repositoryOpts: {
           repo: args.helm.certManager.repositoryUrl,
         },
+        waitForJobs: true,
         values: {
           crds: {
             enabled: true,

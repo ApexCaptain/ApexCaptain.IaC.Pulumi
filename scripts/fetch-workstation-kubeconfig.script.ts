@@ -62,7 +62,7 @@ async function fetchWorkstationKubeconfig() {
   kubeConfig['current-context'] = 'ws';
 
   fs.writeFileSync(
-    path.join(process.env.KUBE_CONFIG_DIR_NAME!!, 'ws.yaml'),
+    process.env.KUBE_CONFIG_WORKSTATION_FILE_PATH!!,
     yaml.stringify(kubeConfig),
   );
 }

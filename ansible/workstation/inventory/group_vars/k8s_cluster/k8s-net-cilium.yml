@@ -6,3 +6,6 @@ cilium_l2announcements: false
 
 # Cilium Operator용 노드가 1개라서 1로 설정
 cilium_operator_replicas: 1
+
+# Istio CNI(ambient)와 체이닝 공존 — true면 다른 CNI 설정을 *.cilium_bak으로 백업/비활성화함
+cilium_cni_exclusive: false

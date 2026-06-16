@@ -110,13 +110,10 @@ export const constants = (() => {
     'istio-release.storage.googleapis.com/charts':
       'https://istio-release.storage.googleapis.com/charts',
     'metallb.github.io/metallb': 'https://metallb.github.io/metallb',
-    'kubernetes-sigs.github.io/metrics-server':
-      'https://kubernetes-sigs.github.io/metrics-server',
     'charts.jetstack.io': 'https://charts.jetstack.io',
     'charts.goauthentik.io': 'https://charts.goauthentik.io',
-    'kubernetes-sigs.github.io/nfs-subdir-external-provisioner':
-      'https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner',
     'helm.releases.hashicorp.com': 'https://helm.releases.hashicorp.com',
+    'charts.longhorn.io': 'https://charts.longhorn.io',
   };
 
   return {

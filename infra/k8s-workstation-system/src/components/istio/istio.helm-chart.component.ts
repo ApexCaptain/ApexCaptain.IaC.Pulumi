@@ -73,6 +73,34 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+        dependsOn: [namespace],
+      },
+    );
+
+    const istioCniRelease = new kubernetes.helm.v3.Release(
+      `${resourceName}-istioCniRelease`,
+      {
+        name: 'istio-cni',
+        chart: 'cni',
+        version: args.helm.istio.version,
+        namespace: namespace.metadata.name,
+        repositoryOpts: {
+          repo: args.helm.istio.repositoryUrl,
+        },
+        waitForJobs: true,
+        values: {
+          profile: 'ambient',
+          global: {
+            meshID: args.meshId,
+            multiCluster: { clusterName: args.topology.clusterName },
+            network: args.topology.network,
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [istioBaseRelease],
       },
     );
 
@@ -88,6 +116,10 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
         },
         waitForJobs: true,
         values: {
+          profile: 'ambient',
+          pilot: {
+            cni: { enabled: true },
+          },
           global: {
             meshID: args.meshId,
             multiCluster: {
@@ -125,7 +157,34 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
-        dependsOn: [istioBaseRelease],
+        dependsOn: [istioCniRelease],
+      },
+    );
+
+    const ztunnelRelease = new kubernetes.helm.v3.Release(
+      `${resourceName}-ztunnelRelease`,
+      {
+        name: 'ztunnel',
+        chart: 'ztunnel',
+        version: args.helm.istio.version,
+        namespace: namespace.metadata.name,
+        repositoryOpts: {
+          repo: args.helm.istio.repositoryUrl,
+        },
+        waitForJobs: true,
+        values: {
+          profile: 'ambient',
+          global: {
+            meshID: args.meshId,
+            multiCluster: { clusterName: args.topology.clusterName },
+            network: args.topology.network,
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [istiodRelease, istioCniRelease],
       },
     );
 

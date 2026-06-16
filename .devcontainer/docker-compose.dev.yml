@@ -18,6 +18,10 @@ services:
       COREPACK_ENABLE_DOWNLOAD_PROMPT: 0
       # 소유자를 변경할 디렉토리 경로 (복수 지정시 Space 구분)
       DIR_PATHS_TO_CHANGE_OWNER: ${CONTAINER_PNPM_STORE_DIR_PATH} ${PULUMI_PLUGIN_DIR} ${PULUMI_DYNAMIC_TF_PLUGIN_DIR}
+      # Nova Version
+      NOVA_VERSION: 3.12.0
+      # Istioctl Version
+      ISTIOCTL_VERSION: 1.30.1
 
     env_file:
       - .env
