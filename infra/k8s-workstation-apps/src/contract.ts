@@ -13,13 +13,13 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
     const commonEsc = nexus.esc.commonEsc;
     const projectEsc = nexus.esc.k8sWorkstationAppsEsc;
 
-    // K8s Provider
-    const workstationK8sProvider = new kubernetes.Provider(
-      'workstationK8sProvider',
-      {
-        kubeconfig: k8sWorkstationSystemContract.output.kubeConfigFilePath,
-      },
-    );
+    // // K8s Provider
+    // const workstationK8sProvider = new kubernetes.Provider(
+    //   'workstationK8sProvider',
+    //   {
+    //     kubeconfig: k8sWorkstationSystemContract.output.kubeConfigFilePath,
+    //   },
+    // );
 
     // Production Only Apps
     /*

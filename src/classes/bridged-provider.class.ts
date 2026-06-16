@@ -5,7 +5,7 @@ import { BridgedProviderSource } from '../enums';
 
 export class BridgedProvider {
   readonly name: string;
-  readonly packagesToOverride: string[] = ['@pulumi/pulumi'];
+  readonly packagesToOverride = new Array<string>();
   constructor(
     private readonly option: {
       name: string;

@@ -29,7 +29,9 @@
     "postbuild": "turbo run build --filter \"./common/*\" --filter \"./infra/*\"",
     "postupgrade": "turbo run upgrade --filter \"./common/*\" --filter \"./infra/*\" --concurrency=1",
     "kubespray:cluster": "ANSIBLE_CONFIG=ansible/third_party/kubespray/ansible.cfg ansible-playbook -b -i ansible/workstation/inventory/inventory.ini ansible/third_party/kubespray/cluster.yml",
-    "kubespray:upgradeCluster": "ANSIBLE_CONFIG=ansible/third_party/kubespray/ansible.cfg ansible-playbook -b -i ansible/workstation/inventory/inventory.ini ansible/third_party/kubespray/upgrade-cluster.yml"
+    "kubespray:upgradeCluster": "ANSIBLE_CONFIG=ansible/third_party/kubespray/ansible.cfg ansible-playbook -b -i ansible/workstation/inventory/inventory.ini ansible/third_party/kubespray/upgrade-cluster.yml",
+    "ansible:preConfigure": "cd ansible/workstation\nansible-playbook pre-configure.yml",
+    "ssh:workstation:0": "sshpass -P \"passphrase\" -p $WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY_PASSPHRASE ssh -o StrictHostKeyChecking=accept-new -i \".keys/workstation.key\" -p \"$WORKSTATION_BOOTSTRAP_NODE_0_EXTERNAL_SSH_PORT\" $WORKSTATION_BOOTSTRAP_USERNAME@$WORKSTATION_DOMAIN_IPTIME"
   },
   "author": {
     "name": "ApexCaptain",

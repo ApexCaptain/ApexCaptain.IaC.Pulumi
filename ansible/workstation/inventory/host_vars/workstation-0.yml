@@ -2,3 +2,21 @@ ansible_host: "{{ lookup('env', 'WORKSTATION_DOMAIN_IPTIME') }}"
 ansible_port: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_EXTERNAL_SSH_PORT') }}"
 ip: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_STATIC_IP') }}"
 etcd_member_name: workstation-0
+
+longhorn_disks:
+  - device: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_DEVICE') }}"
+    mount_path: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_MOUNTPATH') }}"
+    fs_type: ext4
+    mount_opts: defaults
+    tags:
+      [
+        "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_DISKTYPE') }}",
+      ]
+  - device: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_1_DEVICE') }}"
+    mount_path: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_1_MOUNTPATH') }}"
+    fs_type: ext4
+    mount_opts: defaults
+    tags:
+      [
+        "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_1_DISKTYPE') }}",
+      ]

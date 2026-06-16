@@ -11,3 +11,14 @@ ntp_enabled: true
 # Ubuntu 24.04+: classic ntp 패키지 없음 → ntpsec (Kubespray docs/advanced/ntp.md)
 ntp_package: ntpsec
 ntp_timezone: 'Asia/Seoul'
+
+# Sysbox CE version (install-sysbox-runc role)
+sysbox_ce_version: "0.7.0"
+
+# Sysbox runtime handler for containerd (Kubernetes RuntimeClass: sysbox-runc)
+containerd_additional_runtimes:
+  - name: sysbox-runc
+    type: "io.containerd.runc.v2"
+    options:
+      BinaryName: /usr/bin/sysbox-runc
+      SystemdCgroup: "true"

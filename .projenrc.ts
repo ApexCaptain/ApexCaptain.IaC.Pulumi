@@ -882,7 +882,6 @@ void (async () => {
   // pnpm-workspace.yaml file
   new YamlFile(rootProject, 'pnpm-workspace.yaml', {
     obj: {
-      confirmModulesPurge: false,
       packages: [
         `${src.constants.paths.dirs.commonDir}/*`,
         `${src.constants.paths.dirs.infraDir}/*`,
@@ -900,16 +899,21 @@ void (async () => {
           true,
         ]),
       ]),
-      overrides: Object.fromEntries(
-        Object.values(src.constants.bridgedProviders)
-          .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-          .flatMap(eachBridgedProvider =>
-            eachBridgedProvider.packagesToOverride.map(eachPackage => [
-              `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
-              `$${eachPackage}`,
-            ]),
-          ),
-      ),
+      overrides: {
+        '@pulumi/pulumi': '$@pulumi/pulumi',
+        '@types/node': '$@types/node',
+        typescript: '$typescript',
+        ...Object.fromEntries(
+          Object.values(src.constants.bridgedProviders)
+            .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
+            .flatMap(eachBridgedProvider =>
+              eachBridgedProvider.packagesToOverride.map(eachPackage => [
+                `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
+                `$${eachPackage}`,
+              ]),
+            ),
+        ),
+      },
     },
   });
 
@@ -1097,12 +1101,15 @@ void (async () => {
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 
+    // ESLint
     posteslint: `turbo run eslint --filter ${workspacePackageFilters} --concurrency=3`,
 
+    // Scripts
     'script:mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
     'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
     'script:fetchWorkstationKubeconfig': `ts-node scripts/fetch-workstation-kubeconfig.script.ts`,
 
+    // Pulumi
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
     'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
     'postpulumi:up': `pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis`,
@@ -1116,13 +1123,37 @@ void (async () => {
       )
       .join(' && '),
 
+    // Projen
     postprojen: 'pnpm build',
     postbuild: `turbo run build --filter ${workspacePackageFilters}`,
     postupgrade: `turbo run upgrade --filter ${workspacePackageFilters} --concurrency=1`,
 
+    // Kubespray
     'kubespray:cluster': generateKubesprayPlaybookScript('cluster'),
     'kubespray:upgradeCluster':
       generateKubesprayPlaybookScript('upgrade-cluster'),
+
+    // Ansible
+    'ansible:preConfigure': dedent`
+      cd ${src.constants.paths.dirs.ansibleDir}/workstation
+      ansible-playbook pre-configure.yml
+    `,
+
+    // SSH
+    ...Object.fromEntries(
+      [0].map(eachNodeNumber => [
+        `ssh:workstation:${eachNodeNumber}`,
+        dedent`
+        sshpass \
+          -P "passphrase" \
+          -p $WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY_PASSPHRASE \
+        ssh -o StrictHostKeyChecking=accept-new \
+            -i ".keys/workstation.key" \
+            -p "${`$WORKSTATION_BOOTSTRAP_NODE_${eachNodeNumber}_EXTERNAL_SSH_PORT`}" \
+            $WORKSTATION_BOOTSTRAP_USERNAME@$WORKSTATION_DOMAIN_IPTIME
+        `,
+      ]),
+    ),
   });
 
   rootProject.postSynthesize = async () => {

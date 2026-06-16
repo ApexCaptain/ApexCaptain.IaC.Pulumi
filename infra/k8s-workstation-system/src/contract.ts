@@ -15,22 +15,22 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     const projectEsc = nexus.esc.k8sWorkstationSystemEsc;
 
     // Kube Config
-    const kubeConfig = new customResources.resources.k8s.KubeConfigFileV1(
-      'kubeConfig',
-      {
-        name: 'ws',
-        clustser: {
-          certificateAuthorityData:
-            projectEsc.esc.kubeConfig.certificateAuthorityData,
-          server: projectEsc.esc.kubeConfig.server,
-        },
-        user: {
-          clientCertificateData:
-            projectEsc.esc.kubeConfig.clientCertificateData,
-          clientKeyData: projectEsc.esc.kubeConfig.clientKeyData,
-        },
-      },
-    );
+    // const kubeConfig = new customResources.resources.k8s.KubeConfigFileV1(
+    //   'kubeConfig',
+    //   {
+    //     name: 'ws',
+    //     clustser: {
+    //       certificateAuthorityData:
+    //         projectEsc.esc.kubeConfig.certificateAuthorityData,
+    //       server: projectEsc.esc.kubeConfig.server,
+    //     },
+    //     user: {
+    //       clientCertificateData:
+    //         projectEsc.esc.kubeConfig.clientCertificateData,
+    //       clientKeyData: projectEsc.esc.kubeConfig.clientKeyData,
+    //     },
+    //   },
+    // );
 
     /*
     const authentikNamespace = 'authentik';
@@ -437,7 +437,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
 
     return {
       output: pulumi.output({
-        kubeConfigFilePath: kubeConfig.filePath,
+        // kubeConfigFilePath: kubeConfig.filePath,
         // namespaces: {
         //   istio: istioHelmChart.output.namespace,
         // },

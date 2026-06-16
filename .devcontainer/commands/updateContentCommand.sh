@@ -14,7 +14,8 @@ sudo apt install -y \
     netcat-openbsd \
     iputils-ping \
     parallel \
-    ripgrep
+    ripgrep \
+    sshpass
 echo "✅ Apt packages installed"
 
 echo "🔄 Setting up aliases"

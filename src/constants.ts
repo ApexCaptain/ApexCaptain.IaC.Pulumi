@@ -80,7 +80,6 @@ export const constants = (() => {
         name: 'authentik',
         providerSource: 'goauthentik/authentik',
         providerVersion: '2026.5.0',
-        packagesToOverride: ['typescript', '@types/node'],
       }),
     },
   };

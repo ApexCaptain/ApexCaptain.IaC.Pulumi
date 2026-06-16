@@ -1,0 +1,52 @@
+---
+- name: Validate longhorn_disks structure
+  ansible.builtin.assert:
+    that:
+      - item.device is defined
+      - item.device | length > 0
+      - item.mount_path is defined
+      - item.mount_path | length > 0
+    fail_msg: "Each longhorn_disks item requires device and mount_path."
+  loop: "{{ longhorn_disks }}"
+  loop_control:
+    label: "{{ item.device | default('undefined-device') }}"
+
+- name: Ensure Longhorn disk mount directories exist
+  ansible.builtin.file:
+    path: "{{ item.mount_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ longhorn_disks }}"
+  loop_control:
+    label: "{{ item.mount_path }}"
+
+- name: Read filesystem UUID for each Longhorn disk device
+  ansible.builtin.command: "blkid -s UUID -o value {{ item.device }}"
+  register: longhorn_disk_uuids
+  changed_when: false
+  loop: "{{ longhorn_disks }}"
+  loop_control:
+    label: "{{ item.device }}"
+
+- name: Ensure every Longhorn disk device has UUID
+  ansible.builtin.assert:
+    that:
+      - item.stdout is defined
+      - item.stdout | trim | length > 0
+    fail_msg: "Device {{ item.item.device }} has no filesystem UUID. Partition/format first."
+  loop: "{{ longhorn_disk_uuids.results }}"
+  loop_control:
+    label: "{{ item.item.device }}"
+
+- name: Mount Longhorn disks with persistent fstab entries
+  ansible.posix.mount:
+    path: "{{ item.0.mount_path }}"
+    src: "UUID={{ item.1.stdout | trim }}"
+    fstype: "{{ item.0.fs_type | default('ext4') }}"
+    opts: "{{ item.0.mount_opts | default('defaults') }}"
+    state: mounted
+  loop: "{{ longhorn_disks | zip(longhorn_disk_uuids.results) | list }}"
+  loop_control:
+    label: "{{ item.0.mount_path }}"

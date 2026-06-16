@@ -5,7 +5,15 @@ type InflateResult<Output_Type extends object, Secret_Type extends object> = {
   secret: pulumi.Output<Secret_Type>;
 };
 
-type ComponentConstructor<
+export interface ComponentInstance<
+  Output_Type extends object,
+  Secret_Type extends object,
+> {
+  readonly output: pulumi.Output<Output_Type>;
+  readonly secret: pulumi.Output<Secret_Type>;
+}
+
+export type ComponentConstructor<
   Args_Type extends pulumi.Inputs,
   Output_Type extends object,
   Secret_Type extends object,
@@ -13,10 +21,7 @@ type ComponentConstructor<
   name: string,
   args: Args_Type,
   opts?: pulumi.ComponentResourceOptions,
-) => pulumi.ComponentResource & {
-  output: pulumi.Output<Output_Type>;
-  secret: pulumi.Output<Secret_Type>;
-};
+) => ComponentInstance<Output_Type, Secret_Type>;
 
 export abstract class AbstractComponent<
   Args_Type extends pulumi.Inputs,
@@ -81,7 +86,7 @@ export function defineComponent<
   ) =>
     | Promise<InflateResult<Output_Type, Secret_Type>>
     | InflateResult<Output_Type, Secret_Type>,
-) {
+): ComponentConstructor<Args_Type, Output_Type, Secret_Type> {
   class DefinedComponent extends AbstractComponent<
     Args_Type,
     Output_Type,
