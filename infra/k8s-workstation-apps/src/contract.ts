@@ -13,16 +13,15 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
     const commonEsc = nexus.esc.commonEsc;
     const projectEsc = nexus.esc.k8sWorkstationAppsEsc;
 
-    // // K8s Provider
-    // const workstationK8sProvider = new kubernetes.Provider(
-    //   'workstationK8sProvider',
-    //   {
-    //     kubeconfig: k8sWorkstationSystemContract.output.kubeConfigFilePath,
-    //   },
-    // );
+    // K8s Provider
+    const workstationK8sProvider = new kubernetes.Provider(
+      'workstationK8sProvider',
+      {
+        kubeconfig: nexus.esc.commonEsc.esc.workstationKubeconfig,
+      },
+    );
 
     // Production Only Apps
-    /*
     if (pulumi.getStack() === utils.enums.StackStage.PROD) {
       // Jellyfin
       const jellyfinHelmChart =
@@ -38,16 +37,34 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
                   ],
               },
             },
+            sftpUserName: commonEsc.esc.adapter.sftp.userName,
+            directGateway: {
+              gatewayPath:
+                k8sWorkstationSystemContract.output.gatewayPaths
+                  .directGatewayPath,
+              jellyfinSftp: {
+                port: commonEsc.esc.istioNetwork.workstationDirectGateway
+                  .jellyfinSftpPort,
+              },
+            },
             pvc: {
               jellyfinConfig: {
                 storageClass:
-                  k8sWorkstationSystemContract.output.storageClass.ssd0,
-                size: '100Mi',
+                  k8sWorkstationSystemContract.output.storageClasses
+                    .longhornSsdRetain,
+                size: '5Gi',
               },
               jellyfinMedia: {
                 storageClass:
-                  k8sWorkstationSystemContract.output.storageClass.hdd0,
+                  k8sWorkstationSystemContract.output.storageClasses
+                    .longhornHddRetain,
                 size: '2Ti',
+              },
+              jellyfinCache: {
+                storageClass:
+                  k8sWorkstationSystemContract.output.storageClasses
+                    .longhornSsd,
+                size: '10Gi',
               },
             },
             providers: {
@@ -92,7 +109,6 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
           },
         );
     }
-    */
 
     return {
       output: pulumi.output({}),

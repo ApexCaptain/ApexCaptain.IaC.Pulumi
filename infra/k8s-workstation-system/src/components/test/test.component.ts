@@ -3,8 +3,13 @@ import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
-
 interface TestComponentArgsShape {
+  ingress: {
+    test1: {
+      host: string;
+      gatewayPath: string;
+    };
+  };
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -195,6 +200,39 @@ export const TestComponent = utils.functions.defineComponent(
       test2Namespace.metadata.name,
       'test2',
     );
+
+    const test1VirtualService =
+      new customResources.resources.k8s.crd.istio.VirtualServiceV1(
+        `${resourceName}-test1VirtualService`,
+        {
+          metadata: {
+            name: 'test1',
+            namespace: test1Namespace.metadata.name,
+          },
+          spec: {
+            hosts: [args.ingress.test1.host],
+            gateways: [args.ingress.test1.gatewayPath],
+            http: [
+              {
+                route: [
+                  {
+                    destination: {
+                      host: test1Service.metadata.name,
+                      port: {
+                        number: test1Service.spec.ports[0].port,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
 
     return {
       output: pulumi.output({

@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import { Client, type ConnectConfig } from 'ssh2';
 import yaml from 'yaml';
 import { KubeConfig } from '../common/utils/src/interfaces/kubeconfig.interface';

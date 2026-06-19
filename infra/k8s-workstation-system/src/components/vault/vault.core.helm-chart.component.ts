@@ -40,7 +40,7 @@ export const VaultCoreHelmChartComponent = utils.functions.defineComponent(
         metadata: {
           name: 'vault',
           labels: {
-            'istio-injection': 'disabled',
+      'istio.io/dataplane-mode': 'ambient',
           },
         },
       },

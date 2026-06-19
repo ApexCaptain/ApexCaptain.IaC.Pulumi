@@ -1,6 +1,6 @@
 import { authentik } from '@common/bridged-provider';
-import * as customResources from '@common/custom-resources';
 import * as nexus from '@common/nexus';
+import * as utils from '@common/utils/src';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as oci from '@pulumi/oci';
@@ -37,33 +37,14 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       userOcid: nexus.esc.ociEsc.esc.userOcid,
     });
 
-    // Metallb
-    const metallbHelmChart = new components.metallb.MetallbHelmChartComponent(
-      'metallbHelmChart',
+    // Cilium
+    const ciliumResources = new components.cilium.CiliumResourcesComponent(
+      'ciliumResources',
       {
-        helm: {
-          metallb: {
-            version: '0.16.1',
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls['metallb.github.io/metallb'],
-          },
-        },
         providers: {
           kubernetes: workstationK8sProvider,
         },
       },
-    );
-
-    const metallbResources = new components.metallb.MetallbResourcesComponent(
-      'metallbResources',
-      {
-        namespace: metallbHelmChart.output.namespace,
-        ipRange: projectEsc.esc.loadbalancer.metallb.ipRange,
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-      { dependsOn: [metallbHelmChart] },
     );
 
     // Cert Manager
@@ -100,12 +81,32 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       );
 
     // Istio
-    const additionalPorts: {
-      name: string;
-      port: number;
-      protocol: string;
-      description: string;
-    }[] = [];
+    const directGatewayPorts: utils.types.DeepPulumiInput<
+      {
+        name: string;
+        port: number;
+        protocol: string;
+      }[]
+    > = [
+      {
+        name: commonEsc.esc.istioNetwork.workstationDirectGateway
+          .jellyfinSftpName,
+        port: commonEsc.esc.istioNetwork.workstationDirectGateway
+          .jellyfinSftpPort,
+        protocol:
+          commonEsc.esc.istioNetwork.workstationDirectGateway
+            .jellyfinSftpProtocol,
+      },
+      {
+        name: commonEsc.esc.istioNetwork.workstationDirectGateway
+          .qbittorrentSftpName,
+        port: commonEsc.esc.istioNetwork.workstationDirectGateway
+          .qbittorrentSftpPort,
+        protocol:
+          commonEsc.esc.istioNetwork.workstationDirectGateway
+            .qbittorrentSftpProtocol,
+      },
+    ];
 
     const istioHelmChart = new components.istio.IstioHelmChartComponent(
       'istioHelmChart',
@@ -121,12 +122,12 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         meshId: commonEsc.esc.istioNetwork.meshId,
         workstationIpV4Address: commonEsc.esc.workstationIpV4Address,
-        ingressGatewayIp: projectEsc.esc.loadbalancer.metallb.ingressGatewayIp,
+        ingressGatewayIp: projectEsc.esc.loadbalancer.celium.ingressGatewayIp,
         topology: {
           clusterName: commonEsc.esc.istioNetwork.workstationClusterName,
           network: commonEsc.esc.istioNetwork.workstationClusterNetwork,
         },
-        additionalPorts,
+        directGatewayPorts,
         authentik: {
           namespace: authentikNamespace,
           proxyOutpostName: authentikProxyOutpostName,
@@ -150,13 +151,13 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           certManagerResources.output.letsEncryptStagingClusterIssuerName,
         istioIngressGatewayLabel:
           istioHelmChart.output.istioIngressGatewayLabel,
-        additionalPorts,
+        directGatewayPorts,
         providers: {
           kubernetes: workstationK8sProvider,
         },
       },
       {
-        dependsOn: [metallbResources, certManagerResources, istioHelmChart],
+        dependsOn: [certManagerResources, istioHelmChart],
       },
     );
 
@@ -175,7 +176,21 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
       });
 
-    /*
+    const longhornResources =
+      new components.longhorn.LonghornResourcesComponent(
+        'longhornResources',
+        {
+          namespace: longhornHelmChart.output.namespace,
+          nodes: projectEsc.esc.longhorn.nodes,
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          dependsOn: [longhornHelmChart],
+        },
+      );
+
     // Authentik
     const authentikHelmChart =
       new components.authentik.AuthentikHelmChartComponent(
@@ -184,7 +199,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: authentikNamespace,
           helm: {
             authentik: {
-              version: '2026.5.2',
+              version: '2026.5.3',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
             },
@@ -198,18 +213,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
               password: projectEsc.esc.authentik.bootstrap.password,
             },
             postgresqlPassword: projectEsc.esc.authentik.postgresqlPassword,
-            redisPassword: projectEsc.esc.authentik.redisPassword,
           },
           pvc: {
             postgresql: {
-              storageClass:
-                localNfsProvisionerHelmChart.output.storageClass.ssd0,
+              storageClass: longhornResources.output.storageClasses.longhornSsd,
               size: '8Gi',
-            },
-            redis: {
-              storageClass:
-                localNfsProvisionerHelmChart.output.storageClass.ssd0,
-              size: '1Gi',
             },
           },
           providers: {
@@ -217,7 +225,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
         },
         {
-          dependsOn: [localNfsProvisionerHelmChart],
+          dependsOn: [longhornHelmChart, longhornResources],
         },
       );
 
@@ -256,7 +264,6 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       new components.authentik.AuthentikResourcesComponent(
         'authentikResources',
         {
-          isFirstDeploy: false,
           oauth: {
             google: {
               clientId: projectEsc.esc.authentik.oauth.google.clientId,
@@ -272,7 +279,43 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           dependsOn: [authentikServiceMesh, authentikHelmChart],
         },
       );
-      */
+
+    const longhornServiceMesh =
+      new components.longhorn.LonghornServiceMeshComponent(
+        'longhornServiceMesh',
+        {
+          namespace: longhornHelmChart.output.namespace,
+          ingress: {
+            istioNamespace: istioHelmChart.output.namespace,
+            longhornFrontend: {
+              host: cloudflareContract.output.zones.ayteneve93com.records
+                .longhorn,
+              serviceName:
+                longhornHelmChart.output.services.longhornFrontend.name,
+              gatewayPath: istioGateway.output.istioIngressGatewayPath,
+              gatewayLabel: istioHelmChart.output.istioIngressGatewayLabel,
+              port: longhornHelmChart.output.services.longhornFrontend.port
+                .http,
+            },
+          },
+          authentik: {
+            allowedGroupId:
+              authentikResources.output.groupIds.systemManagerGroup,
+            proxyOutpostProviderName: authentikProxyOutpostProviderName,
+            flow: {
+              authorizationFlowId:
+                authentikResources.output.flow
+                  .defaultProviderAuthorizationImplicitConsentId,
+              invalidationFlowId:
+                authentikResources.output.flow.defaultInvalidationFlowId,
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+            authentik: authentikProvider,
+          },
+        },
+      );
 
     // Vault
     /*
@@ -311,48 +354,56 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     */
 
     // Test
-    const test = new components.test.TestComponent(
-      'test',
-      {
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-      {
-        dependsOn: [istioHelmChart],
-      },
-    );
+    // const test = new components.test.TestComponent(
+    //   'test',
+    //   {
+    //     ingress: {
+    //       test1: {
+    //         host: cloudflareContract.output.zones.ayteneve93com.records.test,
+    //         gatewayPath: istioGateway.output.istioIngressGatewayPath,
+    //       },
+    //     },
+    //     providers: {
+    //       kubernetes: workstationK8sProvider,
+    //     },
+    //   },
+    //   {
+    //     dependsOn: [istioHelmChart],
+    //   },
+    // );
 
     return {
       output: pulumi.output({
-        // kubeConfigFilePath: kubeConfig.filePath,
-        // namespaces: {
-        //   istio: istioHelmChart.output.namespace,
-        // },
-        // serviceMesh: {
-        //   istioIngressGatewayLabel:
-        //     istioHelmChart.output.istioIngressGatewayLabel,
-        // },
-        // serviceAccounts: {
-        //   istioIngressGateway:
-        //     istioHelmChart.output.istioIngressGatewayServiceAccountName,
-        // },
-        // gatewayPaths: {
-        //   ingressGatewayPath: istioGateway.output.istioIngressGatewayPath,
-        // },
-        // storageClass: localNfsProvisionerHelmChart.output.storageClass,
-        // authentik: {
-        //   serviceConnections: authentikResources.output.serviceConnections,
-        //   flow: authentikResources.output.flow,
-        //   groupIds: authentikResources.output.groupIds,
-        //   authentikProxyOutpostName,
-        //   authentikProxyOutpostProviderName,
-        // },
+        namespaces: {
+          istio: istioHelmChart.output.namespace,
+        },
+        serviceMesh: {
+          istioIngressGatewayLabel:
+            istioHelmChart.output.istioIngressGatewayLabel,
+        },
+        serviceAccounts: {
+          istioIngressGateway:
+            istioHelmChart.output.istioIngressGatewayServiceAccountName,
+        },
+        gatewayPaths: {
+          ingressGatewayPath: istioGateway.output.istioIngressGatewayPath,
+          directGatewayPath: istioGateway.output.istioDirectGatewayPath,
+        },
+        storageClasses: longhornResources.output.storageClasses,
+        authentik: {
+          serviceConnections: authentikResources.output.serviceConnections,
+          flow: authentikResources.output.flow,
+          groupIds: authentikResources.output.groupIds,
+          authentikProxyOutpostName,
+          authentikProxyOutpostProviderName,
+          longhornAuthentikProxyProviderId:
+            longhornServiceMesh.output.authentikProxyProviderId,
+        },
       }),
       secret: pulumi.secret({
-        // providerConfigs: {
-        //   authentik: authentikHelmChart.secret.authentikProviderConfig,
-        // },
+        providerConfigs: {
+          authentik: authentikHelmChart.secret.authentikProviderConfig,
+        },
       }),
     };
   },

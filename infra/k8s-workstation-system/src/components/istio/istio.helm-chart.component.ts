@@ -17,11 +17,10 @@ interface IstioHelmChartComponentArgsShape {
     clusterName: string;
     network: string;
   };
-  additionalPorts: {
+  directGatewayPorts: {
     name: string;
     port: number;
     protocol: string;
-    description: string;
   }[];
   authentik: {
     namespace: string;
@@ -209,35 +208,39 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
           service: {
             type: 'LoadBalancer',
             ports: pulumi
-              .output(args.additionalPorts)
-              .apply(resolvedAdditionalPorts => [
-                {
-                  name: 'status-port',
-                  port: 15021,
-                  protocol: 'TCP',
-                  targetPort: 15021,
-                },
-                {
-                  name: 'http2',
-                  port: 80,
-                  protocol: 'TCP',
-                  targetPort: 80,
-                },
-                {
-                  name: 'https',
-                  port: 443,
-                  protocol: 'TCP',
-                  targetPort: 443,
-                },
-                ...resolvedAdditionalPorts.map(eachAdditionalPort => {
-                  return {
-                    name: utils.functions.kebabCase(eachAdditionalPort.name),
-                    port: eachAdditionalPort.port,
-                    protocol: eachAdditionalPort.protocol,
-                    targetPort: eachAdditionalPort.port,
-                  };
-                }),
-              ]),
+              .output(args.directGatewayPorts)
+              .apply(resolvedDirectGatewayPorts => {
+                return [
+                  {
+                    name: 'status-port',
+                    port: 15021,
+                    protocol: 'TCP',
+                    targetPort: 15021,
+                  },
+                  {
+                    name: 'http2',
+                    port: 80,
+                    protocol: 'TCP',
+                    targetPort: 80,
+                  },
+                  {
+                    name: 'https',
+                    port: 443,
+                    protocol: 'TCP',
+                    targetPort: 443,
+                  },
+                  ...resolvedDirectGatewayPorts.map(eachDirectGatewayPort => {
+                    return {
+                      name: utils.functions.kebabCase(
+                        eachDirectGatewayPort.name,
+                      ),
+                      port: eachDirectGatewayPort.port,
+                      protocol: eachDirectGatewayPort.protocol,
+                      targetPort: eachDirectGatewayPort.port,
+                    };
+                  }),
+                ];
+              }),
             loadBalancerIP: args.ingressGatewayIp,
             externalIPs: [args.workstationIpV4Address],
           },

@@ -3,7 +3,6 @@
   "url": [
     "https://jellyfin.github.io/jellyfin-helm",
     "https://istio-release.storage.googleapis.com/charts",
-    "https://metallb.github.io/metallb",
     "https://charts.jetstack.io",
     "https://charts.goauthentik.io",
     "https://helm.releases.hashicorp.com",

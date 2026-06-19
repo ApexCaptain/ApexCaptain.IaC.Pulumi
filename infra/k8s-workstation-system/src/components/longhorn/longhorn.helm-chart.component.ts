@@ -54,7 +54,12 @@ export const LonghornHelmChartComponent = utils.functions.defineComponent(
           defaultSettings: {
             createDefaultDiskLabeledNodes: true, // Labeling 된 Node에만 Default Disk 생성
             defaultReplicaCount: '1', // 기본 레플리카 수
-            deletingConfirmationFlag: false, // 삭제 방지
+            /**
+             * @Note
+             *  - true: Allow to delete longhorn chart
+             *  - false: Prevent to delete longhorn chart
+             */
+            deletingConfirmationFlag: true, // 삭제 방지
           },
           persistence: {
             createStorageClass: false, // Helm이 StorageClass를 생성하지 않음
@@ -68,7 +73,17 @@ export const LonghornHelmChartComponent = utils.functions.defineComponent(
     );
 
     return {
-      output: pulumi.output({}),
+      output: pulumi.output({
+        namespace: namespace.metadata.name,
+        services: {
+          longhornFrontend: {
+            name: 'longhorn-frontend',
+            port: {
+              http: 80,
+            },
+          },
+        },
+      }),
       secret: pulumi.secret({}),
     };
   },

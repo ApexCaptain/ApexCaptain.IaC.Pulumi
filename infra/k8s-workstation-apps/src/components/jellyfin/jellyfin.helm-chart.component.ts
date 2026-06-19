@@ -10,12 +10,23 @@ interface JellyfinHelmChartComponentArgsShape {
       repositoryUrl: string;
     };
   };
+  sftpUserName: string;
+  directGateway: {
+    gatewayPath: string;
+    jellyfinSftp: {
+      port: number;
+    };
+  };
   pvc: {
     jellyfinConfig: {
       storageClass: string;
       size: string;
     };
     jellyfinMedia: {
+      storageClass: string;
+      size: string;
+    };
+    jellyfinCache: {
       storageClass: string;
       size: string;
     };
@@ -41,7 +52,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
         metadata: {
           name: 'jellyfin',
           labels: {
-            'istio-injection': 'enabled',
+            'istio.io/dataplane-mode': 'ambient',
           },
         },
       },
@@ -98,11 +109,69 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
+    const jeyllfinCachePvc = new kubernetes.core.v1.PersistentVolumeClaim(
+      `${resourceName}-jellyfinCachePvc`,
+      {
+        metadata: {
+          name: 'jellyfin-cache',
+          namespace: namespace.metadata.name,
+        },
+        spec: {
+          accessModes: ['ReadWriteOnce'],
+          storageClassName: args.pvc.jellyfinCache.storageClass,
+          resources: {
+            requests: {
+              storage: args.pvc.jellyfinCache.size,
+            },
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
     const serviceName = 'jellyfin';
     const serviceAccountName = 'jellyfin';
     const customPodLabelKey = 'jellyfin.custom-pod-label';
     const customPodLabelValue = 'jellyfin';
     const webServicePort = 8096;
+    const userId = 1000;
+    const groupId = 1000;
+
+    const sftpAdapter = new customResources.components.adapter.SftpV1Component(
+      'sftpAdapter',
+      {
+        username: args.sftpUserName,
+        namespace: namespace.metadata.name,
+        targetLabels: {
+          [customPodLabelKey]: customPodLabelValue,
+        },
+        uid: userId,
+        gid: groupId,
+        volumeMounts: [
+          {
+            pvcVolumeName: 'config',
+            homeDirName: 'config',
+          },
+          {
+            pvcVolumeName: 'media',
+            homeDirName: 'media',
+          },
+        ],
+        directGateway: {
+          gatewayPath: args.directGateway.gatewayPath,
+          port: args.directGateway.jellyfinSftp.port,
+        },
+        providers: {
+          kubernetes: args.providers.kubernetes,
+        },
+      },
+      {
+        ...opts,
+      },
+    );
 
     const jellyfinHelmChartRelease = new kubernetes.helm.v3.Release(
       `${resourceName}-jellyfinHelmChartRelease`,
@@ -119,13 +188,22 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
           image: {
             pullPolicy: 'Always',
           },
+          podSecurityContext: {
+            fsGroup: groupId,
+          },
+          securityContext: {
+            runAsUser: userId,
+            runAsGroup: groupId,
+            runAsNonRoot: true,
+          },
           serviceAccount: {
             name: serviceAccountName,
           },
           podLabels: {
             [customPodLabelKey]: customPodLabelValue,
           },
-          runtimeClassName: 'nvidia',
+          // @Note 나중에 GPU Operator 설치 후 사용
+          // runtimeClassName: 'nvidia',
           persistence: {
             config: {
               existingClaim: jellyfinConfigPvc.metadata.name,
@@ -133,14 +211,22 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
             media: {
               existingClaim: jeyllfinMediaPvc.metadata.name,
             },
+            cache: {
+              enabled: true,
+              existingClaim: jeyllfinCachePvc.metadata.name,
+            },
           },
+          volumes: [sftpAdapter.output.spec.volumeSpec],
+          extraContainers: [sftpAdapter.output.spec.containerSpec],
         },
       },
       {
         ...opts,
+        dependsOn: [sftpAdapter],
         provider: args.providers.kubernetes,
       },
     );
+
     return {
       output: pulumi.output({
         namespace: namespace.metadata.name,

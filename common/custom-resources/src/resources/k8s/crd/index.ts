@@ -1,3 +1,4 @@
 export * as certManager from './cert-manager';
-export * as metallb from './metallb';
+export * as cilium from './cilium';
 export * as istio from './istio';
+export * as longhorn from './longhorn';

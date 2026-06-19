@@ -3,22 +3,31 @@ import { AbstractEsc } from '../abstract';
 
 const k8sWorkstationSystemEscSchema = z
   .object({
-    nodes: z
+    longhorn: z
       .object({
-        node0: z
-          .object({
+        nodes: z.array(
+          z.object({
             hostName: z.string(),
-          })
-          .required(),
+            disks: z.array(
+              z
+                .object({
+                  name: z.string(),
+                  path: z.string(),
+                  tags: z.array(z.string()),
+                })
+                .required(),
+            ),
+          }),
+        ),
       })
       .required(),
+
     loadbalancer: z
       .object({
-        metallb: z
+        celium: z
           .object({
-            ipRange: z.string(),
+            istioCrossNetworkTlsIp: z.string(),
             ingressGatewayIp: z.string(),
-            additionalPort: z.object({}).required(),
           })
           .required(),
       })
@@ -34,7 +43,6 @@ const k8sWorkstationSystemEscSchema = z
           })
           .required(),
         postgresqlPassword: z.string(),
-        redisPassword: z.string(),
         oauth: z
           .object({
             allowedEmails: z.array(z.string()),

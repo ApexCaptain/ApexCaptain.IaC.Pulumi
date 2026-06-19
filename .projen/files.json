@@ -15,6 +15,7 @@
     ".projen/files.json",
     ".projen/tasks.json",
     ".vscode/settings.json",
+    "ansible/workstation/inventory/inventory.ini",
     "LICENSE",
     "pnpm-workspace.yaml",
     "README.md",

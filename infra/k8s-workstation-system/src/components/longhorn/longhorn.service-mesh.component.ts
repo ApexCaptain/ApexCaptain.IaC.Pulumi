@@ -4,11 +4,11 @@ import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
-interface QbittorrentServiceMeshComponentArgsShape {
+interface LonghornServiceMeshComponentArgsShape {
   namespace: string;
   ingress: {
     istioNamespace: string;
-    qbittorrentWebUi: {
+    longhornFrontend: {
       host: string;
       serviceName: string;
       gatewayPath: string;
@@ -33,35 +33,35 @@ interface QbittorrentServiceMeshComponentArgsShape {
   };
 }
 
-export type QbittorrentServiceMeshComponentArgs =
-  utils.types.DeepPulumiInput<QbittorrentServiceMeshComponentArgsShape>;
+export type LonghornServiceMeshComponentArgs =
+  utils.types.DeepPulumiInput<LonghornServiceMeshComponentArgsShape>;
 
-export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
-  'qbittorrent-service-mesh',
+export const LonghornServiceMeshComponent = utils.functions.defineComponent(
+  'longhorn-service-mesh',
   (
-    args: QbittorrentServiceMeshComponentArgs,
+    args: LonghornServiceMeshComponentArgs,
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    const qbittorrentVirtualService =
+    const longhornFrontendVirtualService =
       new customResources.resources.k8s.crd.istio.VirtualServiceV1(
-        `${resourceName}-qbittorrentVirtualService`,
+        `${resourceName}-longhornFrontendVirtualService`,
         {
           metadata: {
-            name: 'qbittorrent',
+            name: 'longhorn-frontend',
             namespace: args.namespace,
           },
           spec: {
-            hosts: [args.ingress.qbittorrentWebUi.host],
-            gateways: [args.ingress.qbittorrentWebUi.gatewayPath],
+            hosts: [args.ingress.longhornFrontend.host],
+            gateways: [args.ingress.longhornFrontend.gatewayPath],
             http: [
               {
                 route: [
                   {
                     destination: {
-                      host: args.ingress.qbittorrentWebUi.serviceName,
+                      host: args.ingress.longhornFrontend.serviceName,
                       port: {
-                        number: args.ingress.qbittorrentWebUi.port,
+                        number: args.ingress.longhornFrontend.port,
                       },
                     },
                   },
@@ -76,13 +76,13 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
         },
       );
 
-    const qbittorrentAuthentikProxyProvider = new authentik.ProviderProxy(
-      `${resourceName}-qbittorrentAuthentikProxyProvider`,
+    const longhornFrontendAuthentikProxyProvider = new authentik.ProviderProxy(
+      `${resourceName}-longhornFrontendAuthentikProxyProvider`,
       {
-        name: 'qbittorrent-authentik-proxy-provider',
+        name: 'longhorn-frontend-authentik-proxy-provider',
         mode: 'forward_single',
-        internalHost: pulumi.interpolate`http://${args.ingress.qbittorrentWebUi.serviceName}.${args.namespace}.svc.cluster.local`,
-        externalHost: pulumi.interpolate`https://${args.ingress.qbittorrentWebUi.host}`,
+        internalHost: pulumi.interpolate`http://${args.ingress.longhornFrontend.serviceName}.${args.namespace}.svc.cluster.local`,
+        externalHost: pulumi.interpolate`https://${args.ingress.longhornFrontend.host}`,
         authorizationFlow: args.authentik.flow.authorizationFlowId,
         invalidationFlow: args.authentik.flow.invalidationFlowId,
       },
@@ -92,12 +92,12 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
       },
     );
 
-    const qbittorrentAuthentikApplication = new authentik.Application(
-      `${resourceName}-qbittorrentAuthentikApplication`,
+    const longhornFrontendAuthentikApplication = new authentik.Application(
+      `${resourceName}-longhornFrontendAuthentikApplication`,
       {
-        name: 'qbittorrent',
-        slug: 'qbittorrent',
-        protocolProvider: qbittorrentAuthentikProxyProvider.id.apply(id =>
+        name: 'longhorn-frontend',
+        slug: 'longhorn-frontend',
+        protocolProvider: longhornFrontendAuthentikProxyProvider.id.apply(id =>
           parseInt(id),
         ),
       },
@@ -108,9 +108,9 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
     );
 
     new authentik.PolicyBinding(
-      `${resourceName}-qbittorrentAuthentikApplicationGroupBinding`,
+      `${resourceName}-longhornFrontendAuthentikApplicationGroupBinding`,
       {
-        target: qbittorrentAuthentikApplication.uuid,
+        target: longhornFrontendAuthentikApplication.uuid,
         group: args.authentik.allowedGroupId,
         order: 0,
       },
@@ -120,18 +120,18 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
       },
     );
 
-    const qbittorrentAuthorizationPolicy =
+    const longhornFrontendAuthorizationPolicy =
       new customResources.resources.k8s.crd.istio.AuthorizationPolicyV1(
-        `${resourceName}-qbittorrentAuthorizationPolicy`,
+        `${resourceName}-longhornFrontendAuthorizationPolicy`,
         {
           metadata: {
-            name: 'qbittorrent',
+            name: 'longhorn-frontend',
             namespace: args.ingress.istioNamespace,
           },
           spec: {
             selector: {
               matchLabels: {
-                istio: args.ingress.qbittorrentWebUi.gatewayLabel,
+                istio: args.ingress.longhornFrontend.gatewayLabel,
               },
             },
             action: 'CUSTOM',
@@ -140,7 +140,7 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
             },
             rules: pulumi
               .all([
-                args.ingress.qbittorrentWebUi.host,
+                args.ingress.longhornFrontend.host,
                 pulumi.output(args.authentik.authorizationBypass),
               ])
               .apply(([resolvedHost, resolvedAuthorizationBypass]) => {
@@ -180,7 +180,7 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
 
     return {
       output: pulumi.output({
-        authentikProxyProviderId: qbittorrentAuthentikProxyProvider.id,
+        authentikProxyProviderId: longhornFrontendAuthentikProxyProvider.id,
       }),
       secret: pulumi.secret({}),
     };

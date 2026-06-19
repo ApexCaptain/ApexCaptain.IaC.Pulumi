@@ -9,11 +9,10 @@ interface IstioGatewayComponentArgsShape {
   letsEncryptProdClusterIssuerName: string;
   letsEncryptStagingClusterIssuerName: string;
   istioIngressGatewayLabel: string;
-  additionalPorts: {
+  directGatewayPorts: {
     name: string;
     port: number;
     protocol: string;
-    description: string;
   }[];
   providers: {
     kubernetes: kubernetes.Provider;
@@ -137,46 +136,47 @@ export const IstioGatewayComponent = utils.functions.defineComponent(
     const istioIngressGatewayPath = pulumi.interpolate`${args.namespace}/${istioIngressGateway.metadata.name}`;
 
     // Direct Gateway
-    // @Note: TCP/UDP 포트 노출이 필요할 경우 (가령 DB 등) 사용. servers가 비어있으면 Istio가 거부함.
-    // const istioDirectGateway =
-    //   new customResources.resources.k8s.crd.istio.GatewayV1(
-    //     `${resourceName}-istioDirectGateway`,
-    //     {
-    //       metadata: {
-    //         name: 'istio-directgateway',
-    //         namespace: args.namespace,
-    //       },
-    //       spec: {
-    //         selector: {
-    //           istio: args.istioIngressGatewayLabel,
-    //         },
-    //         servers: pulumi
-    //           .output(args.additionalPorts)
-    //           .apply(resolvedAdditionalPorts => {
-    //             return resolvedAdditionalPorts.map(eachAdditionalPort => {
-    //               return {
-    //                 port: {
-    //                   number: eachAdditionalPort.port,
-    //                   name: utils.functions.kebabCase(eachAdditionalPort.name),
-    //                   protocol: eachAdditionalPort.protocol,
-    //                 },
-    //                 hosts: ['*'],
-    //               };
-    //             });
-    //           }),
-    //       },
-    //     },
-    //     {
-    //       ...opts,
-    //       provider: args.providers.kubernetes,
-    //     },
-    //   );
-    // const istioDirectGatewayPath = pulumi.interpolate`${args.namespace}/${istioDirectGateway.metadata.name}`;
+    const istioDirectGateway =
+      new customResources.resources.k8s.crd.istio.GatewayV1(
+        `${resourceName}-istioDirectGateway`,
+        {
+          metadata: {
+            name: 'istio-directgateway',
+            namespace: args.namespace,
+          },
+          spec: {
+            selector: {
+              istio: args.istioIngressGatewayLabel,
+            },
+            servers: pulumi
+              .output(args.directGatewayPorts)
+              .apply(resolvedDirectGatewayPorts => {
+                return resolvedDirectGatewayPorts.map(eachDirectGatewayPort => {
+                  return {
+                    port: {
+                      number: eachDirectGatewayPort.port,
+                      name: utils.functions.kebabCase(
+                        eachDirectGatewayPort.name,
+                      ),
+                      protocol: eachDirectGatewayPort.protocol,
+                    },
+                    hosts: ['*'],
+                  };
+                });
+              }),
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
+    const istioDirectGatewayPath = pulumi.interpolate`${args.namespace}/${istioDirectGateway.metadata.name}`;
 
     return {
       output: pulumi.output({
         istioIngressGatewayPath,
-        // istioDirectGatewayPath,
+        istioDirectGatewayPath,
       }),
       secret: pulumi.secret({}),
     };

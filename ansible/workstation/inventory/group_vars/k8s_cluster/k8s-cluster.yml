@@ -6,8 +6,8 @@ kube_owner: root
 
 # Pod / Service CIDR
 kube_network_plugin: cilium
-kube_pods_subnet: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_KUBE_PODS_SUBNET') }}"
-kube_service_addresses: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_KUBE_SERVICE_ADDRESSES') }}"
+kube_pods_subnet: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_KUBE_PODS_SUBNET_CIDR_BLOCK') }}"
+kube_service_addresses: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_KUBE_SERVICE_SUBNET_CIDR_BLOCK') }}"
 
 # 단일 노드: control plane에 workload 스케줄 허용
 # 나중에 Node 역할 분리 가능할 정도로 늘어나면 false로 변경

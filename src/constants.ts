@@ -42,6 +42,10 @@ export const constants = (() => {
     keysDir,
     process.env.WORKSTATION_SSH_PRIVATE_KEY_FILE_NAME || 'workstation.key',
   );
+  const ansibleWorkstationInventoryFile = path.join(
+    ansibleDir,
+    'workstation/inventory/inventory.ini',
+  );
   const paths = {
     dirs: {
       srcDir,
@@ -66,6 +70,7 @@ export const constants = (() => {
       novaConfigFile,
       cursorMcpJsonFile,
       workstationSshPrivateKeyFile,
+      ansibleWorkstationInventoryFile,
     },
   };
 
@@ -109,7 +114,6 @@ export const constants = (() => {
       'https://jellyfin.github.io/jellyfin-helm',
     'istio-release.storage.googleapis.com/charts':
       'https://istio-release.storage.googleapis.com/charts',
-    'metallb.github.io/metallb': 'https://metallb.github.io/metallb',
     'charts.jetstack.io': 'https://charts.jetstack.io',
     'charts.goauthentik.io': 'https://charts.goauthentik.io',
     'helm.releases.hashicorp.com': 'https://helm.releases.hashicorp.com',

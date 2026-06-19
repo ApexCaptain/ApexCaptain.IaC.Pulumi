@@ -1,11 +1,8 @@
 import { authentik } from '@common/bridged-provider';
-import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
-import dedent from 'dedent';
 
 interface AuthentikResourcesComponentArgsShape {
-  isFirstDeploy: boolean;
   oauth: {
     google: {
       clientId: string;
@@ -29,19 +26,6 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    // Helm 깔면 Authentik이 "Local Kubernetes Cluster" connection 알아서 만들어 둠.
-    // proxy outpost 띄울 때 worker가 이 설정 보고 K8s API 호출함 → ak-outpost-* Service 생김.
-    //
-    // verifySsl false인 이유:
-    // MicroK8s CA에 Key Usage가 없는데 worker는 Python 3.13+라 TLS 검증 빡셈.
-    // 로그에 "CA cert does not include key usage extension" 뜨고 outpost는 사용 불가, torrent는 RBAC denied.
-    // kubectl은 멀쩡한데 authentik worker만 죽는 그림.
-    //
-    // 일단 verifySsl 옵션 비활성화. (클러스터 내부 API만 해당, authentik 웹 HTTPS랑 무관).
-    // get + import는 Helm이 만든 connection을 Pulumi state에 붙이려고.
-    //
-    // TODO: 시간 나면 CA refresh-certs로 keyUsage 넣은 걸로 갈아끼고 verifySsl 다시 켜보기.
-
     // K8s Service Connection
     const dataLocalKubernetesCluster =
       await authentik.getServiceConnectionKubernetes(
@@ -54,27 +38,23 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
         },
       );
 
-    const localKubernetesCluster = new authentik.ServiceConnectionKubernetes(
-      `${resourceName}-localKubernetesCluster`,
-      {
-        name: 'Local Kubernetes Cluster',
-        local: true,
-        verifySsl: false,
-      },
-      {
-        ...opts,
-        provider: args.providers.authentik,
-        import: dataLocalKubernetesCluster.id,
-      },
-    );
-
     // Policies
+    /**
+     * Email 도메인 혹은 특정 Email 주소에 대해서만 가입/로그인 제한을 두기 위해
+     * Policies Overriding을 했었는데, 쓰다보니 그럴 필요가 없어져서
+     * 비활성화. 그냥 그룹별 권한 제어 방식으로 바꿈
+     */
+    /*
     const dataDefaultSourceEnrollmentIfSsoPolicyExpression =
       customResources.data.authentik.getPolcyExpressionV1({
         name: 'default-source-enrollment-if-sso',
         authentikUrl: args.providers.authentik.url,
         authentikToken: args.providers.authentik.token,
       });
+
+    await pulumi.log.info(
+      JSON.stringify(dataDefaultSourceEnrollmentIfSsoPolicyExpression, null, 2),
+    );
 
     const defaultSourceEnrollmentIfSsoPolicyExpression = pulumi
       .all([
@@ -149,6 +129,7 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
           );
         },
       );
+    */
 
     // Flows
     const dataDefaultProviderAuthorizationImplicitConsent =
@@ -307,7 +288,7 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
     return {
       output: pulumi.output({
         serviceConnections: {
-          localKubernetesClusterId: localKubernetesCluster.id,
+          localKubernetesClusterId: dataLocalKubernetesCluster.id,
         },
         flow: {
           defaultProviderAuthorizationImplicitConsentId:

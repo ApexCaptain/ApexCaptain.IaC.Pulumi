@@ -1,4 +1,4 @@
-export * as metallb from './metallb';
+export * as cilium from './cilium';
 
 export * as certManager from './cert-manager';
 

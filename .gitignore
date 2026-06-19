@@ -34,6 +34,7 @@ commit-message.txt
 pull-request.md
 Pulumi*.yaml
 Pulumi*.yml
+inventory.ini
 .turbo
 tmp
 /.keys
@@ -62,4 +63,5 @@ tmp
 !/requirements.txt
 /.keys/workstation.key
 !/.cursor/mcp.json
+/ansible/workstation/inventory/inventory.ini
 !/.projenrc.ts

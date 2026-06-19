@@ -6,12 +6,32 @@ const commonEscSchema = z
     workstationKubeconfig: z.string(),
     workstationIptimeDomain: z.string(),
     workstationIpV4Address: z.string(),
+    workstationPodsSubnetCidrBlock: z.string(),
+    workstationServicesSubnetCidrBlock: z.string(),
+    adapter: z
+      .object({
+        sftp: z
+          .object({
+            userName: z.string(),
+          })
+          .required(),
+      })
+      .required(),
     istioNetwork: z
       .object({
         meshId: z.string(),
         workstationClusterName: z.string(),
         workstationClusterNetwork: z.string(),
-        workstationDefaultCalcioIpv4IpPoolsCidrBlock: z.string(),
+        workstationDirectGateway: z
+          .object({
+            jellyfinSftpName: z.string(),
+            jellyfinSftpProtocol: z.string(),
+            jellyfinSftpPort: z.number(),
+            qbittorrentSftpName: z.string(),
+            qbittorrentSftpProtocol: z.string(),
+            qbittorrentSftpPort: z.number(),
+          })
+          .required(),
       })
       .required(),
     nordLynx: z
@@ -24,7 +44,6 @@ const commonEscSchema = z
       .object({
         'jellyfin.github.io/jellyfin-helm': z.string(),
         'istio-release.storage.googleapis.com/charts': z.string(),
-        'metallb.github.io/metallb': z.string(),
         'charts.jetstack.io': z.string(),
         'charts.goauthentik.io': z.string(),
         'helm.releases.hashicorp.com': z.string(),

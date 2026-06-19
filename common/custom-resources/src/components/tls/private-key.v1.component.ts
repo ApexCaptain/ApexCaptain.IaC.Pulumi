@@ -1,13 +1,12 @@
 import path from 'node:path';
 import * as utils from '@common/utils/src';
-import * as command from '@pulumi/command';
 import * as pulumi from '@pulumi/pulumi';
 import * as random from '@pulumi/random';
 import * as tls from '@pulumi/tls';
 import { TextFileV1 } from '../../resources/local/textFile.v1.res';
 
 interface PrivateKeyV1ArgsShape {
-  expirationDateString: string;
+  expirationDateString?: string;
   createKeyFile?: boolean;
 }
 
@@ -25,7 +24,11 @@ export const PrivateKeyV1Component = utils.functions.defineComponent(
       `${resourceName}-anchor`,
       {
         keepers: {
-          expirationDateString: args.expirationDateString,
+          expriationDateString: pulumi
+            .output(args.expirationDateString)
+            .apply(resolvedExpirationDateString => {
+              return resolvedExpirationDateString ?? 'NO_EXPIRATION_DATE';
+            }),
         },
       },
       {
@@ -36,9 +39,7 @@ export const PrivateKeyV1Component = utils.functions.defineComponent(
     const privateKey = new tls.PrivateKey(
       `${resourceName}-privateKey`,
       {
-        // @Note 이 2개 옵션은 고정으로 사용해도 별 문제 없을듯?
-        algorithm: 'RSA',
-        rsaBits: 4096,
+        algorithm: 'ED25519',
       },
       {
         ...opts,
@@ -86,7 +87,12 @@ export const PrivateKeyV1Component = utils.functions.defineComponent(
         ),
       }),
       secret: pulumi.secret({
-        publicKeyOpenSsh: privateKey.publicKeyOpenssh,
+        privateKey: {
+          openssh: privateKey.privateKeyOpenssh,
+        },
+        publicKey: {
+          openssh: privateKey.publicKeyOpenssh,
+        },
       }),
     };
   },

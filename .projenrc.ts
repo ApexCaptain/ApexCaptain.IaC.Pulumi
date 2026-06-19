@@ -122,6 +122,7 @@ const rootProject = new typescript.TypeScriptProject(
         'pull-request.md',
         'Pulumi*.yaml',
         'Pulumi*.yml',
+        'inventory.ini',
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
         `/${src.constants.paths.dirs.keysDir}`,
@@ -466,13 +467,36 @@ const initPulumiEsc = async () => {
       workstationKubeconfig: process.env.KUBE_CONFIG_WORKSTATION_FILE_PATH,
       workstationIptimeDomain: process.env.WORKSTATION_DOMAIN_IPTIME,
       workstationIpV4Address,
+      workstationPodsSubnetCidrBlock:
+        process.env.WORKSTATION_BOOTSTRAP_KUBE_PODS_SUBNET_CIDR_BLOCK,
+      workstationServicesSubnetCidrBlock:
+        process.env.WORKSTATION_BOOTSTRAP_KUBE_SERVICE_SUBNET_CIDR_BLOCK,
+      adapter: {
+        sftp: {
+          userName: process.env.WORKSTATION_SFTP_ADAPTER_USERNAME,
+        },
+      },
       istioNetwork: {
         meshId: process.env.ISTIO_MESH_ID,
         workstationClusterName: process.env.ISTIO_WORKSTATION_CLUSTER_NAME,
         workstationClusterNetwork:
           process.env.ISTIO_WORKSTATION_CLUSTER_NETWORK,
-        workstationDefaultCalcioIpv4IpPoolsCidrBlock:
-          process.env.WORKSTATION_DEFAULT_CALCIO_IPV4_IP_POOLS_CIDR_BLOCK,
+        workstationDirectGateway: {
+          jellyfinSftpName:
+            process.env.WORKSTATION_DIRECT_GATEWAY_JELLYFIN_SFTP_NAME,
+          jellyfinSftpProtocol:
+            process.env.WORKSTATION_DIRECT_GATEWAY_JELLYFIN_SFTP_PROTOCOL,
+          jellyfinSftpPort: parseInt(
+            process.env.WORKSTATION_DIRECT_GATEWAY_JELLYFIN_SFTP_PORT!!,
+          ),
+          qbittorrentSftpName:
+            process.env.WORKSTATION_DIRECT_GATEWAY_QBITORRENT_SFTP_NAME,
+          qbittorrentSftpProtocol:
+            process.env.WORKSTATION_DIRECT_GATEWAY_QBITORRENT_SFTP_PROTOCOL,
+          qbittorrentSftpPort: parseInt(
+            process.env.WORKSTATION_DIRECT_GATEWAY_QBITORRENT_SFTP_PORT!!,
+          ),
+        },
       },
 
       nordLynx: {
@@ -536,16 +560,42 @@ const initPulumiEsc = async () => {
     accountName,
     pulumiEscClient,
     {
-      nodes: {
-        node0: {
-          hostName: process.env.WORKSTATION_NODE0_NAME,
-        },
+      longhorn: {
+        nodes: [
+          // Node 0
+          {
+            hostName: process.env.WORKSTATION_BOOTSTRAP_NODE_0_HOSTNAME,
+            disks: [
+              {
+                name: process.env
+                  .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_NAME,
+                path: process.env
+                  .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_MOUNTPATH,
+                tags: [
+                  process.env
+                    .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_DISKTYPE,
+                ],
+              },
+              {
+                name: process.env
+                  .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_1_NAME,
+                path: process.env
+                  .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_1_MOUNTPATH,
+                tags: [
+                  process.env
+                    .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_1_DISKTYPE,
+                ],
+              },
+            ],
+          },
+        ],
       },
+
       loadbalancer: {
-        metallb: {
-          ipRange: process.env.WORKSTATION_METALLB_LOADBALANCER_IP_RANGE,
-          ingressGatewayIp: process.env.WORKSTATION_METALLB_INGRESS_GATEWAY_IP,
-          additionalPort: {},
+        celium: {
+          istioCrossNetworkTlsIp:
+            process.env.WORKSTATION_SERVICE_LB_ISTIO_CROSS_NETWORK_TLS,
+          ingressGatewayIp: process.env.WORKSTATION_SERVICE_LB_INGRESS,
         },
       },
       authentik: {
@@ -556,7 +606,6 @@ const initPulumiEsc = async () => {
           password: process.env.AUTHENTIK_BOOTSTRAP_PASSWORD,
         },
         postgresqlPassword: process.env.AUTHENTIK_POSTGRESQL_PASSWORD,
-        redisPassword: process.env.AUTHENTIK_REDIS_PASSWORD,
         oauth: {
           allowedEmails: process.env.AUTHENTIK_ALLOWED_EMAILS!!.split(','),
           google: {
@@ -947,7 +996,7 @@ void (async () => {
         authorizedKeys: [process.env.WORKSTATION_BOOTSTRAP_SSH_PUBLIC_KEY],
         nodes: [
           {
-            id: 'workstation-0',
+            id: process.env.WORKSTATION_BOOTSTRAP_NODE_0_HOSTNAME,
             macAddress: process.env.WORKSTATION_BOOTSTRAP_NODE_0_MACADDRESS,
             addressCidr: `${process.env.WORKSTATION_BOOTSTRAP_NODE_0_STATIC_IP}/24`,
           },
@@ -1053,6 +1102,10 @@ void (async () => {
           CONTEXT7_API_KEY: '${env:CONTEXT7_API_KEY}',
         },
       },
+      'kubernetes-mcp-server': {
+        command: 'npx',
+        args: ['-y', 'kubernetes-mcp-server@latest'],
+      },
     },
   };
   const mcpJsonFile = new JsonFile(
@@ -1063,16 +1116,38 @@ void (async () => {
     },
   );
 
-  const ansibleKubesprayPrefix = dedent`
-      ANSIBLE_CONFIG=${src.constants.paths.dirs.ansibleThirdPartyDir}/kubespray/ansible.cfg \
-      ansible-playbook -i \
-        ansible/workstation/inventory/inventory.ini
-    `;
+  const workstationNode0Name =
+    process.env.WORKSTATION_BOOTSTRAP_NODE_0_HOSTNAME;
+  const ansibleWorkstationInventoryFile = new TextFile(
+    rootProject,
+    src.constants.paths.files.ansibleWorkstationInventoryFile,
+    {
+      lines: dedent`
+        [all]
+        ${workstationNode0Name}
+
+        [kube_control_plane]
+        ${workstationNode0Name}
+
+        [etcd]
+        ${workstationNode0Name}
+
+        [kube_node]
+        workstation-0
+        
+        [k8s_cluster:children]
+        kube_control_plane
+        kube_node
+      `.split('\n'),
+      committed: false,
+      readonly: true,
+    },
+  );
 
   const generateKubesprayPlaybookScript = (playbook: string) => dedent`
     ANSIBLE_CONFIG=${src.constants.paths.dirs.ansibleThirdPartyDir}/kubespray/ansible.cfg \
     ansible-playbook -b -i \
-      ansible/workstation/inventory/inventory.ini \
+      ${src.constants.paths.files.ansibleWorkstationInventoryFile} \
       ${src.constants.paths.dirs.ansibleThirdPartyDir}/kubespray/${playbook}.yml
   `;
 
