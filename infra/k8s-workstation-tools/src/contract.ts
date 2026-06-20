@@ -101,9 +101,11 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
             allowedGroupId:
               k8sWorkstationSystemContract.output.authentik.groupIds
                 .toolsManagerGroup,
+            proxyOutpostId:
+              k8sWorkstationSystemContract.output.authentik.outposts.proxy.id,
             proxyOutpostProviderName:
-              k8sWorkstationSystemContract.output.authentik
-                .authentikProxyOutpostProviderName,
+              k8sWorkstationSystemContract.output.authentik.outposts.proxy
+                .providerName,
             flow: {
               authorizationFlowId:
                 k8sWorkstationSystemContract.output.authentik.flow
@@ -121,12 +123,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
       );
 
     return {
-      output: pulumi.output({
-        authentik: {
-          qbittorrentAuthentikProxyProviderId:
-            qbittorrentServiceMesh.output.authentikProxyProviderId,
-        },
-      }),
+      output: pulumi.output({}),
       secret: pulumi.secret({}),
     };
   },

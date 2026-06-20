@@ -316,67 +316,6 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  infra/authentik-outpost:
-    dependencies:
-      '@common/bridged-provider':
-        specifier: workspace:*
-        version: link:../../common/bridged-provider
-      '@common/nexus':
-        specifier: workspace:*
-        version: link:../../common/nexus
-      '@common/utils':
-        specifier: workspace:*
-        version: link:../../common/utils
-      '@infra/cloudflare':
-        specifier: workspace:*
-        version: link:../cloudflare
-      '@infra/k8s-workstation-apps':
-        specifier: workspace:*
-        version: link:../k8s-workstation-apps
-      '@infra/k8s-workstation-system':
-        specifier: workspace:*
-        version: link:../k8s-workstation-system
-      '@infra/k8s-workstation-tools':
-        specifier: workspace:*
-        version: link:../k8s-workstation-tools
-      '@pulumi/pulumi':
-        specifier: ^3.246.0
-        version: 3.246.0(ts-node@10.9.2(@types/node@25.9.3)(typescript@6.0.3))(typescript@6.0.3)
-      dedent:
-        specifier: ^1.7.2
-        version: 1.7.2
-      lodash:
-        specifier: ^4.18.1
-        version: 4.18.1
-      yaml:
-        specifier: ^2.8.3
-        version: 2.9.0
-    devDependencies:
-      '@stylistic/eslint-plugin':
-        specifier: ^2
-        version: 2.13.0(eslint@9.39.4)(typescript@6.0.3)
-      '@types/node':
-        specifier: ^25.9.3
-        version: 25.9.3
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^8
-        version: 8.60.1(@typescript-eslint/parser@8.60.1(eslint@9.39.4)(typescript@6.0.3))(eslint@9.39.4)(typescript@6.0.3)
-      '@typescript-eslint/parser':
-        specifier: ^8
-        version: 8.60.1(eslint@9.39.4)(typescript@6.0.3)
-      eslint:
-        specifier: ^9
-        version: 9.39.4
-      eslint-import-resolver-typescript:
-        specifier: ^4.4.4
-        version: 4.4.5(eslint-plugin-import@2.32.0)(eslint@9.39.4)
-      eslint-plugin-import:
-        specifier: ^2.32.0
-        version: 2.32.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4)(typescript@6.0.3))(eslint-import-resolver-typescript@4.4.5)(eslint@9.39.4)
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-
   infra/cloudflare:
     dependencies:
       '@common/nexus':

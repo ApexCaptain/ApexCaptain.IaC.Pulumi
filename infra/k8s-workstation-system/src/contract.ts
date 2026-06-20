@@ -260,6 +260,25 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    /**
+     * Longhorn ↔ Authentik 상호 의존으로 배포 순서·리소스 구성이 3단계로 나뉜다.
+     *
+     * - Authentik PostgreSQL PVC는 Longhorn storage class에 의존한다.
+     * - Longhorn UI는 Authentik proxy outpost(Istio ext-authz)로 보호된다.
+     * - Authentik Outpost 생성 API는 protocolProviders가 비어 있으면 거부한다.
+     *
+     * 따라서 한 component에 묶으면 Outpost ↔ ProviderProxy 순환 의존이 생긴다.
+     * 아래 순서로 분리한다.
+     *
+     * 1. authentikResources — groups/flows/oauth/serviceConnection (Outpost 없음)
+     * 2. longhornServiceMesh — ProviderProxy 등 앱별 Authentik·mesh 리소스
+     * 3. authentikOutpost — longhorn provider를 bootstrap으로 Outpost 생성
+     *
+     * longhorn 이후 추가되는 proxy outpost 앱(tools/apps 등)은
+     * OutpostProviderAttachment로 연결한다. Outpost.protocolProviders는
+     * bootstrap만 담당하며, attachment로 붙은 provider drift는
+     * AuthentikOutpostComponent의 ignoreChanges로 무시한다.
+     */
     const authentikResources =
       new components.authentik.AuthentikResourcesComponent(
         'authentikResources',
@@ -316,6 +335,27 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
         },
       );
+
+    const authentikOutpost = new components.authentik.AuthentikOutpostComponent(
+      'authentikOutpost',
+      {
+        outposts: {
+          proxy: {
+            name: authentikProxyOutpostName,
+            providerIds: [longhornServiceMesh.output.authentikProxyProviderId],
+          },
+        },
+        host: cloudflareContract.output.zones.ayteneve93com.records.auth,
+        serviceConnectionId:
+          authentikResources.output.serviceConnections.localKubernetesClusterId,
+        providers: {
+          authentik: authentikProvider,
+        },
+      },
+      {
+        dependsOn: [longhornServiceMesh, authentikResources],
+      },
+    );
 
     // Vault
     /*
@@ -391,13 +431,14 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         storageClasses: longhornResources.output.storageClasses,
         authentik: {
-          serviceConnections: authentikResources.output.serviceConnections,
           flow: authentikResources.output.flow,
           groupIds: authentikResources.output.groupIds,
-          authentikProxyOutpostName,
-          authentikProxyOutpostProviderName,
-          longhornAuthentikProxyProviderId:
-            longhornServiceMesh.output.authentikProxyProviderId,
+          outposts: {
+            proxy: {
+              id: authentikOutpost.output.outpostIds.proxyOutpostId,
+              providerName: authentikProxyOutpostProviderName,
+            },
+          },
         },
       }),
       secret: pulumi.secret({

@@ -97,30 +97,6 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
-    // PVCs
-    const postgresqlPvc = new kubernetes.core.v1.PersistentVolumeClaim(
-      `${resourceName}-postgresqlPvc`,
-      {
-        metadata: {
-          name: 'postgresql',
-          namespace: namespace.metadata.name,
-        },
-        spec: {
-          accessModes: ['ReadWriteOnce'],
-          storageClassName: args.pvc.postgresql.storageClass,
-          resources: {
-            requests: {
-              storage: args.pvc.postgresql.size,
-            },
-          },
-        },
-      },
-      {
-        ...opts,
-        provider: args.providers.kubernetes,
-      },
-    );
-
     // Configuration
     const authentikServiceAccountName = 'authentik';
     const authentikPostgresqlCredSecretName = 'postgres-cred';
@@ -223,7 +199,8 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
             primary: {
               persistence: {
                 enabled: true,
-                existingClaim: postgresqlPvc.metadata.name,
+                storageClass: args.pvc.postgresql.storageClass,
+                size: args.pvc.postgresql.size,
               },
             },
           },
@@ -235,7 +212,6 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
         dependsOn: [
           authentikBootstrapTokenSecret,
           authentikPostgresqlPasswordSecret,
-          postgresqlPvc,
         ],
       },
     );

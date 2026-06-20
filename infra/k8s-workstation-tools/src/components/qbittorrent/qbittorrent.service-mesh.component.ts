@@ -18,6 +18,7 @@ interface QbittorrentServiceMeshComponentArgsShape {
   };
   authentik: {
     allowedGroupId: string;
+    proxyOutpostId: string;
     proxyOutpostProviderName: string;
     flow: {
       authorizationFlowId: string;
@@ -85,6 +86,20 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
         externalHost: pulumi.interpolate`https://${args.ingress.qbittorrentWebUi.host}`,
         authorizationFlow: args.authentik.flow.authorizationFlowId,
         invalidationFlow: args.authentik.flow.invalidationFlowId,
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    const outpostProviderAttachment = new authentik.OutpostProviderAttachment(
+      `${resourceName}-qbittorrentAuthentikOutpostProviderAttachment`,
+      {
+        outpost: args.authentik.proxyOutpostId,
+        protocolProvider: qbittorrentAuthentikProxyProvider.id.apply(id =>
+          parseInt(id),
+        ),
       },
       {
         ...opts,
@@ -179,9 +194,7 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
       );
 
     return {
-      output: pulumi.output({
-        authentikProxyProviderId: qbittorrentAuthentikProxyProvider.id,
-      }),
+      output: pulumi.output({}),
       secret: pulumi.secret({}),
     };
   },

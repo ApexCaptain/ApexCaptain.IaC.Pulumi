@@ -759,29 +759,11 @@ void (async () => {
       esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationAppsEsc],
     });
 
-    const authentikOutpostProject = inflatePulumiProject({
-      projectName: 'authentik-outpost',
-      stages: [utils.enums.StackStage.PROD],
-      deps: [],
-      commonDeps: [
-        commonProjects.bridgedProviderProject.project.package.packageName,
-        commonProjects.utilsProject.project.package.packageName,
-        commonProjects.nexusProject.project.package.packageName,
-      ],
-      infraDeps: [
-        cloudflareProject.project.package.packageName,
-        k8sWorkstationToolsProject.project.package.packageName,
-        k8sWorkstationAppsProject.project.package.packageName,
-        k8sWorkstationSystemProject.project.package.packageName,
-      ],
-    });
-
     return {
       cloudflareProject,
       k8sWorkstationSystemProject,
       k8sWorkstationToolsProject,
       k8sWorkstationAppsProject,
-      authentikOutpostProject,
     };
   })();
 

@@ -2,53 +2,62 @@ import { authentik } from '@common/bridged-provider';
 import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
 
-interface ProxyOutpostComponentArgsShape {
+interface AuthentikOutpostComponentArgsShape {
+  outposts: {
+    proxy: {
+      name: string;
+      providerIds: string[];
+    };
+  };
   host: string;
-  outpostName: string;
   serviceConnectionId: string;
-  providerIds: string[];
   providers: {
     authentik: authentik.Provider;
   };
 }
 
-export type ProxyOutpostComponentArgs =
-  utils.types.DeepPulumiInput<ProxyOutpostComponentArgsShape>;
+export type AuthentikOutpostComponentArgs =
+  utils.types.DeepPulumiInput<AuthentikOutpostComponentArgsShape>;
 
-export const ProxyOutpostComponent = utils.functions.defineComponent(
-  'proxy-outpost',
+export const AuthentikOutpostComponent = utils.functions.defineComponent(
+  'authentikOutpost',
   (
-    args: ProxyOutpostComponentArgs,
+    args: AuthentikOutpostComponentArgs,
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
     const proxyOutpost = new authentik.Outpost(
       `${resourceName}-proxyOutpost`,
       {
-        name: args.outpostName,
+        name: args.outposts.proxy.name,
         type: 'proxy',
         protocolProviders: pulumi
-          .output(args.providerIds)
+          .output(args.outposts.proxy.providerIds)
           .apply(resolvedProviderIds =>
             resolvedProviderIds.map(eachResolvedProviderId =>
               parseInt(eachResolvedProviderId),
             ),
           ),
         serviceConnection: args.serviceConnectionId,
-        config: pulumi.all([args.host]).apply(([host]) =>
+        config: pulumi.all([args.host]).apply(([resolvedHost]) =>
           JSON.stringify({
-            authentik_host: `https://${host}`,
+            authentik_host: `https://${resolvedHost}`,
           }),
         ),
       },
       {
         ...opts,
         provider: args.providers.authentik,
+        ignoreChanges: ['protocolProviders'],
       },
     );
 
     return {
-      output: pulumi.output({}),
+      output: pulumi.output({
+        outpostIds: {
+          proxyOutpostId: proxyOutpost.id,
+        },
+      }),
       secret: pulumi.secret({}),
     };
   },
