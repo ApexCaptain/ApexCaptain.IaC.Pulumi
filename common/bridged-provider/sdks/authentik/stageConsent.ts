@@ -41,7 +41,7 @@ export class StageConsent extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`alwaysRequire`" pulumi-lang-dotnet="`AlwaysRequire`" pulumi-lang-go="`alwaysRequire`" pulumi-lang-python="`always_require`" pulumi-lang-yaml="`alwaysRequire`" pulumi-lang-java="`alwaysRequire`" pulumi-lang-hcl="`always_require`">`alwaysRequire`</span>
      *   - <span pulumi-lang-nodejs="`permanent`" pulumi-lang-dotnet="`Permanent`" pulumi-lang-go="`permanent`" pulumi-lang-python="`permanent`" pulumi-lang-yaml="`permanent`" pulumi-lang-java="`permanent`" pulumi-lang-hcl="`permanent`">`permanent`</span>
      *   - <span pulumi-lang-nodejs="`expiring`" pulumi-lang-dotnet="`Expiring`" pulumi-lang-go="`expiring`" pulumi-lang-python="`expiring`" pulumi-lang-yaml="`expiring`" pulumi-lang-java="`expiring`" pulumi-lang-hcl="`expiring`">`expiring`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`alwaysRequire`" pulumi-lang-dotnet="`AlwaysRequire`" pulumi-lang-go="`alwaysRequire`" pulumi-lang-python="`always_require`" pulumi-lang-yaml="`alwaysRequire`" pulumi-lang-java="`alwaysRequire`" pulumi-lang-hcl="`always_require`">`alwaysRequire`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`alwaysRequire`" pulumi-lang-dotnet="`AlwaysRequire`" pulumi-lang-go="`alwaysRequire`" pulumi-lang-python="`always_require`" pulumi-lang-yaml="`alwaysRequire`" pulumi-lang-java="`alwaysRequire`" pulumi-lang-hcl="`always_require`">`alwaysRequire`</span>.
      */
     declare public readonly mode: pulumi.Output<string | undefined>;
     declare public readonly name: pulumi.Output<string>;
@@ -89,7 +89,7 @@ export interface StageConsentState {
      *   - <span pulumi-lang-nodejs="`alwaysRequire`" pulumi-lang-dotnet="`AlwaysRequire`" pulumi-lang-go="`alwaysRequire`" pulumi-lang-python="`always_require`" pulumi-lang-yaml="`alwaysRequire`" pulumi-lang-java="`alwaysRequire`" pulumi-lang-hcl="`always_require`">`alwaysRequire`</span>
      *   - <span pulumi-lang-nodejs="`permanent`" pulumi-lang-dotnet="`Permanent`" pulumi-lang-go="`permanent`" pulumi-lang-python="`permanent`" pulumi-lang-yaml="`permanent`" pulumi-lang-java="`permanent`" pulumi-lang-hcl="`permanent`">`permanent`</span>
      *   - <span pulumi-lang-nodejs="`expiring`" pulumi-lang-dotnet="`Expiring`" pulumi-lang-go="`expiring`" pulumi-lang-python="`expiring`" pulumi-lang-yaml="`expiring`" pulumi-lang-java="`expiring`" pulumi-lang-hcl="`expiring`">`expiring`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`alwaysRequire`" pulumi-lang-dotnet="`AlwaysRequire`" pulumi-lang-go="`alwaysRequire`" pulumi-lang-python="`always_require`" pulumi-lang-yaml="`alwaysRequire`" pulumi-lang-java="`alwaysRequire`" pulumi-lang-hcl="`always_require`">`alwaysRequire`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`alwaysRequire`" pulumi-lang-dotnet="`AlwaysRequire`" pulumi-lang-go="`alwaysRequire`" pulumi-lang-python="`always_require`" pulumi-lang-yaml="`alwaysRequire`" pulumi-lang-java="`alwaysRequire`" pulumi-lang-hcl="`always_require`">`alwaysRequire`</span>.
      */
     mode?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
@@ -109,7 +109,7 @@ export interface StageConsentArgs {
      *   - <span pulumi-lang-nodejs="`alwaysRequire`" pulumi-lang-dotnet="`AlwaysRequire`" pulumi-lang-go="`alwaysRequire`" pulumi-lang-python="`always_require`" pulumi-lang-yaml="`alwaysRequire`" pulumi-lang-java="`alwaysRequire`" pulumi-lang-hcl="`always_require`">`alwaysRequire`</span>
      *   - <span pulumi-lang-nodejs="`permanent`" pulumi-lang-dotnet="`Permanent`" pulumi-lang-go="`permanent`" pulumi-lang-python="`permanent`" pulumi-lang-yaml="`permanent`" pulumi-lang-java="`permanent`" pulumi-lang-hcl="`permanent`">`permanent`</span>
      *   - <span pulumi-lang-nodejs="`expiring`" pulumi-lang-dotnet="`Expiring`" pulumi-lang-go="`expiring`" pulumi-lang-python="`expiring`" pulumi-lang-yaml="`expiring`" pulumi-lang-java="`expiring`" pulumi-lang-hcl="`expiring`">`expiring`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`alwaysRequire`" pulumi-lang-dotnet="`AlwaysRequire`" pulumi-lang-go="`alwaysRequire`" pulumi-lang-python="`always_require`" pulumi-lang-yaml="`alwaysRequire`" pulumi-lang-java="`alwaysRequire`" pulumi-lang-hcl="`always_require`">`alwaysRequire`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`alwaysRequire`" pulumi-lang-dotnet="`AlwaysRequire`" pulumi-lang-go="`alwaysRequire`" pulumi-lang-python="`always_require`" pulumi-lang-yaml="`alwaysRequire`" pulumi-lang-java="`alwaysRequire`" pulumi-lang-hcl="`always_require`">`alwaysRequire`</span>.
      */
     mode?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;

@@ -12,5 +12,6 @@ allowBuilds:
   unrs-resolver: true
 overrides:
   "@pulumi/pulumi": $@pulumi/pulumi
+  "@pulumi/esc-sdk": $@pulumi/esc-sdk
   "@types/node": $@types/node
   typescript: $typescript

@@ -77,7 +77,7 @@ export class ProviderProxy extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`proxy`" pulumi-lang-dotnet="`Proxy`" pulumi-lang-go="`proxy`" pulumi-lang-python="`proxy`" pulumi-lang-yaml="`proxy`" pulumi-lang-java="`proxy`" pulumi-lang-hcl="`proxy`">`proxy`</span>
      *   - <span pulumi-lang-nodejs="`forwardSingle`" pulumi-lang-dotnet="`ForwardSingle`" pulumi-lang-go="`forwardSingle`" pulumi-lang-python="`forward_single`" pulumi-lang-yaml="`forwardSingle`" pulumi-lang-java="`forwardSingle`" pulumi-lang-hcl="`forward_single`">`forwardSingle`</span>
      *   - <span pulumi-lang-nodejs="`forwardDomain`" pulumi-lang-dotnet="`ForwardDomain`" pulumi-lang-go="`forwardDomain`" pulumi-lang-python="`forward_domain`" pulumi-lang-yaml="`forwardDomain`" pulumi-lang-java="`forwardDomain`" pulumi-lang-hcl="`forward_domain`">`forwardDomain`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`proxy`" pulumi-lang-dotnet="`Proxy`" pulumi-lang-go="`proxy`" pulumi-lang-python="`proxy`" pulumi-lang-yaml="`proxy`" pulumi-lang-java="`proxy`" pulumi-lang-hcl="`proxy`">`proxy`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`proxy`" pulumi-lang-dotnet="`Proxy`" pulumi-lang-go="`proxy`" pulumi-lang-python="`proxy`" pulumi-lang-yaml="`proxy`" pulumi-lang-java="`proxy`" pulumi-lang-hcl="`proxy`">`proxy`</span>.
      */
     declare public readonly mode: pulumi.Output<string | undefined>;
     declare public readonly name: pulumi.Output<string>;
@@ -212,7 +212,7 @@ export interface ProviderProxyState {
      *   - <span pulumi-lang-nodejs="`proxy`" pulumi-lang-dotnet="`Proxy`" pulumi-lang-go="`proxy`" pulumi-lang-python="`proxy`" pulumi-lang-yaml="`proxy`" pulumi-lang-java="`proxy`" pulumi-lang-hcl="`proxy`">`proxy`</span>
      *   - <span pulumi-lang-nodejs="`forwardSingle`" pulumi-lang-dotnet="`ForwardSingle`" pulumi-lang-go="`forwardSingle`" pulumi-lang-python="`forward_single`" pulumi-lang-yaml="`forwardSingle`" pulumi-lang-java="`forwardSingle`" pulumi-lang-hcl="`forward_single`">`forwardSingle`</span>
      *   - <span pulumi-lang-nodejs="`forwardDomain`" pulumi-lang-dotnet="`ForwardDomain`" pulumi-lang-go="`forwardDomain`" pulumi-lang-python="`forward_domain`" pulumi-lang-yaml="`forwardDomain`" pulumi-lang-java="`forwardDomain`" pulumi-lang-hcl="`forward_domain`">`forwardDomain`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`proxy`" pulumi-lang-dotnet="`Proxy`" pulumi-lang-go="`proxy`" pulumi-lang-python="`proxy`" pulumi-lang-yaml="`proxy`" pulumi-lang-java="`proxy`" pulumi-lang-hcl="`proxy`">`proxy`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`proxy`" pulumi-lang-dotnet="`Proxy`" pulumi-lang-go="`proxy`" pulumi-lang-python="`proxy`" pulumi-lang-yaml="`proxy`" pulumi-lang-java="`proxy`" pulumi-lang-hcl="`proxy`">`proxy`</span>.
      */
     mode?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
@@ -270,7 +270,7 @@ export interface ProviderProxyArgs {
      *   - <span pulumi-lang-nodejs="`proxy`" pulumi-lang-dotnet="`Proxy`" pulumi-lang-go="`proxy`" pulumi-lang-python="`proxy`" pulumi-lang-yaml="`proxy`" pulumi-lang-java="`proxy`" pulumi-lang-hcl="`proxy`">`proxy`</span>
      *   - <span pulumi-lang-nodejs="`forwardSingle`" pulumi-lang-dotnet="`ForwardSingle`" pulumi-lang-go="`forwardSingle`" pulumi-lang-python="`forward_single`" pulumi-lang-yaml="`forwardSingle`" pulumi-lang-java="`forwardSingle`" pulumi-lang-hcl="`forward_single`">`forwardSingle`</span>
      *   - <span pulumi-lang-nodejs="`forwardDomain`" pulumi-lang-dotnet="`ForwardDomain`" pulumi-lang-go="`forwardDomain`" pulumi-lang-python="`forward_domain`" pulumi-lang-yaml="`forwardDomain`" pulumi-lang-java="`forwardDomain`" pulumi-lang-hcl="`forward_domain`">`forwardDomain`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`proxy`" pulumi-lang-dotnet="`Proxy`" pulumi-lang-go="`proxy`" pulumi-lang-python="`proxy`" pulumi-lang-yaml="`proxy`" pulumi-lang-java="`proxy`" pulumi-lang-hcl="`proxy`">`proxy`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`proxy`" pulumi-lang-dotnet="`Proxy`" pulumi-lang-go="`proxy`" pulumi-lang-python="`proxy`" pulumi-lang-yaml="`proxy`" pulumi-lang-java="`proxy`" pulumi-lang-hcl="`proxy`">`proxy`</span>.
      */
     mode?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;

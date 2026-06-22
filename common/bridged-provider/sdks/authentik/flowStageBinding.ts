@@ -42,7 +42,7 @@ export class FlowStageBinding extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`retry`" pulumi-lang-dotnet="`Retry`" pulumi-lang-go="`retry`" pulumi-lang-python="`retry`" pulumi-lang-yaml="`retry`" pulumi-lang-java="`retry`" pulumi-lang-hcl="`retry`">`retry`</span>
      *   - <span pulumi-lang-nodejs="`restart`" pulumi-lang-dotnet="`Restart`" pulumi-lang-go="`restart`" pulumi-lang-python="`restart`" pulumi-lang-yaml="`restart`" pulumi-lang-java="`restart`" pulumi-lang-hcl="`restart`">`restart`</span>
      *   - <span pulumi-lang-nodejs="`restartWithContext`" pulumi-lang-dotnet="`RestartWithContext`" pulumi-lang-go="`restartWithContext`" pulumi-lang-python="`restart_with_context`" pulumi-lang-yaml="`restartWithContext`" pulumi-lang-java="`restartWithContext`" pulumi-lang-hcl="`restart_with_context`">`restartWithContext`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`retry`" pulumi-lang-dotnet="`Retry`" pulumi-lang-go="`retry`" pulumi-lang-python="`retry`" pulumi-lang-yaml="`retry`" pulumi-lang-java="`retry`" pulumi-lang-hcl="`retry`">`retry`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`retry`" pulumi-lang-dotnet="`Retry`" pulumi-lang-go="`retry`" pulumi-lang-python="`retry`" pulumi-lang-yaml="`retry`" pulumi-lang-java="`retry`" pulumi-lang-hcl="`retry`">`retry`</span>.
      */
     declare public readonly invalidResponseAction: pulumi.Output<string | undefined>;
     declare public readonly order: pulumi.Output<number>;
@@ -50,7 +50,7 @@ export class FlowStageBinding extends pulumi.CustomResource {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     declare public readonly policyEngineMode: pulumi.Output<string | undefined>;
     /**
@@ -120,7 +120,7 @@ export interface FlowStageBindingState {
      *   - <span pulumi-lang-nodejs="`retry`" pulumi-lang-dotnet="`Retry`" pulumi-lang-go="`retry`" pulumi-lang-python="`retry`" pulumi-lang-yaml="`retry`" pulumi-lang-java="`retry`" pulumi-lang-hcl="`retry`">`retry`</span>
      *   - <span pulumi-lang-nodejs="`restart`" pulumi-lang-dotnet="`Restart`" pulumi-lang-go="`restart`" pulumi-lang-python="`restart`" pulumi-lang-yaml="`restart`" pulumi-lang-java="`restart`" pulumi-lang-hcl="`restart`">`restart`</span>
      *   - <span pulumi-lang-nodejs="`restartWithContext`" pulumi-lang-dotnet="`RestartWithContext`" pulumi-lang-go="`restartWithContext`" pulumi-lang-python="`restart_with_context`" pulumi-lang-yaml="`restartWithContext`" pulumi-lang-java="`restartWithContext`" pulumi-lang-hcl="`restart_with_context`">`restartWithContext`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`retry`" pulumi-lang-dotnet="`Retry`" pulumi-lang-go="`retry`" pulumi-lang-python="`retry`" pulumi-lang-yaml="`retry`" pulumi-lang-java="`retry`" pulumi-lang-hcl="`retry`">`retry`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`retry`" pulumi-lang-dotnet="`Retry`" pulumi-lang-go="`retry`" pulumi-lang-python="`retry`" pulumi-lang-yaml="`retry`" pulumi-lang-java="`retry`" pulumi-lang-hcl="`retry`">`retry`</span>.
      */
     invalidResponseAction?: pulumi.Input<string | undefined>;
     order?: pulumi.Input<number | undefined>;
@@ -128,7 +128,7 @@ export interface FlowStageBindingState {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     /**
@@ -153,7 +153,7 @@ export interface FlowStageBindingArgs {
      *   - <span pulumi-lang-nodejs="`retry`" pulumi-lang-dotnet="`Retry`" pulumi-lang-go="`retry`" pulumi-lang-python="`retry`" pulumi-lang-yaml="`retry`" pulumi-lang-java="`retry`" pulumi-lang-hcl="`retry`">`retry`</span>
      *   - <span pulumi-lang-nodejs="`restart`" pulumi-lang-dotnet="`Restart`" pulumi-lang-go="`restart`" pulumi-lang-python="`restart`" pulumi-lang-yaml="`restart`" pulumi-lang-java="`restart`" pulumi-lang-hcl="`restart`">`restart`</span>
      *   - <span pulumi-lang-nodejs="`restartWithContext`" pulumi-lang-dotnet="`RestartWithContext`" pulumi-lang-go="`restartWithContext`" pulumi-lang-python="`restart_with_context`" pulumi-lang-yaml="`restartWithContext`" pulumi-lang-java="`restartWithContext`" pulumi-lang-hcl="`restart_with_context`">`restartWithContext`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`retry`" pulumi-lang-dotnet="`Retry`" pulumi-lang-go="`retry`" pulumi-lang-python="`retry`" pulumi-lang-yaml="`retry`" pulumi-lang-java="`retry`" pulumi-lang-hcl="`retry`">`retry`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`retry`" pulumi-lang-dotnet="`Retry`" pulumi-lang-go="`retry`" pulumi-lang-python="`retry`" pulumi-lang-yaml="`retry`" pulumi-lang-java="`retry`" pulumi-lang-hcl="`retry`">`retry`</span>.
      */
     invalidResponseAction?: pulumi.Input<string | undefined>;
     order: pulumi.Input<number>;
@@ -161,7 +161,7 @@ export interface FlowStageBindingArgs {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     /**

@@ -9,15 +9,8 @@ import axios from 'axios';
 import CronTime from 'cron-time-generator';
 import dedent from 'dedent';
 import Handlebars from 'handlebars';
-import _, { constant } from 'lodash';
-import {
-  IniFile,
-  javascript,
-  JsonFile,
-  TextFile,
-  typescript,
-  YamlFile,
-} from 'projen';
+import _ from 'lodash';
+import { javascript, JsonFile, TextFile, typescript, YamlFile } from 'projen';
 import { GithubCredentials } from 'projen/lib/github/github-credentials';
 import { Job } from 'projen/lib/github/workflows-model';
 import { ArrowParens } from 'projen/lib/javascript';
@@ -912,6 +905,7 @@ void (async () => {
       ]),
       overrides: {
         '@pulumi/pulumi': '$@pulumi/pulumi',
+        '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
         '@types/node': '$@types/node',
         typescript: '$typescript',
         ...Object.fromEntries(

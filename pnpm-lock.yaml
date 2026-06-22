@@ -6,6 +6,7 @@ settings:
 
 overrides:
   '@pulumi/pulumi': ^3.246.0
+  '@pulumi/esc-sdk': ^0.13.1
   '@types/node': ^25.9.3
   typescript: ^6.0.3
 
