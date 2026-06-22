@@ -39,7 +39,7 @@ export class StageAuthenticatorSms extends pulumi.CustomResource {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`basic`" pulumi-lang-dotnet="`Basic`" pulumi-lang-go="`basic`" pulumi-lang-python="`basic`" pulumi-lang-yaml="`basic`" pulumi-lang-java="`basic`" pulumi-lang-hcl="`basic`">`basic`</span>
      *   - <span pulumi-lang-nodejs="`bearer`" pulumi-lang-dotnet="`Bearer`" pulumi-lang-go="`bearer`" pulumi-lang-python="`bearer`" pulumi-lang-yaml="`bearer`" pulumi-lang-java="`bearer`" pulumi-lang-hcl="`bearer`">`bearer`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`basic`" pulumi-lang-dotnet="`Basic`" pulumi-lang-go="`basic`" pulumi-lang-python="`basic`" pulumi-lang-yaml="`basic`" pulumi-lang-java="`basic`" pulumi-lang-hcl="`basic`">`basic`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`basic`" pulumi-lang-dotnet="`Basic`" pulumi-lang-go="`basic`" pulumi-lang-python="`basic`" pulumi-lang-yaml="`basic`" pulumi-lang-java="`basic`" pulumi-lang-hcl="`basic`">`basic`</span>.
      */
     declare public readonly authType: pulumi.Output<string | undefined>;
     declare public readonly configureFlow: pulumi.Output<string | undefined>;
@@ -54,7 +54,7 @@ export class StageAuthenticatorSms extends pulumi.CustomResource {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`twilio`" pulumi-lang-dotnet="`Twilio`" pulumi-lang-go="`twilio`" pulumi-lang-python="`twilio`" pulumi-lang-yaml="`twilio`" pulumi-lang-java="`twilio`" pulumi-lang-hcl="`twilio`">`twilio`</span>
      *   - <span pulumi-lang-nodejs="`generic`" pulumi-lang-dotnet="`Generic`" pulumi-lang-go="`generic`" pulumi-lang-python="`generic`" pulumi-lang-yaml="`generic`" pulumi-lang-java="`generic`" pulumi-lang-hcl="`generic`">`generic`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`twilio`" pulumi-lang-dotnet="`Twilio`" pulumi-lang-go="`twilio`" pulumi-lang-python="`twilio`" pulumi-lang-yaml="`twilio`" pulumi-lang-java="`twilio`" pulumi-lang-hcl="`twilio`">`twilio`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`twilio`" pulumi-lang-dotnet="`Twilio`" pulumi-lang-go="`twilio`" pulumi-lang-python="`twilio`" pulumi-lang-yaml="`twilio`" pulumi-lang-java="`twilio`" pulumi-lang-hcl="`twilio`">`twilio`</span>.
      */
     declare public readonly smsProvider: pulumi.Output<string | undefined>;
     declare public readonly stageAuthenticatorSmsId: pulumi.Output<string>;
@@ -130,7 +130,7 @@ export interface StageAuthenticatorSmsState {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`basic`" pulumi-lang-dotnet="`Basic`" pulumi-lang-go="`basic`" pulumi-lang-python="`basic`" pulumi-lang-yaml="`basic`" pulumi-lang-java="`basic`" pulumi-lang-hcl="`basic`">`basic`</span>
      *   - <span pulumi-lang-nodejs="`bearer`" pulumi-lang-dotnet="`Bearer`" pulumi-lang-go="`bearer`" pulumi-lang-python="`bearer`" pulumi-lang-yaml="`bearer`" pulumi-lang-java="`bearer`" pulumi-lang-hcl="`bearer`">`bearer`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`basic`" pulumi-lang-dotnet="`Basic`" pulumi-lang-go="`basic`" pulumi-lang-python="`basic`" pulumi-lang-yaml="`basic`" pulumi-lang-java="`basic`" pulumi-lang-hcl="`basic`">`basic`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`basic`" pulumi-lang-dotnet="`Basic`" pulumi-lang-go="`basic`" pulumi-lang-python="`basic`" pulumi-lang-yaml="`basic`" pulumi-lang-java="`basic`" pulumi-lang-hcl="`basic`">`basic`</span>.
      */
     authType?: pulumi.Input<string | undefined>;
     configureFlow?: pulumi.Input<string | undefined>;
@@ -145,7 +145,7 @@ export interface StageAuthenticatorSmsState {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`twilio`" pulumi-lang-dotnet="`Twilio`" pulumi-lang-go="`twilio`" pulumi-lang-python="`twilio`" pulumi-lang-yaml="`twilio`" pulumi-lang-java="`twilio`" pulumi-lang-hcl="`twilio`">`twilio`</span>
      *   - <span pulumi-lang-nodejs="`generic`" pulumi-lang-dotnet="`Generic`" pulumi-lang-go="`generic`" pulumi-lang-python="`generic`" pulumi-lang-yaml="`generic`" pulumi-lang-java="`generic`" pulumi-lang-hcl="`generic`">`generic`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`twilio`" pulumi-lang-dotnet="`Twilio`" pulumi-lang-go="`twilio`" pulumi-lang-python="`twilio`" pulumi-lang-yaml="`twilio`" pulumi-lang-java="`twilio`" pulumi-lang-hcl="`twilio`">`twilio`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`twilio`" pulumi-lang-dotnet="`Twilio`" pulumi-lang-go="`twilio`" pulumi-lang-python="`twilio`" pulumi-lang-yaml="`twilio`" pulumi-lang-java="`twilio`" pulumi-lang-hcl="`twilio`">`twilio`</span>.
      */
     smsProvider?: pulumi.Input<string | undefined>;
     stageAuthenticatorSmsId?: pulumi.Input<string | undefined>;
@@ -166,7 +166,7 @@ export interface StageAuthenticatorSmsArgs {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`basic`" pulumi-lang-dotnet="`Basic`" pulumi-lang-go="`basic`" pulumi-lang-python="`basic`" pulumi-lang-yaml="`basic`" pulumi-lang-java="`basic`" pulumi-lang-hcl="`basic`">`basic`</span>
      *   - <span pulumi-lang-nodejs="`bearer`" pulumi-lang-dotnet="`Bearer`" pulumi-lang-go="`bearer`" pulumi-lang-python="`bearer`" pulumi-lang-yaml="`bearer`" pulumi-lang-java="`bearer`" pulumi-lang-hcl="`bearer`">`bearer`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`basic`" pulumi-lang-dotnet="`Basic`" pulumi-lang-go="`basic`" pulumi-lang-python="`basic`" pulumi-lang-yaml="`basic`" pulumi-lang-java="`basic`" pulumi-lang-hcl="`basic`">`basic`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`basic`" pulumi-lang-dotnet="`Basic`" pulumi-lang-go="`basic`" pulumi-lang-python="`basic`" pulumi-lang-yaml="`basic`" pulumi-lang-java="`basic`" pulumi-lang-hcl="`basic`">`basic`</span>.
      */
     authType?: pulumi.Input<string | undefined>;
     configureFlow?: pulumi.Input<string | undefined>;
@@ -181,7 +181,7 @@ export interface StageAuthenticatorSmsArgs {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`twilio`" pulumi-lang-dotnet="`Twilio`" pulumi-lang-go="`twilio`" pulumi-lang-python="`twilio`" pulumi-lang-yaml="`twilio`" pulumi-lang-java="`twilio`" pulumi-lang-hcl="`twilio`">`twilio`</span>
      *   - <span pulumi-lang-nodejs="`generic`" pulumi-lang-dotnet="`Generic`" pulumi-lang-go="`generic`" pulumi-lang-python="`generic`" pulumi-lang-yaml="`generic`" pulumi-lang-java="`generic`" pulumi-lang-hcl="`generic`">`generic`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`twilio`" pulumi-lang-dotnet="`Twilio`" pulumi-lang-go="`twilio`" pulumi-lang-python="`twilio`" pulumi-lang-yaml="`twilio`" pulumi-lang-java="`twilio`" pulumi-lang-hcl="`twilio`">`twilio`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`twilio`" pulumi-lang-dotnet="`Twilio`" pulumi-lang-go="`twilio`" pulumi-lang-python="`twilio`" pulumi-lang-yaml="`twilio`" pulumi-lang-java="`twilio`" pulumi-lang-hcl="`twilio`">`twilio`</span>.
      */
     smsProvider?: pulumi.Input<string | undefined>;
     stageAuthenticatorSmsId?: pulumi.Input<string | undefined>;

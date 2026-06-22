@@ -40,7 +40,7 @@ export class StageRedirect extends pulumi.CustomResource {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`static`" pulumi-lang-dotnet="`Static`" pulumi-lang-go="`static`" pulumi-lang-python="`static`" pulumi-lang-yaml="`static`" pulumi-lang-java="`static`" pulumi-lang-hcl="`static`">`static`</span>
      *   - <span pulumi-lang-nodejs="`flow`" pulumi-lang-dotnet="`Flow`" pulumi-lang-go="`flow`" pulumi-lang-python="`flow`" pulumi-lang-yaml="`flow`" pulumi-lang-java="`flow`" pulumi-lang-hcl="`flow`">`flow`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`flow`" pulumi-lang-dotnet="`Flow`" pulumi-lang-go="`flow`" pulumi-lang-python="`flow`" pulumi-lang-yaml="`flow`" pulumi-lang-java="`flow`" pulumi-lang-hcl="`flow`">`flow`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`flow`" pulumi-lang-dotnet="`Flow`" pulumi-lang-go="`flow`" pulumi-lang-python="`flow`" pulumi-lang-yaml="`flow`" pulumi-lang-java="`flow`" pulumi-lang-hcl="`flow`">`flow`</span>.
      */
     declare public readonly mode: pulumi.Output<string | undefined>;
     declare public readonly name: pulumi.Output<string>;
@@ -93,7 +93,7 @@ export interface StageRedirectState {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`static`" pulumi-lang-dotnet="`Static`" pulumi-lang-go="`static`" pulumi-lang-python="`static`" pulumi-lang-yaml="`static`" pulumi-lang-java="`static`" pulumi-lang-hcl="`static`">`static`</span>
      *   - <span pulumi-lang-nodejs="`flow`" pulumi-lang-dotnet="`Flow`" pulumi-lang-go="`flow`" pulumi-lang-python="`flow`" pulumi-lang-yaml="`flow`" pulumi-lang-java="`flow`" pulumi-lang-hcl="`flow`">`flow`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`flow`" pulumi-lang-dotnet="`Flow`" pulumi-lang-go="`flow`" pulumi-lang-python="`flow`" pulumi-lang-yaml="`flow`" pulumi-lang-java="`flow`" pulumi-lang-hcl="`flow`">`flow`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`flow`" pulumi-lang-dotnet="`Flow`" pulumi-lang-go="`flow`" pulumi-lang-python="`flow`" pulumi-lang-yaml="`flow`" pulumi-lang-java="`flow`" pulumi-lang-hcl="`flow`">`flow`</span>.
      */
     mode?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
@@ -114,7 +114,7 @@ export interface StageRedirectArgs {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`static`" pulumi-lang-dotnet="`Static`" pulumi-lang-go="`static`" pulumi-lang-python="`static`" pulumi-lang-yaml="`static`" pulumi-lang-java="`static`" pulumi-lang-hcl="`static`">`static`</span>
      *   - <span pulumi-lang-nodejs="`flow`" pulumi-lang-dotnet="`Flow`" pulumi-lang-go="`flow`" pulumi-lang-python="`flow`" pulumi-lang-yaml="`flow`" pulumi-lang-java="`flow`" pulumi-lang-hcl="`flow`">`flow`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`flow`" pulumi-lang-dotnet="`Flow`" pulumi-lang-go="`flow`" pulumi-lang-python="`flow`" pulumi-lang-yaml="`flow`" pulumi-lang-java="`flow`" pulumi-lang-hcl="`flow`">`flow`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`flow`" pulumi-lang-dotnet="`Flow`" pulumi-lang-go="`flow`" pulumi-lang-python="`flow`" pulumi-lang-yaml="`flow`" pulumi-lang-java="`flow`" pulumi-lang-hcl="`flow`">`flow`</span>.
      */
     mode?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;

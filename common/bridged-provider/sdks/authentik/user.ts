@@ -67,7 +67,7 @@ export class User extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`external`" pulumi-lang-dotnet="`External`" pulumi-lang-go="`external`" pulumi-lang-python="`external`" pulumi-lang-yaml="`external`" pulumi-lang-java="`external`" pulumi-lang-hcl="`external`">`external`</span>
      *   - <span pulumi-lang-nodejs="`serviceAccount`" pulumi-lang-dotnet="`ServiceAccount`" pulumi-lang-go="`serviceAccount`" pulumi-lang-python="`service_account`" pulumi-lang-yaml="`serviceAccount`" pulumi-lang-java="`serviceAccount`" pulumi-lang-hcl="`service_account`">`serviceAccount`</span>
      *   - <span pulumi-lang-nodejs="`internalServiceAccount`" pulumi-lang-dotnet="`InternalServiceAccount`" pulumi-lang-go="`internalServiceAccount`" pulumi-lang-python="`internal_service_account`" pulumi-lang-yaml="`internalServiceAccount`" pulumi-lang-java="`internalServiceAccount`" pulumi-lang-hcl="`internal_service_account`">`internalServiceAccount`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`internal`" pulumi-lang-dotnet="`Internal`" pulumi-lang-go="`internal`" pulumi-lang-python="`internal`" pulumi-lang-yaml="`internal`" pulumi-lang-java="`internal`" pulumi-lang-hcl="`internal`">`internal`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`internal`" pulumi-lang-dotnet="`Internal`" pulumi-lang-go="`internal`" pulumi-lang-python="`internal`" pulumi-lang-yaml="`internal`" pulumi-lang-java="`internal`" pulumi-lang-hcl="`internal`">`internal`</span>.
      */
     declare public readonly type: pulumi.Output<string | undefined>;
     declare public readonly userId: pulumi.Output<string>;
@@ -160,7 +160,7 @@ export interface UserState {
      *   - <span pulumi-lang-nodejs="`external`" pulumi-lang-dotnet="`External`" pulumi-lang-go="`external`" pulumi-lang-python="`external`" pulumi-lang-yaml="`external`" pulumi-lang-java="`external`" pulumi-lang-hcl="`external`">`external`</span>
      *   - <span pulumi-lang-nodejs="`serviceAccount`" pulumi-lang-dotnet="`ServiceAccount`" pulumi-lang-go="`serviceAccount`" pulumi-lang-python="`service_account`" pulumi-lang-yaml="`serviceAccount`" pulumi-lang-java="`serviceAccount`" pulumi-lang-hcl="`service_account`">`serviceAccount`</span>
      *   - <span pulumi-lang-nodejs="`internalServiceAccount`" pulumi-lang-dotnet="`InternalServiceAccount`" pulumi-lang-go="`internalServiceAccount`" pulumi-lang-python="`internal_service_account`" pulumi-lang-yaml="`internalServiceAccount`" pulumi-lang-java="`internalServiceAccount`" pulumi-lang-hcl="`internal_service_account`">`internalServiceAccount`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`internal`" pulumi-lang-dotnet="`Internal`" pulumi-lang-go="`internal`" pulumi-lang-python="`internal`" pulumi-lang-yaml="`internal`" pulumi-lang-java="`internal`" pulumi-lang-hcl="`internal`">`internal`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`internal`" pulumi-lang-dotnet="`Internal`" pulumi-lang-go="`internal`" pulumi-lang-python="`internal`" pulumi-lang-yaml="`internal`" pulumi-lang-java="`internal`" pulumi-lang-hcl="`internal`">`internal`</span>.
      */
     type?: pulumi.Input<string | undefined>;
     userId?: pulumi.Input<string | undefined>;
@@ -206,7 +206,7 @@ export interface UserArgs {
      *   - <span pulumi-lang-nodejs="`external`" pulumi-lang-dotnet="`External`" pulumi-lang-go="`external`" pulumi-lang-python="`external`" pulumi-lang-yaml="`external`" pulumi-lang-java="`external`" pulumi-lang-hcl="`external`">`external`</span>
      *   - <span pulumi-lang-nodejs="`serviceAccount`" pulumi-lang-dotnet="`ServiceAccount`" pulumi-lang-go="`serviceAccount`" pulumi-lang-python="`service_account`" pulumi-lang-yaml="`serviceAccount`" pulumi-lang-java="`serviceAccount`" pulumi-lang-hcl="`service_account`">`serviceAccount`</span>
      *   - <span pulumi-lang-nodejs="`internalServiceAccount`" pulumi-lang-dotnet="`InternalServiceAccount`" pulumi-lang-go="`internalServiceAccount`" pulumi-lang-python="`internal_service_account`" pulumi-lang-yaml="`internalServiceAccount`" pulumi-lang-java="`internalServiceAccount`" pulumi-lang-hcl="`internal_service_account`">`internalServiceAccount`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`internal`" pulumi-lang-dotnet="`Internal`" pulumi-lang-go="`internal`" pulumi-lang-python="`internal`" pulumi-lang-yaml="`internal`" pulumi-lang-java="`internal`" pulumi-lang-hcl="`internal`">`internal`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`internal`" pulumi-lang-dotnet="`Internal`" pulumi-lang-go="`internal`" pulumi-lang-python="`internal`" pulumi-lang-yaml="`internal`" pulumi-lang-java="`internal`" pulumi-lang-hcl="`internal`">`internal`</span>.
      */
     type?: pulumi.Input<string | undefined>;
     userId?: pulumi.Input<string | undefined>;

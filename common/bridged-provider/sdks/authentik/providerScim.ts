@@ -36,7 +36,7 @@ export class ProviderScim extends pulumi.CustomResource {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`token`" pulumi-lang-dotnet="`Token`" pulumi-lang-go="`token`" pulumi-lang-python="`token`" pulumi-lang-yaml="`token`" pulumi-lang-java="`token`" pulumi-lang-hcl="`token`">`token`</span>
      *   - <span pulumi-lang-nodejs="`oauth`" pulumi-lang-dotnet="`Oauth`" pulumi-lang-go="`oauth`" pulumi-lang-python="`oauth`" pulumi-lang-yaml="`oauth`" pulumi-lang-java="`oauth`" pulumi-lang-hcl="`oauth`">`oauth`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`token`" pulumi-lang-dotnet="`Token`" pulumi-lang-go="`token`" pulumi-lang-python="`token`" pulumi-lang-yaml="`token`" pulumi-lang-java="`token`" pulumi-lang-hcl="`token`">`token`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`token`" pulumi-lang-dotnet="`Token`" pulumi-lang-go="`token`" pulumi-lang-python="`token`" pulumi-lang-yaml="`token`" pulumi-lang-java="`token`" pulumi-lang-hcl="`token`">`token`</span>.
      */
     declare public readonly authMode: pulumi.Output<string | undefined>;
     /**
@@ -55,7 +55,7 @@ export class ProviderScim extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`sfdc`" pulumi-lang-dotnet="`Sfdc`" pulumi-lang-go="`sfdc`" pulumi-lang-python="`sfdc`" pulumi-lang-yaml="`sfdc`" pulumi-lang-java="`sfdc`" pulumi-lang-hcl="`sfdc`">`sfdc`</span>
      *   - <span pulumi-lang-nodejs="`webex`" pulumi-lang-dotnet="`Webex`" pulumi-lang-go="`webex`" pulumi-lang-python="`webex`" pulumi-lang-yaml="`webex`" pulumi-lang-java="`webex`" pulumi-lang-hcl="`webex`">`webex`</span>
      *   - <span pulumi-lang-nodejs="`vcenter`" pulumi-lang-dotnet="`Vcenter`" pulumi-lang-go="`vcenter`" pulumi-lang-python="`vcenter`" pulumi-lang-yaml="`vcenter`" pulumi-lang-java="`vcenter`" pulumi-lang-hcl="`vcenter`">`vcenter`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`default`" pulumi-lang-dotnet="`Default`" pulumi-lang-go="`default`" pulumi-lang-python="`default`" pulumi-lang-yaml="`default`" pulumi-lang-java="`default`" pulumi-lang-hcl="`default`">`default`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`default`" pulumi-lang-dotnet="`Default`" pulumi-lang-go="`default`" pulumi-lang-python="`default`" pulumi-lang-yaml="`default`" pulumi-lang-java="`default`" pulumi-lang-hcl="`default`">`default`</span>.
      */
     declare public readonly compatibilityMode: pulumi.Output<string | undefined>;
     /**
@@ -149,7 +149,7 @@ export interface ProviderScimState {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`token`" pulumi-lang-dotnet="`Token`" pulumi-lang-go="`token`" pulumi-lang-python="`token`" pulumi-lang-yaml="`token`" pulumi-lang-java="`token`" pulumi-lang-hcl="`token`">`token`</span>
      *   - <span pulumi-lang-nodejs="`oauth`" pulumi-lang-dotnet="`Oauth`" pulumi-lang-go="`oauth`" pulumi-lang-python="`oauth`" pulumi-lang-yaml="`oauth`" pulumi-lang-java="`oauth`" pulumi-lang-hcl="`oauth`">`oauth`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`token`" pulumi-lang-dotnet="`Token`" pulumi-lang-go="`token`" pulumi-lang-python="`token`" pulumi-lang-yaml="`token`" pulumi-lang-java="`token`" pulumi-lang-hcl="`token`">`token`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`token`" pulumi-lang-dotnet="`Token`" pulumi-lang-go="`token`" pulumi-lang-python="`token`" pulumi-lang-yaml="`token`" pulumi-lang-java="`token`" pulumi-lang-hcl="`token`">`token`</span>.
      */
     authMode?: pulumi.Input<string | undefined>;
     /**
@@ -168,7 +168,7 @@ export interface ProviderScimState {
      *   - <span pulumi-lang-nodejs="`sfdc`" pulumi-lang-dotnet="`Sfdc`" pulumi-lang-go="`sfdc`" pulumi-lang-python="`sfdc`" pulumi-lang-yaml="`sfdc`" pulumi-lang-java="`sfdc`" pulumi-lang-hcl="`sfdc`">`sfdc`</span>
      *   - <span pulumi-lang-nodejs="`webex`" pulumi-lang-dotnet="`Webex`" pulumi-lang-go="`webex`" pulumi-lang-python="`webex`" pulumi-lang-yaml="`webex`" pulumi-lang-java="`webex`" pulumi-lang-hcl="`webex`">`webex`</span>
      *   - <span pulumi-lang-nodejs="`vcenter`" pulumi-lang-dotnet="`Vcenter`" pulumi-lang-go="`vcenter`" pulumi-lang-python="`vcenter`" pulumi-lang-yaml="`vcenter`" pulumi-lang-java="`vcenter`" pulumi-lang-hcl="`vcenter`">`vcenter`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`default`" pulumi-lang-dotnet="`Default`" pulumi-lang-go="`default`" pulumi-lang-python="`default`" pulumi-lang-yaml="`default`" pulumi-lang-java="`default`" pulumi-lang-hcl="`default`">`default`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`default`" pulumi-lang-dotnet="`Default`" pulumi-lang-go="`default`" pulumi-lang-python="`default`" pulumi-lang-yaml="`default`" pulumi-lang-java="`default`" pulumi-lang-hcl="`default`">`default`</span>.
      */
     compatibilityMode?: pulumi.Input<string | undefined>;
     /**
@@ -205,7 +205,7 @@ export interface ProviderScimArgs {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`token`" pulumi-lang-dotnet="`Token`" pulumi-lang-go="`token`" pulumi-lang-python="`token`" pulumi-lang-yaml="`token`" pulumi-lang-java="`token`" pulumi-lang-hcl="`token`">`token`</span>
      *   - <span pulumi-lang-nodejs="`oauth`" pulumi-lang-dotnet="`Oauth`" pulumi-lang-go="`oauth`" pulumi-lang-python="`oauth`" pulumi-lang-yaml="`oauth`" pulumi-lang-java="`oauth`" pulumi-lang-hcl="`oauth`">`oauth`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`token`" pulumi-lang-dotnet="`Token`" pulumi-lang-go="`token`" pulumi-lang-python="`token`" pulumi-lang-yaml="`token`" pulumi-lang-java="`token`" pulumi-lang-hcl="`token`">`token`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`token`" pulumi-lang-dotnet="`Token`" pulumi-lang-go="`token`" pulumi-lang-python="`token`" pulumi-lang-yaml="`token`" pulumi-lang-java="`token`" pulumi-lang-hcl="`token`">`token`</span>.
      */
     authMode?: pulumi.Input<string | undefined>;
     /**
@@ -224,7 +224,7 @@ export interface ProviderScimArgs {
      *   - <span pulumi-lang-nodejs="`sfdc`" pulumi-lang-dotnet="`Sfdc`" pulumi-lang-go="`sfdc`" pulumi-lang-python="`sfdc`" pulumi-lang-yaml="`sfdc`" pulumi-lang-java="`sfdc`" pulumi-lang-hcl="`sfdc`">`sfdc`</span>
      *   - <span pulumi-lang-nodejs="`webex`" pulumi-lang-dotnet="`Webex`" pulumi-lang-go="`webex`" pulumi-lang-python="`webex`" pulumi-lang-yaml="`webex`" pulumi-lang-java="`webex`" pulumi-lang-hcl="`webex`">`webex`</span>
      *   - <span pulumi-lang-nodejs="`vcenter`" pulumi-lang-dotnet="`Vcenter`" pulumi-lang-go="`vcenter`" pulumi-lang-python="`vcenter`" pulumi-lang-yaml="`vcenter`" pulumi-lang-java="`vcenter`" pulumi-lang-hcl="`vcenter`">`vcenter`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`default`" pulumi-lang-dotnet="`Default`" pulumi-lang-go="`default`" pulumi-lang-python="`default`" pulumi-lang-yaml="`default`" pulumi-lang-java="`default`" pulumi-lang-hcl="`default`">`default`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`default`" pulumi-lang-dotnet="`Default`" pulumi-lang-go="`default`" pulumi-lang-python="`default`" pulumi-lang-yaml="`default`" pulumi-lang-java="`default`" pulumi-lang-hcl="`default`">`default`</span>.
      */
     compatibilityMode?: pulumi.Input<string | undefined>;
     /**

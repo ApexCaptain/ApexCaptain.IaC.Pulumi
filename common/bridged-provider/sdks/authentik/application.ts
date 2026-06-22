@@ -52,7 +52,7 @@ export class Application extends pulumi.CustomResource {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     declare public readonly policyEngineMode: pulumi.Output<string | undefined>;
     declare public readonly protocolProvider: pulumi.Output<number | undefined>;
@@ -138,7 +138,7 @@ export interface ApplicationState {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     protocolProvider?: pulumi.Input<number | undefined>;
@@ -173,7 +173,7 @@ export interface ApplicationArgs {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     protocolProvider?: pulumi.Input<number | undefined>;

@@ -39,10 +39,10 @@
     "organization": false
   },
   "devDependencies": {
-    "@pulumi/esc-sdk": "^0.13.1",
+    "@pulumi/esc-sdk": "^0.14.0",
     "@types/json2md": "^1.5.4",
     "@types/lodash": "^4.17.24",
-    "@types/node": "^25.9.3",
+    "@types/node": "^25.9.4",
     "@types/semver": "^7.7.1",
     "@types/ssh2": "^1.15.5",
     "@typescript-eslint/eslint-plugin": "^8",
@@ -58,7 +58,7 @@
     "json2md": "^2.0.3",
     "lodash": "^4.18.1",
     "prettier": "^3.8.4",
-    "projen": "^0.99.74",
+    "projen": "^0.100.2",
     "sha512-crypt-ts": "^0.1.27",
     "ssh2": "^1.17.0",
     "timezone-enum": "^1.0.4",
@@ -67,14 +67,14 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@pulumi/pulumi": "^3.246.0",
+    "@pulumi/pulumi": "^3.247.0",
     "axios": "^1.18.0",
     "chalk": "^4.1.2",
     "dedent": "^1.7.2",
     "flat": "^6.0.1",
     "flatley": "^5.2.0",
     "lodash": "^4.18.1",
-    "semver": "^7.8.4",
+    "semver": "^7.8.5",
     "yaml": "^2.9.0"
   },
   "pnpm": {},
