@@ -47,7 +47,7 @@ export class EventRule extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`notice`" pulumi-lang-dotnet="`Notice`" pulumi-lang-go="`notice`" pulumi-lang-python="`notice`" pulumi-lang-yaml="`notice`" pulumi-lang-java="`notice`" pulumi-lang-hcl="`notice`">`notice`</span>
      *   - <span pulumi-lang-nodejs="`warning`" pulumi-lang-dotnet="`Warning`" pulumi-lang-go="`warning`" pulumi-lang-python="`warning`" pulumi-lang-yaml="`warning`" pulumi-lang-java="`warning`" pulumi-lang-hcl="`warning`">`warning`</span>
      *   - <span pulumi-lang-nodejs="`alert`" pulumi-lang-dotnet="`Alert`" pulumi-lang-go="`alert`" pulumi-lang-python="`alert`" pulumi-lang-yaml="`alert`" pulumi-lang-java="`alert`" pulumi-lang-hcl="`alert`">`alert`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`warning`" pulumi-lang-dotnet="`Warning`" pulumi-lang-go="`warning`" pulumi-lang-python="`warning`" pulumi-lang-yaml="`warning`" pulumi-lang-java="`warning`" pulumi-lang-hcl="`warning`">`warning`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`warning`" pulumi-lang-dotnet="`Warning`" pulumi-lang-go="`warning`" pulumi-lang-python="`warning`" pulumi-lang-yaml="`warning`" pulumi-lang-java="`warning`" pulumi-lang-hcl="`warning`">`warning`</span>.
      */
     declare public readonly severity: pulumi.Output<string | undefined>;
     declare public readonly transports: pulumi.Output<string[]>;
@@ -107,7 +107,7 @@ export interface EventRuleState {
      *   - <span pulumi-lang-nodejs="`notice`" pulumi-lang-dotnet="`Notice`" pulumi-lang-go="`notice`" pulumi-lang-python="`notice`" pulumi-lang-yaml="`notice`" pulumi-lang-java="`notice`" pulumi-lang-hcl="`notice`">`notice`</span>
      *   - <span pulumi-lang-nodejs="`warning`" pulumi-lang-dotnet="`Warning`" pulumi-lang-go="`warning`" pulumi-lang-python="`warning`" pulumi-lang-yaml="`warning`" pulumi-lang-java="`warning`" pulumi-lang-hcl="`warning`">`warning`</span>
      *   - <span pulumi-lang-nodejs="`alert`" pulumi-lang-dotnet="`Alert`" pulumi-lang-go="`alert`" pulumi-lang-python="`alert`" pulumi-lang-yaml="`alert`" pulumi-lang-java="`alert`" pulumi-lang-hcl="`alert`">`alert`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`warning`" pulumi-lang-dotnet="`Warning`" pulumi-lang-go="`warning`" pulumi-lang-python="`warning`" pulumi-lang-yaml="`warning`" pulumi-lang-java="`warning`" pulumi-lang-hcl="`warning`">`warning`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`warning`" pulumi-lang-dotnet="`Warning`" pulumi-lang-go="`warning`" pulumi-lang-python="`warning`" pulumi-lang-yaml="`warning`" pulumi-lang-java="`warning`" pulumi-lang-hcl="`warning`">`warning`</span>.
      */
     severity?: pulumi.Input<string | undefined>;
     transports?: pulumi.Input<pulumi.Input<string>[] | undefined>;
@@ -132,7 +132,7 @@ export interface EventRuleArgs {
      *   - <span pulumi-lang-nodejs="`notice`" pulumi-lang-dotnet="`Notice`" pulumi-lang-go="`notice`" pulumi-lang-python="`notice`" pulumi-lang-yaml="`notice`" pulumi-lang-java="`notice`" pulumi-lang-hcl="`notice`">`notice`</span>
      *   - <span pulumi-lang-nodejs="`warning`" pulumi-lang-dotnet="`Warning`" pulumi-lang-go="`warning`" pulumi-lang-python="`warning`" pulumi-lang-yaml="`warning`" pulumi-lang-java="`warning`" pulumi-lang-hcl="`warning`">`warning`</span>
      *   - <span pulumi-lang-nodejs="`alert`" pulumi-lang-dotnet="`Alert`" pulumi-lang-go="`alert`" pulumi-lang-python="`alert`" pulumi-lang-yaml="`alert`" pulumi-lang-java="`alert`" pulumi-lang-hcl="`alert`">`alert`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`warning`" pulumi-lang-dotnet="`Warning`" pulumi-lang-go="`warning`" pulumi-lang-python="`warning`" pulumi-lang-yaml="`warning`" pulumi-lang-java="`warning`" pulumi-lang-hcl="`warning`">`warning`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`warning`" pulumi-lang-dotnet="`Warning`" pulumi-lang-go="`warning`" pulumi-lang-python="`warning`" pulumi-lang-yaml="`warning`" pulumi-lang-java="`warning`" pulumi-lang-hcl="`warning`">`warning`</span>.
      */
     severity?: pulumi.Input<string | undefined>;
     transports: pulumi.Input<pulumi.Input<string>[]>;

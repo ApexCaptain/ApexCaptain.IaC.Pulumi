@@ -70,7 +70,7 @@ export class StageAuthenticatorValidate extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`required`" pulumi-lang-dotnet="`Required`" pulumi-lang-go="`required`" pulumi-lang-python="`required`" pulumi-lang-yaml="`required`" pulumi-lang-java="`required`" pulumi-lang-hcl="`required`">`required`</span>
      *   - <span pulumi-lang-nodejs="`preferred`" pulumi-lang-dotnet="`Preferred`" pulumi-lang-go="`preferred`" pulumi-lang-python="`preferred`" pulumi-lang-yaml="`preferred`" pulumi-lang-java="`preferred`" pulumi-lang-hcl="`preferred`">`preferred`</span>
      *   - <span pulumi-lang-nodejs="`discouraged`" pulumi-lang-dotnet="`Discouraged`" pulumi-lang-go="`discouraged`" pulumi-lang-python="`discouraged`" pulumi-lang-yaml="`discouraged`" pulumi-lang-java="`discouraged`" pulumi-lang-hcl="`discouraged`">`discouraged`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`preferred`" pulumi-lang-dotnet="`Preferred`" pulumi-lang-go="`preferred`" pulumi-lang-python="`preferred`" pulumi-lang-yaml="`preferred`" pulumi-lang-java="`preferred`" pulumi-lang-hcl="`preferred`">`preferred`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`preferred`" pulumi-lang-dotnet="`Preferred`" pulumi-lang-go="`preferred`" pulumi-lang-python="`preferred`" pulumi-lang-yaml="`preferred`" pulumi-lang-java="`preferred`" pulumi-lang-hcl="`preferred`">`preferred`</span>.
      */
     declare public readonly webauthnUserVerification: pulumi.Output<string | undefined>;
 
@@ -166,7 +166,7 @@ export interface StageAuthenticatorValidateState {
      *   - <span pulumi-lang-nodejs="`required`" pulumi-lang-dotnet="`Required`" pulumi-lang-go="`required`" pulumi-lang-python="`required`" pulumi-lang-yaml="`required`" pulumi-lang-java="`required`" pulumi-lang-hcl="`required`">`required`</span>
      *   - <span pulumi-lang-nodejs="`preferred`" pulumi-lang-dotnet="`Preferred`" pulumi-lang-go="`preferred`" pulumi-lang-python="`preferred`" pulumi-lang-yaml="`preferred`" pulumi-lang-java="`preferred`" pulumi-lang-hcl="`preferred`">`preferred`</span>
      *   - <span pulumi-lang-nodejs="`discouraged`" pulumi-lang-dotnet="`Discouraged`" pulumi-lang-go="`discouraged`" pulumi-lang-python="`discouraged`" pulumi-lang-yaml="`discouraged`" pulumi-lang-java="`discouraged`" pulumi-lang-hcl="`discouraged`">`discouraged`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`preferred`" pulumi-lang-dotnet="`Preferred`" pulumi-lang-go="`preferred`" pulumi-lang-python="`preferred`" pulumi-lang-yaml="`preferred`" pulumi-lang-java="`preferred`" pulumi-lang-hcl="`preferred`">`preferred`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`preferred`" pulumi-lang-dotnet="`Preferred`" pulumi-lang-go="`preferred`" pulumi-lang-python="`preferred`" pulumi-lang-yaml="`preferred`" pulumi-lang-java="`preferred`" pulumi-lang-hcl="`preferred`">`preferred`</span>.
      */
     webauthnUserVerification?: pulumi.Input<string | undefined>;
 }
@@ -213,7 +213,7 @@ export interface StageAuthenticatorValidateArgs {
      *   - <span pulumi-lang-nodejs="`required`" pulumi-lang-dotnet="`Required`" pulumi-lang-go="`required`" pulumi-lang-python="`required`" pulumi-lang-yaml="`required`" pulumi-lang-java="`required`" pulumi-lang-hcl="`required`">`required`</span>
      *   - <span pulumi-lang-nodejs="`preferred`" pulumi-lang-dotnet="`Preferred`" pulumi-lang-go="`preferred`" pulumi-lang-python="`preferred`" pulumi-lang-yaml="`preferred`" pulumi-lang-java="`preferred`" pulumi-lang-hcl="`preferred`">`preferred`</span>
      *   - <span pulumi-lang-nodejs="`discouraged`" pulumi-lang-dotnet="`Discouraged`" pulumi-lang-go="`discouraged`" pulumi-lang-python="`discouraged`" pulumi-lang-yaml="`discouraged`" pulumi-lang-java="`discouraged`" pulumi-lang-hcl="`discouraged`">`discouraged`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`preferred`" pulumi-lang-dotnet="`Preferred`" pulumi-lang-go="`preferred`" pulumi-lang-python="`preferred`" pulumi-lang-yaml="`preferred`" pulumi-lang-java="`preferred`" pulumi-lang-hcl="`preferred`">`preferred`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`preferred`" pulumi-lang-dotnet="`Preferred`" pulumi-lang-go="`preferred`" pulumi-lang-python="`preferred`" pulumi-lang-yaml="`preferred`" pulumi-lang-java="`preferred`" pulumi-lang-hcl="`preferred`">`preferred`</span>.
      */
     webauthnUserVerification?: pulumi.Input<string | undefined>;
 }

@@ -41,7 +41,7 @@ export class Flow extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`requireRedirect`" pulumi-lang-dotnet="`RequireRedirect`" pulumi-lang-go="`requireRedirect`" pulumi-lang-python="`require_redirect`" pulumi-lang-yaml="`requireRedirect`" pulumi-lang-java="`requireRedirect`" pulumi-lang-hcl="`require_redirect`">`requireRedirect`</span>
      *   - <span pulumi-lang-nodejs="`requireOutpost`" pulumi-lang-dotnet="`RequireOutpost`" pulumi-lang-go="`requireOutpost`" pulumi-lang-python="`require_outpost`" pulumi-lang-yaml="`requireOutpost`" pulumi-lang-java="`requireOutpost`" pulumi-lang-hcl="`require_outpost`">`requireOutpost`</span>
      *   - <span pulumi-lang-nodejs="`requireToken`" pulumi-lang-dotnet="`RequireToken`" pulumi-lang-go="`requireToken`" pulumi-lang-python="`require_token`" pulumi-lang-yaml="`requireToken`" pulumi-lang-java="`requireToken`" pulumi-lang-hcl="`require_token`">`requireToken`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>.
      */
     declare public readonly authentication: pulumi.Output<string | undefined>;
     /**
@@ -77,7 +77,7 @@ export class Flow extends pulumi.CustomResource {
      *   - <span pulumi-lang-nodejs="`sidebarRight`" pulumi-lang-dotnet="`SidebarRight`" pulumi-lang-go="`sidebarRight`" pulumi-lang-python="`sidebar_right`" pulumi-lang-yaml="`sidebarRight`" pulumi-lang-java="`sidebarRight`" pulumi-lang-hcl="`sidebar_right`">`sidebarRight`</span>
      *   - <span pulumi-lang-nodejs="`sidebarLeftFrameBackground`" pulumi-lang-dotnet="`SidebarLeftFrameBackground`" pulumi-lang-go="`sidebarLeftFrameBackground`" pulumi-lang-python="`sidebar_left_frame_background`" pulumi-lang-yaml="`sidebarLeftFrameBackground`" pulumi-lang-java="`sidebarLeftFrameBackground`" pulumi-lang-hcl="`sidebar_left_frame_background`">`sidebarLeftFrameBackground`</span>
      *   - <span pulumi-lang-nodejs="`sidebarRightFrameBackground`" pulumi-lang-dotnet="`SidebarRightFrameBackground`" pulumi-lang-go="`sidebarRightFrameBackground`" pulumi-lang-python="`sidebar_right_frame_background`" pulumi-lang-yaml="`sidebarRightFrameBackground`" pulumi-lang-java="`sidebarRightFrameBackground`" pulumi-lang-hcl="`sidebar_right_frame_background`">`sidebarRightFrameBackground`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`stacked`" pulumi-lang-dotnet="`Stacked`" pulumi-lang-go="`stacked`" pulumi-lang-python="`stacked`" pulumi-lang-yaml="`stacked`" pulumi-lang-java="`stacked`" pulumi-lang-hcl="`stacked`">`stacked`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`stacked`" pulumi-lang-dotnet="`Stacked`" pulumi-lang-go="`stacked`" pulumi-lang-python="`stacked`" pulumi-lang-yaml="`stacked`" pulumi-lang-java="`stacked`" pulumi-lang-hcl="`stacked`">`stacked`</span>.
      */
     declare public readonly layout: pulumi.Output<string | undefined>;
     declare public readonly name: pulumi.Output<string>;
@@ -85,7 +85,7 @@ export class Flow extends pulumi.CustomResource {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     declare public readonly policyEngineMode: pulumi.Output<string | undefined>;
     declare public readonly slug: pulumi.Output<string>;
@@ -162,7 +162,7 @@ export interface FlowState {
      *   - <span pulumi-lang-nodejs="`requireRedirect`" pulumi-lang-dotnet="`RequireRedirect`" pulumi-lang-go="`requireRedirect`" pulumi-lang-python="`require_redirect`" pulumi-lang-yaml="`requireRedirect`" pulumi-lang-java="`requireRedirect`" pulumi-lang-hcl="`require_redirect`">`requireRedirect`</span>
      *   - <span pulumi-lang-nodejs="`requireOutpost`" pulumi-lang-dotnet="`RequireOutpost`" pulumi-lang-go="`requireOutpost`" pulumi-lang-python="`require_outpost`" pulumi-lang-yaml="`requireOutpost`" pulumi-lang-java="`requireOutpost`" pulumi-lang-hcl="`require_outpost`">`requireOutpost`</span>
      *   - <span pulumi-lang-nodejs="`requireToken`" pulumi-lang-dotnet="`RequireToken`" pulumi-lang-go="`requireToken`" pulumi-lang-python="`require_token`" pulumi-lang-yaml="`requireToken`" pulumi-lang-java="`requireToken`" pulumi-lang-hcl="`require_token`">`requireToken`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>.
      */
     authentication?: pulumi.Input<string | undefined>;
     /**
@@ -198,7 +198,7 @@ export interface FlowState {
      *   - <span pulumi-lang-nodejs="`sidebarRight`" pulumi-lang-dotnet="`SidebarRight`" pulumi-lang-go="`sidebarRight`" pulumi-lang-python="`sidebar_right`" pulumi-lang-yaml="`sidebarRight`" pulumi-lang-java="`sidebarRight`" pulumi-lang-hcl="`sidebar_right`">`sidebarRight`</span>
      *   - <span pulumi-lang-nodejs="`sidebarLeftFrameBackground`" pulumi-lang-dotnet="`SidebarLeftFrameBackground`" pulumi-lang-go="`sidebarLeftFrameBackground`" pulumi-lang-python="`sidebar_left_frame_background`" pulumi-lang-yaml="`sidebarLeftFrameBackground`" pulumi-lang-java="`sidebarLeftFrameBackground`" pulumi-lang-hcl="`sidebar_left_frame_background`">`sidebarLeftFrameBackground`</span>
      *   - <span pulumi-lang-nodejs="`sidebarRightFrameBackground`" pulumi-lang-dotnet="`SidebarRightFrameBackground`" pulumi-lang-go="`sidebarRightFrameBackground`" pulumi-lang-python="`sidebar_right_frame_background`" pulumi-lang-yaml="`sidebarRightFrameBackground`" pulumi-lang-java="`sidebarRightFrameBackground`" pulumi-lang-hcl="`sidebar_right_frame_background`">`sidebarRightFrameBackground`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`stacked`" pulumi-lang-dotnet="`Stacked`" pulumi-lang-go="`stacked`" pulumi-lang-python="`stacked`" pulumi-lang-yaml="`stacked`" pulumi-lang-java="`stacked`" pulumi-lang-hcl="`stacked`">`stacked`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`stacked`" pulumi-lang-dotnet="`Stacked`" pulumi-lang-go="`stacked`" pulumi-lang-python="`stacked`" pulumi-lang-yaml="`stacked`" pulumi-lang-java="`stacked`" pulumi-lang-hcl="`stacked`">`stacked`</span>.
      */
     layout?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
@@ -206,7 +206,7 @@ export interface FlowState {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     slug?: pulumi.Input<string | undefined>;
@@ -230,7 +230,7 @@ export interface FlowArgs {
      *   - <span pulumi-lang-nodejs="`requireRedirect`" pulumi-lang-dotnet="`RequireRedirect`" pulumi-lang-go="`requireRedirect`" pulumi-lang-python="`require_redirect`" pulumi-lang-yaml="`requireRedirect`" pulumi-lang-java="`requireRedirect`" pulumi-lang-hcl="`require_redirect`">`requireRedirect`</span>
      *   - <span pulumi-lang-nodejs="`requireOutpost`" pulumi-lang-dotnet="`RequireOutpost`" pulumi-lang-go="`requireOutpost`" pulumi-lang-python="`require_outpost`" pulumi-lang-yaml="`requireOutpost`" pulumi-lang-java="`requireOutpost`" pulumi-lang-hcl="`require_outpost`">`requireOutpost`</span>
      *   - <span pulumi-lang-nodejs="`requireToken`" pulumi-lang-dotnet="`RequireToken`" pulumi-lang-go="`requireToken`" pulumi-lang-python="`require_token`" pulumi-lang-yaml="`requireToken`" pulumi-lang-java="`requireToken`" pulumi-lang-hcl="`require_token`">`requireToken`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>.
      */
     authentication?: pulumi.Input<string | undefined>;
     /**
@@ -266,7 +266,7 @@ export interface FlowArgs {
      *   - <span pulumi-lang-nodejs="`sidebarRight`" pulumi-lang-dotnet="`SidebarRight`" pulumi-lang-go="`sidebarRight`" pulumi-lang-python="`sidebar_right`" pulumi-lang-yaml="`sidebarRight`" pulumi-lang-java="`sidebarRight`" pulumi-lang-hcl="`sidebar_right`">`sidebarRight`</span>
      *   - <span pulumi-lang-nodejs="`sidebarLeftFrameBackground`" pulumi-lang-dotnet="`SidebarLeftFrameBackground`" pulumi-lang-go="`sidebarLeftFrameBackground`" pulumi-lang-python="`sidebar_left_frame_background`" pulumi-lang-yaml="`sidebarLeftFrameBackground`" pulumi-lang-java="`sidebarLeftFrameBackground`" pulumi-lang-hcl="`sidebar_left_frame_background`">`sidebarLeftFrameBackground`</span>
      *   - <span pulumi-lang-nodejs="`sidebarRightFrameBackground`" pulumi-lang-dotnet="`SidebarRightFrameBackground`" pulumi-lang-go="`sidebarRightFrameBackground`" pulumi-lang-python="`sidebar_right_frame_background`" pulumi-lang-yaml="`sidebarRightFrameBackground`" pulumi-lang-java="`sidebarRightFrameBackground`" pulumi-lang-hcl="`sidebar_right_frame_background`">`sidebarRightFrameBackground`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`stacked`" pulumi-lang-dotnet="`Stacked`" pulumi-lang-go="`stacked`" pulumi-lang-python="`stacked`" pulumi-lang-yaml="`stacked`" pulumi-lang-java="`stacked`" pulumi-lang-hcl="`stacked`">`stacked`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`stacked`" pulumi-lang-dotnet="`Stacked`" pulumi-lang-go="`stacked`" pulumi-lang-python="`stacked`" pulumi-lang-yaml="`stacked`" pulumi-lang-java="`stacked`" pulumi-lang-hcl="`stacked`">`stacked`</span>.
      */
     layout?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
@@ -274,7 +274,7 @@ export interface FlowArgs {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     slug: pulumi.Input<string>;
