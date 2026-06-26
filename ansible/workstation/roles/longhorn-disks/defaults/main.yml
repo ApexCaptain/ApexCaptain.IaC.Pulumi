@@ -1,0 +1,14 @@
+---
+# Example:
+# longhorn_disks:
+#   - device: /dev/sdb1
+#     mount_path: /var/lib/longhorn/ssd
+#     fs_type: ext4
+#     mount_opts: defaults
+#     tags: ["ssd"]
+#   - device: /dev/sdc1
+#     mount_path: /var/lib/longhorn/hdd
+#     fs_type: ext4
+#     mount_opts: defaults
+#     tags: ["hdd"]
+longhorn_disks: []

@@ -3,49 +3,31 @@ import { AbstractEsc } from '../abstract';
 
 const k8sWorkstationSystemEscSchema = z
   .object({
-    nodes: z
+    longhorn: z
       .object({
-        node0: z
-          .object({
+        nodes: z.array(
+          z.object({
             hostName: z.string(),
-          })
-          .required(),
+            disks: z.array(
+              z
+                .object({
+                  name: z.string(),
+                  path: z.string(),
+                  tags: z.array(z.string()),
+                })
+                .required(),
+            ),
+          }),
+        ),
       })
       .required(),
-    kubeConfig: z
-      .object({
-        certificateAuthorityData: z.string(),
-        clientCertificateData: z.string(),
-        clientKeyData: z.string(),
-        server: z.url(),
-      })
-      .required(),
+
     loadbalancer: z
       .object({
-        metallb: z
+        celium: z
           .object({
-            ipRange: z.string(),
+            istioCrossNetworkTlsIp: z.string(),
             ingressGatewayIp: z.string(),
-            additionalPort: z
-              .object({
-                nfsSftp: z.number(),
-              })
-              .required(),
-          })
-          .required(),
-      })
-      .required(),
-    nfs: z
-      .object({
-        localPathHdd0: z.string(),
-        localPathSsd0: z.string(),
-
-        diskSizeHdd0: z.string(),
-        diskSizeSsd0: z.string(),
-
-        sftp: z
-          .object({
-            userName: z.string(),
           })
           .required(),
       })
@@ -61,7 +43,6 @@ const k8sWorkstationSystemEscSchema = z
           })
           .required(),
         postgresqlPassword: z.string(),
-        redisPassword: z.string(),
         oauth: z
           .object({
             allowedEmails: z.array(z.string()),

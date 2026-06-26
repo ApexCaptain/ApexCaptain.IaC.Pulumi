@@ -1,0 +1,10 @@
+---
+- name: Pre-Configure Workstation
+  hosts: k8s_cluster
+  become: true
+  gather_facts: true
+  roles:
+    - role: eanble-iscsi
+    - role: longhorn-disks
+    - role: init-wol
+    - role: install-sysbox-runc

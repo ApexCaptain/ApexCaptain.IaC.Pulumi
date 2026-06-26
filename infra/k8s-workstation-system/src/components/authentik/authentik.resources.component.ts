@@ -1,11 +1,8 @@
 import { authentik } from '@common/bridged-provider';
-import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
-import dedent from 'dedent';
 
 interface AuthentikResourcesComponentArgsShape {
-  isFirstDeploy: boolean;
   oauth: {
     google: {
       clientId: string;
@@ -29,20 +26,10 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    // Helm 깔면 Authentik이 "Local Kubernetes Cluster" connection 알아서 만들어 둠.
-    // proxy outpost 띄울 때 worker가 이 설정 보고 K8s API 호출함 → ak-outpost-* Service 생김.
-    //
-    // verifySsl false인 이유:
-    // MicroK8s CA에 Key Usage가 없는데 worker는 Python 3.13+라 TLS 검증 빡셈.
-    // 로그에 "CA cert does not include key usage extension" 뜨고 outpost는 사용 불가, torrent는 RBAC denied.
-    // kubectl은 멀쩡한데 authentik worker만 죽는 그림.
-    //
-    // 일단 verifySsl 옵션 비활성화. (클러스터 내부 API만 해당, authentik 웹 HTTPS랑 무관).
-    // get + import는 Helm이 만든 connection을 Pulumi state에 붙이려고.
-    //
-    // TODO: 시간 나면 CA refresh-certs로 keyUsage 넣은 걸로 갈아끼고 verifySsl 다시 켜보기.
-
-    // K8s Service Connection
+    /**
+     * Authentik Outpost가 클러스터에 프록시/앱을 배포할 때 참조하는 K8s 연결 정보.
+     * Helm 설치 시 Authentik 기본값으로 생성되므로 lookup만 한다.
+     */
     const dataLocalKubernetesCluster =
       await authentik.getServiceConnectionKubernetes(
         {
@@ -54,27 +41,23 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
         },
       );
 
-    const localKubernetesCluster = new authentik.ServiceConnectionKubernetes(
-      `${resourceName}-localKubernetesCluster`,
-      {
-        name: 'Local Kubernetes Cluster',
-        local: true,
-        verifySsl: false,
-      },
-      {
-        ...opts,
-        provider: args.providers.authentik,
-        import: dataLocalKubernetesCluster.id,
-      },
-    );
-
     // Policies
+    /**
+     * Email 도메인 혹은 특정 Email 주소에 대해서만 가입/로그인 제한을 두기 위해
+     * Policies Overriding을 했었는데, 쓰다보니 그럴 필요가 없어져서
+     * 비활성화. 그냥 그룹별 권한 제어 방식으로 바꿈
+     */
+    /*
     const dataDefaultSourceEnrollmentIfSsoPolicyExpression =
       customResources.data.authentik.getPolcyExpressionV1({
         name: 'default-source-enrollment-if-sso',
         authentikUrl: args.providers.authentik.url,
         authentikToken: args.providers.authentik.token,
       });
+
+    await pulumi.log.info(
+      JSON.stringify(dataDefaultSourceEnrollmentIfSsoPolicyExpression, null, 2),
+    );
 
     const defaultSourceEnrollmentIfSsoPolicyExpression = pulumi
       .all([
@@ -149,8 +132,13 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
           );
         },
       );
+    */
 
-    // Flows
+    /**
+     * Authentik 기본 Flow lookup.
+     * OAuth Source·Provider 등에서 slug로 참조하며, 여기서는 ID만 외부 컴포넌트에 넘긴다.
+     */
+    // OIDC/SAML 등 Provider가 앱 접근 허용 시 거치는 authorization flow (동의 화면 생략 버전)
     const dataDefaultProviderAuthorizationImplicitConsent =
       await authentik.getFlow(
         {
@@ -162,6 +150,7 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
         },
       );
 
+    // 로그아웃 시 세션·쿠키를 정리하는 invalidation flow
     const dataDefaultInvalidationFlow = await authentik.getFlow(
       {
         slug: 'default-invalidation-flow',
@@ -172,6 +161,7 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
       },
     );
 
+    // OAuth Source로 이미 가입된 사용자가 다시 로그인할 때 사용하는 flow
     const dataDefaultSourceAuthenticationFlow = await authentik.getFlow(
       {
         slug: 'default-source-authentication',
@@ -182,6 +172,7 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
       },
     );
 
+    // OAuth Source로 처음 로그인하는 사용자를 Authentik에 등록(enroll)하는 flow
     const dataDefaultSourceEnrollmentFlow = await authentik.getFlow(
       {
         slug: 'default-source-enrollment',
@@ -192,7 +183,11 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
       },
     );
 
-    // Source OAuth
+    /**
+     * Google OAuth Source.
+     * 로그인 화면(Identification stage)에서 "Google로 계속" 버튼을 제공하고,
+     * 기존 사용자 → authenticationFlow, 신규 사용자 → enrollmentFlow 로 분기한다.
+     */
     const googleSourceOauth = new authentik.SourceOauth(
       `${resourceName}-googleSourceOauth`,
       {
@@ -221,7 +216,108 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
       },
     );
 
-    // Stages
+    /**
+     * 권한 tier 그룹 트리.
+     *
+     * Application / Tools 두 축이 있고, 각 축은 User → Manager 로 올라간다.
+     * System tier는 두 Manager 그룹의 **공통 자식**으로 붙어, 두 축의 descendant 체인에 동시에 속한다.
+     *
+     * ```
+     * applicationUser
+     *   └── applicationManager ──┐
+     *                            ├── systemUser
+     * toolsUser                  │     └── systemManager
+     *   └── toolsManager ────────┘
+     * ```
+     *
+     * 주의: parents를 둘 다 지정해도 "양쪽 Manager에 이미 속한 사람만 System에 들어갈 수 있다"는
+     * 교집합 조건이 되지는 않는다. System 그룹에 직접 넣어야 하며, 넣으면 자식→부모 상속으로
+     * applicationManager·toolsManager(및 그 상위 user 그룹) 멤버로도 간주된다.
+     *
+     * Authentik 앱 bind는 bind 대상 그룹의 자식(descendants)에게만 access가 퍼진다.
+     * 권한이 높을수록 tree 아래(child)에 두면, 상위 tier 앱 bind 시 하위 그룹 멤버는 제외된다.
+     */
+    // 일반 앱 접근 tier. 신규 가입자는 enrollment User Write stage에서 자동 배정된다.
+    const applicationUserGroup = new authentik.Group(
+      `${resourceName}-applicationUserGroup`,
+      {
+        name: 'Application User',
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    // Application User의 상위 tier. 앱 관리·고권한 앱 bind 대상.
+    const applicationManagerGroup = new authentik.Group(
+      `${resourceName}-applicationManagerGroup`,
+      {
+        name: 'Application Manager',
+        parents: [applicationUserGroup.id],
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    // 인프라/운영 도구 접근 tier (Application 축과 독립)
+    const toolsUserGroup = new authentik.Group(
+      `${resourceName}-toolsUserGroup`,
+      {
+        name: 'Tools User',
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    // Tools User의 상위 tier
+    const toolsManagerGroup = new authentik.Group(
+      `${resourceName}-toolsManagerGroup`,
+      {
+        name: 'Tools Manager',
+        parents: [toolsUserGroup.id],
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    // 두 Manager 축의 공통 자식. 멤버는 양쪽 Manager·User 그룹 상속 멤버로도 취급됨.
+    const systemUserGroup = new authentik.Group(
+      `${resourceName}-systemUserGroup`,
+      {
+        name: 'System User',
+        parents: [applicationManagerGroup.id, toolsManagerGroup.id],
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    // System tier 최상위. 클러스터/IdP 전역 관리 권한 bind 대상.
+    const systemManagerGroup = new authentik.Group(
+      `${resourceName}-systemManagerGroup`,
+      {
+        name: 'System Manager',
+        parents: [systemUserGroup.id],
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    /**
+     * Flow Stage 오버라이드.
+     * Authentik 기본 stage를 import한 뒤 필요한 필드만 덮어쓴다.
+     */
+    // 기본 로그인 flow의 첫 단계. 이메일/유저명 입력 + federated source(Google) 버튼 표시.
     const dataDefaultAuthenticationIdentification = await authentik.getStage(
       {
         name: 'default-authentication-identification',
@@ -247,67 +343,35 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
         },
       );
 
-    // Groups
-    //
-    // Authentik group binding은 bind 대상 → 자식(descendants)으로만 access가 퍼짐.
-    // 권한 높을수록 tree 아래(child)에 두면, 상위 tier 앱 bind 시 하위 그룹 멤버는 제외됨.
-    //
-    // Tools User (root)
-    //   └── Tools Manager
-    //         └── System User
-    //               └── System Manager
-
-    const toolsUserGroup = new authentik.Group(
-      `${resourceName}-toolsUserGroup`,
-      {
-        name: 'Tools User',
-      },
-      {
-        ...opts,
-        provider: args.providers.authentik,
-      },
+    /**
+     * default-source-enrollment flow 마지막 단계.
+     * OAuth 신규 사용자 생성 시 userType·기본 그룹을 여기서 결정한다.
+     */
+    const dataDefaultSourceEnrollmentWrite = await authentik.getStage(
+      { name: 'default-source-enrollment-write' },
+      { ...opts, provider: args.providers.authentik },
     );
 
-    const toolsManagerGroup = new authentik.Group(
-      `${resourceName}-toolsManagerGroup`,
+    new authentik.StageUserWrite(
+      `${resourceName}-defaultSourceEnrollmentWrite`,
       {
-        name: 'Tools Manager',
-        parents: [toolsUserGroup.id],
+        name: dataDefaultSourceEnrollmentWrite.name,
+        userCreationMode: 'always_create', // OAuth 첫 로그인 시 항상 신규 사용자 생성
+        createUsersAsInactive: false, // 생성 즉시 활성화 (기본값 true)
+        userType: 'internal', // external(기본) 대신 internal user로 분류
+        createUsersGroup: applicationUserGroup.id, // Application User 그룹 자동 배정
       },
       {
         ...opts,
         provider: args.providers.authentik,
-      },
-    );
-
-    const systemUserGroup = new authentik.Group(
-      `${resourceName}-systemUserGroup`,
-      {
-        name: 'System User',
-        parents: [toolsManagerGroup.id],
-      },
-      {
-        ...opts,
-        provider: args.providers.authentik,
-      },
-    );
-
-    const systemManagerGroup = new authentik.Group(
-      `${resourceName}-systemManagerGroup`,
-      {
-        name: 'System Manager',
-        parents: [systemUserGroup.id],
-      },
-      {
-        ...opts,
-        provider: args.providers.authentik,
+        import: dataDefaultSourceEnrollmentWrite.id,
       },
     );
 
     return {
       output: pulumi.output({
         serviceConnections: {
-          localKubernetesClusterId: localKubernetesCluster.id,
+          localKubernetesClusterId: dataLocalKubernetesCluster.id,
         },
         flow: {
           defaultProviderAuthorizationImplicitConsentId:
@@ -317,8 +381,12 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
         groupIds: {
           systemManagerGroup: systemManagerGroup.id,
           systemUserGroup: systemUserGroup.id,
-          toolsUserGroup: toolsUserGroup.id,
+
           toolsManagerGroup: toolsManagerGroup.id,
+          toolsUserGroup: toolsUserGroup.id,
+
+          applicationManagerGroup: applicationManagerGroup.id,
+          applicationUserGroup: applicationUserGroup.id,
         },
       }),
       secret: pulumi.secret({}),

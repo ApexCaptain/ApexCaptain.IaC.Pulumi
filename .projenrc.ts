@@ -1,22 +1,26 @@
+import { randomBytes } from 'crypto';
 import dns from 'dns/promises';
 import fs from 'fs';
-import { readFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
 import * as pulumiEscSdk from '@pulumi/esc-sdk';
 import { LocalWorkspace } from '@pulumi/pulumi/automation';
 import axios from 'axios';
 import CronTime from 'cron-time-generator';
 import dedent from 'dedent';
+import Handlebars from 'handlebars';
 import _ from 'lodash';
 import { javascript, JsonFile, TextFile, typescript, YamlFile } from 'projen';
 import { GithubCredentials } from 'projen/lib/github/github-credentials';
 import { Job } from 'projen/lib/github/workflows-model';
 import { ArrowParens } from 'projen/lib/javascript';
+import { RequirementsFile } from 'projen/lib/python';
 import {
   TypeScriptProject,
   TypeScriptProjectOptions,
 } from 'projen/lib/typescript';
 import { VsCode } from 'projen/lib/vscode';
+import { sha512 } from 'sha512-crypt-ts';
 import Timezone from 'timezone-enum';
 import * as Nexus from './common/nexus/src';
 import * as utils from './common/utils/src';
@@ -80,8 +84,6 @@ const rootProject = new typescript.TypeScriptProject(
       depsUpgrade: true,
       depsUpgradeOptions: {
         workflowOptions: {
-          schedule: javascript.UpgradeDependenciesSchedule.WEEKLY,
-
           assignees: [src.constants.author.name],
           branches: [src.constants.branches.develop],
         },
@@ -100,6 +102,41 @@ const rootProject = new typescript.TypeScriptProject(
           },
         },
       },
+      pullRequestTemplate: true,
+      pullRequestTemplateContents: [
+        '## Related issues',
+        '',
+        '<!-- Closes #123 / Fixes #123 / Relates to #123. 이슈 없으면 이 섹션 전체 삭제 -->',
+        '',
+        'Fixes #',
+        '',
+        '## Summary',
+        '',
+        '<!-- Reviewer가 30초 안에 파악할 수 있도록: 무엇을, 왜 바꿨는지 (1~3 bullet) -->',
+        '',
+        '-',
+        '',
+        '## Test plan',
+        '',
+        '<!-- 검증 근거. 명령어, 스택, UI 확인, 스크린샷 링크 등 -->',
+        '',
+        '- [ ]',
+        '',
+        '## Deployment notes',
+        '',
+        '<!-- 대상 stack/환경, 배포 순서, 수동 후속 작업, 롤백. 해당 없으면 이 섹션 전체 삭제 (N/A 금지) -->',
+        '',
+        '## Checklist',
+        '',
+        '- [ ] Self-review 완료',
+        '- [ ] Secret·credential·kubeconfig 등 민감 정보 미포함',
+        '- [ ] `pulumi preview` 또는 관련 검증 실행 (해당 시)',
+        '- [ ] 문서·주석·runbook 업데이트 (해당 시)',
+        '',
+        '## Additional notes',
+        '',
+        '<!-- 알려진 제한, 후속 PR, 스크린샷. 해당 없으면 이 섹션 전체 삭제 (N/A 금지) -->',
+      ],
       projenCredentials: GithubCredentials.fromPersonalAccessToken({
         secret: 'WORKFLOW_TOKEN',
       }),
@@ -109,15 +146,18 @@ const rootProject = new typescript.TypeScriptProject(
 
       gitignore: [
         '.DS_STORE',
-        'commit-message.txt',
+        '.github/generated',
         'Pulumi*.yaml',
         'Pulumi*.yml',
+        'inventory.ini',
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
-
+        `/${src.constants.paths.dirs.keysDir}`,
         `/${src.constants.paths.dirs.secretsDir}`,
         `/${src.constants.paths.dirs.kubeConfigDir}`,
         `/${src.constants.paths.dirs.pnpmStoreDir}`,
+        `/${src.constants.paths.dirs.ventoyUserDataDir}`,
+        `/${src.constants.paths.dirs.venvDir}`,
       ],
       deps: ['chalk', 'axios', 'semver', 'flat', 'flatley'],
       devDeps: [
@@ -136,6 +176,13 @@ const rootProject = new typescript.TypeScriptProject(
 
         'json2md',
         '@types/json2md',
+
+        'sha512-crypt-ts',
+
+        'handlebars',
+
+        'ssh2',
+        '@types/ssh2',
       ],
     }))(),
     utils.functions.mergeCustomizer,
@@ -154,7 +201,7 @@ const modifyUpgradeWorkflow = async () => {
   upgradeWorkflow.workflows[0].on({
     schedule: [
       {
-        cron: CronTime.everyWeekAt(1, 6), // 매주 월요일 아침 6시
+        cron: CronTime.everyWeekAt(1, 1), // 매주 월요일 새벽 1시
         timezone: Timezone['Asia/Seoul'],
       } as any,
     ],
@@ -444,15 +491,39 @@ const initPulumiEsc = async () => {
     accountName,
     pulumiEscClient,
     {
+      workstationKubeconfig: process.env.KUBE_CONFIG_WORKSTATION_FILE_PATH,
       workstationIptimeDomain: process.env.WORKSTATION_DOMAIN_IPTIME,
       workstationIpV4Address,
+      workstationPodsSubnetCidrBlock:
+        process.env.WORKSTATION_BOOTSTRAP_KUBE_PODS_SUBNET_CIDR_BLOCK,
+      workstationServicesSubnetCidrBlock:
+        process.env.WORKSTATION_BOOTSTRAP_KUBE_SERVICE_SUBNET_CIDR_BLOCK,
+      adapter: {
+        sftp: {
+          userName: process.env.WORKSTATION_SFTP_ADAPTER_USERNAME,
+        },
+      },
       istioNetwork: {
         meshId: process.env.ISTIO_MESH_ID,
         workstationClusterName: process.env.ISTIO_WORKSTATION_CLUSTER_NAME,
         workstationClusterNetwork:
           process.env.ISTIO_WORKSTATION_CLUSTER_NETWORK,
-        workstationDefaultCalcioIpv4IpPoolsCidrBlock:
-          process.env.WORKSTATION_DEFAULT_CALCIO_IPV4_IP_POOLS_CIDR_BLOCK,
+        workstationDirectGateway: {
+          jellyfinSftpName:
+            process.env.WORKSTATION_DIRECT_GATEWAY_JELLYFIN_SFTP_NAME,
+          jellyfinSftpProtocol:
+            process.env.WORKSTATION_DIRECT_GATEWAY_JELLYFIN_SFTP_PROTOCOL,
+          jellyfinSftpPort: parseInt(
+            process.env.WORKSTATION_DIRECT_GATEWAY_JELLYFIN_SFTP_PORT!!,
+          ),
+          qbittorrentSftpName:
+            process.env.WORKSTATION_DIRECT_GATEWAY_QBITORRENT_SFTP_NAME,
+          qbittorrentSftpProtocol:
+            process.env.WORKSTATION_DIRECT_GATEWAY_QBITORRENT_SFTP_PROTOCOL,
+          qbittorrentSftpPort: parseInt(
+            process.env.WORKSTATION_DIRECT_GATEWAY_QBITORRENT_SFTP_PORT!!,
+          ),
+        },
       },
 
       nordLynx: {
@@ -472,67 +543,26 @@ const initPulumiEsc = async () => {
     },
     {
       prod: {},
-      dev: {},
     },
   );
 
-  await Nexus.esc.k8sWorkstationSystemEsc.upsertEsc(
+  await Nexus.esc.ociEsc.upsertEsc(
     accountName,
     pulumiEscClient,
     {
-      nodes: {
-        node0: {
-          hostName: process.env.WORKSTATION_NODE0_NAME,
-        },
-      },
-      kubeConfig: {
-        certificateAuthorityData:
-          process.env.WORKSTATION_K8S_KUBECONFIG_CERTIFICATE_AUTHORITY_DATA,
-        clientCertificateData:
-          process.env.WORKSTATION_K8S_KUBECONFIG_CLIENT_CERTIFICATE_DATA,
-        clientKeyData: process.env.WORKSTATION_K8S_KUBECONFIG_CLIENT_KEY_DATA,
-        server: process.env.WORKSTATION_K8S_KUBECONFIG_SERVER,
-      },
-      loadbalancer: {
-        metallb: {
-          ipRange: process.env.WORKSTATION_METALLB_LOADBALANCER_IP_RANGE,
-          ingressGatewayIp: process.env.WORKSTATION_METALLB_INGRESS_GATEWAY_IP,
-          additionalPort: {
-            nfsSftp: parseInt(
-              process.env.WORKSTATION_METALLB_ADDITIONAL_PORT_NFS_SFTP!!,
-            ),
-          },
-        },
-      },
-      nfs: {
-        localPathHdd0: process.env.WORKSTATION_NFS_LOCAL_PATH_HDD0,
-        localPathSsd0: process.env.WORKSTATION_NFS_LOCAL_PATH_SSD0,
-        diskSizeHdd0: process.env.WORKSTATION_NFS_DISK_SIZE_HDD0,
-        diskSizeSsd0: process.env.WORKSTATION_NFS_DISK_SIZE_SSD0,
-        sftp: {
-          userName: process.env.WORKSTATION_NFS_SFTP_USER_NAME,
-        },
-      },
-      authentik: {
-        secretKey: process.env.AUTHENTIK_SECRET_KEY,
-        bootstrap: {
-          token: process.env.AUTHENTIK_BOOTSTRAP_TOKEN,
-          email: process.env.AUTHENTIK_BOOTSTRAP_EMAIL,
-          password: process.env.AUTHENTIK_BOOTSTRAP_PASSWORD,
-        },
-        postgresqlPassword: process.env.AUTHENTIK_POSTGRESQL_PASSWORD,
-        redisPassword: process.env.AUTHENTIK_REDIS_PASSWORD,
-        oauth: {
-          allowedEmails: process.env.AUTHENTIK_ALLOWED_EMAILS!!.split(','),
-          google: {
-            clientId: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_SECRET,
-          },
-        },
-      },
+      auth: 'ApiKey',
+      fingerprint: process.env.APEX_CAPTAIN_OCI_FINGERPRINT,
+      privateKey: process.env.APEX_CAPTAIN_OCI_PRIVATE_KEY!!.replace(
+        /\\n/g,
+        '\n',
+      ),
+      region: process.env.APEX_CAPTAIN_OCI_REGION,
+      tenancyOcid: process.env.APEX_CAPTAIN_OCI_TENANCY_OCID,
+      userOcid: process.env.APEX_CAPTAIN_OCI_USER_OCID,
     },
     {
       prod: {},
+      dev: {},
     },
   );
 
@@ -545,6 +575,70 @@ const initPulumiEsc = async () => {
       zones: {
         ayteneve93com: {
           id: process.env.CLOUDFLARE_APEX_CAPTAIN_AYTENEVE93_COM_ZONE_ID,
+        },
+      },
+    },
+    {
+      prod: {},
+    },
+  );
+
+  await Nexus.esc.k8sWorkstationSystemEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      longhorn: {
+        nodes: [
+          // Node 0
+          {
+            hostName: process.env.WORKSTATION_BOOTSTRAP_NODE_0_HOSTNAME,
+            disks: [
+              {
+                name: process.env
+                  .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_NAME,
+                path: process.env
+                  .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_MOUNTPATH,
+                tags: [
+                  process.env
+                    .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_DISKTYPE,
+                ],
+              },
+              {
+                name: process.env
+                  .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_1_NAME,
+                path: process.env
+                  .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_1_MOUNTPATH,
+                tags: [
+                  process.env
+                    .WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_1_DISKTYPE,
+                ],
+              },
+            ],
+          },
+        ],
+      },
+
+      loadbalancer: {
+        celium: {
+          istioCrossNetworkTlsIp:
+            process.env.WORKSTATION_SERVICE_LB_ISTIO_CROSS_NETWORK_TLS,
+          ingressGatewayIp: process.env.WORKSTATION_SERVICE_LB_INGRESS,
+        },
+      },
+      authentik: {
+        secretKey: process.env.AUTHENTIK_SECRET_KEY,
+        bootstrap: {
+          token: process.env.AUTHENTIK_BOOTSTRAP_TOKEN,
+          email: process.env.AUTHENTIK_BOOTSTRAP_EMAIL,
+          password: process.env.AUTHENTIK_BOOTSTRAP_PASSWORD,
+        },
+        postgresqlPassword: process.env.AUTHENTIK_POSTGRESQL_PASSWORD,
+        oauth: {
+          allowedEmails: process.env.AUTHENTIK_ALLOWED_EMAILS!!.split(','),
+          google: {
+            clientId: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_SECRET,
+          },
         },
       },
     },
@@ -640,7 +734,10 @@ void (async () => {
     const k8sWorkstationSystemProject = inflatePulumiProject({
       projectName: 'k8s-workstation-system',
       stages: [utils.enums.StackStage.PROD],
-      deps: [src.constants.pulumiPackages.kubernetes],
+      deps: [
+        src.constants.pulumiPackages.kubernetes,
+        src.constants.pulumiPackages.oci,
+      ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
@@ -648,7 +745,11 @@ void (async () => {
         commonProjects.nexusProject.project.package.packageName,
       ],
       infraDeps: [cloudflareProject.project.package.packageName],
-      esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationSystemEsc],
+      esc: [
+        Nexus.esc.commonEsc,
+        Nexus.esc.ociEsc,
+        Nexus.esc.k8sWorkstationSystemEsc,
+      ],
     });
 
     const k8sWorkstationToolsProject = inflatePulumiProject({
@@ -685,29 +786,11 @@ void (async () => {
       esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationAppsEsc],
     });
 
-    const authentikOutpostProject = inflatePulumiProject({
-      projectName: 'authentik-outpost',
-      stages: [utils.enums.StackStage.PROD],
-      deps: [],
-      commonDeps: [
-        commonProjects.bridgedProviderProject.project.package.packageName,
-        commonProjects.utilsProject.project.package.packageName,
-        commonProjects.nexusProject.project.package.packageName,
-      ],
-      infraDeps: [
-        cloudflareProject.project.package.packageName,
-        k8sWorkstationToolsProject.project.package.packageName,
-        k8sWorkstationAppsProject.project.package.packageName,
-        k8sWorkstationSystemProject.project.package.packageName,
-      ],
-    });
-
     return {
       cloudflareProject,
       k8sWorkstationSystemProject,
       k8sWorkstationToolsProject,
       k8sWorkstationAppsProject,
-      authentikOutpostProject,
     };
   })();
 
@@ -729,33 +812,6 @@ void (async () => {
       exec: 'pnpm i --no-frozen-lockfile',
     },
   );
-
-  rootProject.addScripts({
-    'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
-    'build:infra': `turbo run build --filter ${infraPackageFilter}`,
-
-    posteslint: `turbo run eslint --filter ${workspacePackageFilters}`,
-
-    'script@mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
-    'script@generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
-
-    'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
-    'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
-    'postpulumi:up': `pnpm script@mergeKubeConfig && pnpm script@generateNovaDiagnosis`,
-    'pulumi:install': [
-      ...commonProjectWithBridgedProviderOrder,
-      ...pulumiProjectWithBridgedProviderOrder,
-    ]
-      .map(
-        eachProject =>
-          `pulumi install --no-dependencies --cwd ./${path.relative(rootProject.outdir, eachProject.outdir)}`,
-      )
-      .join(' && '),
-
-    postprojen: `pnpm build`,
-    postbuild: `turbo run build --filter ${workspacePackageFilters}`,
-    postupgrade: `turbo run upgrade --filter ${workspacePackageFilters} --concurrency=1`,
-  });
 
   // Turbo.json file
   new JsonFile(rootProject, 'turbo.json', {
@@ -799,6 +855,7 @@ void (async () => {
         files: {
           associations: new src.classes.VsCodeObject({
             '.ToDo': 'markdown',
+            '*.yaml.tpl': 'helm',
           }),
         },
         todohighlight: {
@@ -806,7 +863,12 @@ void (async () => {
           isCaseSensitive: false,
           keywords: new src.classes.VsCodeObject([
             { text: '@' + 'ToDo', color: 'red', backgroundColor: 'black' },
-            { text: '@' + 'note', color: 'blue', backgroundColor: 'lightblue' },
+            { text: '@' + 'Note', color: 'blue', backgroundColor: 'lightblue' },
+            {
+              text: '@' + 'Ref',
+              color: 'green',
+              backgroundColor: 'lightgreen',
+            },
           ]),
           exclude: ['**/node_modules/**', '.vscode'],
         },
@@ -836,6 +898,7 @@ void (async () => {
               workstation: 'home',
               '.projen': 'project',
               '.diagnosis': 'resource',
+              ventoy: 'robot',
             }),
           },
         },
@@ -857,7 +920,6 @@ void (async () => {
   // pnpm-workspace.yaml file
   new YamlFile(rootProject, 'pnpm-workspace.yaml', {
     obj: {
-      confirmModulesPurge: false,
       packages: [
         `${src.constants.paths.dirs.commonDir}/*`,
         `${src.constants.paths.dirs.infraDir}/*`,
@@ -875,16 +937,22 @@ void (async () => {
           true,
         ]),
       ]),
-      overrides: Object.fromEntries(
-        Object.values(src.constants.bridgedProviders)
-          .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-          .flatMap(eachBridgedProvider =>
-            eachBridgedProvider.packagesToOverride.map(eachPackage => [
-              `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
-              `$${eachPackage}`,
-            ]),
-          ),
-      ),
+      overrides: {
+        '@pulumi/pulumi': '$@pulumi/pulumi',
+        '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
+        '@types/node': '$@types/node',
+        typescript: '$typescript',
+        ...Object.fromEntries(
+          Object.values(src.constants.bridgedProviders)
+            .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
+            .flatMap(eachBridgedProvider =>
+              eachBridgedProvider.packagesToOverride.map(eachPackage => [
+                `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
+                `$${eachPackage}`,
+              ]),
+            ),
+        ),
+      },
     },
   });
 
@@ -900,6 +968,78 @@ void (async () => {
     },
   );
 
+  // Ventoy
+  const ventoyWorkstationNodeUserDataTemplate = fs.readFileSync(
+    path.join(
+      rootProject.outdir,
+      src.constants.paths.dirs.ventoyDir,
+      'templates',
+      'workstation-node.yaml.tpl',
+    ),
+    'utf-8',
+  );
+
+  const ventoyWorkstationNodeUserDataFilePath = path.join(
+    rootProject.outdir,
+    src.constants.paths.dirs.ventoyUserDataDir,
+    'workstation-node.yaml',
+  );
+
+  if (src.constants.isDevContainer) {
+    fs.writeFileSync(
+      ventoyWorkstationNodeUserDataFilePath,
+      Handlebars.compile(ventoyWorkstationNodeUserDataTemplate)({
+        gatewayIp: process.env.WORKSTATION_BOOTSTRAP_GATEWAY_IP,
+        nameServersAddresses: [
+          process.env.WORKSTATION_BOOTSTRAP_NAMESERVER_ADDRESS_0,
+          process.env.WORKSTATION_BOOTSTRAP_NAMESERVER_ADDRESS_1,
+        ],
+        hostname: process.env.WORKSTATION_BOOTSTRAP_TEMPORARY_HOST_NAME,
+        userName: process.env.WORKSTATION_BOOTSTRAP_USERNAME,
+        passwordHash: sha512.crypt(
+          process.env.WORKSTATION_BOOTSTRAP_PASSWORD!!,
+          `$6$rounds=4096$${randomBytes(8)
+            .toString('base64')
+            .replace(/[^a-zA-Z0-9]/g, '')
+            .slice(0, 16)}`,
+        ),
+        authorizedKeys: [process.env.WORKSTATION_BOOTSTRAP_SSH_PUBLIC_KEY],
+        nodes: [
+          {
+            id: process.env.WORKSTATION_BOOTSTRAP_NODE_0_HOSTNAME,
+            macAddress: process.env.WORKSTATION_BOOTSTRAP_NODE_0_MACADDRESS,
+            addressCidr: `${process.env.WORKSTATION_BOOTSTRAP_NODE_0_STATIC_IP}/24`,
+          },
+        ],
+        slackWebhookUrl: process.env.SLACK_WEBHOOK_URL_VENTOY_AUTO_INSTALL,
+      }),
+    );
+  }
+
+  const ubuntu2604LiveServerIsoPath = '/ubuntu-26.04-live-server-amd64.iso';
+  const ventoyJsonFile = new JsonFile(
+    rootProject,
+    path.join(src.constants.paths.dirs.ventoyDir, 'ventoy.json'),
+    {
+      obj: {
+        auto_install: [
+          {
+            image: ubuntu2604LiveServerIsoPath,
+            template: `/${path.relative(rootProject.outdir, ventoyWorkstationNodeUserDataFilePath)}`,
+            autosel: 1,
+          },
+        ],
+        // @See https://www.ventoy.net/en/plugin_control.html
+        control: [
+          { VTOY_MENU_TIMEOUT: '5' },
+          { VTOY_DEFAULT_IMAGE: ubuntu2604LiveServerIsoPath },
+          { VTOY_SECONDARY_BOOT_MENU: '1' },
+          { VTOY_SECONDARY_TIMEOUT: '5' },
+        ],
+      },
+    },
+  );
+
   // Readme File
   const readmeFile = new TextFile(rootProject, 'README.md', {
     lines: [
@@ -907,9 +1047,11 @@ void (async () => {
       ...fs
         .readdirSync(src.constants.paths.dirs.diagnosisDir)
         .map(eachFileName => {
-          return readFileSync(
-            path.join(src.constants.paths.dirs.diagnosisDir, eachFileName),
-          ).toString();
+          return fs
+            .readFileSync(
+              path.join(src.constants.paths.dirs.diagnosisDir, eachFileName),
+            )
+            .toString();
         }),
     ],
   });
@@ -933,6 +1075,165 @@ void (async () => {
       `,
     },
   });
+
+  // Requirements File
+  const requirementsFile = new RequirementsFile(
+    rootProject,
+    'requirements.txt',
+    {},
+  );
+  requirementsFile.addPackages(
+    'ansible==11.13.0',
+    'cryptography==46.0.7',
+    'jmespath==1.1.0',
+    'netaddr==1.3.0',
+    'paramiko==3.5.1',
+  );
+
+  // Keys
+  const workstationSshPrivateKey = new TextFile(
+    rootProject,
+    src.constants.paths.files.workstationSshPrivateKeyFile,
+    {
+      lines: process.env.WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY
+        ? process.env.WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY.split('\\n')
+        : [],
+      committed: false,
+      readonly: true,
+    },
+  );
+
+  // Cursor
+  const mcpJsonConfig: src.interfaces.CursorMcpConfig = {
+    mcpServers: {
+      context7: {
+        url: 'https://mcp.context7.com/mcp',
+        headers: {
+          CONTEXT7_API_KEY: '${env:CONTEXT7_API_KEY}',
+        },
+      },
+      'kubernetes-mcp-server': {
+        command: 'npx',
+        args: ['-y', 'kubernetes-mcp-server@latest'],
+      },
+    },
+  };
+  const mcpJsonFile = new JsonFile(
+    rootProject,
+    src.constants.paths.files.cursorMcpJsonFile,
+    {
+      obj: mcpJsonConfig,
+    },
+  );
+
+  const workstationNode0Name =
+    process.env.WORKSTATION_BOOTSTRAP_NODE_0_HOSTNAME;
+  const ansibleWorkstationInventoryFile = new TextFile(
+    rootProject,
+    src.constants.paths.files.ansibleWorkstationInventoryFile,
+    {
+      lines: dedent`
+        [all]
+        ${workstationNode0Name}
+
+        [kube_control_plane]
+        ${workstationNode0Name}
+
+        [etcd]
+        ${workstationNode0Name}
+
+        [kube_node]
+        workstation-0
+        
+        [k8s_cluster:children]
+        kube_control_plane
+        kube_node
+      `.split('\n'),
+      committed: false,
+      readonly: true,
+    },
+  );
+
+  const generateKubesprayPlaybookScript = (playbook: string) => dedent`
+    ANSIBLE_CONFIG=${src.constants.paths.dirs.ansibleThirdPartyDir}/kubespray/ansible.cfg \
+    ansible-playbook -b -i \
+      ${src.constants.paths.files.ansibleWorkstationInventoryFile} \
+      ${src.constants.paths.dirs.ansibleThirdPartyDir}/kubespray/${playbook}.yml
+  `;
+
+  // Scripts
+  rootProject.addScripts({
+    'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
+    'build:infra': `turbo run build --filter ${infraPackageFilter}`,
+
+    // ESLint
+    posteslint: `turbo run eslint --filter ${workspacePackageFilters} --concurrency=3`,
+
+    // Scripts
+    'script:mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
+    'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
+    'script:fetchWorkstationKubeconfig': `ts-node scripts/fetch-workstation-kubeconfig.script.ts`,
+
+    // Pulumi
+    'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
+    'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
+    'postpulumi:up': `pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis`,
+    'pulumi:install': [
+      ...commonProjectWithBridgedProviderOrder,
+      ...pulumiProjectWithBridgedProviderOrder,
+    ]
+      .map(
+        eachProject =>
+          `pulumi install --no-dependencies --cwd ./${path.relative(rootProject.outdir, eachProject.outdir)}`,
+      )
+      .join(' && '),
+
+    // Projen
+    postprojen: 'pnpm build',
+    postbuild: `turbo run build --filter ${workspacePackageFilters}`,
+    postupgrade: `turbo run upgrade --filter ${workspacePackageFilters} --concurrency=1`,
+
+    // Kubespray
+    'kubespray:cluster': generateKubesprayPlaybookScript('cluster'),
+    'kubespray:upgradeCluster':
+      generateKubesprayPlaybookScript('upgrade-cluster'),
+
+    // Ansible
+    'ansible:preConfigure': dedent`
+      cd ${src.constants.paths.dirs.ansibleDir}/workstation
+      ansible-playbook pre-configure.yml
+    `,
+
+    // SSH
+    ...Object.fromEntries(
+      [0].map(eachNodeNumber => [
+        `ssh:workstation:${eachNodeNumber}`,
+        dedent`
+        sshpass \
+          -P "passphrase" \
+          -p $WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY_PASSPHRASE \
+        ssh -o StrictHostKeyChecking=accept-new \
+            -i ".keys/workstation.key" \
+            -p "${`$WORKSTATION_BOOTSTRAP_NODE_${eachNodeNumber}_EXTERNAL_SSH_PORT`}" \
+            $WORKSTATION_BOOTSTRAP_USERNAME@$WORKSTATION_DOMAIN_IPTIME
+        `,
+      ]),
+    ),
+  });
+
+  rootProject.postSynthesize = async () => {
+    if (src.constants.isDevContainer) {
+      // Git Submodule Update
+      execSync('git submodule update --init --recursive');
+      // Python Dependencies Install
+      const pythonInstallLog = execSync(
+        `pip install -r ${path.relative(rootProject.outdir, requirementsFile.path)}`,
+      ).toString();
+      console.log(pythonInstallLog);
+      // SSH Private Key Permission Change
+      execSync(`chmod 400 ${workstationSshPrivateKey.path}`);
+    }
+  };
 
   rootProject.synth();
 })();

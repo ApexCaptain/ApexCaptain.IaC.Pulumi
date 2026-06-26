@@ -1,0 +1,57 @@
+---
+- name: Ensure amd64 architecture for Sysbox package
+  ansible.builtin.assert:
+    that:
+      - ansible_architecture in ["x86_64", "amd64"]
+    fail_msg: "Sysbox CE deb package automation currently supports amd64 only."
+
+- name: Resolve Sysbox CE package metadata
+  ansible.builtin.set_fact:
+    sysbox_ce_version_effective: "{{ sysbox_ce_version | default('0.7.0') }}"
+    sysbox_ce_package_name: "sysbox-ce_{{ sysbox_ce_version | default('0.7.0') }}-0.linux_amd64.deb"
+    sysbox_ce_package_url: "https://downloads.nestybox.com/sysbox/releases/v{{ sysbox_ce_version | default('0.7.0') }}/sysbox-ce_{{ sysbox_ce_version | default('0.7.0') }}-0.linux_amd64.deb"
+    sysbox_ce_package_path: "/tmp/sysbox-ce_{{ sysbox_ce_version | default('0.7.0') }}-0.linux_amd64.deb"
+
+- name: Install Sysbox dependencies
+  ansible.builtin.apt:
+    name:
+      - jq
+    state: present
+    update_cache: true
+
+- name: Download Sysbox CE package
+  ansible.builtin.get_url:
+    url: "{{ sysbox_ce_package_url }}"
+    dest: "{{ sysbox_ce_package_path }}"
+    mode: "0644"
+
+- name: Install Sysbox CE package
+  ansible.builtin.apt:
+    deb: "{{ sysbox_ce_package_path }}"
+    state: present
+
+- name: Ensure sysbox service is enabled and running
+  ansible.builtin.systemd:
+    name: sysbox
+    enabled: true
+    state: started
+
+- name: Verify sysbox-runc binary exists
+  ansible.builtin.stat:
+    path: /usr/bin/sysbox-runc
+  register: sysbox_runc_binary
+
+- name: Assert sysbox-runc binary presence
+  ansible.builtin.assert:
+    that:
+      - sysbox_runc_binary.stat.exists
+    fail_msg: "/usr/bin/sysbox-runc was not found after Sysbox installation."
+
+- name: Check sysbox-runc version
+  ansible.builtin.command: /usr/bin/sysbox-runc --version
+  register: sysbox_runc_version
+  changed_when: false
+
+- name: Show sysbox-runc version
+  ansible.builtin.debug:
+    var: sysbox_runc_version.stdout_lines

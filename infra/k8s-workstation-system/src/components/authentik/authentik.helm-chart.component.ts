@@ -19,14 +19,9 @@ interface AuthentikHelmChartComponentArgsShape {
       password: string;
     };
     postgresqlPassword: string;
-    redisPassword: string;
   };
   pvc: {
     postgresql: {
-      storageClass: string;
-      size: string;
-    };
-    redis: {
       storageClass: string;
       size: string;
     };
@@ -102,77 +97,10 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
-    const authentikRedisPasswordSecretKey = 'AUTHENTIK_REDIS_PASSWORD';
-    const authentikRedisPasswordSecret = new kubernetes.core.v1.Secret(
-      `${resourceName}-authentikRedisPasswordSecret`,
-      {
-        metadata: {
-          name: 'authentik-redis-password',
-          namespace: namespace.metadata.name,
-        },
-        stringData: {
-          [authentikRedisPasswordSecretKey]: args.secrets.redisPassword,
-        },
-      },
-      {
-        ...opts,
-        provider: args.providers.kubernetes,
-      },
-    );
-
-    // PVCs
-    const postgresqlPvc = new kubernetes.core.v1.PersistentVolumeClaim(
-      `${resourceName}-postgresqlPvc`,
-      {
-        metadata: {
-          name: 'postgresql',
-          namespace: namespace.metadata.name,
-        },
-        spec: {
-          accessModes: ['ReadWriteOnce'],
-          storageClassName: args.pvc.postgresql.storageClass,
-          resources: {
-            requests: {
-              storage: args.pvc.postgresql.size,
-            },
-          },
-        },
-      },
-      {
-        ...opts,
-        provider: args.providers.kubernetes,
-      },
-    );
-
-    const redisPvc = new kubernetes.core.v1.PersistentVolumeClaim(
-      `${resourceName}-redisPvc`,
-      {
-        metadata: {
-          name: 'redis',
-          namespace: namespace.metadata.name,
-        },
-        spec: {
-          accessModes: ['ReadWriteOnce'],
-          storageClassName: args.pvc.redis.storageClass,
-          resources: {
-            requests: {
-              storage: args.pvc.redis.size,
-            },
-          },
-        },
-      },
-      {
-        ...opts,
-        provider: args.providers.kubernetes,
-      },
-    );
-
     // Configuration
     const authentikServiceAccountName = 'authentik';
     const authentikPostgresqlCredSecretName = 'postgres-cred';
     const authentikPostgresqlCredSecretMountPath = '/postgres-creds';
-    const authentikRedisCredSecretName = 'redis-cred';
-    const authentikRedisCredSecretMountPath = '/redis-creds';
     const authentikServerServiceName = 'authentik-server';
     const authentikServerServiceHttpPort = 80;
 
@@ -204,9 +132,6 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
             postgresql: {
               password: `file://${authentikPostgresqlCredSecretMountPath}/${authentikPostgresqlPasswordSecretKey}`,
             },
-            redis: {
-              password: `file://${authentikRedisCredSecretMountPath}/${authentikRedisPasswordSecretKey}`,
-            },
           },
           server: {
             serviceAccountName: authentikServiceAccountName,
@@ -227,12 +152,6 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
                 },
               },
               {
-                name: authentikRedisCredSecretName,
-                secret: {
-                  secretName: authentikRedisPasswordSecret.metadata.name,
-                },
-              },
-              {
                 name: 'shm',
                 emptyDir: {
                   medium: 'Memory',
@@ -244,11 +163,6 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
               {
                 name: authentikPostgresqlCredSecretName,
                 mountPath: authentikPostgresqlCredSecretMountPath,
-                readOnly: true,
-              },
-              {
-                name: authentikRedisCredSecretName,
-                mountPath: authentikRedisCredSecretMountPath,
                 readOnly: true,
               },
               {
@@ -265,22 +179,11 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
                   secretName: authentikPostgresqlPasswordSecret.metadata.name,
                 },
               },
-              {
-                name: authentikRedisCredSecretName,
-                secret: {
-                  secretName: authentikRedisPasswordSecret.metadata.name,
-                },
-              },
             ],
             volumeMounts: [
               {
                 name: authentikPostgresqlCredSecretName,
                 mountPath: authentikPostgresqlCredSecretMountPath,
-                readOnly: true,
-              },
-              {
-                name: authentikRedisCredSecretName,
-                mountPath: authentikRedisCredSecretMountPath,
                 readOnly: true,
               },
             ],
@@ -296,21 +199,8 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
             primary: {
               persistence: {
                 enabled: true,
-                existingClaim: postgresqlPvc.metadata.name,
-              },
-            },
-          },
-          redis: {
-            enabled: true,
-            auth: {
-              enabled: true,
-              existingSecret: authentikRedisPasswordSecret.metadata.name,
-              existingSecretPasswordKey: authentikRedisPasswordSecretKey,
-            },
-            master: {
-              persistence: {
-                enabled: true,
-                existingClaim: redisPvc.metadata.name,
+                storageClass: args.pvc.postgresql.storageClass,
+                size: args.pvc.postgresql.size,
               },
             },
           },
@@ -322,9 +212,6 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
         dependsOn: [
           authentikBootstrapTokenSecret,
           authentikPostgresqlPasswordSecret,
-          authentikRedisPasswordSecret,
-          postgresqlPvc,
-          redisPvc,
         ],
       },
     );

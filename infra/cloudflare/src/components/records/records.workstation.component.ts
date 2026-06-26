@@ -72,6 +72,23 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const longhornRecord = new cloudflare.DnsRecord(
+      `${resourceName}-longhornRecord`,
+      {
+        name: 'longhorn',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Longhorn Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     const torrentRecord = new cloudflare.DnsRecord(
       `${resourceName}-torrentRecord`,
       {
@@ -89,13 +106,32 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const testRecord = new cloudflare.DnsRecord(
+      `${resourceName}-testRecord`,
+      {
+        name: 'test',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Test Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     return {
       output: pulumi.output({
         records: {
           workstation: pulumi.interpolate`${directRecord.name}.${args.zoneDomain}`,
           auth: pulumi.interpolate`${authRecord.name}.${args.zoneDomain}`,
           jellyfin: pulumi.interpolate`${jellyfinRecord.name}.${args.zoneDomain}`,
+          longhorn: pulumi.interpolate`${longhornRecord.name}.${args.zoneDomain}`,
           torrent: pulumi.interpolate`${torrentRecord.name}.${args.zoneDomain}`,
+          test: pulumi.interpolate`${testRecord.name}.${args.zoneDomain}`,
         },
       }),
       secret: pulumi.secret({}),

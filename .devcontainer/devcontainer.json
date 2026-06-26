@@ -10,7 +10,8 @@
     "ghcr.io/devcontainers-contrib/features/projen:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers-extra/features/pulumi:1": {},
-    "ghcr.io/devcontainers-extra/features/kubectl-asdf:2": {}
+    "ghcr.io/devcontainers-extra/features/kubectl-asdf:2": {},
+    "ghcr.io/devcontainers/features/python:1": {}
   },
   // Custom
   "customizations": {
@@ -23,7 +24,8 @@
         "mhutchie.git-graph",
         "github.vscode-github-actions",
         "bierner.markdown-preview-github-styles",
-        "ms-azuretools.vscode-docker"
+        "ms-azuretools.vscode-docker",
+        "ms-kubernetes-tools.vscode-kubernetes-tools"
       ]
     }
   },

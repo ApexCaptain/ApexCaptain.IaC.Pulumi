@@ -1,0 +1,16 @@
+cilium_l2announcements: true
+# L2 announcement은 kube-proxy replacement가 필요 (docs.cilium.io/network/l2-announcements)
+cilium_kube_proxy_replacement: true
+# nodelocaldns와 Cilium dnsProxy 충돌 방지
+cilium_dns_proxy_enable_transparent_mode: false
+cilium_loadbalancer_ip_pools:
+  - name: workstation-lb
+    ranges:
+      - start: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_SERVICE_LB_IP_FROM') }}"
+        stop: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_SERVICE_LB_IP_TO') }}"
+
+# Cilium Operator용 노드가 1개라서 1로 설정
+cilium_operator_replicas: 1
+
+# Istio CNI(ambient)와 체이닝 공존 — true면 다른 CNI 설정을 *.cilium_bak으로 백업/비활성화함
+cilium_cni_exclusive: false

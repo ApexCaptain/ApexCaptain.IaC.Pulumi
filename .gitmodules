@@ -1,0 +1,4 @@
+[submodule "ansible/third_party/kubespray"]
+	path = ansible/third_party/kubespray
+	url = https://github.com/kubernetes-sigs/kubespray.git
+	branch = release-2.31

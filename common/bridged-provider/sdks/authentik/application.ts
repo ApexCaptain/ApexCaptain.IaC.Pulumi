@@ -36,6 +36,10 @@ export class Application extends pulumi.CustomResource {
     declare public readonly backchannelProviders: pulumi.Output<number[] | undefined>;
     declare public readonly group: pulumi.Output<string | undefined>;
     declare public readonly metaDescription: pulumi.Output<string | undefined>;
+    /**
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     */
+    declare public readonly metaHide: pulumi.Output<boolean | undefined>;
     declare public readonly metaIcon: pulumi.Output<string | undefined>;
     declare public readonly metaLaunchUrl: pulumi.Output<string | undefined>;
     declare public readonly metaPublisher: pulumi.Output<string | undefined>;
@@ -48,7 +52,7 @@ export class Application extends pulumi.CustomResource {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     declare public readonly policyEngineMode: pulumi.Output<string | undefined>;
     declare public readonly protocolProvider: pulumi.Output<number | undefined>;
@@ -75,6 +79,7 @@ export class Application extends pulumi.CustomResource {
             resourceInputs["backchannelProviders"] = state?.backchannelProviders;
             resourceInputs["group"] = state?.group;
             resourceInputs["metaDescription"] = state?.metaDescription;
+            resourceInputs["metaHide"] = state?.metaHide;
             resourceInputs["metaIcon"] = state?.metaIcon;
             resourceInputs["metaLaunchUrl"] = state?.metaLaunchUrl;
             resourceInputs["metaPublisher"] = state?.metaPublisher;
@@ -93,6 +98,7 @@ export class Application extends pulumi.CustomResource {
             resourceInputs["backchannelProviders"] = args?.backchannelProviders;
             resourceInputs["group"] = args?.group;
             resourceInputs["metaDescription"] = args?.metaDescription;
+            resourceInputs["metaHide"] = args?.metaHide;
             resourceInputs["metaIcon"] = args?.metaIcon;
             resourceInputs["metaLaunchUrl"] = args?.metaLaunchUrl;
             resourceInputs["metaPublisher"] = args?.metaPublisher;
@@ -116,6 +122,10 @@ export interface ApplicationState {
     backchannelProviders?: pulumi.Input<pulumi.Input<number>[] | undefined>;
     group?: pulumi.Input<string | undefined>;
     metaDescription?: pulumi.Input<string | undefined>;
+    /**
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     */
+    metaHide?: pulumi.Input<boolean | undefined>;
     metaIcon?: pulumi.Input<string | undefined>;
     metaLaunchUrl?: pulumi.Input<string | undefined>;
     metaPublisher?: pulumi.Input<string | undefined>;
@@ -128,7 +138,7 @@ export interface ApplicationState {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     protocolProvider?: pulumi.Input<number | undefined>;
@@ -147,6 +157,10 @@ export interface ApplicationArgs {
     backchannelProviders?: pulumi.Input<pulumi.Input<number>[] | undefined>;
     group?: pulumi.Input<string | undefined>;
     metaDescription?: pulumi.Input<string | undefined>;
+    /**
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     */
+    metaHide?: pulumi.Input<boolean | undefined>;
     metaIcon?: pulumi.Input<string | undefined>;
     metaLaunchUrl?: pulumi.Input<string | undefined>;
     metaPublisher?: pulumi.Input<string | undefined>;
@@ -159,7 +173,7 @@ export interface ApplicationArgs {
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`all`" pulumi-lang-dotnet="`All`" pulumi-lang-go="`all`" pulumi-lang-python="`all`" pulumi-lang-yaml="`all`" pulumi-lang-java="`all`" pulumi-lang-hcl="`all`">`all`</span>
      *   - <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>
-     *  Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
+     *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     protocolProvider?: pulumi.Input<number | undefined>;

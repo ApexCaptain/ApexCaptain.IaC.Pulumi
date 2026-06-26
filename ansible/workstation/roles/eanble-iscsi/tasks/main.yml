@@ -1,0 +1,73 @@
+- name: Install Longhorn prerequisite packages
+  ansible.builtin.apt:
+    name:
+      - open-iscsi
+      - nfs-common
+      - cryptsetup
+      - dmsetup
+    state: present
+    update_cache: true
+
+- name: Collect service facts
+  ansible.builtin.service_facts:
+
+- name: Ensure iscsid service is enabled and running
+  ansible.builtin.systemd:
+    name: iscsid
+    enabled: true
+    state: started
+
+- name: Create open-iscsi systemd override directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/open-iscsi.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Override open-iscsi ConditionDirectoryNotEmpty
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/open-iscsi.service.d/override.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      ConditionDirectoryNotEmpty=
+
+- name: Ensure open-iscsi service is enabled and running
+  ansible.builtin.systemd:
+    name: open-iscsi
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: Enable and start nfs-client.target when available
+  ansible.builtin.systemd:
+    name: nfs-client.target
+    enabled: true
+    state: started
+  when: "'nfs-client.target' in ansible_facts.services"
+
+- name: Load dm_crypt kernel module
+  ansible.builtin.command: modprobe dm_crypt
+  changed_when: false
+
+- name: Persist dm_crypt module load
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/longhorn-dm-crypt.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      dm_crypt
+
+- name: Stop and disable multipathd units when present
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop:
+    - multipathd.service
+    - multipathd.socket
+  when: item in ansible_facts.services

@@ -1,0 +1,53 @@
+---
+- name: Install ethtool package
+  ansible.builtin.apt:
+    name: ethtool
+    state: present
+    update_cache: true
+
+- name: Resolve WOL interface
+  ansible.builtin.set_fact:
+    wol_effective_interface: "{{ wol_interface | default(ansible_default_ipv4.interface) }}"
+
+- name: Ensure WOL interface is resolved
+  ansible.builtin.assert:
+    that:
+      - wol_effective_interface is defined
+      - wol_effective_interface | length > 0
+    fail_msg: "WOL interface could not be resolved. Set wol_interface or ensure ansible_default_ipv4.interface is available."
+
+- name: Create WOL systemd unit file
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/wol.service
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Configure Wake-up on LAN
+
+      [Service]
+      Type=oneshot
+      ExecStart=/sbin/ethtool -s {{ wol_effective_interface }} wol g
+
+      [Install]
+      WantedBy=basic.target
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Enable and start WOL service
+  ansible.builtin.systemd:
+    name: wol.service
+    enabled: true
+    state: started
+
+- name: Check WOL status
+  ansible.builtin.command: ethtool {{ wol_effective_interface }}
+  register: wol_status
+  changed_when: false
+
+- name: Show WOL status
+  ansible.builtin.debug:
+    msg: "{{ wol_status.stdout_lines | select('search', 'Wake-on') | list }}"

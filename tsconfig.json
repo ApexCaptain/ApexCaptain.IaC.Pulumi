@@ -30,11 +30,14 @@
       "json2md",
       "lodash",
       "node",
-      "semver"
+      "semver",
+      "ssh2"
     ]
   },
   "include": [
     "src/**/*.ts"
   ],
-  "exclude": []
+  "exclude": [
+    "node_modules"
+  ]
 }

@@ -21,6 +21,10 @@
       "type": "build"
     },
     {
+      "name": "@types/ssh2",
+      "type": "build"
+    },
+    {
       "name": "@typescript-eslint/eslint-plugin",
       "version": "^8",
       "type": "build"
@@ -61,6 +65,10 @@
       "type": "build"
     },
     {
+      "name": "handlebars",
+      "type": "build"
+    },
+    {
       "name": "json2md",
       "type": "build"
     },
@@ -74,6 +82,14 @@
     },
     {
       "name": "projen",
+      "type": "build"
+    },
+    {
+      "name": "sha512-crypt-ts",
+      "type": "build"
+    },
+    {
+      "name": "ssh2",
       "type": "build"
     },
     {

@@ -1,14 +1,14 @@
 # check=skip=InvalidDefaultArgInFrom
 
-ARG USER_NAME
-
 FROM mcr.microsoft.com/devcontainers/base:dev-noble
 
 USER root
 
-RUN set -eux; \
-    sed -i 's/kr.archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list; \
-    sed -i 's|http://archive.ubuntu.com|http://mirror.kakao.com|g' /etc/apt/sources.list.d/ubuntu.sources; \
-    sed -i 's|http://security.ubuntu.com|http://mirror.kakao.com|g' /etc/apt/sources.list.d/ubuntu.sources;
+COPY data/workspace/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources
 
-USER ${USER_NAME}
+RUN set -eux; \
+    apt-get update && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+USER vscode 

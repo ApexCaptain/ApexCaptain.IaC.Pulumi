@@ -9,11 +9,15 @@ import * as components from './components';
 export const k8sWorkstationToolsContract = new nexus.classes.Contract(
   __filename,
   async () => {
+    // ESC
+    const commonEsc = nexus.esc.commonEsc;
+    const projectEsc = nexus.esc.k8sWorkstationToolsEsc;
+
     // K8s Provider
     const workstationK8sProvider = new kubernetes.Provider(
       'workstationK8sProvider',
       {
-        kubeconfig: k8sWorkstationSystemContract.output.kubeConfigFilePath,
+        kubeconfig: commonEsc.esc.workstationKubeconfig,
       },
     );
 
@@ -28,27 +32,41 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
       'qbittorrentApp',
       {
         nordLynx: {
-          netLocal:
-            nexus.esc.commonEsc.esc.istioNetwork
-              .workstationDefaultCalcioIpv4IpPoolsCidrBlock,
-          privateKey: nexus.esc.commonEsc.esc.nordLynx.privateKey,
+          allowedCidrBlocks: [
+            commonEsc.esc.workstationPodsSubnetCidrBlock,
+            commonEsc.esc.workstationServicesSubnetCidrBlock,
+          ],
+          privateKey: commonEsc.esc.nordLynx.privateKey,
+        },
+        sftpUserName: commonEsc.esc.adapter.sftp.userName,
+        directGateway: {
+          gatewayPath:
+            k8sWorkstationSystemContract.output.gatewayPaths.directGatewayPath,
+          qbitorrentSftp: {
+            port: commonEsc.esc.istioNetwork.workstationDirectGateway
+              .qbittorrentSftpPort,
+          },
         },
 
         pvc: {
           qbittorrentModCache: {
-            storageClass: k8sWorkstationSystemContract.output.storageClass.ssd0,
+            storageClass:
+              k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
             size: '100Mi',
           },
           qbittorrentConfig: {
-            storageClass: k8sWorkstationSystemContract.output.storageClass.ssd0,
+            storageClass:
+              k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
             size: '200Mi',
           },
           qbittorrentCompleteDownloads: {
-            storageClass: k8sWorkstationSystemContract.output.storageClass.hdd0,
+            storageClass:
+              k8sWorkstationSystemContract.output.storageClasses.longhornHdd,
             size: '1Ti',
           },
           qbittorrentIncompleteDownloads: {
-            storageClass: k8sWorkstationSystemContract.output.storageClass.ssd0,
+            storageClass:
+              k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
             size: '300Gi',
           },
         },
@@ -83,9 +101,11 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
             allowedGroupId:
               k8sWorkstationSystemContract.output.authentik.groupIds
                 .toolsManagerGroup,
+            proxyOutpostId:
+              k8sWorkstationSystemContract.output.authentik.outposts.proxy.id,
             proxyOutpostProviderName:
-              k8sWorkstationSystemContract.output.authentik
-                .authentikProxyOutpostProviderName,
+              k8sWorkstationSystemContract.output.authentik.outposts.proxy
+                .providerName,
             flow: {
               authorizationFlowId:
                 k8sWorkstationSystemContract.output.authentik.flow
@@ -103,12 +123,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
       );
 
     return {
-      output: pulumi.output({
-        authentik: {
-          qbittorrentAuthentikProxyProviderId:
-            qbittorrentServiceMesh.output.authentikProxyProviderId,
-        },
-      }),
+      output: pulumi.output({}),
       secret: pulumi.secret({}),
     };
   },

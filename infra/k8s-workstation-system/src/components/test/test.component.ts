@@ -1,10 +1,15 @@
+import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
-import dedent from 'dedent';
 
 interface TestComponentArgsShape {
-  namespace: string;
+  ingress: {
+    test1: {
+      host: string;
+      gatewayPath: string;
+    };
+  };
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -20,14 +25,13 @@ export const TestComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    const namespace = new kubernetes.core.v1.Namespace(
-      `${resourceName}-namespace`,
+    const test1Namespace = new kubernetes.core.v1.Namespace(
+      `${resourceName}-test1Namespace`,
       {
         metadata: {
-          name: args.namespace,
+          name: 'test1',
           labels: {
-            'istio-injection': 'enabled',
-            // 'istio-injection': 'disabled',
+            'istio.io/dataplane-mode': 'ambient',
           },
         },
       },
@@ -37,56 +41,214 @@ export const TestComponent = utils.functions.defineComponent(
       },
     );
 
-    const testLabel = {
-      'app.kubernetes.io/name': 'test',
-    };
+    const test1DefaultPeerAuthentication =
+      new customResources.resources.k8s.crd.istio.PeerAuthenticationV1(
+        `${resourceName}-test1DefaultPeerAuthentication`,
+        {
+          metadata: {
+            name: 'default',
+            namespace: test1Namespace.metadata.name,
+          },
+          spec: {
+            mtls: {
+              mode: 'STRICT',
+            },
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
 
-    // k exec -it deployment/test -n test -c test -- /bin/bash
-    const testDeployment = new kubernetes.apps.v1.Deployment(
-      `${resourceName}-testDeployment`,
+    const test2Namespace = new kubernetes.core.v1.Namespace(
+      `${resourceName}-test2Namespace`,
       {
         metadata: {
-          name: 'test',
-          namespace: namespace.metadata.name,
-        },
-        spec: {
-          replicas: 1,
-          selector: {
-            matchLabels: testLabel,
-          },
-          template: {
-            metadata: {
-              labels: testLabel,
-            },
-            spec: {
-              containers: [
-                {
-                  name: 'test',
-                  image: 'ubuntu:latest',
-                  command: [
-                    '/bin/sh',
-                    '-c',
-                    dedent`
-                      apt update -y
-                      apt install -y curl
-                      sleep infinity
-                    `,
-                  ],
-                },
-              ],
-            },
+          name: 'test2',
+          labels: {
+            'istio.io/dataplane-mode': 'ambient',
           },
         },
       },
       {
         ...opts,
         provider: args.providers.kubernetes,
-        dependsOn: [namespace],
       },
     );
+    const test2DefaultPeerAuthentication =
+      new customResources.resources.k8s.crd.istio.PeerAuthenticationV1(
+        `${resourceName}-test2DefaultPeerAuthentication`,
+        {
+          metadata: {
+            name: 'default',
+            namespace: test2Namespace.metadata.name,
+          },
+          spec: {
+            mtls: {
+              mode: 'STRICT',
+            },
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
+
+    const createTestDeployment = (
+      deploymentName: string,
+      namespaceName: pulumi.Input<string>,
+      appLabelValue: string,
+    ) =>
+      new kubernetes.apps.v1.Deployment(
+        `${resourceName}-${deploymentName}`,
+        {
+          metadata: {
+            name: deploymentName,
+            namespace: namespaceName,
+          },
+          spec: {
+            replicas: 1,
+            selector: {
+              matchLabels: {
+                'app.kubernetes.io/name': appLabelValue,
+              },
+            },
+            template: {
+              metadata: {
+                labels: {
+                  'app.kubernetes.io/name': appLabelValue,
+                },
+              },
+              spec: {
+                containers: [
+                  {
+                    name: deploymentName,
+                    image: 'nginx:stable',
+                    ports: [
+                      {
+                        containerPort: 80,
+                        name: 'http',
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
+
+    const createTestService = (
+      serviceName: string,
+      namespaceName: pulumi.Input<string>,
+      appLabelValue: string,
+    ) =>
+      new kubernetes.core.v1.Service(
+        `${resourceName}-${serviceName}Service`,
+        {
+          metadata: {
+            name: serviceName,
+            namespace: namespaceName,
+          },
+          spec: {
+            type: 'ClusterIP',
+            selector: {
+              'app.kubernetes.io/name': appLabelValue,
+            },
+            ports: [
+              {
+                name: 'http',
+                port: 80,
+                targetPort: 80,
+                protocol: 'TCP',
+              },
+            ],
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
+
+    const test1Deployment = createTestDeployment(
+      'test1',
+      test1Namespace.metadata.name,
+      'test1',
+    );
+
+    const test2Deployment = createTestDeployment(
+      'test2',
+      test2Namespace.metadata.name,
+      'test2',
+    );
+
+    const test1Service = createTestService(
+      'test1',
+      test1Namespace.metadata.name,
+      'test1',
+    );
+
+    const test2Service = createTestService(
+      'test2',
+      test2Namespace.metadata.name,
+      'test2',
+    );
+
+    const test1VirtualService =
+      new customResources.resources.k8s.crd.istio.VirtualServiceV1(
+        `${resourceName}-test1VirtualService`,
+        {
+          metadata: {
+            name: 'test1',
+            namespace: test1Namespace.metadata.name,
+          },
+          spec: {
+            hosts: [args.ingress.test1.host],
+            gateways: [args.ingress.test1.gatewayPath],
+            http: [
+              {
+                route: [
+                  {
+                    destination: {
+                      host: test1Service.metadata.name,
+                      port: {
+                        number: test1Service.spec.ports[0].port,
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
 
     return {
-      output: pulumi.output({}),
+      output: pulumi.output({
+        namespaces: {
+          test1: test1Namespace.metadata.name,
+          test2: test2Namespace.metadata.name,
+        },
+        deployments: {
+          test1: test1Deployment.metadata.name,
+          test2: test2Deployment.metadata.name,
+        },
+        services: {
+          test1: test1Service.metadata.name,
+          test2: test2Service.metadata.name,
+        },
+      }),
       secret: pulumi.secret({}),
     };
   },

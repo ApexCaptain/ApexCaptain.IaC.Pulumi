@@ -1,3 +1,4 @@
+import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
@@ -6,8 +7,15 @@ import Timezone from 'timezone-enum';
 
 interface QbittorrentAppComponentArgsShape {
   nordLynx: {
-    netLocal: string;
+    allowedCidrBlocks: string[];
     privateKey: string;
+  };
+  sftpUserName: string;
+  directGateway: {
+    gatewayPath: string;
+    qbitorrentSftp: {
+      port: number;
+    };
   };
   pvc: {
     qbittorrentModCache: {
@@ -48,7 +56,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
         metadata: {
           name: 'qbittorrent',
           labels: {
-            'istio-injection': 'disabled',
+            'istio.io/dataplane-mode': 'none',
           },
         },
       },
@@ -178,6 +186,8 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
     const qbittorrentLabel = {
       'app.kubernetes.io/name': 'qbittorrent',
     };
+    const qbittorrentUid = 1000;
+    const qbittorrentGid = 1000;
     const qbittorrentWebUiPort = 8080;
     const qbittorrentModCacheVolumeName = 'qbittorrent-modcache';
     const qbittorrentConfigVolumeName = 'qbittorrent-config';
@@ -185,7 +195,9 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       'qbittorrent-complete-downloads';
     const qbittorrentIncompleteDownloadsVolumeName =
       'qbittorrent-incomplete-downloads';
+    const sftpAdapterPort = 22;
     const tunDeviceVolumeName = 'tun-device';
+
     const gluetunStateVolumeName = 'gluetun-state';
 
     // Service
@@ -212,8 +224,43 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       },
     );
 
-    // Deployment
+    // Sftp Adapter
+    const sftpAdapter = new customResources.components.adapter.SftpV1Component(
+      'sftpAdapter',
+      {
+        username: args.sftpUserName,
+        namespace: namespace.metadata.name,
+        targetLabels: qbittorrentLabel,
+        uid: qbittorrentUid,
+        gid: 0,
+        volumeMounts: [
+          {
+            pvcVolumeName: qbittorrentConfigVolumeName,
+            homeDirName: 'config',
+          },
+          {
+            pvcVolumeName: qbittorrentCompleteDownloadsVolumeName,
+            homeDirName: 'downloads',
+          },
+          {
+            pvcVolumeName: qbittorrentIncompleteDownloadsVolumeName,
+            homeDirName: 'incomplete',
+          },
+        ],
+        directGateway: {
+          gatewayPath: args.directGateway.gatewayPath,
+          port: args.directGateway.qbitorrentSftp.port,
+        },
+        providers: {
+          kubernetes: args.providers.kubernetes,
+        },
+      },
+      {
+        ...opts,
+      },
+    );
 
+    // Deployment
     const qbittorrentDeployment = new kubernetes.apps.v1.Deployment(
       `${resourceName}-qbittorrentDeployment`,
       {
@@ -223,6 +270,9 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
         },
         spec: {
           replicas: 1,
+          strategy: {
+            type: 'Recreate',
+          },
           selector: {
             matchLabels: qbittorrentLabel,
           },
@@ -289,11 +339,13 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                     },
                     {
                       name: 'FIREWALL_OUTBOUND_SUBNETS',
-                      value: args.nordLynx.netLocal,
+                      value: pulumi
+                        .output(args.nordLynx.allowedCidrBlocks)
+                        .apply(cidrBlocks => cidrBlocks.join(',')),
                     },
                     {
                       name: 'FIREWALL_INPUT_PORTS',
-                      value: qbittorrentWebUiPort.toString(),
+                      value: `${qbittorrentWebUiPort.toString()},${sftpAdapterPort.toString()}`,
                     },
                     {
                       // NordVPN does not support port forwarding; use DoT DNS
@@ -369,11 +421,11 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                   env: [
                     {
                       name: 'PUID',
-                      value: '1000',
+                      value: qbittorrentUid.toString(),
                     },
                     {
                       name: 'PGID',
-                      value: '1000',
+                      value: qbittorrentGid.toString(),
                     },
                     {
                       name: 'TZ',
@@ -422,6 +474,8 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                     failureThreshold: 3,
                   },
                 },
+
+                sftpAdapter.output.spec.containerSpec,
               ],
               volumes: [
                 {
@@ -459,6 +513,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                     claimName: qbittorrentIncompleteDownloadsPvc.metadata.name,
                   },
                 },
+                sftpAdapter.output.spec.volumeSpec,
               ],
             },
           },
@@ -472,6 +527,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
           qbittorrentConfigPvc,
           qbittorrentCompleteDownloadsPvc,
           qbittorrentIncompleteDownloadsPvc,
+          sftpAdapter,
         ],
       },
     );

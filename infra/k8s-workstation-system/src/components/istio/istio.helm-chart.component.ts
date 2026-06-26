@@ -17,11 +17,10 @@ interface IstioHelmChartComponentArgsShape {
     clusterName: string;
     network: string;
   };
-  additionalPorts: {
+  directGatewayPorts: {
     name: string;
     port: number;
     protocol: string;
-    description: string;
   }[];
   authentik: {
     namespace: string;
@@ -73,6 +72,34 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+        dependsOn: [namespace],
+      },
+    );
+
+    const istioCniRelease = new kubernetes.helm.v3.Release(
+      `${resourceName}-istioCniRelease`,
+      {
+        name: 'istio-cni',
+        chart: 'cni',
+        version: args.helm.istio.version,
+        namespace: namespace.metadata.name,
+        repositoryOpts: {
+          repo: args.helm.istio.repositoryUrl,
+        },
+        waitForJobs: true,
+        values: {
+          profile: 'ambient',
+          global: {
+            meshID: args.meshId,
+            multiCluster: { clusterName: args.topology.clusterName },
+            network: args.topology.network,
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [istioBaseRelease],
       },
     );
 
@@ -88,6 +115,10 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
         },
         waitForJobs: true,
         values: {
+          profile: 'ambient',
+          pilot: {
+            cni: { enabled: true },
+          },
           global: {
             meshID: args.meshId,
             multiCluster: {
@@ -125,7 +156,34 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
-        dependsOn: [istioBaseRelease],
+        dependsOn: [istioCniRelease],
+      },
+    );
+
+    const ztunnelRelease = new kubernetes.helm.v3.Release(
+      `${resourceName}-ztunnelRelease`,
+      {
+        name: 'ztunnel',
+        chart: 'ztunnel',
+        version: args.helm.istio.version,
+        namespace: namespace.metadata.name,
+        repositoryOpts: {
+          repo: args.helm.istio.repositoryUrl,
+        },
+        waitForJobs: true,
+        values: {
+          profile: 'ambient',
+          global: {
+            meshID: args.meshId,
+            multiCluster: { clusterName: args.topology.clusterName },
+            network: args.topology.network,
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [istiodRelease, istioCniRelease],
       },
     );
 
@@ -150,35 +208,39 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
           service: {
             type: 'LoadBalancer',
             ports: pulumi
-              .output(args.additionalPorts)
-              .apply(resolvedAdditionalPorts => [
-                {
-                  name: 'status-port',
-                  port: 15021,
-                  protocol: 'TCP',
-                  targetPort: 15021,
-                },
-                {
-                  name: 'http2',
-                  port: 80,
-                  protocol: 'TCP',
-                  targetPort: 80,
-                },
-                {
-                  name: 'https',
-                  port: 443,
-                  protocol: 'TCP',
-                  targetPort: 443,
-                },
-                ...resolvedAdditionalPorts.map(eachAdditionalPort => {
-                  return {
-                    name: utils.functions.kebabCase(eachAdditionalPort.name),
-                    port: eachAdditionalPort.port,
-                    protocol: eachAdditionalPort.protocol,
-                    targetPort: eachAdditionalPort.port,
-                  };
-                }),
-              ]),
+              .output(args.directGatewayPorts)
+              .apply(resolvedDirectGatewayPorts => {
+                return [
+                  {
+                    name: 'status-port',
+                    port: 15021,
+                    protocol: 'TCP',
+                    targetPort: 15021,
+                  },
+                  {
+                    name: 'http2',
+                    port: 80,
+                    protocol: 'TCP',
+                    targetPort: 80,
+                  },
+                  {
+                    name: 'https',
+                    port: 443,
+                    protocol: 'TCP',
+                    targetPort: 443,
+                  },
+                  ...resolvedDirectGatewayPorts.map(eachDirectGatewayPort => {
+                    return {
+                      name: utils.functions.kebabCase(
+                        eachDirectGatewayPort.name,
+                      ),
+                      port: eachDirectGatewayPort.port,
+                      protocol: eachDirectGatewayPort.protocol,
+                      targetPort: eachDirectGatewayPort.port,
+                    };
+                  }),
+                ];
+              }),
             loadBalancerIP: args.ingressGatewayIp,
             externalIPs: [args.workstationIpV4Address],
           },

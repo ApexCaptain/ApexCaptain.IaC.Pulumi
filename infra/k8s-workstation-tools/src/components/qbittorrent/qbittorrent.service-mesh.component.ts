@@ -18,6 +18,7 @@ interface QbittorrentServiceMeshComponentArgsShape {
   };
   authentik: {
     allowedGroupId: string;
+    proxyOutpostId: string;
     proxyOutpostProviderName: string;
     flow: {
       authorizationFlowId: string;
@@ -43,7 +44,6 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    // Service Mesh
     const qbittorrentVirtualService =
       new customResources.resources.k8s.crd.istio.VirtualServiceV1(
         `${resourceName}-qbittorrentVirtualService`,
@@ -80,12 +80,26 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
     const qbittorrentAuthentikProxyProvider = new authentik.ProviderProxy(
       `${resourceName}-qbittorrentAuthentikProxyProvider`,
       {
-        name: 'authentik-proxy-provider',
+        name: 'qbittorrent-authentik-proxy-provider',
         mode: 'forward_single',
         internalHost: pulumi.interpolate`http://${args.ingress.qbittorrentWebUi.serviceName}.${args.namespace}.svc.cluster.local`,
         externalHost: pulumi.interpolate`https://${args.ingress.qbittorrentWebUi.host}`,
         authorizationFlow: args.authentik.flow.authorizationFlowId,
         invalidationFlow: args.authentik.flow.invalidationFlowId,
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    const outpostProviderAttachment = new authentik.OutpostProviderAttachment(
+      `${resourceName}-qbittorrentAuthentikOutpostProviderAttachment`,
+      {
+        outpost: args.authentik.proxyOutpostId,
+        protocolProvider: qbittorrentAuthentikProxyProvider.id.apply(id =>
+          parseInt(id),
+        ),
       },
       {
         ...opts,
@@ -180,9 +194,7 @@ export const QbittorrentServiceMeshComponent = utils.functions.defineComponent(
       );
 
     return {
-      output: pulumi.output({
-        authentikProxyProviderId: qbittorrentAuthentikProxyProvider.id,
-      }),
+      output: pulumi.output({}),
       secret: pulumi.secret({}),
     };
   },

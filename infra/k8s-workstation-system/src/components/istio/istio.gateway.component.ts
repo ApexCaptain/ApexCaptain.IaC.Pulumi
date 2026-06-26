@@ -9,11 +9,10 @@ interface IstioGatewayComponentArgsShape {
   letsEncryptProdClusterIssuerName: string;
   letsEncryptStagingClusterIssuerName: string;
   istioIngressGatewayLabel: string;
-  additionalPorts: {
+  directGatewayPorts: {
     name: string;
     port: number;
     protocol: string;
-    description: string;
   }[];
   providers: {
     kubernetes: kubernetes.Provider;
@@ -150,14 +149,16 @@ export const IstioGatewayComponent = utils.functions.defineComponent(
               istio: args.istioIngressGatewayLabel,
             },
             servers: pulumi
-              .output(args.additionalPorts)
-              .apply(resolvedAdditionalPorts => {
-                return resolvedAdditionalPorts.map(eachAdditionalPort => {
+              .output(args.directGatewayPorts)
+              .apply(resolvedDirectGatewayPorts => {
+                return resolvedDirectGatewayPorts.map(eachDirectGatewayPort => {
                   return {
                     port: {
-                      number: eachAdditionalPort.port,
-                      name: utils.functions.kebabCase(eachAdditionalPort.name),
-                      protocol: eachAdditionalPort.protocol,
+                      number: eachDirectGatewayPort.port,
+                      name: utils.functions.kebabCase(
+                        eachDirectGatewayPort.name,
+                      ),
+                      protocol: eachDirectGatewayPort.protocol,
                     },
                     hosts: ['*'],
                   };
