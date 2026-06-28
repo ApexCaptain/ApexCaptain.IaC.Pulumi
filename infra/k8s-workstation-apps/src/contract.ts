@@ -1,3 +1,9 @@
+/**
+ * Workstation "앱" 스택 — Jellyfin 등 사용자 서비스
+ *
+ * `k8s-workstation-system` output( mesh gateway, storage class, Authentik group )을 참조.
+ * PROD 스택에서만 Jellyfin을 올린다 — dev/staging은 비용·노이즈 줄이기.
+ */
 import { authentik } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import * as utils from '@common/utils';

@@ -1,3 +1,9 @@
+/**
+ * Workstation "도구" 스택 — qBittorrent 등
+ *
+ * NordLynx VPN sidecar로 트래픽을 터널 밖으로만 보내는 구조.
+ * Web UI는 Longhorn과 같은 Authentik Proxy + OutpostProviderAttachment 패턴.
+ */
 import { authentik } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';

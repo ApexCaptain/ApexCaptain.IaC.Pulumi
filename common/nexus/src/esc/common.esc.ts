@@ -8,6 +8,7 @@ const commonEscSchema = z
     workstationIpV4Address: z.string(),
     workstationPodsSubnetCidrBlock: z.string(),
     workstationServicesSubnetCidrBlock: z.string(),
+    workstationLocalPathStorageClassName: z.string(),
     adapter: z
       .object({
         sftp: z

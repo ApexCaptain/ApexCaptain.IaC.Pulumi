@@ -10,6 +10,10 @@
       "type": "build"
     },
     {
+      "name": "@types/ws",
+      "type": "build"
+    },
+    {
       "name": "@typescript-eslint/eslint-plugin",
       "version": "^8",
       "type": "build"
@@ -39,6 +43,10 @@
     {
       "name": "@common/utils",
       "version": "workspace:*",
+      "type": "runtime"
+    },
+    {
+      "name": "@kubernetes/client-node",
       "type": "runtime"
     },
     {

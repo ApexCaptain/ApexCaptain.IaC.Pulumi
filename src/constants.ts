@@ -99,6 +99,8 @@ export const constants = (() => {
     std: '@pulumi/std',
     random: '@pulumi/random',
     oci: '@pulumi/oci',
+    time: '@pulumiverse/time',
+    vault: '@pulumi/vault',
   };
 
   const packagesAllowingBuildScripts = [

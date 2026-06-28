@@ -1,3 +1,16 @@
+/**
+ * Workstation DNS 레코드
+ *
+ * 공통: `workstation` CNAME → iptime DDNS (proxied **false**, LE DNS-01·직접 접속용)
+ *
+ * | 호스트   | proxied | 이유 |
+ * |----------|---------|------|
+ * | auth     | true    | Authentik UI — CF WAF·캐시 앞단 |
+ * | longhorn | true    | UI 보호 + 동일 |
+ * | torrent  | true    | qBittorrent Web UI |
+ * | vault    | true    | 공개 Vault API/UI |
+ * | jellyfin | false   | 스트리밍·대역폭 — CF proxy 우회 |
+ */
 import * as utils from '@common/utils/src';
 import * as cloudflare from '@pulumi/cloudflare';
 import * as pulumi from '@pulumi/pulumi';
@@ -21,6 +34,7 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
+    // iptime DDNS — cert-manager DNS-01·직접 L4(SFTP 등)의 공통 타깃
     const directRecord = new cloudflare.DnsRecord(
       `${resourceName}-directRecord`,
       {
@@ -123,6 +137,23 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const vaultRecord = new cloudflare.DnsRecord(
+      `${resourceName}-vaultRecord`,
+      {
+        name: 'vault',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Vault Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     return {
       output: pulumi.output({
         records: {
@@ -132,6 +163,7 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
           longhorn: pulumi.interpolate`${longhornRecord.name}.${args.zoneDomain}`,
           torrent: pulumi.interpolate`${torrentRecord.name}.${args.zoneDomain}`,
           test: pulumi.interpolate`${testRecord.name}.${args.zoneDomain}`,
+          vault: pulumi.interpolate`${vaultRecord.name}.${args.zoneDomain}`,
         },
       }),
       secret: pulumi.secret({}),

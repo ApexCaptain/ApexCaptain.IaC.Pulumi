@@ -1,3 +1,8 @@
+/**
+ * cert-manager Helm — CRD + controller
+ *
+ * Vault·Istio ingress 등 downstream이 Certificate CR을 쓰므로 mesh보다 먼저 올린다.
+ */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';

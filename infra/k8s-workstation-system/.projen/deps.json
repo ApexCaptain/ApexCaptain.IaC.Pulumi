@@ -74,6 +74,18 @@
       "type": "runtime"
     },
     {
+      "name": "@pulumi/tls",
+      "type": "runtime"
+    },
+    {
+      "name": "@pulumi/vault",
+      "type": "runtime"
+    },
+    {
+      "name": "@pulumiverse/time",
+      "type": "runtime"
+    },
+    {
       "name": "dedent",
       "type": "runtime"
     },

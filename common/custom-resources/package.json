@@ -17,6 +17,7 @@
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2",
     "@types/node": "^25.9.1",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
     "eslint": "^9",
@@ -26,6 +27,7 @@
   },
   "dependencies": {
     "@common/utils": "workspace:*",
+    "@kubernetes/client-node": "^1.4.0",
     "@pulumi/command": "^1.2.1",
     "@pulumi/kubernetes": "^4.31.1",
     "@pulumi/pulumi": "^3.242.0",

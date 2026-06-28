@@ -498,6 +498,8 @@ const initPulumiEsc = async () => {
         process.env.WORKSTATION_BOOTSTRAP_KUBE_PODS_SUBNET_CIDR_BLOCK,
       workstationServicesSubnetCidrBlock:
         process.env.WORKSTATION_BOOTSTRAP_KUBE_SERVICE_SUBNET_CIDR_BLOCK,
+      workstationLocalPathStorageClassName:
+        process.env.WORKSTATION_BOOTSTRAP_LOCAL_PATH_STORAGECLASS_NAME,
       adapter: {
         sftp: {
           userName: process.env.WORKSTATION_SFTP_ADAPTER_USERNAME,
@@ -587,6 +589,10 @@ const initPulumiEsc = async () => {
     accountName,
     pulumiEscClient,
     {
+      vault: {
+        bootstrapTokenEncryptionKey:
+          process.env.VAULT_BOOTSTRAP_TOKEN_ENCRYPTION_KEY,
+      },
       longhorn: {
         nodes: [
           // Node 0
@@ -634,7 +640,6 @@ const initPulumiEsc = async () => {
         },
         postgresqlPassword: process.env.AUTHENTIK_POSTGRESQL_PASSWORD,
         oauth: {
-          allowedEmails: process.env.AUTHENTIK_ALLOWED_EMAILS!!.split(','),
           google: {
             clientId: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_ID,
             clientSecret: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_SECRET,
@@ -691,7 +696,9 @@ void (async () => {
         src.constants.pulumiPackages.tls,
         src.constants.pulumiPackages.random,
         'axios',
+        '@kubernetes/client-node',
       ],
+      devDeps: ['@types/ws'],
     });
 
     const nexusProject = inflateCommonProject({
@@ -737,6 +744,9 @@ void (async () => {
       deps: [
         src.constants.pulumiPackages.kubernetes,
         src.constants.pulumiPackages.oci,
+        src.constants.pulumiPackages.tls,
+        src.constants.pulumiPackages.time,
+        src.constants.pulumiPackages.vault,
       ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,

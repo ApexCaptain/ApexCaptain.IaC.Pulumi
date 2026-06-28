@@ -18,21 +18,6 @@ sudo apt install -y \
     sshpass
 echo "✅ Apt packages installed"
 
-echo "🔄 Setting up aliases"
-BASHRC_FILE="$HOME/.bashrc"
-touch "$BASHRC_FILE"
-sed -i \
-    -e '/^alias k=kubectl$/d' \
-    -e '/^alias h=helm$/d' \
-    -e '/^alias d=docker$/d' \
-    "$BASHRC_FILE"
-{
-    echo "alias k=kubectl"
-    echo "alias h=helm"
-    echo "alias d=docker"
-} >> "$BASHRC_FILE"
-echo "✅ Aliases set up"
-
 # Parallel Installations
 install_oci() {
     echo "🔄 Installing OCI CLI"
