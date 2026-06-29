@@ -64,7 +64,8 @@ const rootProject = new typescript.TypeScriptProject(
       defaultReleaseBranch: src.constants.branches.main,
       // TypeScript Project Options
       eslintOptions: {
-        tsconfigPath: './tsconfig.dev.json',
+        tsconfigPath: './test/tsconfig.json',
+        projectService: false,
         dirs: [src.constants.paths.dirs.srcDir],
         devdirs: [src.constants.paths.dirs.scriptDir],
         ignorePatterns: ['/**/node_modules/*', '/**/pnpm-store/*'],
@@ -72,9 +73,12 @@ const rootProject = new typescript.TypeScriptProject(
       },
       projenrcTs: true,
       tsconfigDev: {
-        include: [src.constants.paths.dirs.scriptDir].map(
-          eachDevDir => `${eachDevDir}/**/*.ts`,
-        ),
+        include: [
+          `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
+          `../${src.constants.paths.dirs.scriptDir}/**/*.ts`,
+          '../.projenrc.ts',
+          '../projenrc/**/*.ts',
+        ],
       },
 
       // Node Project Options

@@ -18,9 +18,10 @@
     "ansible/workstation/inventory/inventory.ini",
     "LICENSE",
     "pnpm-workspace.yaml",
+    "projenrc/tsconfig.json",
     "README.md",
     "requirements.txt",
-    "tsconfig.dev.json",
+    "test/tsconfig.json",
     "tsconfig.json",
     "turbo.json",
     "ventoy/ventoy.json"

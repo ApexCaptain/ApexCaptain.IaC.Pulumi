@@ -11,7 +11,7 @@
     "Pulumi.dev.yaml",
     "Pulumi.prod.yaml",
     "Pulumi.yaml",
-    "tsconfig.dev.json",
+    "test/tsconfig.json",
     "tsconfig.json",
     "turbo.json"
   ],
