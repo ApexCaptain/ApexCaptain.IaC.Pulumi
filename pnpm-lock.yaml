@@ -163,6 +163,9 @@ importers:
 
   common/custom-resources:
     dependencies:
+      '@common/bridged-provider':
+        specifier: workspace:*
+        version: link:../bridged-provider
       '@common/utils':
         specifier: workspace:*
         version: link:../utils
@@ -184,6 +187,9 @@ importers:
       '@pulumi/tls':
         specifier: ^5.5.0
         version: 5.5.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
+      '@pulumi/vault':
+        specifier: ^7.10.0
+        version: 7.10.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
       axios:
         specifier: ^1.15.2
         version: 1.17.0
@@ -398,6 +404,9 @@ importers:
       '@pulumi/pulumi':
         specifier: ^3.247.0
         version: 3.247.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
+      '@pulumi/vault':
+        specifier: ^7.10.0
+        version: 7.10.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
       dedent:
         specifier: ^1.7.2
         version: 1.7.2
@@ -529,6 +538,9 @@ importers:
       '@pulumi/pulumi':
         specifier: ^3.247.0
         version: 3.247.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
+      '@pulumi/vault':
+        specifier: ^7.10.0
+        version: 7.10.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
       dedent:
         specifier: ^1.7.2
         version: 1.7.2

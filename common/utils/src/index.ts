@@ -1,3 +1,4 @@
+export * as configs from './configs';
 export * as enums from './enums';
 export * as functions from './functions';
 export * as interfaces from './interfaces';

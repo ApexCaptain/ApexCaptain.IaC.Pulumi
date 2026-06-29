@@ -4,7 +4,7 @@
  * SSO는 jellyfin-plugin-sso + Authentik OIDC(별도 컴포넌트)라 "proxy outpost 없음".
  * AuthorizationPolicy는 ingress gateway SA에서만 들어오게 막는다 (STRICT mTLS).
  */
-import * as customResources from '@common/custom-resources/src';
+import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';

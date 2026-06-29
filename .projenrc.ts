@@ -668,6 +668,7 @@ const initPulumiEsc = async () => {
     {},
     {
       prod: {},
+      dev: {},
     },
   );
 };
@@ -689,12 +690,16 @@ void (async () => {
 
     const customResourcesProject = inflateCommonProject({
       projectName: 'custom-resources',
-      commonDeps: [utilsProject.project.package.packageName],
+      commonDeps: [
+        utilsProject.project.package.packageName,
+        bridgedProviderProject.project.package.packageName,
+      ],
       deps: [
         src.constants.pulumiPackages.kubernetes,
         src.constants.pulumiPackages.command,
         src.constants.pulumiPackages.tls,
         src.constants.pulumiPackages.random,
+        src.constants.pulumiPackages.vault,
         'axios',
         '@kubernetes/client-node',
       ],
@@ -764,8 +769,13 @@ void (async () => {
 
     const k8sWorkstationToolsProject = inflatePulumiProject({
       projectName: 'k8s-workstation-tools',
-      stages: [utils.enums.StackStage.PROD],
-      deps: [src.constants.pulumiPackages.kubernetes, 'timezone-enum'],
+      stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
+      deps: [
+        src.constants.pulumiPackages.kubernetes,
+        src.constants.pulumiPackages.vault,
+
+        'timezone-enum',
+      ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
@@ -782,7 +792,10 @@ void (async () => {
     const k8sWorkstationAppsProject = inflatePulumiProject({
       projectName: 'k8s-workstation-apps',
       stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
-      deps: [src.constants.pulumiPackages.kubernetes],
+      deps: [
+        src.constants.pulumiPackages.kubernetes,
+        src.constants.pulumiPackages.vault,
+      ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,

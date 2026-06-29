@@ -6,10 +6,12 @@
  */
 import { authentik } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
+import * as utils from '@common/utils';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import { k8sWorkstationSystemContract } from '@infra/k8s-workstation-system/src/contract';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
+import * as vault from '@pulumi/vault';
 import * as components from './components';
 
 export const k8sWorkstationToolsContract = new nexus.classes.Contract(
@@ -32,101 +34,120 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
       'authentikProvider',
       k8sWorkstationSystemContract.secret.providerConfigs.authentik,
     );
-
-    // Qbittorrent
-    const qbittorrentApp = new components.qbittorrent.QbittorrentAppComponent(
-      'qbittorrentApp',
-      {
-        nordLynx: {
-          allowedCidrBlocks: [
-            commonEsc.esc.workstationPodsSubnetCidrBlock,
-            commonEsc.esc.workstationServicesSubnetCidrBlock,
-          ],
-          privateKey: commonEsc.esc.nordLynx.privateKey,
-        },
-        sftpUserName: commonEsc.esc.adapter.sftp.userName,
-        directGateway: {
-          gatewayPath:
-            k8sWorkstationSystemContract.output.gatewayPaths.directGatewayPath,
-          qbitorrentSftp: {
-            port: commonEsc.esc.istioNetwork.workstationDirectGateway
-              .qbittorrentSftpPort,
-          },
-        },
-
-        pvc: {
-          qbittorrentModCache: {
-            storageClass:
-              k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
-            size: '100Mi',
-          },
-          qbittorrentConfig: {
-            storageClass:
-              k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
-            size: '200Mi',
-          },
-          qbittorrentCompleteDownloads: {
-            storageClass:
-              k8sWorkstationSystemContract.output.storageClasses.longhornHdd,
-            size: '1Ti',
-          },
-          qbittorrentIncompleteDownloads: {
-            storageClass:
-              k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
-            size: '300Gi',
-          },
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
+    const vaultProvider = new vault.Provider(
+      'vaultProvider',
+      k8sWorkstationSystemContract.secret.providerConfigs.vault,
     );
 
-    const qbittorrentServiceMesh =
-      new components.qbittorrent.QbittorrentServiceMeshComponent(
-        'qbittorrentServiceMesh',
+    // Production Only Tools
+    if (pulumi.getStack() === utils.enums.StackStage.PROD) {
+      // Qbittorrent
+      const qbittorrentApp = new components.qbittorrent.QbittorrentAppComponent(
+        'qbittorrentApp',
         {
-          namespace: qbittorrentApp.output.namespace,
-          ingress: {
-            istioNamespace:
-              k8sWorkstationSystemContract.output.namespaces.istio,
-            qbittorrentWebUi: {
-              host: cloudflareContract.output.zones.ayteneve93com.records
-                .torrent,
-              serviceName: qbittorrentApp.output.services.qbittorrent.name,
-              gatewayPath:
-                k8sWorkstationSystemContract.output.gatewayPaths
-                  .ingressGatewayPath,
-              gatewayLabel:
-                k8sWorkstationSystemContract.output.serviceMesh
-                  .istioIngressGatewayLabel,
-              port: qbittorrentApp.output.services.qbittorrent.port.webUi,
+          nordLynx: {
+            allowedCidrBlocks: [
+              commonEsc.esc.workstationPodsSubnetCidrBlock,
+              commonEsc.esc.workstationServicesSubnetCidrBlock,
+            ],
+            privateKey: commonEsc.esc.nordLynx.privateKey,
+          },
+          sftpUserName: commonEsc.esc.adapter.sftp.userName,
+          directGateway: {
+            gatewayPath:
+              k8sWorkstationSystemContract.output.gatewayPaths
+                .directGatewayPath,
+            qbitorrentSftp: {
+              port: commonEsc.esc.istioNetwork.workstationDirectGateway
+                .qbittorrentSftpPort,
             },
           },
-          authentik: {
-            allowedGroupId:
-              k8sWorkstationSystemContract.output.authentik.groupIds
-                .toolsManagerGroup,
-            proxyOutpostId:
-              k8sWorkstationSystemContract.output.authentik.outposts.proxy.id,
-            proxyOutpostProviderName:
-              k8sWorkstationSystemContract.output.authentik.outposts.proxy
-                .providerName,
-            flow: {
-              authorizationFlowId:
-                k8sWorkstationSystemContract.output.authentik.flow
-                  .defaultProviderAuthorizationImplicitConsentId,
-              invalidationFlowId:
-                k8sWorkstationSystemContract.output.authentik.flow
-                  .defaultInvalidationFlowId,
+
+          pvc: {
+            qbittorrentModCache: {
+              storageClass:
+                k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+              size: '100Mi',
+            },
+            qbittorrentConfig: {
+              storageClass:
+                k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+              size: '200Mi',
+            },
+            qbittorrentCompleteDownloads: {
+              storageClass:
+                k8sWorkstationSystemContract.output.storageClasses.longhornHdd,
+              size: '1Ti',
+            },
+            qbittorrentIncompleteDownloads: {
+              storageClass:
+                k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+              size: '300Gi',
             },
           },
           providers: {
             kubernetes: workstationK8sProvider,
-            authentik: authentikProvider,
           },
         },
       );
+
+      const qbittorrentServiceMesh =
+        new components.qbittorrent.QbittorrentServiceMeshComponent(
+          'qbittorrentServiceMesh',
+          {
+            namespace: qbittorrentApp.output.namespace,
+            ingress: {
+              istioNamespace:
+                k8sWorkstationSystemContract.output.namespaces.istio,
+              qbittorrentWebUi: {
+                host: cloudflareContract.output.zones.ayteneve93com.records
+                  .torrent,
+                serviceName: qbittorrentApp.output.services.qbittorrent.name,
+                gatewayPath:
+                  k8sWorkstationSystemContract.output.gatewayPaths
+                    .ingressGatewayPath,
+                gatewayLabel:
+                  k8sWorkstationSystemContract.output.serviceMesh
+                    .istioIngressGatewayLabel,
+                port: qbittorrentApp.output.services.qbittorrent.port.webUi,
+              },
+            },
+            authentik: {
+              allowedGroupId:
+                k8sWorkstationSystemContract.output.authentik.groupIds
+                  .toolsManagerGroup,
+              proxyOutpostId:
+                k8sWorkstationSystemContract.output.authentik.outposts.proxy.id,
+              proxyOutpostProviderName:
+                k8sWorkstationSystemContract.output.authentik.outposts.proxy
+                  .providerName,
+              flow: {
+                authorizationFlowId:
+                  k8sWorkstationSystemContract.output.authentik.flow
+                    .defaultProviderAuthorizationImplicitConsentId,
+                invalidationFlowId:
+                  k8sWorkstationSystemContract.output.authentik.flow
+                    .defaultInvalidationFlowId,
+              },
+            },
+            providers: {
+              kubernetes: workstationK8sProvider,
+              authentik: authentikProvider,
+            },
+          },
+        );
+    }
+
+    // Dobby
+    const dobbyVault = new components.dobby.DobbyVaultComponent('dobbyVault', {
+      oidcMountAccessor:
+        k8sWorkstationSystemContract.secret.vault.oidcMountAccessor,
+      kvMount: k8sWorkstationSystemContract.secret.vault.kvMount,
+      providers: {
+        authentik: authentikProvider,
+        vault: vaultProvider,
+      },
+    });
 
     return {
       output: pulumi.output({}),

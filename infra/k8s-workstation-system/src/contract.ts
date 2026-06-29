@@ -512,35 +512,6 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
-    // Test — 프로젝트별 Vault dev secret (OIDC groups RBAC 예시)
-    // const testProjectA = new components.test.TestProjectAComponent(
-    //   'testProjectA',
-    //   {
-    //     oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,
-    //     providers: {
-    //       vault: vaultProvider,
-    //       authentik: authentikProvider,
-    //     },
-    //   },
-    //   {
-    //     dependsOn: [vaultAuthentik, vaultProvider, vaultResources],
-    //   },
-    // );
-
-    // const testProjectB = new components.test.TestProjectBComponent(
-    //   'testProjectB',
-    //   {
-    //     oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,
-    //     providers: {
-    //       vault: vaultProvider,
-    //       authentik: authentikProvider,
-    //     },
-    //   },
-    //   {
-    //     dependsOn: [vaultAuthentik, vaultProvider, vaultResources],
-    //   },
-    // );
-
     return {
       output: pulumi.output({
         namespaces: {
@@ -573,6 +544,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       secret: pulumi.secret({
         providerConfigs: {
           authentik: authentikHelmChart.secret.authentikProviderConfig,
+          vault: vaultHelmChart.secret.portForwardedVaultProviderConfig,
+        },
+        vault: {
+          oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,
+          kvMount: vaultResources.output.kv.mountPath,
         },
       }),
     };

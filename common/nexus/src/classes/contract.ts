@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import * as customResources from '@common/custom-resources';
+import * as utils from '@common/utils';
 import * as pulumi from '@pulumi/pulumi';
 import * as std from '@pulumi/std';
-import _ from 'lodash';
 import yaml from 'yaml';
 
 export class Contract<Output_Type extends Object, Secret_Type extends Object> {
@@ -44,15 +44,16 @@ export class Contract<Output_Type extends Object, Secret_Type extends Object> {
           throw new Error('Pulumi.yaml "name" field not found');
         }
         this.projectName = foundName;
-        const stackYamlFilePath = path.join(
-          currentDirPath,
-          `Pulumi.${pulumi.getStack()}.yaml`,
-        );
+        const referencedStackStage =
+          utils.configs.resolveReferencedStackStage(
+            this.projectName,
+            pulumi.getStack(),
+            currentDirPath,
+          );
         this.stackReference = new pulumi.StackReference(
-          `${pulumi.getOrganization()}/${this.projectName}/${
-            fs.existsSync(stackYamlFilePath) ? pulumi.getStack() : 'prod'
-          }`,
+          `${pulumi.getOrganization()}/${this.projectName}/${referencedStackStage}`,
         );
+
         this.contractHashDirPath = path.join(
           process.env.PULUMI_CONTRACT_HASH_DIR_PATH!!,
           this.projectName,

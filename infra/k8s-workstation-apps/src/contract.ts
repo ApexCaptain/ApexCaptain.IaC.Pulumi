@@ -11,6 +11,7 @@ import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import { k8sWorkstationSystemContract } from '@infra/k8s-workstation-system/src/contract';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
+import * as vault from '@pulumi/vault';
 import * as components from './components';
 
 export const k8sWorkstationAppsContract = new nexus.classes.Contract(
@@ -30,6 +31,10 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
     const authentikProvider = new authentik.Provider(
       'authentikProvider',
       k8sWorkstationSystemContract.secret.providerConfigs.authentik,
+    );
+    const vaultProvider = new vault.Provider(
+      'vaultProvider',
+      k8sWorkstationSystemContract.secret.providerConfigs.vault,
     );
 
     // Production Only Apps

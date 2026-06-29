@@ -8,6 +8,7 @@
     ".projen/files.json",
     ".projen/tasks.json",
     "LICENSE",
+    "Pulumi.dev.yaml",
     "Pulumi.prod.yaml",
     "Pulumi.yaml",
     "tsconfig.dev.json",
