@@ -62,7 +62,7 @@ export const SftpV1Component = utils.functions.defineComponent(
       `${resourceName}-sftpConfigMap`,
       {
         metadata: {
-          name: _.kebabCase(`${resourceName}-sftpConfigMap`),
+          name: utils.functions.kebabCase(`${resourceName}-sftpConfigMap`),
           namespace: args.namespace,
         },
         data: {
@@ -93,7 +93,7 @@ export const SftpV1Component = utils.functions.defineComponent(
       `${resourceName}-sftpService`,
       {
         metadata: {
-          name: _.kebabCase(`${resourceName}-sftpService`),
+          name: utils.functions.kebabCase(`${resourceName}-sftpService`),
           namespace: args.namespace,
         },
         spec: {
@@ -117,7 +117,7 @@ export const SftpV1Component = utils.functions.defineComponent(
       `${resourceName}-sftpVirtualService`,
       {
         metadata: {
-          name: _.kebabCase(`${resourceName}-sftpVirtualService`),
+          name: utils.functions.kebabCase(`${resourceName}-sftpVirtualService`),
           namespace: args.namespace,
         },
         spec: {

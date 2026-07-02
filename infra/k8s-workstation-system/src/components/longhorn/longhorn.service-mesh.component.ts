@@ -1,3 +1,12 @@
+/**
+ * Longhorn UI — Istio ingress + Authentik Proxy
+ *
+ * qBittorrent·Longhorn처럼 **Authentik Proxy(Outpost)** 패턴.
+ * VirtualService로 ingress, AuthorizationPolicy로 ext-authz → outpost Pod.
+ *
+ * Longhorn이 Outpost bootstrap provider라 contract에서 가장 먼저 Outpost를 만든다.
+ * 이후 앱(tools)은 OutpostProviderAttachment로 provider만 추가한다.
+ */
 import { authentik } from '@common/bridged-provider';
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
@@ -76,6 +85,7 @@ export const LonghornServiceMeshComponent = utils.functions.defineComponent(
         },
       );
 
+    // Authentik — Proxy provider + Application + 그룹 정책
     const longhornFrontendAuthentikProxyProvider = new authentik.ProviderProxy(
       `${resourceName}-longhornFrontendAuthentikProxyProvider`,
       {
@@ -120,6 +130,7 @@ export const LonghornServiceMeshComponent = utils.functions.defineComponent(
       },
     );
 
+    // Gateway에서 longhorn 호스트로 들어오면 outpost에 인증 위임
     const longhornFrontendAuthorizationPolicy =
       new customResources.resources.k8s.crd.istio.AuthorizationPolicyV1(
         `${resourceName}-longhornFrontendAuthorizationPolicy`,

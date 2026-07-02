@@ -1,3 +1,12 @@
+/**
+ * Authentik Proxy Outpost (bootstrap)
+ *
+ * Authentik API는 Outpost 생성 시 protocolProviders가 비어 있으면 거부한다.
+ * Longhorn provider 하나를 bootstrap으로 넣고, 이후 앱은 Attachment로 붙인다.
+ *
+ * `ignoreChanges: ['protocolProviders']` — Pulumi가 bootstrap 목록만 관리하고,
+ * Attachment로 늘어난 provider는 Authentik이 소스 오브 트루스.
+ */
 import { authentik } from '@common/bridged-provider';
 import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';

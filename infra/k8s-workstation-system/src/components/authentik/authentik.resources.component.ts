@@ -1,3 +1,9 @@
+/**
+ * Authentik IdP 리소스 — 그룹·플로우·OAuth·K8s ServiceConnection
+ *
+ * Outpost는 여기서 만들지 않는다 (Longhorn provider bootstrap은 authentikOutpost).
+ * 그룹 tier: system / tools / application — apps·tools contract가 groupId를 참조.
+ */
 import { authentik } from '@common/bridged-provider';
 import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
@@ -10,7 +16,6 @@ interface AuthentikResourcesComponentArgsShape {
     };
   };
 
-  allowedEmails: string[];
   providers: {
     authentik: authentik.Provider;
   };

@@ -1,3 +1,9 @@
+/**
+ * Longhorn Helm — 분산 블록 스토리지
+ *
+ * 기본 Ingress는 끄고 Istio VirtualService로 UI를 연다.
+ * default disk는 label 달린 노드에만 — Ventoy 노드 스펙과 맞춰 longhorn.resources에서 patch.
+ */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';

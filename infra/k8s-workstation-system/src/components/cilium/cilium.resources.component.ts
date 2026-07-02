@@ -1,3 +1,9 @@
+/**
+ * Cilium L2 announcement
+ *
+ * on-prem LB Service에 외부 IP를 붙이려면 L2AnnouncementPolicy가 필요하다.
+ * Istio ingress gateway `loadBalancerIP`가 여기서 실제로 announce 된다.
+ */
 import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';

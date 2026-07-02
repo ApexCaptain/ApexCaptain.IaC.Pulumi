@@ -48,11 +48,12 @@ tmp
 !/.prettierrc.json
 !/test/
 !/tsconfig.json
-!/tsconfig.dev.json
+!/test/tsconfig.json
 !/src/
 /lib
 /dist/
 !/.eslintrc.json
+!/projenrc/tsconfig.json
 !/turbo.json
 !/.vscode/settings.json
 !/pnpm-workspace.yaml

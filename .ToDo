@@ -1,8 +1,8 @@
-- ## 기존 인프라 복구
-
-- ## Vault
+- ## Vault Secret Operator
 
 - ## ArgoCD
+
+- ## Minio
 
 - ## Kafka
 
@@ -84,3 +84,29 @@
     - 처음부터 완벽한 `chmod` 전체 스펙을 100% 재현하려고 하지 말고,
       "현재 프로젝트에 필요한 안전한 subset" -> "옵션 기반 확장" 순으로 진행한다.
     - 작은 유틸이라도 정책/테스트가 명확하면 향후 패키지화 가능성이 높아진다.
+
+- ## OCI IAM Policy Builder/Parser (npm 패키지) — 우선순위: 낮음
+  - ### 배경
+    - OCI IAM policy는 `Allow <subject> to <verb> <resource-type> in <location> [where ...]` 문자열 DSL.
+    - 공식 `oci-sdk` / `@pulumi/oci`는 `statements: string[]`만 받고, 생성·파싱용 npm 패키지는 사실상 없음.
+    - 현재 `common/utils`의 `createOciPolicyStatement()`가 v0.1 시드 역할.
+
+  - ### 목표 (시간 날 때 점진적으로)
+    - typed builder + (선택) ANTLR parser를 독립 npm 패키지로 분리.
+    - Pulumi/Terraform/oci-sdk와 함께 쓸 수 있는 OCI IAM policy 유틸 제공.
+    - semantic catalog(verb×resource 전체 매트릭스)까지는 범위에서 제외 — 유지보수 부담 과다.
+
+  - ### 단계 (참고)
+    - v0.1: Builder only — `createOciPolicyStatement` 수준, npm 분리
+    - v0.2: Parser + formatter — round-trip, CI에서 invalid statement 조기 발견
+    - v0.3: Presets/recipes — 예: `vault-kms-unseal`, object-storage CMK 등
+    - v1.0+: Semantic catalog — Oracle 문서 기반 매트릭스 (ROI 낮음, 당장 불필요)
+
+  - ### 분리 시점 (신호)
+    - `createOciPolicyStatement`를 repo 내 3곳 이상에서 사용
+    - 기존 policy statement import / drift 비교 / lint에 parse 필요
+    - 오픈소스 공개 또는 다른 OCI IaC 프로젝트와 공유 의향
+
+  - ### 참고
+    - 검증만: `@gtrevorrow/policy-validation-action` (ANTLR, 생성 X)
+    - Oracle은 verb/resource-type 카탈로그를 API로 제공하지 않음 (policy generator도 하드코딩 의존)

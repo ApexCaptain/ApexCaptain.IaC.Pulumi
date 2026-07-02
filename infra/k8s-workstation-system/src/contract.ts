@@ -1,3 +1,14 @@
+/**
+ * Workstation 클러스터의 "시스템" 스택.
+ *
+ * 네트워킹(Cilium) → 인증서(cert-manager) → Vault → Istio mesh → 스토리지(Longhorn)
+ * → IdP(Authentik) 순으로 깔고, apps/tools 스택이 여기 output을 참조한다.
+ *
+ * 배포 순서가 꼬이기 쉬운 구간:
+ * - Vault는 cert-manager CA에, mesh ingress는 LE wildcard cert에 의존
+ * - Authentik PG는 Longhorn SSD SC에, Longhorn UI는 Authentik proxy에 의존
+ *   → Longhorn↔Authentik 3단계 분리는 아래 JSDoc 참고
+ */
 import { authentik } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import * as utils from '@common/utils/src';
@@ -5,6 +16,7 @@ import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as oci from '@pulumi/oci';
 import * as pulumi from '@pulumi/pulumi';
+import * as vault from '@pulumi/vault';
 import * as components from './components';
 
 export const k8sWorkstationSystemContract = new nexus.classes.Contract(
@@ -54,7 +66,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             certManager: {
-              version: 'v1.20.2',
+              version: 'v1.20.3',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.jetstack.io'],
             },
@@ -80,7 +92,79 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         { dependsOn: [certManagerHelmChart] },
       );
 
+    // Vault — mesh 밖 Helm + port-forward IaC Provider (OIDC는 후속)
+    const vaultKms = new components.vault.VaultKmsComponent('vaultKms', {
+      tenancyOcid: nexus.esc.ociEsc.esc.tenancyOcid,
+      region: nexus.esc.ociEsc.esc.region,
+      providers: {
+        oci: ociProvider,
+      },
+    });
+
+    const vaultHelmChart = new components.vault.VaultHelmChartComponent(
+      'vaultHelmChart',
+      {
+        helm: {
+          vault: {
+            version: '0.33.0',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
+          },
+        },
+        kms: {
+          oci: {
+            keyId: vaultKms.secret.apply(secret => secret.kms.keyId),
+            cryptoEndpoint: vaultKms.secret.apply(
+              secret => secret.kms.cryptoEndpoint,
+            ),
+            managementEndpoint: vaultKms.secret.apply(
+              secret => secret.kms.managementEndpoint,
+            ),
+          },
+        },
+        unsealAuth: vaultKms.secret.apply(secret => secret.unsealAuth),
+        pvc: {
+          server: {
+            storageClass: commonEsc.esc.workstationLocalPathStorageClassName,
+            size: '10Gi',
+          },
+        },
+        bootstrapToken: {
+          kubeconfig: commonEsc.esc.workstationKubeconfig,
+          bootstrapTokenEncryptionKey:
+            projectEsc.esc.vault.bootstrapTokenEncryptionKey,
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+      { dependsOn: [vaultKms, certManagerHelmChart] },
+    );
+
+    const portForwardedVaultProvider = new vault.Provider(
+      'portForwardedVaultProvider',
+      vaultHelmChart.secret.apply(
+        secret => secret.portForwardedVaultProviderConfig,
+      ),
+      {
+        dependsOn: [vaultHelmChart],
+      },
+    );
+
+    const vaultResources = new components.vault.VaultResourcesComponent(
+      'vaultResources',
+      {
+        providers: {
+          vault: portForwardedVaultProvider,
+        },
+      },
+      {
+        dependsOn: [vaultHelmChart, portForwardedVaultProvider],
+      },
+    );
+
     // Istio
+    // Jellyfin·qBittorrent SFTP — L4 direct gateway (HTTPS ingress와 별도 포트)
     const directGatewayPorts: utils.types.DeepPulumiInput<
       {
         name: string;
@@ -113,7 +197,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           istio: {
-            version: '1.30.1',
+            version: '1.30.2',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'istio-release.storage.googleapis.com/charts'
@@ -158,6 +242,65 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
       {
         dependsOn: [certManagerResources, istioHelmChart],
+      },
+    );
+
+    // PostgreSQL Operator
+    const postgresqlOperatorHelmChart =
+      new components.postgresqlOperator.PostgreSQLOperatorHelmChartComponent(
+        'postgresqlOperatorHelmChart',
+        {
+          helm: {
+            postgresqlOperator: {
+              version: '0.29.0',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls[
+                  'cloudnative-pg.github.io/charts'
+                ],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+      );
+
+    // Vault Service Mesh — 공개 ingress + TLS origination (Authentik OIDC 전 단계)
+    const vaultServiceMesh = new components.vault.VaultServiceMeshComponent(
+      'vaultServiceMesh',
+      {
+        namespace: vaultHelmChart.output.namespace,
+        ingress: {
+          istioNamespace: istioHelmChart.output.namespace,
+          vault: {
+            host: cloudflareContract.output.zones.ayteneve93com.records.vault,
+            serviceHost: vaultHelmChart.output.tls.serverName,
+            tlsServerName: vaultHelmChart.output.tls.serverName,
+            gatewayPath: istioGateway.output.istioIngressGatewayPath,
+            gatewayLabel: istioHelmChart.output.istioIngressGatewayLabel,
+            port: vaultHelmChart.output.services.vault.ports.vault,
+          },
+        },
+        vault: {
+          bootstrapToken: vaultHelmChart.secret.apply(
+            secret => secret.bootstrapToken.token,
+          ),
+          rootCaSecretName: vaultHelmChart.output.tls.rootCaSecretName,
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+      {
+        dependsOn: [istioGateway, vaultHelmChart, istioHelmChart],
+      },
+    );
+
+    const vaultProvider = new vault.Provider(
+      'vaultProvider',
+      vaultServiceMesh.secret.apply(secret => secret.vaultProviderConfig),
+      {
+        dependsOn: [vaultServiceMesh],
       },
     );
 
@@ -289,7 +432,6 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
               clientSecret: projectEsc.esc.authentik.oauth.google.clientSecret,
             },
           },
-          allowedEmails: projectEsc.esc.authentik.oauth.allowedEmails,
           providers: {
             authentik: authentikProvider,
           },
@@ -298,6 +440,39 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           dependsOn: [authentikServiceMesh, authentikHelmChart],
         },
       );
+
+    const vaultAuthentik = new components.vault.VaultAuthentikComponent(
+      'vaultAuthentik',
+      {
+        hosts: {
+          vault: cloudflareContract.output.zones.ayteneve93com.records.vault,
+          authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
+        },
+        authentik: {
+          allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
+          flow: {
+            authorizationFlowId:
+              authentikResources.output.flow
+                .defaultProviderAuthorizationImplicitConsentId,
+            invalidationFlowId:
+              authentikResources.output.flow.defaultInvalidationFlowId,
+          },
+        },
+        providers: {
+          vault: vaultProvider,
+          authentik: authentikProvider,
+        },
+      },
+      {
+        dependsOn: [
+          vaultHelmChart,
+          vaultServiceMesh,
+          authentikResources,
+          authentikProvider,
+          vaultResources,
+        ],
+      },
+    );
 
     const longhornServiceMesh =
       new components.longhorn.LonghornServiceMeshComponent(
@@ -357,61 +532,6 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
-    // Vault
-    /*
-    const vaultKms = new components.vault.VaultKmsComponent('vaultKms', {
-      tenancyOcid: nexus.esc.ociEsc.esc.tenancyOcid,
-      providers: {
-        oci: ociProvider,
-      },
-    });
-
-    const vaultCoreHelmChart = new components.vault.VaultCoreHelmChartComponent(
-      'vaultCoreHelmChart',
-      {
-        helm: {
-          vault: {
-            version: '0.33.0',
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
-          },
-        },
-        kms: {
-          oci: {
-            keyId: vaultKms.secret.keyId,
-            cryptoEndpoint: vaultKms.secret.cryptoEndpoint,
-            managementEndpoint: vaultKms.secret.managementEndpoint,
-          },
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-      {
-        dependsOn: [certManagerHelmChart, vaultKms],
-      },
-    );
-    */
-
-    // Test
-    // const test = new components.test.TestComponent(
-    //   'test',
-    //   {
-    //     ingress: {
-    //       test1: {
-    //         host: cloudflareContract.output.zones.ayteneve93com.records.test,
-    //         gatewayPath: istioGateway.output.istioIngressGatewayPath,
-    //       },
-    //     },
-    //     providers: {
-    //       kubernetes: workstationK8sProvider,
-    //     },
-    //   },
-    //   {
-    //     dependsOn: [istioHelmChart],
-    //   },
-    // );
-
     return {
       output: pulumi.output({
         namespaces: {
@@ -444,6 +564,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       secret: pulumi.secret({
         providerConfigs: {
           authentik: authentikHelmChart.secret.authentikProviderConfig,
+          vault: vaultHelmChart.secret.portForwardedVaultProviderConfig,
+        },
+        vault: {
+          oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,
+          kvMount: vaultResources.output.kv.mountPath,
         },
       }),
     };

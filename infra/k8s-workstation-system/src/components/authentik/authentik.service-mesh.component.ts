@@ -1,3 +1,9 @@
+/**
+ * Authentik Web UI — ingress 라우팅
+ *
+ * auth.* 호스트는 proxy outpost 없이 바로 VirtualService로 연결.
+ * CORS는 같은 zone의 다른 앱(Jellyfin SSO callback 등)에서 Authentik API를 부를 수 있게 열어둔다.
+ */
 import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
@@ -39,7 +45,6 @@ export const AuthentikServiceMeshComponent = utils.functions.defineComponent(
           },
           spec: {
             mtls: {
-              // 추후 Strict로 변경 가능한지 확인
               mode: 'PERMISSIVE',
             },
           },

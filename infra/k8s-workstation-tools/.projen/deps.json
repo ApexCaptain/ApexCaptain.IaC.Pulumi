@@ -75,6 +75,14 @@
       "type": "runtime"
     },
     {
+      "name": "@pulumi/random",
+      "type": "runtime"
+    },
+    {
+      "name": "@pulumi/vault",
+      "type": "runtime"
+    },
+    {
       "name": "dedent",
       "type": "runtime"
     },

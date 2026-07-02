@@ -8,6 +8,7 @@ const commonEscSchema = z
     workstationIpV4Address: z.string(),
     workstationPodsSubnetCidrBlock: z.string(),
     workstationServicesSubnetCidrBlock: z.string(),
+    workstationLocalPathStorageClassName: z.string(),
     adapter: z
       .object({
         sftp: z
@@ -48,6 +49,8 @@ const commonEscSchema = z
         'charts.goauthentik.io': z.string(),
         'helm.releases.hashicorp.com': z.string(),
         'charts.longhorn.io': z.string(),
+        'go-vikunja/helm-chart/vikunja': z.string(),
+        'cloudnative-pg.github.io/charts': z.string(),
       })
       .required(),
   })

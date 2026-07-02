@@ -1,3 +1,9 @@
+/**
+ * Jellyfin Helm — 미디어 서버
+ *
+ * namespace: ambient mesh (`istio.io/dataplane-mode: ambient`).
+ * SFTP는 Istio direct gateway TCP passthrough — ingress HTTPS와 별도 포트.
+ */
 import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';

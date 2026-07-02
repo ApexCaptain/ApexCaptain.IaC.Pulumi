@@ -1,3 +1,11 @@
+/**
+ * Istio Gateway CR — ingress(HTTPS) + direct(TCP)
+ *
+ * - **ingress gateway**: `*.zone` wildcard LE cert, HTTP→HTTPS redirect
+ * - **direct gateway**: Jellyfin/qBittorrent SFTP 등 L4 passthrough
+ *
+ * VirtualService의 `gateways` 필드는 `{namespace}/{gateway-name}` 형식으로 여기 output을 쓴다.
+ */
 import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
@@ -29,7 +37,7 @@ export const IstioGatewayComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    // Certificate
+    // LE wildcard — prod(실서비스) / staging(디버그·rate limit 회피용)
     const istioIngressGatewayWildcardProdCertSecretName =
       'istio-ingressgateway-wildcard-prod-cert';
     const istioIngressGatewayWildcardProdCertificate =

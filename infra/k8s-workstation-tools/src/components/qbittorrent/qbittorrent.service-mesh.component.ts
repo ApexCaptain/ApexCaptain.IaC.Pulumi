@@ -1,3 +1,9 @@
+/**
+ * qBittorrent Web UI — Authentik Proxy + ext-authz
+ *
+ * Longhorn과 동일 패턴. 차이점은 Outpost가 이미 떠 있으므로
+ * **OutpostProviderAttachment**로 provider만 추가한다 (bootstrap 재생성 없음).
+ */
 import { authentik } from '@common/bridged-provider';
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';

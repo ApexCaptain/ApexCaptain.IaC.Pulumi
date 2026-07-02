@@ -1,6 +1,13 @@
+/**
+ * Authentik Helm — IdP 본체
+ *
+ * namespace에 `istio-injection: enabled` (레거시 라벨이지만 ambient와 공존).
+ * PostgreSQL PVC는 Longhorn SSD SC — 그래서 longhornResources 이후에 배포한다.
+ */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
+import * as time from '@pulumiverse/time';
 
 interface AuthentikHelmChartComponentArgsShape {
   namespace: string;
@@ -216,6 +223,17 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
+    const authentikReleasePropagationDelay = new time.Sleep(
+      `${resourceName}-authentikReleasePropagationDelay`,
+      {
+        createDuration: '90s',
+      },
+      {
+        ...opts,
+        dependsOn: [authentikRelease],
+      },
+    );
+
     // RBAC
     const authentikRole = new kubernetes.rbac.v1.Role(
       `${resourceName}-authentikRole`,
@@ -256,7 +274,7 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
-        dependsOn: [namespace],
+        dependsOn: [namespace, authentikReleasePropagationDelay],
       },
     );
 

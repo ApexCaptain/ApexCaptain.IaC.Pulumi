@@ -1,5 +1,5 @@
 {
-  "manifestVersion": 1,
+  "manifestVersion": 3,
   "env": {
     "PATH": "$(pnpm -c exec \"node --print process.env.PATH\")"
   },
@@ -65,7 +65,10 @@
       "description": "Only compile",
       "steps": [
         {
-          "exec": "tsc --build"
+          "execArgs": [
+            "tsc",
+            "--build"
+          ]
         }
       ]
     },
@@ -77,7 +80,7 @@
       },
       "steps": [
         {
-          "exec": "ts-node --project tsconfig.dev.json .projenrc.ts"
+          "exec": "ts-node --project test/tsconfig.json .projenrc.ts"
         },
         {
           "exec": "pnpm pulumi:install"
@@ -136,10 +139,19 @@
       "description": "Creates the distribution package",
       "steps": [
         {
-          "exec": "mkdir -p dist/js"
+          "execArgs": [
+            "mkdir",
+            "-p",
+            "dist/js"
+          ]
         },
         {
-          "exec": "pnpm pack --pack-destination dist/js"
+          "execArgs": [
+            "pnpm",
+            "pack",
+            "--pack-destination",
+            "dist/js"
+          ]
         }
       ]
     },
@@ -193,7 +205,11 @@
       "description": "Watch & compile in the background",
       "steps": [
         {
-          "exec": "tsc --build -w"
+          "execArgs": [
+            "tsc",
+            "--build",
+            "-w"
+          ]
         }
       ]
     }

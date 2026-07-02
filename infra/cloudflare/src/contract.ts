@@ -1,3 +1,9 @@
+/**
+ * Cloudflare DNS — workstation 도메인
+ *
+ * `ayteneve93.com` zone의 CNAME 레코드를 Pulumi로 관리.
+ * proxied 여부는 서비스마다 다름 — records.workstation 주석 참고.
+ */
 import * as nexus from '@common/nexus';
 import * as cloudflare from '@pulumi/cloudflare';
 import * as pulumi from '@pulumi/pulumi';

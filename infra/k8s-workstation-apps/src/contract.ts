@@ -1,3 +1,9 @@
+/**
+ * Workstation "앱" 스택 — Jellyfin 등 사용자 서비스
+ *
+ * `k8s-workstation-system` output( mesh gateway, storage class, Authentik group )을 참조.
+ * PROD 스택에서만 Jellyfin을 올린다 — dev/staging은 비용·노이즈 줄이기.
+ */
 import { authentik } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import * as utils from '@common/utils';
@@ -5,6 +11,7 @@ import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import { k8sWorkstationSystemContract } from '@infra/k8s-workstation-system/src/contract';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
+import * as vault from '@pulumi/vault';
 import * as components from './components';
 
 export const k8sWorkstationAppsContract = new nexus.classes.Contract(
@@ -24,6 +31,10 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
     const authentikProvider = new authentik.Provider(
       'authentikProvider',
       k8sWorkstationSystemContract.secret.providerConfigs.authentik,
+    );
+    const vaultProvider = new vault.Provider(
+      'vaultProvider',
+      k8sWorkstationSystemContract.secret.providerConfigs.vault,
     );
 
     // Production Only Apps

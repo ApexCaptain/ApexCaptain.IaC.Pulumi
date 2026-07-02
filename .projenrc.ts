@@ -64,7 +64,8 @@ const rootProject = new typescript.TypeScriptProject(
       defaultReleaseBranch: src.constants.branches.main,
       // TypeScript Project Options
       eslintOptions: {
-        tsconfigPath: './tsconfig.dev.json',
+        tsconfigPath: './test/tsconfig.json',
+        projectService: false,
         dirs: [src.constants.paths.dirs.srcDir],
         devdirs: [src.constants.paths.dirs.scriptDir],
         ignorePatterns: ['/**/node_modules/*', '/**/pnpm-store/*'],
@@ -72,9 +73,12 @@ const rootProject = new typescript.TypeScriptProject(
       },
       projenrcTs: true,
       tsconfigDev: {
-        include: [src.constants.paths.dirs.scriptDir].map(
-          eachDevDir => `${eachDevDir}/**/*.ts`,
-        ),
+        include: [
+          `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
+          `../${src.constants.paths.dirs.scriptDir}/**/*.ts`,
+          '../.projenrc.ts',
+          '../projenrc/**/*.ts',
+        ],
       },
 
       // Node Project Options
@@ -498,6 +502,8 @@ const initPulumiEsc = async () => {
         process.env.WORKSTATION_BOOTSTRAP_KUBE_PODS_SUBNET_CIDR_BLOCK,
       workstationServicesSubnetCidrBlock:
         process.env.WORKSTATION_BOOTSTRAP_KUBE_SERVICE_SUBNET_CIDR_BLOCK,
+      workstationLocalPathStorageClassName:
+        process.env.WORKSTATION_BOOTSTRAP_LOCAL_PATH_STORAGECLASS_NAME,
       adapter: {
         sftp: {
           userName: process.env.WORKSTATION_SFTP_ADAPTER_USERNAME,
@@ -587,6 +593,10 @@ const initPulumiEsc = async () => {
     accountName,
     pulumiEscClient,
     {
+      vault: {
+        bootstrapTokenEncryptionKey:
+          process.env.VAULT_BOOTSTRAP_TOKEN_ENCRYPTION_KEY,
+      },
       longhorn: {
         nodes: [
           // Node 0
@@ -634,7 +644,6 @@ const initPulumiEsc = async () => {
         },
         postgresqlPassword: process.env.AUTHENTIK_POSTGRESQL_PASSWORD,
         oauth: {
-          allowedEmails: process.env.AUTHENTIK_ALLOWED_EMAILS!!.split(','),
           google: {
             clientId: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_ID,
             clientSecret: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_SECRET,
@@ -663,6 +672,7 @@ const initPulumiEsc = async () => {
     {},
     {
       prod: {},
+      dev: {},
     },
   );
 };
@@ -684,14 +694,20 @@ void (async () => {
 
     const customResourcesProject = inflateCommonProject({
       projectName: 'custom-resources',
-      commonDeps: [utilsProject.project.package.packageName],
+      commonDeps: [
+        utilsProject.project.package.packageName,
+        bridgedProviderProject.project.package.packageName,
+      ],
       deps: [
         src.constants.pulumiPackages.kubernetes,
         src.constants.pulumiPackages.command,
         src.constants.pulumiPackages.tls,
         src.constants.pulumiPackages.random,
+        src.constants.pulumiPackages.vault,
         'axios',
+        '@kubernetes/client-node',
       ],
+      devDeps: ['@types/ws'],
     });
 
     const nexusProject = inflateCommonProject({
@@ -737,6 +753,9 @@ void (async () => {
       deps: [
         src.constants.pulumiPackages.kubernetes,
         src.constants.pulumiPackages.oci,
+        src.constants.pulumiPackages.tls,
+        src.constants.pulumiPackages.time,
+        src.constants.pulumiPackages.vault,
       ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,
@@ -754,8 +773,14 @@ void (async () => {
 
     const k8sWorkstationToolsProject = inflatePulumiProject({
       projectName: 'k8s-workstation-tools',
-      stages: [utils.enums.StackStage.PROD],
-      deps: [src.constants.pulumiPackages.kubernetes, 'timezone-enum'],
+      stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
+      deps: [
+        src.constants.pulumiPackages.kubernetes,
+        src.constants.pulumiPackages.vault,
+        src.constants.pulumiPackages.random,
+
+        'timezone-enum',
+      ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
@@ -772,7 +797,10 @@ void (async () => {
     const k8sWorkstationAppsProject = inflatePulumiProject({
       projectName: 'k8s-workstation-apps',
       stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
-      deps: [src.constants.pulumiPackages.kubernetes],
+      deps: [
+        src.constants.pulumiPackages.kubernetes,
+        src.constants.pulumiPackages.vault,
+      ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,
         commonProjects.utilsProject.project.package.packageName,
@@ -962,8 +990,10 @@ void (async () => {
     src.constants.paths.files.novaConfigFile,
     {
       obj: {
-        'poll-artifacthub': false,
-        url: Object.values(src.constants.helmChartRepositoryUrls),
+        'poll-artifacthub': true,
+        url: Object.values(src.constants.helmChartRepositoryUrls).filter(
+          eachUrl => !eachUrl.includes('oci://'),
+        ),
       },
     },
   );

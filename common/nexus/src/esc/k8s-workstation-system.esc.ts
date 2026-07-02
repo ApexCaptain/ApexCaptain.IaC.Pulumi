@@ -3,6 +3,11 @@ import { AbstractEsc } from '../abstract';
 
 const k8sWorkstationSystemEscSchema = z
   .object({
+    vault: z
+      .object({
+        bootstrapTokenEncryptionKey: z.string(),
+      })
+      .required(),
     longhorn: z
       .object({
         nodes: z.array(
@@ -45,7 +50,6 @@ const k8sWorkstationSystemEscSchema = z
         postgresqlPassword: z.string(),
         oauth: z
           .object({
-            allowedEmails: z.array(z.string()),
             google: z
               .object({
                 clientId: z.string(),

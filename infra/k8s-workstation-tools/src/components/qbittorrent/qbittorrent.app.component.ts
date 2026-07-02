@@ -1,3 +1,14 @@
+/**
+ * qBittorrent — NordLynx VPN sidecar Pod
+ *
+ * ```
+ * [Pod] qBittorrent ──► nordlynx (WireGuard) ──► 인터넷
+ *       Web UI :8080  ◄── mesh ingress (VPN 밖에서 접근)
+ * ```
+ *
+ * namespace `dataplane-mode: none` — VPN 라우팅 꼬임 방지.
+ * DNS는 DoT(1.1.1.1)로 묶어서 ISP DNS 유출을 줄인다.
+ */
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';

@@ -1,3 +1,9 @@
+/**
+ * Longhorn 노드 디스크 + StorageClass
+ *
+ * HDD/SSD × RWO/RWX × Delete/Retain 조합으로 SC 8종.
+ * Authentik PG는 `longhorn-ssd`, Jellyfin 미디어는 `longhorn-hdd-retain` 같은 식으로 골라 쓴다.
+ */
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';

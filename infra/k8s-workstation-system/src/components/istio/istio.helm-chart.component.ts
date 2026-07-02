@@ -1,3 +1,13 @@
+/**
+ * Istio Ambient mesh (workstation)
+ *
+ * profile: ambient — sidecar 대신 ztunnel + waypoint(필요 시) 구조.
+ * istiod meshConfig에 Authentik proxy outpost를 ext-authz provider로 등록해 두고,
+ * AuthorizationPolicy에서 `provider.name`으로 꺼내 쓴다.
+ *
+ * ingress gateway Service는 Cilium LB IP + workstation 외부 IP를 같이 박는다.
+ * direct gateway 포트(SFTP 등)는 별도 Gateway CR로 TCP passthrough.
+ */
 import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
@@ -58,6 +68,7 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
+    // base → cni → istiod → ztunnel → ingress gateway
     const istioBaseRelease = new kubernetes.helm.v3.Release(
       `${resourceName}-istioBaseRelease`,
       {
@@ -137,6 +148,7 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
             },
             trustDomain: 'cluster.local',
             accessLogFile: '/dev/stdout',
+            // Longhorn·qBittorrent 등 proxy outpost 앱이 여기 이름을 참조
             extensionProviders: [
               {
                 name: args.authentik.proxyOutpostProviderName,

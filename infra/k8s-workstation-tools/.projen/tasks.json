@@ -1,5 +1,5 @@
 {
-  "manifestVersion": 1,
+  "manifestVersion": 3,
   "env": {
     "PATH": "$(pnpm -c exec \"node --print process.env.PATH\")"
   },
@@ -30,7 +30,10 @@
       "description": "Only compile",
       "steps": [
         {
-          "exec": "tsc --build"
+          "execArgs": [
+            "tsc",
+            "--build"
+          ]
         }
       ]
     },
@@ -81,10 +84,19 @@
       "description": "Creates the distribution package",
       "steps": [
         {
-          "exec": "mkdir -p dist/js"
+          "execArgs": [
+            "mkdir",
+            "-p",
+            "dist/js"
+          ]
         },
         {
-          "exec": "pnpm pack --pack-destination dist/js"
+          "execArgs": [
+            "pnpm",
+            "pack",
+            "--pack-destination",
+            "dist/js"
+          ]
         }
       ]
     },
@@ -117,13 +129,13 @@
       },
       "steps": [
         {
-          "exec": "pnpm dlx npm-check-updates@20 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/node,eslint-import-resolver-typescript,eslint-plugin-import,typescript,@pulumi/kubernetes,@pulumi/pulumi,dedent,lodash,timezone-enum,yaml"
+          "exec": "pnpm dlx npm-check-updates@20 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/node,eslint-import-resolver-typescript,eslint-plugin-import,typescript,@pulumi/kubernetes,@pulumi/pulumi,@pulumi/random,@pulumi/vault,dedent,lodash,timezone-enum,yaml"
         },
         {
           "exec": "pnpm i --no-frozen-lockfile"
         },
         {
-          "exec": "pnpm update @stylistic/eslint-plugin @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-import-resolver-typescript eslint-plugin-import eslint typescript @common/bridged-provider @common/custom-resources @common/nexus @common/utils @infra/cloudflare @infra/k8s-workstation-system @pulumi/kubernetes @pulumi/pulumi dedent lodash timezone-enum yaml"
+          "exec": "pnpm update @stylistic/eslint-plugin @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-import-resolver-typescript eslint-plugin-import eslint typescript @common/bridged-provider @common/custom-resources @common/nexus @common/utils @infra/cloudflare @infra/k8s-workstation-system @pulumi/kubernetes @pulumi/pulumi @pulumi/random @pulumi/vault dedent lodash timezone-enum yaml"
         },
         {
           "exec": "pnpm exec projen"
@@ -138,7 +150,11 @@
       "description": "Watch & compile in the background",
       "steps": [
         {
-          "exec": "tsc --build -w"
+          "execArgs": [
+            "tsc",
+            "--build",
+            "-w"
+          ]
         }
       ]
     }
