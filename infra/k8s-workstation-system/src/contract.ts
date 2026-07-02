@@ -245,6 +245,26 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    // PostgreSQL Operator
+    const postgresqlOperatorHelmChart =
+      new components.postgresqlOperator.PostgreSQLOperatorHelmChartComponent(
+        'postgresqlOperatorHelmChart',
+        {
+          helm: {
+            postgresqlOperator: {
+              version: '0.29.0',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls[
+                  'cloudnative-pg.github.io/charts'
+                ],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+      );
+
     // Vault Service Mesh — 공개 ingress + TLS origination (Authentik OIDC 전 단계)
     const vaultServiceMesh = new components.vault.VaultServiceMeshComponent(
       'vaultServiceMesh',

@@ -120,6 +120,10 @@ export const constants = (() => {
     'charts.goauthentik.io': 'https://charts.goauthentik.io',
     'helm.releases.hashicorp.com': 'https://helm.releases.hashicorp.com',
     'charts.longhorn.io': 'https://charts.longhorn.io',
+    'go-vikunja/helm-chart/vikunja':
+      'oci://ghcr.io/go-vikunja/helm-chart/vikunja',
+    'cloudnative-pg.github.io/charts':
+      'https://cloudnative-pg.github.io/charts',
   };
 
   return {

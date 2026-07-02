@@ -9,3 +9,5 @@ export * as longhorn from './longhorn';
 export * as authentik from './authentik';
 
 export * as vault from './vault';
+
+export * as postgresqlOperator from './postgresql-operator';

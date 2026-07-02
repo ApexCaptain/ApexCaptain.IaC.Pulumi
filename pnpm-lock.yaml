@@ -538,6 +538,9 @@ importers:
       '@pulumi/pulumi':
         specifier: ^3.248.0
         version: 3.248.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
+      '@pulumi/random':
+        specifier: ^4.21.0
+        version: 4.21.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
       '@pulumi/vault':
         specifier: ^7.10.0
         version: 7.10.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)

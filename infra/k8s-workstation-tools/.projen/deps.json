@@ -75,6 +75,10 @@
       "type": "runtime"
     },
     {
+      "name": "@pulumi/random",
+      "type": "runtime"
+    },
+    {
       "name": "@pulumi/vault",
       "type": "runtime"
     },

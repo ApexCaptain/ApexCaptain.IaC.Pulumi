@@ -45,7 +45,6 @@ export const AuthentikServiceMeshComponent = utils.functions.defineComponent(
           },
           spec: {
             mtls: {
-              // 추후 Strict로 변경 가능한지 확인
               mode: 'PERMISSIVE',
             },
           },

@@ -154,6 +154,23 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const todoRecord = new cloudflare.DnsRecord(
+      `${resourceName}-todoRecord`,
+      {
+        name: 'todo',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Todo Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     return {
       output: pulumi.output({
         records: {
@@ -164,6 +181,7 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
           torrent: pulumi.interpolate`${torrentRecord.name}.${args.zoneDomain}`,
           test: pulumi.interpolate`${testRecord.name}.${args.zoneDomain}`,
           vault: pulumi.interpolate`${vaultRecord.name}.${args.zoneDomain}`,
+          todo: pulumi.interpolate`${todoRecord.name}.${args.zoneDomain}`,
         },
       }),
       secret: pulumi.secret({}),

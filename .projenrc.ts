@@ -777,6 +777,7 @@ void (async () => {
       deps: [
         src.constants.pulumiPackages.kubernetes,
         src.constants.pulumiPackages.vault,
+        src.constants.pulumiPackages.random,
 
         'timezone-enum',
       ],
@@ -989,8 +990,10 @@ void (async () => {
     src.constants.paths.files.novaConfigFile,
     {
       obj: {
-        'poll-artifacthub': false,
-        url: Object.values(src.constants.helmChartRepositoryUrls),
+        'poll-artifacthub': true,
+        url: Object.values(src.constants.helmChartRepositoryUrls).filter(
+          eachUrl => !eachUrl.includes('oci://'),
+        ),
       },
     },
   );
