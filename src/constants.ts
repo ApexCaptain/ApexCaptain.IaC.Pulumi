@@ -35,6 +35,7 @@ export const constants = (() => {
   const githubGeneratedDir = '.github/generated';
   const venvDir = process.env.VIRTUAL_ENV_DIR_NAME || '.venv';
   const keysDir = process.env.KEYS_DIR_NAME || '.keys';
+
   // Files
   const novaConfigFile =
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
@@ -53,12 +54,13 @@ export const constants = (() => {
   );
   const githubGeneratedPullRequestTitleFile = path.join(
     githubGeneratedDir,
-    'pull-request-title.md',
+    'pull-request-title.txt',
   );
   const githubGeneratedPullRequestBodyFile = path.join(
     githubGeneratedDir,
     'pull-request-body.md',
   );
+
   const paths = {
     dirs: {
       srcDir,
