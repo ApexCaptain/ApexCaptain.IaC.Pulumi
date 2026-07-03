@@ -30,12 +30,12 @@ jspm_packages/
 .yarn-integrity
 .cache
 .DS_STORE
-.github/generated
 Pulumi*.yaml
 Pulumi*.yml
 inventory.ini
 .turbo
 tmp
+/.github/generated
 /.keys
 /.secrets
 /.kube

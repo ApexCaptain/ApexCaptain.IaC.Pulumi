@@ -32,6 +32,7 @@ export const constants = (() => {
   const ventoyUserDataDir = path.join(ventoyDir, 'user-data');
   const ansibleDir = 'ansible';
   const ansibleThirdPartyDir = path.join(ansibleDir, 'third_party');
+  const githubGeneratedDir = '.github/generated';
   const venvDir = process.env.VIRTUAL_ENV_DIR_NAME || '.venv';
   const keysDir = process.env.KEYS_DIR_NAME || '.keys';
   // Files
@@ -45,6 +46,18 @@ export const constants = (() => {
   const ansibleWorkstationInventoryFile = path.join(
     ansibleDir,
     'workstation/inventory/inventory.ini',
+  );
+  const githubGeneratedCommitMessageFile = path.join(
+    githubGeneratedDir,
+    'commit-message.txt',
+  );
+  const githubGeneratedPullRequestTitleFile = path.join(
+    githubGeneratedDir,
+    'pull-request-title.md',
+  );
+  const githubGeneratedPullRequestBodyFile = path.join(
+    githubGeneratedDir,
+    'pull-request-body.md',
   );
   const paths = {
     dirs: {
@@ -65,12 +78,16 @@ export const constants = (() => {
       ansibleThirdPartyDir,
       venvDir,
       keysDir,
+      githubGeneratedDir,
     },
     files: {
       novaConfigFile,
       cursorMcpJsonFile,
       workstationSshPrivateKeyFile,
       ansibleWorkstationInventoryFile,
+      githubGeneratedCommitMessageFile,
+      githubGeneratedPullRequestTitleFile,
+      githubGeneratedPullRequestBodyFile,
     },
   };
 

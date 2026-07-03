@@ -15,6 +15,8 @@
     "upgrade": "projen upgrade",
     "watch": "projen watch",
     "projen": "projen",
+    "git:commit": "git commit -F .github/generated/commit-message.txt",
+    "git:pr": "gh pr create --title \"$(cat .github/generated/pull-request-title.md)\" --body-file \".github/generated/pull-request-body.md\"",
     "build:workspaces": "turbo run build --filter \"./common/*\" --filter \"./infra/*\"",
     "build:infra": "turbo run build --filter \"./infra/*\"",
     "posteslint": "turbo run eslint --filter \"./common/*\" --filter \"./infra/*\" --concurrency=3",
