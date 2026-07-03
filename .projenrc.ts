@@ -150,12 +150,12 @@ const rootProject = new typescript.TypeScriptProject(
 
       gitignore: [
         '.DS_STORE',
-        '.github/generated',
         'Pulumi*.yaml',
         'Pulumi*.yml',
         'inventory.ini',
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
+        `/${src.constants.paths.dirs.githubGeneratedDir}`,
         `/${src.constants.paths.dirs.keysDir}`,
         `/${src.constants.paths.dirs.secretsDir}`,
         `/${src.constants.paths.dirs.kubeConfigDir}`,
@@ -1193,6 +1193,12 @@ void (async () => {
 
   // Scripts
   rootProject.addScripts({
+    'git:commit': `git commit -F ${src.constants.paths.files.githubGeneratedCommitMessageFile}`,
+    'git:pr': dedent`
+        gh pr create \
+          --title "$(cat ${src.constants.paths.files.githubGeneratedPullRequestTitleFile})" \
+          --body-file "${src.constants.paths.files.githubGeneratedPullRequestBodyFile}"`,
+
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 

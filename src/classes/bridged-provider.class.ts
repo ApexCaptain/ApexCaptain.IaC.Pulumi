@@ -30,8 +30,6 @@ export class BridgedProvider {
   }
 }
 
-// curl -s https://registry.terraform.io/v1/providers/hashicorp/local | json_pp | grep '"version"' | head -n 1
-
 export class TerraformBridgedProvider extends BridgedProvider {
   constructor(option: {
     name: string;

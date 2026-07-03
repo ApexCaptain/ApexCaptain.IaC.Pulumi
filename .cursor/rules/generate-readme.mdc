@@ -1,0 +1,123 @@
+---
+description: README 작성 요청 시 pnpm workspace 서브모듈 README를 프로젝트 현황에 맞게 갱신
+alwaysApply: true
+---
+
+# README 작성 (pnpm 서브모듈)
+
+사용자가 **README 작성**, **README 갱신**, **서브모듈 README** 등을 요청하면 아래를 따른다.  
+**루트 `README.md`는 대상에서 제외**한다 (Nova diagnosis 등 별도 용도).
+
+> **범위:** `pnpm-workspace.yaml`의 `common/*`, `infra/*` 패키지 각각의 `README.md`.  
+> 특정 패키지만 지정했으면 그 패키지만, 전체 요청이면 workspace 전 패키지를 갱신한다.
+
+## 1. 대상 패키지 확인
+
+`pnpm-workspace.yaml` 기준 workspace 패키지:
+
+| 경로 | package name (예) |
+|------|-------------------|
+| `common/utils` | `@common/utils` |
+| `common/nexus` | `@common/nexus` |
+| `common/custom-resources` | `@common/custom-resources` |
+| `common/bridged-provider` | `@common/bridged-provider` |
+| `infra/cloudflare` | `@infra/cloudflare` |
+| `infra/k8s-workstation-system` | `@infra/k8s-workstation-system` |
+| `infra/k8s-workstation-apps` | `@infra/k8s-workstation-apps` |
+| `infra/k8s-workstation-tools` | `@infra/k8s-workstation-tools` |
+
+**제외:**
+
+- 루트 `/README.md`
+- `common/bridged-provider/sdks/**` (Pulumi/Terraform gen 산출물 — 사용자가 명시하지 않는 한 수정하지 않음)
+- `ansible/**`, `scripts/**` 등 workspace 밖 디렉터리
+
+## 2. 현황 조사 (필수)
+
+README는 placeholder나 추측이 아니라 **코드·설정 기준**으로 쓴다. 각 패키지마다 최소한 아래를 확인한다.
+
+- `package.json` — `name`, `dependencies`, `scripts` (`pulumi:preview`, `pulumi:up` 유무)
+- `src/index.ts`, `src/contract.ts` (infra) — export·스택 역할
+- `src/components/` — 실제 컴포넌트·앱 목록
+- 상위/하위 contract 참조 — `@infra/*` upstream/downstream
+- 기존 `contract.ts`·컴포넌트 파일 상단 JSDoc (있으면 README 요약에 반영)
+
+## 3. 공통 템플릿
+
+모든 서브모듈 README는 **동일한 섹션 순서**를 따른다. 내용 없는 섹션은 생략한다.
+
+```markdown
+# {package.json name}
+
+{한 줄 설명}
+
+## 역할
+
+- …
+
+## 구조
+
+\`\`\`
+src/
+└── …
+\`\`\`
+
+## 의존성
+
+- workspace / npm 패키지 나열
+
+## 명령
+
+\`\`\`bash
+pnpm --filter {package name} build
+pnpm --filter {package name} eslint
+# infra: pulumi:preview, pulumi:up
+\`\`\`
+```
+
+### `@common/*` 추가 가이드
+
+- **역할:** 이 패키지가 모노레포에서 맡는 추상화 한 줄 요약
+- **구조:** `src/` 하위 디렉터리와 대표 export
+- **참조** (선택): 어떤 패키지가 이 패키지를 의존하는지
+
+### `@infra/*` 추가 가이드
+
+아래 섹션을 **역할** 다음 또는 **명령** 앞에 넣는다 (해당할 때만).
+
+| 섹션 | 내용 |
+|------|------|
+| **Pulumi 프로젝트** | 기본 스택(`prod` 등), ESC 이름 |
+| **현재 앱/도구** (apps/tools) | 컴포넌트별 DB·인증·mesh 패턴 표 |
+| **배포 순서** | upstream 스택 대비 선행 조건 |
+| **upstream / downstream** | contract 참조 관계 |
+
+infra 스택 배포 순서 참고:
+
+```
+cloudflare → k8s-workstation-system → k8s-workstation-apps
+                                    → k8s-workstation-tools
+```
+
+## 4. 작성 규칙
+
+- **언어:** 한국어, 간결한 문체 (~함 / 명사형 종결 혼용 가능, 경어체 불필요)
+- **제목:** `# {package.json의 name}` (예: `# @common/utils`)
+- **한 줄 설명:** 패키지가 무엇인지 1문장
+- **표·목록:** 실제 존재하는 컴포넌트·앱만 기재 (삭제된 항목 제거)
+- **명령:** `pnpm --filter <package name>` 형식 사용 (루트에서 실행 가정)
+- **민감 정보:** API token, kubeconfig, secret 값, ESC 실제 값 기재 금지
+- **과장·로드맵:** 미구현·계획만 있는 내용은 README에 넣지 않음
+
+## 5. 파일 작성
+
+- 각 패키지 루트의 **`README.md`에만** 작성 (예: `common/utils/README.md`)
+- projen placeholder `# replace this`가 있으면 전체 교체
+- 사용자가 특정 패키지만 요청했으면 해당 `README.md`만 수정
+
+## 하지 않을 것
+
+- 루트 `README.md` 수정 (사용자가 명시적으로 요청할 때만)
+- `sdks/authentik/README.md` 등 generated SDK 문서 수정
+- workspace에 없는 디렉터리에 README 신규 생성
+- 코드 변경 없이 README만 stale하게 두기 — 요청 시 반드시 2단계 조사 후 갱신
