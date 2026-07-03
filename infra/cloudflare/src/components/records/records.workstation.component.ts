@@ -174,14 +174,14 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
     return {
       output: pulumi.output({
         records: {
-          workstation: pulumi.interpolate`${directRecord.name}.${args.zoneDomain}`,
-          auth: pulumi.interpolate`${authRecord.name}.${args.zoneDomain}`,
-          jellyfin: pulumi.interpolate`${jellyfinRecord.name}.${args.zoneDomain}`,
-          longhorn: pulumi.interpolate`${longhornRecord.name}.${args.zoneDomain}`,
-          torrent: pulumi.interpolate`${torrentRecord.name}.${args.zoneDomain}`,
-          test: pulumi.interpolate`${testRecord.name}.${args.zoneDomain}`,
-          vault: pulumi.interpolate`${vaultRecord.name}.${args.zoneDomain}`,
-          todo: pulumi.interpolate`${todoRecord.name}.${args.zoneDomain}`,
+          workstation: directRecord.name,
+          auth: authRecord.name,
+          jellyfin: jellyfinRecord.name,
+          longhorn: longhornRecord.name,
+          torrent: torrentRecord.name,
+          test: testRecord.name,
+          vault: vaultRecord.name,
+          todo: todoRecord.name,
         },
       }),
       secret: pulumi.secret({}),

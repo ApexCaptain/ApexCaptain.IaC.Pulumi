@@ -564,7 +564,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       secret: pulumi.secret({
         providerConfigs: {
           authentik: authentikHelmChart.secret.authentikProviderConfig,
-          vault: vaultHelmChart.secret.portForwardedVaultProviderConfig,
+          vault: vaultServiceMesh.secret.vaultProviderConfig,
         },
         vault: {
           oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,

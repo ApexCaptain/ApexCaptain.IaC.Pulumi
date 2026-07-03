@@ -1,6 +1,6 @@
 # @infra/k8s-workstation-tools
 
-Workstation **도구/유틸** Pulumi 스택 — qBittorrent, Vikunja, Dobby 등.
+Workstation **도구/유틸** Pulumi 스택 — qBittorrent, Vikunja 등.
 
 ## 역할
 
@@ -9,18 +9,19 @@ Workstation **도구/유틸** Pulumi 스택 — qBittorrent, Vikunja, Dobby 등.
 
 ### 현재 도구
 
-| 도구 | DB | 인증 | mesh |
-|------|-----|------|------|
-| **Vikunja** | CNPG (외부 PG) | Authentik OIDC (네이티브) | ambient, ingress SA ALLOW |
-| **qBittorrent** | — | Authentik Proxy + Outpost | ext-authz |
-| **Dobby** | — | Vault OIDC 연동 | — |
+| 도구            | 스택 | DB             | 인증                      | mesh                      |
+| --------------- | ---- | -------------- | ------------------------- | ------------------------- |
+| **Vikunja**     | prod | CNPG (외부 PG) | Authentik OIDC (네이티브) | ambient, ingress SA ALLOW |
+| **qBittorrent** | prod | —              | Authentik Proxy + Outpost | ext-authz                 |
 
 ## Pulumi 프로젝트
 
-| 항목 | 값 |
-|------|-----|
-| 기본 스택 | `prod` (Vikunja/qBittorrent), dev 스택에 Dobby 등 |
-| ESC | `k8sWorkstationToolsEsc`, `commonEsc` |
+| 항목      | 값                                    |
+| --------- | ------------------------------------- |
+| 기본 스택 | `prod` (Vikunja, qBittorrent)         |
+| ESC       | `k8sWorkstationToolsEsc`, `commonEsc` |
+
+`dev` 스택은 존재하지만 현재 배포 리소스 없음.
 
 ## 구조
 
@@ -29,8 +30,7 @@ src/
 ├── contract.ts
 └── components/
     ├── vikunja/       # base(CNPG) → authentik → helm → service-mesh
-    ├── qbittorrent/
-    └── dobby/
+    └── qbittorrent/   # NordLynx VPN sidecar → authentik proxy mesh
 ```
 
 ## 의존성
