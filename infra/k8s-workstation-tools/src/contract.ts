@@ -273,17 +273,6 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
         );
     }
 
-    // Dobby
-    const dobbyVault = new components.dobby.DobbyVaultComponent('dobbyVault', {
-      oidcMountAccessor:
-        k8sWorkstationSystemContract.secret.vault.oidcMountAccessor,
-      kvMount: k8sWorkstationSystemContract.secret.vault.kvMount,
-      providers: {
-        authentik: authentikProvider,
-        vault: vaultProvider,
-      },
-    });
-
     return {
       output: pulumi.output({}),
       secret: pulumi.secret({}),

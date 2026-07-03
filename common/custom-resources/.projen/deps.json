@@ -87,6 +87,10 @@
       "type": "runtime"
     },
     {
+      "name": "flat",
+      "type": "runtime"
+    },
+    {
       "name": "lodash",
       "type": "runtime"
     },

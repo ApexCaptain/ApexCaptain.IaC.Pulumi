@@ -161,6 +161,36 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
         );
     }
 
+    // Price Quest
+    const priceQuestBase = new components.priceQuest.PriceQuestBaseComponent(
+      'priceQuestBase',
+      {
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+    );
+
+    const priceQuestVault = new components.priceQuest.PriceQuestVaultComponent(
+      'priceQuestVault',
+      {
+        namespace: priceQuestBase.output.namespace,
+        projectName: priceQuestBase.output.projectName,
+        vault: {
+          oidcMountAccessor:
+            k8sWorkstationSystemContract.secret.vault.oidcMountAccessor,
+          kvMount: k8sWorkstationSystemContract.secret.vault.kvMount,
+        },
+        providers: {
+          authentik: authentikProvider,
+          vault: vaultProvider,
+        },
+      },
+      {
+        dependsOn: [priceQuestBase],
+      },
+    );
+
     return {
       output: pulumi.output({}),
       secret: pulumi.secret({}),

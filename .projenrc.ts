@@ -22,7 +22,8 @@ import {
 import { VsCode } from 'projen/lib/vscode';
 import { sha512 } from 'sha512-crypt-ts';
 import Timezone from 'timezone-enum';
-import * as Nexus from './common/nexus/src';
+import { AbstractEsc } from './common/nexus/src/abstract/esc.abstract';
+import * as NexusEsc from './common/nexus/src/esc';
 import * as utils from './common/utils/src';
 import * as src from './src';
 
@@ -311,7 +312,7 @@ const inflatePulumiProject = (option: {
   infraDeps?: string[];
   deps?: string[];
   devDeps?: string[];
-  esc?: Nexus.abstract.AbstractEsc<any>[];
+  esc?: AbstractEsc<any>[];
   bridgedProviders?: src.classes.BridgedProvider[];
 }) => {
   if (!option.stages.includes(utils.enums.StackStage.PROD)) {
@@ -400,6 +401,9 @@ const inflatePulumiProject = (option: {
           packagemanager: 'pnpm',
         },
       },
+      // options: {
+      //   refresh: 'always',
+      // },
       packages: option.bridgedProviders
         ? Object.fromEntries(
             option.bridgedProviders.map(eachBridgedProvider => [
@@ -491,7 +495,7 @@ const initPulumiEsc = async () => {
     }),
   );
 
-  await Nexus.esc.commonEsc.upsertEsc(
+  await NexusEsc.commonEsc.upsertEsc(
     accountName,
     pulumiEscClient,
     {
@@ -549,10 +553,11 @@ const initPulumiEsc = async () => {
     },
     {
       prod: {},
+      dev: {},
     },
   );
 
-  await Nexus.esc.ociEsc.upsertEsc(
+  await NexusEsc.ociEsc.upsertEsc(
     accountName,
     pulumiEscClient,
     {
@@ -572,7 +577,7 @@ const initPulumiEsc = async () => {
     },
   );
 
-  await Nexus.esc.cloudflareEsc.upsertEsc(
+  await NexusEsc.cloudflareEsc.upsertEsc(
     accountName,
     pulumiEscClient,
     {
@@ -589,7 +594,7 @@ const initPulumiEsc = async () => {
     },
   );
 
-  await Nexus.esc.k8sWorkstationSystemEsc.upsertEsc(
+  await NexusEsc.k8sWorkstationSystemEsc.upsertEsc(
     accountName,
     pulumiEscClient,
     {
@@ -656,7 +661,7 @@ const initPulumiEsc = async () => {
     },
   );
 
-  await Nexus.esc.k8sWorkstationAppsEsc.upsertEsc(
+  await NexusEsc.k8sWorkstationAppsEsc.upsertEsc(
     accountName,
     pulumiEscClient,
     {},
@@ -666,7 +671,7 @@ const initPulumiEsc = async () => {
     },
   );
 
-  await Nexus.esc.k8sWorkstationToolsEsc.upsertEsc(
+  await NexusEsc.k8sWorkstationToolsEsc.upsertEsc(
     accountName,
     pulumiEscClient,
     {},
@@ -705,6 +710,7 @@ void (async () => {
         src.constants.pulumiPackages.random,
         src.constants.pulumiPackages.vault,
         'axios',
+        'flat',
         '@kubernetes/client-node',
       ],
       devDeps: ['@types/ws'],
@@ -744,7 +750,7 @@ void (async () => {
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
       ],
-      esc: [Nexus.esc.commonEsc, Nexus.esc.cloudflareEsc],
+      esc: [NexusEsc.commonEsc, NexusEsc.cloudflareEsc],
     });
 
     const k8sWorkstationSystemProject = inflatePulumiProject({
@@ -765,9 +771,9 @@ void (async () => {
       ],
       infraDeps: [cloudflareProject.project.package.packageName],
       esc: [
-        Nexus.esc.commonEsc,
-        Nexus.esc.ociEsc,
-        Nexus.esc.k8sWorkstationSystemEsc,
+        NexusEsc.commonEsc,
+        NexusEsc.ociEsc,
+        NexusEsc.k8sWorkstationSystemEsc,
       ],
     });
 
@@ -791,7 +797,7 @@ void (async () => {
         cloudflareProject.project.package.packageName,
         k8sWorkstationSystemProject.project.package.packageName,
       ],
-      esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationToolsEsc],
+      esc: [NexusEsc.commonEsc, NexusEsc.k8sWorkstationToolsEsc],
     });
 
     const k8sWorkstationAppsProject = inflatePulumiProject({
@@ -811,7 +817,7 @@ void (async () => {
         cloudflareProject.project.package.packageName,
         k8sWorkstationSystemProject.project.package.packageName,
       ],
-      esc: [Nexus.esc.commonEsc, Nexus.esc.k8sWorkstationAppsEsc],
+      esc: [NexusEsc.commonEsc, NexusEsc.k8sWorkstationAppsEsc],
     });
 
     return {
