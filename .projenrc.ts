@@ -262,6 +262,18 @@ const inflateCommonProject = (option: {
         parent: rootProject,
         name: `@common/${name}`,
         outdir,
+        eslintOptions: {
+          dirs: [src.constants.paths.dirs.srcDir],
+          devdirs: [src.constants.paths.dirs.scriptDir],
+          tsconfigPath: './test/tsconfig.json',
+          projectService: false,
+        },
+        tsconfigDev: {
+          include: [
+            `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
+            `../${src.constants.paths.dirs.scriptDir}/**/*.ts`,
+          ],
+        },
         deps: [
           ...(option.deps ?? []),
 

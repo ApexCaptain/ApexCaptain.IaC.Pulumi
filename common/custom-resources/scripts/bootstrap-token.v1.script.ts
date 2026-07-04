@@ -1,8 +1,7 @@
 /**
- * Vault bootstrap token resolve logic (v1)
+ * Vault bootstrap token resolve script (v1)
  *
- * Command 스크립트·테스트에서 공유하는 sync 구현.
- * Pod exec로 orphan root-policy token을 발급·갱신하고 PVC에 enc 저장.
+ * Pulumi Command subprocess entry. Pod exec로 orphan root-policy token을 발급·갱신하고 PVC에 enc 저장.
  */
 import * as crypto from 'crypto';
 import * as utils from '@common/utils/src';
@@ -11,29 +10,11 @@ import dedent from 'dedent';
 import {
   execInPod,
   loadKubeConfig,
-} from '../../kubernetes/exec-in-pod.function';
-
-export interface ResolveBootstrapTokenV1Args {
-  namespace: string;
-  /** Helm label `app.kubernetes.io/name` (예: vault) */
-  podName: string;
-  containerName: string;
-  /** Vault Service 이름 — VAULT_ADDR·인증서 SAN과 일치해야 함 */
-  serviceName: string;
-  servicePort: number;
-  kubeconfig: string;
-  /** Pod 내 bootstrap enc 파일 디렉터리 (예: /vault/data) */
-  tokenDirPath: string;
-  /** ESC 등에서 주입하는 정적 키 — enc 파일 암·복호화에 사용 */
-  bootstrapTokenEncryptionKey: string;
-  expirationMinutes: number;
-  /** cert-manager Secret 이름 — `/vault/userconfig/{name}/ca.crt` 마운트 경로와 일치 */
-  vaultServerCertificateSecretName: string;
-}
-
-export type ResolveBootstrapTokenV1Result = {
-  token: string;
-};
+} from './exec-in-pod.function';
+import type {
+  ResolveBootstrapTokenV1Args,
+  ResolveBootstrapTokenV1Result,
+} from '../src/resources/vault/bootstrap-token.v1.res';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_BYTES = 12;
@@ -52,7 +33,7 @@ function aesKey(staticKey: string): Buffer {
   return crypto.createHash('sha256').update(staticKey, 'utf8').digest();
 }
 
-export function encrypt(plaintext: string, staticKey: string): string {
+function encrypt(plaintext: string, staticKey: string): string {
   const iv = crypto.randomBytes(IV_BYTES);
   const cipher = crypto.createCipheriv(ALGORITHM, aesKey(staticKey), iv, {
     authTagLength: TAG_BYTES,
@@ -64,7 +45,7 @@ export function encrypt(plaintext: string, staticKey: string): string {
   return Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString('base64');
 }
 
-export function decrypt(blobBase64: string, staticKey: string): string {
+function decrypt(blobBase64: string, staticKey: string): string {
   const blob = Buffer.from(blobBase64.trim(), 'base64');
   if (blob.length < IV_BYTES + TAG_BYTES + 1) {
     throw new Error('Encrypted bootstrap token blob is too short');
@@ -418,4 +399,22 @@ export async function resolveBootstrapTokenV1(
   await syncMissingBootstrapTokenFiles(encryptedBootstrapToken);
 
   return { token: previousToken };
+}
+
+async function runBootstrapTokenScript(): Promise<void> {
+  const rawArgs = process.env.BOOTSTRAP_ARGS;
+  if (!rawArgs) {
+    throw new Error('BOOTSTRAP_ARGS environment variable is required');
+  }
+
+  const args = JSON.parse(rawArgs) as ResolveBootstrapTokenV1Args;
+  const result = await resolveBootstrapTokenV1(args);
+  process.stdout.write(JSON.stringify(result));
+}
+
+if (require.main === module) {
+  void runBootstrapTokenScript().catch(error => {
+    console.error(error);
+    process.exit(1);
+  });
 }
