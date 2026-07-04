@@ -7,9 +7,11 @@
  * ```
  * vaultHelmChart (bootstrap token)
  *        ↓
+ * vaultServiceMesh (ingress provider)
+ *        ↓
  * vaultResources — KV v2 mount `secret`
  *        ↓
- * vaultAuthentik / testProject* — policy·identity·SecretV2
+ * vaultAuthentik / apps·tools — policy·identity·SecretV2
  * ```
  */
 import * as utils from '@common/utils/src';

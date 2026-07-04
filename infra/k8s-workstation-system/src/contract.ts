@@ -92,7 +92,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         { dependsOn: [certManagerHelmChart] },
       );
 
-    // Vault — mesh 밖 Helm + port-forward IaC Provider (OIDC는 후속)
+    // Vault — mesh 밖 Helm, IaC Provider는 ingress mesh 경유 (OIDC는 후속)
     const vaultKms = new components.vault.VaultKmsComponent('vaultKms', {
       tenancyOcid: nexus.esc.ociEsc.esc.tenancyOcid,
       region: nexus.esc.ociEsc.esc.region,
@@ -139,28 +139,6 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
       },
       { dependsOn: [vaultKms, certManagerHelmChart] },
-    );
-
-    const portForwardedVaultProvider = new vault.Provider(
-      'portForwardedVaultProvider',
-      vaultHelmChart.secret.apply(
-        secret => secret.portForwardedVaultProviderConfig,
-      ),
-      {
-        dependsOn: [vaultHelmChart],
-      },
-    );
-
-    const vaultResources = new components.vault.VaultResourcesComponent(
-      'vaultResources',
-      {
-        providers: {
-          vault: portForwardedVaultProvider,
-        },
-      },
-      {
-        dependsOn: [vaultHelmChart, portForwardedVaultProvider],
-      },
     );
 
     // Istio
@@ -301,6 +279,18 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       vaultServiceMesh.secret.apply(secret => secret.vaultProviderConfig),
       {
         dependsOn: [vaultServiceMesh],
+      },
+    );
+
+    const vaultResources = new components.vault.VaultResourcesComponent(
+      'vaultResources',
+      {
+        providers: {
+          vault: vaultProvider,
+        },
+      },
+      {
+        dependsOn: [vaultHelmChart, vaultServiceMesh, vaultProvider],
       },
     );
 
