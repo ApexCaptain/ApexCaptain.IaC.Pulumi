@@ -1,24 +1,19 @@
 /**
- * Vault Helm 배포 + IaC 연동
+ * Vault Helm 배포 + bootstrap
  *
  * - HashiCorp Vault Helm (Raft, TLS, OCI KMS auto-unseal)
  * - cert-manager 내부 CA·서버 인증서
  * - bootstrap orphan root 토큰 (Pod exec, PVC에 enc 저장)
- * - devContainer → kubectl port-forward → @pulumi/vault Provider
  *
+ * @pulumi/vault Provider는 vaultServiceMesh ingress(`https://vault.{domain}`) 경유.
  * Vault namespace는 Istio mesh 밖 (sidecar 미주입).
  */
-import path from 'path';
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
-import * as vault from '@pulumi/vault';
-import * as time from '@pulumiverse/time';
 import dedent from 'dedent';
 import _ from 'lodash';
-
-const vaultOciCredentialsSecretName = 'vault-oci-credentials';
 
 interface VaultHelmChartComponentArgsShape {
   helm: {
@@ -81,6 +76,7 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
 
     // Configuration — Helm chart·bootstrap·인증서 SAN과 이름을 맞춘다.
     const vaultServiceName = 'vault';
+    const vaultOciCredentialsSecretName = 'vault-oci-credentials';
     /** Helm `app.kubernetes.io/name` label (Pod selector용). Pod 이름(`vault-0`)과 다름 */
     const vaultPodName = 'vault';
     const vaultContainerName = 'vault';
@@ -348,92 +344,27 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
-    // Bootstrap token — Pod exec로 init·orphan root 토큰 발급/갱신, PVC에 enc 저장
-    const bootstrapToken = customResources.data.vault.getBootstrapTokenV1({
-      namespace: namespace.metadata.name,
-      podName: vaultPodName,
-      serviceName: vaultServiceName,
-      servicePort: vaultServicePort,
-      containerName: vaultContainerName,
-      kubeconfig: args.bootstrapToken.kubeconfig,
-      tokenDirPath: vaultMountPath,
-      bootstrapTokenEncryptionKey:
-        args.bootstrapToken.bootstrapTokenEncryptionKey,
-      expirationMinutes: 60 * 12,
-      vaultServerCertificateSecretName,
-    });
-
-    // Port-forward — devContainer에서 Vault API 접근 (매 up마다 health check·재시작)
-    const vaultPortForward =
-      new customResources.resources.k8s.KubectlPortForwardV1(
-        `${resourceName}-vaultPortForward`,
-        {
-          kubeconfig: args.bootstrapToken.kubeconfig,
-          namespace: namespace.metadata.name,
-          resourceType: 'svc',
-          resourceName: vaultServiceName,
-          localPort: parseInt(
-            process.env.PULUMI_PORT_FORWARDING_WORKSTATION_VAULT!!,
-          ),
-          remotePort: vaultServicePort,
-          protocol: 'https',
-        },
-        {
-          ...opts,
-          dependsOn: [vaultRelease],
-        },
-      );
-
-    // CA cert — K8s Secret → 로컬 파일. Provider가 127.0.0.1:port로 TLS 검증할 때 사용
-    const vaultCaCertFileDirPath = path.join(
-      process.env.PULUMI_CONTRACT_CERTS_DIR_PATH!!,
-      pulumi.getProject(),
-      pulumi.getStack(),
-    );
-    const vaultCaSecret = kubernetes.core.v1.Secret.get(
-      `${resourceName}-vaultCaSecret`,
-      pulumi.interpolate`${namespace.metadata.name}/${vaultRootCaSecretName}`,
+    // Bootstrap token — Command stdout을 state에 고정 (Pod exec·rotation은 스크립트)
+    const bootstrapToken = new customResources.resources.vault.BootstrapTokenV1(
+      `${resourceName}-bootstrapToken`,
       {
-        ...opts,
-        provider: args.providers.kubernetes,
-        dependsOn: [vaultCaCertificate],
-      },
-    );
-    const vaultCaCertFile = new customResources.resources.local.TextFileV1(
-      `${resourceName}-vaultCaCertFile`,
-      {
-        fileName: 'vault-ca.crt',
-        fileDirPath: vaultCaCertFileDirPath,
-        content: vaultCaSecret.data.apply(data =>
-          Buffer.from(data['ca.crt'] ?? '', 'base64').toString('utf8'),
-        ),
+        namespace: namespace.metadata.name,
+        podName: vaultPodName,
+        serviceName: vaultServiceName,
+        servicePort: vaultServicePort,
+        containerName: vaultContainerName,
+        kubeconfig: args.bootstrapToken.kubeconfig,
+        tokenDirPath: vaultMountPath,
+        bootstrapTokenEncryptionKey:
+          args.bootstrapToken.bootstrapTokenEncryptionKey,
+        expirationMinutes: 60 * 24 * 31, // 1 Month
+        vaultServerCertificateSecretName,
       },
       {
         ...opts,
-        dependsOn: [vaultCaCertificate],
+        dependsOn: [vaultRelease],
       },
     );
-
-    // TextFileV1 create 직후 Provider가 caCertFile을 읽기 전에 파일이 준비되도록 대기
-    const vaultCaCertFilePropagationDelay = new time.Sleep(
-      `${resourceName}-vaultCaCertFilePropagationDelay`,
-      {
-        createDuration: '5s',
-      },
-      {
-        ...opts,
-        dependsOn: [vaultCaCertFile],
-      },
-    );
-
-    // @pulumi/vault Provider — localhost port-forward + SNI는 클러스터 Service DNS
-
-    const portForwardedVaultProviderConfig: vault.ProviderArgs = {
-      address: vaultPortForward.localAddress,
-      caCertFile: vaultCaCertFile.filePath,
-      tlsServerName: pulumi.interpolate`${vaultServiceName}.${namespace.metadata.name}.svc.cluster.local`,
-      token: bootstrapToken.token,
-    };
 
     return {
       output: pulumi.output({
@@ -452,8 +383,9 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
         },
       }),
       secret: pulumi.secret({
-        portForwardedVaultProviderConfig,
-        bootstrapToken,
+        bootstrapToken: pulumi.secret({
+          token: bootstrapToken.token,
+        }),
       }),
     };
   },

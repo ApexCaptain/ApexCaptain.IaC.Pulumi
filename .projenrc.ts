@@ -262,6 +262,18 @@ const inflateCommonProject = (option: {
         parent: rootProject,
         name: `@common/${name}`,
         outdir,
+        eslintOptions: {
+          dirs: [src.constants.paths.dirs.srcDir],
+          devdirs: [src.constants.paths.dirs.scriptDir],
+          tsconfigPath: './test/tsconfig.json',
+          projectService: false,
+        },
+        tsconfigDev: {
+          include: [
+            `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
+            `../${src.constants.paths.dirs.scriptDir}/**/*.ts`,
+          ],
+        },
         deps: [
           ...(option.deps ?? []),
 
@@ -401,9 +413,6 @@ const inflatePulumiProject = (option: {
           packagemanager: 'pnpm',
         },
       },
-      // options: {
-      //   refresh: 'always',
-      // },
       packages: option.bridgedProviders
         ? Object.fromEntries(
             option.bridgedProviders.map(eachBridgedProvider => [
@@ -437,9 +446,10 @@ const inflatePulumiProject = (option: {
     }
   };
 
+  // PULUMI_REFRESH=1 설정 시 preview/up에 --refresh 추가 (루트: PULUMI_REFRESH=1 pnpm pulumi:up)
   project.addScripts({
-    'pulumi:preview': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
-    'pulumi:up': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} --expect-no-changes || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}}`,
+    'pulumi:preview': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} \${PULUMI_REFRESH:+--refresh}`,
+    'pulumi:up': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} \${PULUMI_REFRESH:+--refresh} --expect-no-changes || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} \${PULUMI_REFRESH:+--refresh}`,
   });
 
   if (option.infraDeps && option.infraDeps.length > 0) {
@@ -1216,7 +1226,7 @@ void (async () => {
     'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
     'script:fetchWorkstationKubeconfig': `ts-node scripts/fetch-workstation-kubeconfig.script.ts`,
 
-    // Pulumi
+    // Pulumi — refresh는 PULUMI_REFRESH=1 로 선택 (기본 off)
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
     'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
     'postpulumi:up': `pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis`,

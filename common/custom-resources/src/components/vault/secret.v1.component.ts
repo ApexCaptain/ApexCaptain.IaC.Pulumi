@@ -1,10 +1,11 @@
 import { authentik } from '@common/bridged-provider';
 import * as utils from '@common/utils/src';
+import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
 import dedent from 'dedent';
 import { flatten } from 'flat';
-import _ from 'lodash';
+import * as vso from '../../resources/k8s/crd/vso';
 
 type SecretV1 = {
   [key: string]: string | number | boolean | null | undefined | SecretV1;
@@ -13,6 +14,9 @@ type SecretV1 = {
 interface SecretV1ComponentArgsShape {
   oidcMountAccessor: string;
   kvMount: string;
+  vaultConnectionRef: string;
+  kubernetesAuthMountPath: string;
+  namespace: string;
   paths: string[];
   secrets: {
     shared: SecretV1;
@@ -20,6 +24,7 @@ interface SecretV1ComponentArgsShape {
     runtime: SecretV1;
   };
   providers: {
+    kubernetes: kubernetes.Provider;
     authentik: authentik.Provider;
     vault: vault.Provider;
   };
@@ -44,6 +49,14 @@ export const SecretV1Component = utils.functions.defineComponent(
     const sharedSecretPath = pulumi.interpolate`${secretsDirPath}/shared`;
     const developerSecretPath = pulumi.interpolate`${secretsDirPath}/developer`;
     const runtimeSecretPath = pulumi.interpolate`${secretsDirPath}/runtime`;
+
+    const vsoServiceAccountName = pulumi.interpolate`vso-${secretName}`;
+    const vsoVaultAuthName = pulumi.interpolate`vso-vault-auth-${secretName}`;
+    const vsoVaultAuthRoleName = pulumi.interpolate`vso-vault-auth-role-${secretName}`;
+    const vsoPolicyName = pulumi.interpolate`vso-policy-${secretName}`;
+
+    const sharedK8sSecretName = pulumi.interpolate`shared-${secretName}`;
+    const runtimeK8sSecretName = pulumi.interpolate`runtime-${secretName}`;
 
     // External Developer Identity
     if (pulumi.getStack() != utils.enums.StackStage.PROD) {
@@ -231,8 +244,158 @@ export const SecretV1Component = utils.functions.defineComponent(
       },
     );
 
+    // Vso
+    const vsoServiceAccount = new kubernetes.core.v1.ServiceAccount(
+      `${resourceName}-vsoServiceAccount`,
+      {
+        metadata: {
+          name: vsoServiceAccountName,
+          namespace: args.namespace,
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
+    const vsoVaultPolicy = new vault.Policy(
+      `${resourceName}-vsoVaultPolicy`,
+      {
+        name: vsoPolicyName,
+        policy: pulumi
+          .all([args.kvMount, sharedSecretPath, runtimeSecretPath])
+          .apply(
+            ([
+              resolvedKvMount,
+              resolvedSharedSecretPath,
+              resolvedRuntimeSecretPath,
+            ]) => {
+              return dedent`
+              path "${resolvedKvMount}/data/${resolvedSharedSecretPath}" {
+                capabilities = ["read"]
+              }
+              path "${resolvedKvMount}/metadata/${resolvedSharedSecretPath}" {
+                capabilities = ["read"]
+              }
+              path "${resolvedKvMount}/data/${resolvedRuntimeSecretPath}" {
+                capabilities = ["read"]
+              }
+              path "${resolvedKvMount}/metadata/${resolvedRuntimeSecretPath}" {
+                capabilities = ["read"]
+              }
+            `;
+            },
+          ),
+      },
+      {
+        ...opts,
+        provider: args.providers.vault,
+        dependsOn: [sharedSecret, runtimeSecret],
+      },
+    );
+
+    const vsoVaultAuthRole = new vault.kubernetes.AuthBackendRole(
+      `${resourceName}-vsoVaultAuthRole`,
+      {
+        backend: args.kubernetesAuthMountPath,
+        roleName: vsoVaultAuthRoleName,
+        boundServiceAccountNames: [vsoServiceAccountName],
+        boundServiceAccountNamespaces: [args.namespace],
+        tokenPolicies: [vsoVaultPolicy.name],
+        tokenTtl: 3600,
+      },
+      {
+        ...opts,
+        provider: args.providers.vault,
+        dependsOn: [vsoVaultPolicy, vsoServiceAccount],
+      },
+    );
+
+    const vsoVaultAuth = new vso.VaultAuthV1(
+      `${resourceName}-vsoVaultAuth`,
+      {
+        metadata: {
+          name: vsoVaultAuthName,
+          namespace: args.namespace,
+        },
+        spec: {
+          vaultConnectionRef: args.vaultConnectionRef,
+          method: 'kubernetes',
+          mount: args.kubernetesAuthMountPath,
+          kubernetes: {
+            role: vsoVaultAuthRoleName,
+            serviceAccount: vsoServiceAccountName,
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [vsoVaultAuthRole, vsoServiceAccount],
+      },
+    );
+
+    const sharedVaultStaticSecret = new vso.VaultStaticSecretV1(
+      `${resourceName}-sharedVaultStaticSecret`,
+      {
+        metadata: {
+          name: sharedK8sSecretName,
+          namespace: args.namespace,
+        },
+        spec: {
+          vaultAuthRef: vsoVaultAuthName,
+          mount: args.kvMount,
+          type: 'kv-v2',
+          path: sharedSecretPath,
+          refreshAfter: '1m',
+          destination: {
+            name: sharedK8sSecretName,
+            create: true,
+            transformation: {
+              excludeRaw: true,
+            },
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [vsoVaultAuth, vsoVaultAuthRole, sharedSecret],
+      },
+    );
+
+    const runtimeVaultStaticSecret = new vso.VaultStaticSecretV1(
+      `${resourceName}-runtimeVaultStaticSecret`,
+      {
+        metadata: {
+          name: runtimeK8sSecretName,
+          namespace: args.namespace,
+        },
+        spec: {
+          vaultAuthRef: vsoVaultAuthName,
+          mount: args.kvMount,
+          type: 'kv-v2',
+          path: runtimeSecretPath,
+          refreshAfter: '1m',
+          destination: {
+            name: runtimeK8sSecretName,
+            create: true,
+            transformation: {
+              excludeRaw: true,
+            },
+          },
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [vsoVaultAuth, vsoVaultAuthRole, runtimeSecret],
+      },
+    );
+
     return {
-      output: pulumi.output({}),
+      output: pulumi.output({ sharedK8sSecretName, runtimeK8sSecretName }),
       secret: pulumi.secret({}),
     };
   },

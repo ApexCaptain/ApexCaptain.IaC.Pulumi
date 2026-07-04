@@ -143,6 +143,8 @@ export const constants = (() => {
       'oci://ghcr.io/go-vikunja/helm-chart/vikunja',
     'cloudnative-pg.github.io/charts':
       'https://cloudnative-pg.github.io/charts',
+    'stakater.github.io/stakater-charts':
+      'https://stakater.github.io/stakater-charts',
   };
 
   return {

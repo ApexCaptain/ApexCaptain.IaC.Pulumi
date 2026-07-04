@@ -13,8 +13,8 @@
     "upgrade": "projen upgrade",
     "watch": "projen watch",
     "projen": "projen",
-    "pulumi:preview": "pulumi preview --stack ${PULUMI_STACK:-prod}",
-    "pulumi:up": "pulumi preview --stack ${PULUMI_STACK:-prod} --expect-no-changes || pulumi up --stack ${PULUMI_STACK:-prod}"
+    "pulumi:preview": "pulumi preview --stack ${PULUMI_STACK:-prod} ${PULUMI_REFRESH:+--refresh}",
+    "pulumi:up": "pulumi preview --stack ${PULUMI_STACK:-prod} ${PULUMI_REFRESH:+--refresh} --expect-no-changes || pulumi up --stack ${PULUMI_STACK:-prod} ${PULUMI_REFRESH:+--refresh}"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2",
