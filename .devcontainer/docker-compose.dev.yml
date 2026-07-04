@@ -22,6 +22,8 @@ services:
       NOVA_VERSION: 3.12.0
       # Istioctl Version
       ISTIOCTL_VERSION: 1.30.1
+      # Node Options
+      NODE_OPTIONS: --max-old-space-size=6144
 
     env_file:
       - .env
@@ -31,7 +33,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 6GB
+          memory: 8GB
 
     volumes:
       # Anonymous Volume

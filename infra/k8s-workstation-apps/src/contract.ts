@@ -180,10 +180,16 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
           oidcMountAccessor:
             k8sWorkstationSystemContract.secret.vault.oidcMountAccessor,
           kvMount: k8sWorkstationSystemContract.secret.vault.kvMount,
+          vaultConnectionRef:
+            k8sWorkstationSystemContract.output.vaultSecretsOperator
+              .vaultConnectionRef,
+          kubernetesAuthMountPath:
+            k8sWorkstationSystemContract.secret.vault.kubernetesAuthMountPath,
         },
         providers: {
           authentik: authentikProvider,
           vault: vaultProvider,
+          kubernetes: workstationK8sProvider,
         },
       },
       {

@@ -15,8 +15,6 @@ import * as pulumi from '@pulumi/pulumi';
 import dedent from 'dedent';
 import _ from 'lodash';
 
-const vaultOciCredentialsSecretName = 'vault-oci-credentials';
-
 interface VaultHelmChartComponentArgsShape {
   helm: {
     vault: {
@@ -78,6 +76,7 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
 
     // Configuration — Helm chart·bootstrap·인증서 SAN과 이름을 맞춘다.
     const vaultServiceName = 'vault';
+    const vaultOciCredentialsSecretName = 'vault-oci-credentials';
     /** Helm `app.kubernetes.io/name` label (Pod selector용). Pod 이름(`vault-0`)과 다름 */
     const vaultPodName = 'vault';
     const vaultContainerName = 'vault';

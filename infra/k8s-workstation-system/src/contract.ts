@@ -294,6 +294,20 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    const vaultKubernetesAuth = new components.vault.VaultKubernetesAuthComponent(
+      'vaultKubernetesAuth',
+      {
+        kubeconfig: commonEsc.esc.workstationKubeconfig,
+        providers: {
+          kubernetes: workstationK8sProvider,
+          vault: vaultProvider,
+        },
+      },
+      {
+        dependsOn: [vaultResources, vaultProvider],
+      },
+    );
+
     // Longhorn
     const longhornHelmChart =
       new components.longhorn.LonghornHelmChartComponent('longhornHelmChart', {
@@ -522,6 +536,59 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    const vaultSecretsOperatorHelmChart =
+      new components.vaultSecretsOperator.VaultSecretsOperatorHelmChartComponent(
+        'vaultSecretsOperatorHelmChart',
+        {
+          helm: {
+            vaultSecretOperator: {
+              version: '1.4.1',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          dependsOn: [vaultHelmChart],
+        },
+      );
+
+    const vaultSecretsOperatorResources =
+      new components.vaultSecretsOperator.VaultSecretsOperatorResourcesComponent(
+        'vaultSecretsOperatorResources',
+        {
+          namespace: vaultSecretsOperatorHelmChart.output.namespace,
+          vault: {
+            namespace: vaultHelmChart.output.namespace,
+            rootCaSecretName: vaultHelmChart.output.tls.rootCaSecretName,
+            address: pulumi.interpolate`https://${vaultHelmChart.output.tls.serverName}:${vaultHelmChart.output.services.vault.ports.vault}`,
+            tlsServerName: vaultHelmChart.output.tls.serverName,
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          dependsOn: [vaultSecretsOperatorHelmChart, vaultHelmChart],
+        },
+      );
+
+    new components.reloader.ReloaderHelmChartComponent('reloaderHelmChart', {
+      helm: {
+        reloader: {
+          version: '2.2.14',
+          repositoryUrl:
+            commonEsc.esc.helmRepositoryUrls['stakater.github.io/stakater-charts'],
+        },
+      },
+      providers: {
+        kubernetes: workstationK8sProvider,
+      },
+    });
+
     return {
       output: pulumi.output({
         namespaces: {
@@ -550,6 +617,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             },
           },
         },
+        vaultSecretsOperator: {
+          namespace: vaultSecretsOperatorHelmChart.output.namespace,
+          vaultConnectionRef:
+            vaultSecretsOperatorResources.output.vaultConnectionRef,
+        },
       }),
       secret: pulumi.secret({
         providerConfigs: {
@@ -559,6 +631,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         vault: {
           oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,
           kvMount: vaultResources.output.kv.mountPath,
+          kubernetesAuthMountPath: vaultKubernetesAuth.output.mountPath,
         },
       }),
     };
