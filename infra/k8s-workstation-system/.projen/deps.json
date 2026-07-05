@@ -62,6 +62,10 @@
       "type": "runtime"
     },
     {
+      "name": "@pulumi/github",
+      "type": "runtime"
+    },
+    {
       "name": "@pulumi/kubernetes",
       "type": "runtime"
     },

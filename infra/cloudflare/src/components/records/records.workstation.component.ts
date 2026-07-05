@@ -19,6 +19,7 @@ interface RecordsWorkstationComponentArgsShape {
   zoneId: string;
   zoneDomain: string;
   workstationDomain: string;
+  apexCaptainGithubOwner: string;
   providers: {
     cloudflare: cloudflare.Provider;
   };
@@ -171,17 +172,110 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const argoCdRecord = new cloudflare.DnsRecord(
+      `${resourceName}-argoCdRecord`,
+      {
+        name: 'argo-cd',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Argo CD Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
+    const argoWorkflowsRecord = new cloudflare.DnsRecord(
+      `${resourceName}-argoWorkflowsRecord`,
+      {
+        name: 'argo-workflows',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Argo Workflows Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
+    // @TODO 임시로 넣어둠, 나중에 블로그 마이그레이션 하게 되면 수정해야 함
+    const blogRecord = new cloudflare.DnsRecord(
+      `${resourceName}-blogRecord`,
+      {
+        name: 'blog',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        // content: pulumi.interpolate`${args.apexCaptainGithubOwner}.github.io`,
+        content: pulumi
+          .output(args.apexCaptainGithubOwner)
+          .apply(resolvedApexCaptainGithubOwner => {
+            return `${resolvedApexCaptainGithubOwner.toLowerCase()}.github.io`;
+          }),
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Blog Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     return {
       output: pulumi.output({
         records: {
-          workstation: directRecord.name,
-          auth: authRecord.name,
-          jellyfin: jellyfinRecord.name,
-          longhorn: longhornRecord.name,
-          torrent: torrentRecord.name,
-          test: testRecord.name,
-          vault: vaultRecord.name,
-          todo: todoRecord.name,
+          workstation: utils.functions.toCloudflareRecordFqdn(
+            directRecord.name,
+            args.zoneDomain,
+          ),
+          auth: utils.functions.toCloudflareRecordFqdn(
+            authRecord.name,
+            args.zoneDomain,
+          ),
+          jellyfin: utils.functions.toCloudflareRecordFqdn(
+            jellyfinRecord.name,
+            args.zoneDomain,
+          ),
+          longhorn: utils.functions.toCloudflareRecordFqdn(
+            longhornRecord.name,
+            args.zoneDomain,
+          ),
+          torrent: utils.functions.toCloudflareRecordFqdn(
+            torrentRecord.name,
+            args.zoneDomain,
+          ),
+          test: utils.functions.toCloudflareRecordFqdn(
+            testRecord.name,
+            args.zoneDomain,
+          ),
+          vault: utils.functions.toCloudflareRecordFqdn(
+            vaultRecord.name,
+            args.zoneDomain,
+          ),
+          todo: utils.functions.toCloudflareRecordFqdn(
+            todoRecord.name,
+            args.zoneDomain,
+          ),
+          argoCd: utils.functions.toCloudflareRecordFqdn(
+            argoCdRecord.name,
+            args.zoneDomain,
+          ),
+          argoWorkflows: utils.functions.toCloudflareRecordFqdn(
+            argoWorkflowsRecord.name,
+            args.zoneDomain,
+          ),
+          blog: utils.functions.toCloudflareRecordFqdn(
+            blogRecord.name,
+            args.zoneDomain,
+          ),
         },
       }),
       secret: pulumi.secret({}),

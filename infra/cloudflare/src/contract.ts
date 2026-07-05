@@ -15,6 +15,7 @@ export const cloudflareContract = new nexus.classes.Contract(
     // ESC
     const projectEsc = nexus.esc.cloudflareEsc;
     const commonEsc = nexus.esc.commonEsc;
+    const githubEsc = nexus.esc.githubEsc;
 
     const apexCaptainCloudflareProvider = new cloudflare.Provider(
       'apexCaptainCloudflareProvider',
@@ -38,6 +39,7 @@ export const cloudflareContract = new nexus.classes.Contract(
         zoneId: apexCaptainCloudflareZone.id,
         zoneDomain: apexCaptainCloudflareZone.name,
         workstationDomain: commonEsc.esc.workstationIptimeDomain,
+        apexCaptainGithubOwner: githubEsc.esc.apexCaptain.owner,
         providers: {
           cloudflare: apexCaptainCloudflareProvider,
         },

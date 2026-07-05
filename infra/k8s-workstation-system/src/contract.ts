@@ -13,6 +13,7 @@ import { authentik } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import * as utils from '@common/utils/src';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
+import * as github from '@pulumi/github';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as oci from '@pulumi/oci';
 import * as pulumi from '@pulumi/pulumi';
@@ -25,6 +26,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     // ESC
     const commonEsc = nexus.esc.commonEsc;
     const projectEsc = nexus.esc.k8sWorkstationSystemEsc;
+    const githubEsc = nexus.esc.githubEsc;
 
     const authentikNamespace = 'authentik';
     const authentikProxyOutpostName = 'authentik-proxy-outpost';
@@ -36,6 +38,14 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       'workstationK8sProvider',
       {
         kubeconfig: nexus.esc.commonEsc.esc.workstationKubeconfig,
+      },
+    );
+
+    // Github Provider
+    const apexCaptainGithubProvider = new github.Provider(
+      'apexCaptainGithubProvider',
+      {
+        token: githubEsc.esc.apexCaptain.token,
       },
     );
 
@@ -294,19 +304,20 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
-    const vaultKubernetesAuth = new components.vault.VaultKubernetesAuthComponent(
-      'vaultKubernetesAuth',
-      {
-        kubeconfig: commonEsc.esc.workstationKubeconfig,
-        providers: {
-          kubernetes: workstationK8sProvider,
-          vault: vaultProvider,
+    const vaultKubernetesAuth =
+      new components.vault.VaultKubernetesAuthComponent(
+        'vaultKubernetesAuth',
+        {
+          kubeconfig: commonEsc.esc.workstationKubeconfig,
+          providers: {
+            kubernetes: workstationK8sProvider,
+            vault: vaultProvider,
+          },
         },
-      },
-      {
-        dependsOn: [vaultResources, vaultProvider],
-      },
-    );
+        {
+          dependsOn: [vaultResources, vaultProvider],
+        },
+      );
 
     // Longhorn
     const longhornHelmChart =
@@ -576,18 +587,50 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
       );
 
+    // Reloader
     new components.reloader.ReloaderHelmChartComponent('reloaderHelmChart', {
       helm: {
         reloader: {
           version: '2.2.14',
           repositoryUrl:
-            commonEsc.esc.helmRepositoryUrls['stakater.github.io/stakater-charts'],
+            commonEsc.esc.helmRepositoryUrls[
+              'stakater.github.io/stakater-charts'
+            ],
         },
       },
       providers: {
         kubernetes: workstationK8sProvider,
       },
     });
+
+    // Argo CD
+    const argoVersion = '10.1.2';
+    const argoChartRepositoryUrl =
+      commonEsc.esc.helmRepositoryUrls['argoproj.github.io/argo-helm'];
+
+    const argoGitOps = new components.argo.ArgoGitOpsComponent('argoGitOps', {
+      gitOpsRepositoryName: projectEsc.esc.argoCd.gitOpsRepositoryName,
+      providers: {
+        github: apexCaptainGithubProvider,
+      },
+    });
+
+    // const argoCd = new components.argo.ArgoCdComponent('argoCd', {
+    //   host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
+    //   helm: {
+    //     argoCd: {
+    //       version: argoVersion,
+    //       repositoryUrl: argoChartRepositoryUrl,
+    //     },
+    //     argocdImageUpdate: {
+    //       version: argoVersion,
+    //       repositoryUrl: argoChartRepositoryUrl,
+    //     },
+    //   },
+    //   providers: {
+    //     kubernetes: workstationK8sProvider,
+    //   },
+    // });
 
     return {
       output: pulumi.output({

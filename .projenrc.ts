@@ -154,6 +154,7 @@ const rootProject = new typescript.TypeScriptProject(
         'Pulumi*.yaml',
         'Pulumi*.yml',
         'inventory.ini',
+        '.specstory',
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
         `/${src.constants.paths.dirs.githubGeneratedDir}`,
@@ -604,6 +605,21 @@ const initPulumiEsc = async () => {
     },
   );
 
+  await NexusEsc.githubEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      apexCaptain: {
+        owner: process.env.GITHUB_OWNER_APEX_CAPTAIN,
+        token: process.env.GH_TOKEN,
+      },
+    },
+    {
+      prod: {},
+      dev: {},
+    },
+  );
+
   await NexusEsc.k8sWorkstationSystemEsc.upsertEsc(
     accountName,
     pulumiEscClient,
@@ -664,6 +680,10 @@ const initPulumiEsc = async () => {
             clientSecret: process.env.GOOGLE_OAUTH_AUTHENTIK_APP_CLIENT_SECRET,
           },
         },
+      },
+      argoCd: {
+        gitOpsRepositoryName: process.env.ARGOCD_GITOPS_REPOSITORY_NAME,
+        bootstrapPassword: process.env.ARGOCD_BOOTSTRAP_PASSWORD,
       },
     },
     {
@@ -760,7 +780,7 @@ void (async () => {
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
       ],
-      esc: [NexusEsc.commonEsc, NexusEsc.cloudflareEsc],
+      esc: [NexusEsc.commonEsc, NexusEsc.cloudflareEsc, NexusEsc.githubEsc],
     });
 
     const k8sWorkstationSystemProject = inflatePulumiProject({
@@ -772,6 +792,7 @@ void (async () => {
         src.constants.pulumiPackages.tls,
         src.constants.pulumiPackages.time,
         src.constants.pulumiPackages.vault,
+        src.constants.pulumiPackages.github,
       ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,
@@ -784,6 +805,7 @@ void (async () => {
         NexusEsc.commonEsc,
         NexusEsc.ociEsc,
         NexusEsc.k8sWorkstationSystemEsc,
+        NexusEsc.githubEsc,
       ],
     });
 
@@ -944,6 +966,11 @@ void (async () => {
               '.diagnosis': 'resource',
               ventoy: 'robot',
             }),
+          },
+        },
+        specstory: {
+          cloudSync: {
+            enabled: 'never',
           },
         },
       },

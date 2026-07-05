@@ -462,6 +462,9 @@ importers:
       '@infra/cloudflare':
         specifier: workspace:*
         version: link:../cloudflare
+      '@pulumi/github':
+        specifier: ^6.14.0
+        version: 6.14.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
       '@pulumi/kubernetes':
         specifier: ^4.31.1
         version: 4.31.1(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
@@ -931,6 +934,9 @@ packages:
 
   '@pulumi/esc-sdk@0.14.0':
     resolution: {integrity: sha512-yyYF/pAm7xZLorezamiJ5+rMC1VljGu9yO+DbBlfLEqCUp7qsa5b2BzfxB/LbQLfLIpqZc8BohV1XMSirouvPQ==}
+
+  '@pulumi/github@6.14.0':
+    resolution: {integrity: sha512-qrgH5ot2Wh9xLMPnBq9hpBjEYTIfgDpJRS/rmROgt5NIEAhwDfaTJ8dgpdjV8CQwfpuaRY7mrs8mKWlSANEeYQ==}
 
   '@pulumi/kubernetes@4.31.1':
     resolution: {integrity: sha512-EaDBJBKXrvBVvsuN1UbN8WMXyKy4K3g7VfiSb5eCTq2sgql8wWIMZw6vIYyh9tc9b5UONq/LgoNINGJT0uvX9w==}
@@ -3529,6 +3535,14 @@ snapshots:
     transitivePeerDependencies:
       - debug
       - supports-color
+
+  '@pulumi/github@6.14.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.248.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+      - typescript
 
   '@pulumi/kubernetes@4.31.1(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)':
     dependencies:

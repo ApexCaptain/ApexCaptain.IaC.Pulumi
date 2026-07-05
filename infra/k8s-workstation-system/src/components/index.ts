@@ -15,3 +15,5 @@ export * as postgresqlOperator from './postgresql-operator';
 export * as vaultSecretsOperator from './vault-secrets-operator';
 
 export * as reloader from './reloader';
+
+export * as argo from './argo';

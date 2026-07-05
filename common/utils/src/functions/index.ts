@@ -5,3 +5,4 @@ export * from './define-component.function';
 export * from './is-valid-file-mode-string.function';
 export * from './create-oci-policy-statement.function';
 export * from './wait-for-ms.function';
+export * from './to-cloudflare-record-fqdn.function';

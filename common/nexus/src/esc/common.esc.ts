@@ -52,6 +52,7 @@ const commonEscSchema = z
         'go-vikunja/helm-chart/vikunja': z.string(),
         'cloudnative-pg.github.io/charts': z.string(),
         'stakater.github.io/stakater-charts': z.string(),
+        'argoproj.github.io/argo-helm': z.string(),
       })
       .required(),
   })

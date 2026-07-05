@@ -33,6 +33,7 @@ jspm_packages/
 Pulumi*.yaml
 Pulumi*.yml
 inventory.ini
+.specstory
 .turbo
 tmp
 /.github/generated

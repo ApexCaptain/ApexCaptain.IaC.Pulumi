@@ -120,6 +120,7 @@ export const constants = (() => {
     oci: '@pulumi/oci',
     time: '@pulumiverse/time',
     vault: '@pulumi/vault',
+    github: '@pulumi/github',
   };
 
   const packagesAllowingBuildScripts = [
@@ -145,6 +146,7 @@ export const constants = (() => {
       'https://cloudnative-pg.github.io/charts',
     'stakater.github.io/stakater-charts':
       'https://stakater.github.io/stakater-charts',
+    'argoproj.github.io/argo-helm': 'https://argoproj.github.io/argo-helm',
   };
 
   return {
