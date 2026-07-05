@@ -972,6 +972,18 @@ void (async () => {
           cloudSync: {
             enabled: 'never',
           },
+          providers: {
+            enabled: new src.classes.VsCodeObject({
+              'Cursor IDE': true,
+              'Copilot IDE': false,
+              'Claude Code': false,
+              'Factory Droid CLI': false,
+              'Cursor CLI': false,
+              'Gemini CLI': false,
+              'Codex CLI': false,
+              'DeepSeek TUI': false,
+            }),
+          },
         },
       },
       {
