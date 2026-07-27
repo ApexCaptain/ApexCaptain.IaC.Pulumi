@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "package-usage": {
+      "source": "pulumi/agent-skills",
+      "sourceType": "github",
+      "skillPath": "pulumi/skills/package-usage/SKILL.md",
+      "computedHash": "0c4b95ebec57a8a17fca0de5a27c7f44c7a80e32f0e23d9f59c42d0d57515d55"
+    },
+    "provider-upgrade": {
+      "source": "pulumi/agent-skills",
+      "sourceType": "github",
+      "skillPath": "pulumi/skills/provider-upgrade/SKILL.md",
+      "computedHash": "90dbaa3072953d2a58665d17163b41afc35c727e49637e0bf05d517a22e24f26"
+    },
+    "pulumi-best-practices": {
+      "source": "pulumi/agent-skills",
+      "sourceType": "github",
+      "skillPath": "pulumi/skills/pulumi-best-practices/SKILL.md",
+      "computedHash": "fe72db4c8d462495bcc5ca6ae5f5fd7ba05318f4668ccb011dce5a7c1c24fa6c"
+    },
+    "pulumi-component": {
+      "source": "pulumi/agent-skills",
+      "sourceType": "github",
+      "skillPath": "pulumi/skills/pulumi-component/SKILL.md",
+      "computedHash": "b3e3d1ff41bc3f3c8afa215d46de11e148ae771731540568a6d5467eeb45711f"
+    },
+    "pulumi-debug-failed-operation": {
+      "source": "pulumi/agent-skills",
+      "sourceType": "github",
+      "skillPath": "pulumi/skills/pulumi-debug-failed-operation/SKILL.md",
+      "computedHash": "9fde3d846eb1bc9cbf179d863dfe71a9eda5c1b1879291db5981ebba7db5ad84"
+    },
+    "pulumi-esc": {
+      "source": "pulumi/agent-skills",
+      "sourceType": "github",
+      "skillPath": "pulumi/skills/pulumi-esc/SKILL.md",
+      "computedHash": "d34704ec6219287d66de3340bf9403670c5380eed604dfef5f809ab66e2fabdb"
+    },
+    "pulumi-neo-handoff": {
+      "source": "pulumi/agent-skills",
+      "sourceType": "github",
+      "skillPath": "delegation/skills/pulumi-neo-handoff/SKILL.md",
+      "computedHash": "03ec623af7ff27772c6bdcce355fe449a7d2ef447411857445aed4fa6607316a"
+    },
+    "pulumi-overview": {
+      "source": "pulumi/agent-skills",
+      "sourceType": "github",
+      "skillPath": "pulumi/skills/pulumi-overview/SKILL.md",
+      "computedHash": "821a6bfe2cf8c17950f3dac0aea69c72189b7cc6326e1b5772be1180c72e3212"
+    }
+  }
+}

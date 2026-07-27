@@ -64,5 +64,6 @@ tmp
 !/requirements.txt
 /.keys/workstation.key
 !/.cursor/mcp.json
+!/.cursor/settings.json
 /ansible/workstation/inventory/inventory.ini
 !/.projenrc.ts

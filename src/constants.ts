@@ -40,6 +40,7 @@ export const constants = (() => {
   const novaConfigFile =
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
   const cursorMcpJsonFile = path.join(cursorDir, 'mcp.json');
+  const cursorSettingsJsonFile = path.join(cursorDir, 'settings.json');
   const workstationSshPrivateKeyFile = path.join(
     keysDir,
     process.env.WORKSTATION_SSH_PRIVATE_KEY_FILE_NAME || 'workstation.key',
@@ -85,6 +86,7 @@ export const constants = (() => {
     files: {
       novaConfigFile,
       cursorMcpJsonFile,
+      cursorSettingsJsonFile,
       workstationSshPrivateKeyFile,
       ansibleWorkstationInventoryFile,
       githubGeneratedCommitMessageFile,

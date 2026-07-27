@@ -1,6 +1,7 @@
 {
   "files": [
     ".cursor/mcp.json",
+    ".cursor/settings.json",
     ".eslintrc.json",
     ".gitattributes",
     ".github/pull_request_template.md",

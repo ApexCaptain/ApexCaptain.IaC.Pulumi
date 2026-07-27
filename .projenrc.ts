@@ -1206,6 +1206,9 @@ void (async () => {
         command: 'npx',
         args: ['-y', 'kubernetes-mcp-server@latest'],
       },
+      pulumi: {
+        url: 'https://mcp.ai.pulumi.com/mcp',
+      },
     },
   };
   const mcpJsonFile = new JsonFile(
@@ -1213,6 +1216,36 @@ void (async () => {
     src.constants.paths.files.cursorMcpJsonFile,
     {
       obj: mcpJsonConfig,
+    },
+  );
+
+  const cursorSettingsConfig: src.interfaces.CursorSettings = {
+    plugins: {
+      superpowers: {
+        enabled: true,
+      },
+      orchestrate: {
+        enabled: true,
+      },
+      thermos: {
+        enabled: true,
+      },
+      'continual-learning': {
+        enabled: true,
+      },
+      'docs-canvas': {
+        enabled: true,
+      },
+      'pr-review-canvas': {
+        enabled: true,
+      },
+    },
+  };
+  const cursorSettingsFile = new JsonFile(
+    rootProject,
+    src.constants.paths.files.cursorSettingsJsonFile,
+    {
+      obj: cursorSettingsConfig,
     },
   );
 
