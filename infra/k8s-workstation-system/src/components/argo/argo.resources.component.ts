@@ -78,7 +78,6 @@ export const ArgoResourcesComponent = utils.functions.defineComponent(
         specs: [
           {
             description: 'Apps GitOps project',
-            // Git clone URL (not repo name)
             sourceRepos: [args.gitOpsRepository.sshCloneUrl],
             destinations: [inClusterDestination],
           },
@@ -118,13 +117,14 @@ export const ArgoResourcesComponent = utils.functions.defineComponent(
     const gitOpsRepository = new argocd.Repository(
       `${resourceName}-gitOpsRepository`,
       {
-        name: args.gitOpsRepository.name,
+        // `name` is Helm-repo only; for git the identity is `repo` (clone URL).
         repo: args.gitOpsRepository.sshCloneUrl,
         sshPrivateKey: args.gitOpsRepository.deployPrivateKeyPem,
       },
       {
         ...opts,
         provider: args.providers.argocd,
+        dependsOn: [appsProject, toolsProject],
       },
     );
 

@@ -83,6 +83,47 @@ const rootProject = new typescript.TypeScriptProject(
       },
 
       // Node Project Options
+      pnpmOptions: {
+        workspaceYamlOptions: {
+          packages: [
+            `${src.constants.paths.dirs.commonDir}/*`,
+            `${src.constants.paths.dirs.infraDir}/*`,
+          ],
+          // Bridged Providers에 공통 네이밍 컨벤션이 있을 경우 Dynamic하게 설정될 수 있도록 변경
+          allowBuilds: Object.fromEntries([
+            ...Object.values(src.constants.bridgedProviders)
+              .flatMap(eachBridgedProvider =>
+                Object.values(eachBridgedProvider),
+              )
+              .map(eachBridgedProvider => [
+                `@pulumi/${eachBridgedProvider.name}`,
+                true,
+              ]),
+            ...src.constants.packagesAllowingBuildScripts.map(eachPackage => [
+              eachPackage,
+              true,
+            ]),
+          ]),
+          overrides: {
+            '@pulumi/pulumi': '$@pulumi/pulumi',
+            '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
+            '@types/node': '$@types/node',
+            typescript: '$typescript',
+            ...Object.fromEntries(
+              Object.values(src.constants.bridgedProviders)
+                .flatMap(eachBridgedProvider =>
+                  Object.values(eachBridgedProvider),
+                )
+                .flatMap(eachBridgedProvider =>
+                  eachBridgedProvider.packagesToOverride.map(eachPackage => [
+                    `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
+                    `$${eachPackage}`,
+                  ]),
+                ),
+            ),
+          },
+        },
+      },
       npmignoreEnabled: false,
       buildWorkflow: false,
       release: false,
@@ -1004,45 +1045,6 @@ void (async () => {
       },
     ),
   );
-
-  // pnpm-workspace.yaml file
-  new YamlFile(rootProject, 'pnpm-workspace.yaml', {
-    obj: {
-      packages: [
-        `${src.constants.paths.dirs.commonDir}/*`,
-        `${src.constants.paths.dirs.infraDir}/*`,
-      ],
-      // Bridged Providers에 공통 네이밍 컨벤션이 있을 경우 Dynamic하게 설정될 수 있도록 변경
-      allowBuilds: Object.fromEntries([
-        ...Object.values(src.constants.bridgedProviders)
-          .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-          .map(eachBridgedProvider => [
-            `@pulumi/${eachBridgedProvider.name}`,
-            true,
-          ]),
-        ...src.constants.packagesAllowingBuildScripts.map(eachPackage => [
-          eachPackage,
-          true,
-        ]),
-      ]),
-      overrides: {
-        '@pulumi/pulumi': '$@pulumi/pulumi',
-        '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
-        '@types/node': '$@types/node',
-        typescript: '$typescript',
-        ...Object.fromEntries(
-          Object.values(src.constants.bridgedProviders)
-            .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-            .flatMap(eachBridgedProvider =>
-              eachBridgedProvider.packagesToOverride.map(eachPackage => [
-                `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
-                `$${eachPackage}`,
-              ]),
-            ),
-        ),
-      },
-    },
-  });
 
   // Nova Config File
   const novaConfigFile = new JsonFile(

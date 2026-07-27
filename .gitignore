@@ -4,6 +4,7 @@
 !/.projen/deps.json
 !/.projen/files.json
 !/.github/workflows/pull-request-lint.yml
+!/pnpm-workspace.yaml
 !/package.json
 !/LICENSE
 logs
@@ -57,7 +58,6 @@ tmp
 !/projenrc/tsconfig.json
 !/turbo.json
 !/.vscode/settings.json
-!/pnpm-workspace.yaml
 !/.nova-config.json
 !/ventoy/ventoy.json
 !/README.md

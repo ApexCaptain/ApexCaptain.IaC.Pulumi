@@ -22,16 +22,24 @@ export const ArgoGitOpsComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    // const dataGitOpsRepository = await github.getRepository({
-    //   name: args.gitOpsRepositoryName,
-    // });
-
     const dataGitOpsRepository = pulumi
       .output(args.gitOpsRepositoryName)
       .apply(async resolvedGitOpsRepositoryName => {
-        return github.getRepository({
-          name: resolvedGitOpsRepositoryName,
-        });
+        const repository = await github.getRepository(
+          {
+            name: resolvedGitOpsRepositoryName,
+          },
+          {
+            provider: args.providers.github,
+          },
+        );
+
+        // Flatten invoke result so downstream Components get plain string Outputs
+        // (nested GetRepositoryResult through defineComponent can lose fields like sshCloneUrl).
+        return {
+          name: repository.name,
+          sshCloneUrl: repository.sshCloneUrl,
+        };
       });
 
     const gitOpsPrivateKey =
@@ -107,9 +115,9 @@ export const ArgoGitOpsComponent = utils.functions.defineComponent(
     );
 
     return {
-      output: pulumi.output({
-        dataGitOpsRepository,
-      }),
+      output: dataGitOpsRepository.apply(repository => ({
+        dataGitOpsRepository: repository,
+      })),
       secret: pulumi.secret({
         webHookSecret: argoWebHookSecret.result,
         deployPrivateKeyPem: gitOpsPrivateKey.secret.privateKey.pem,
