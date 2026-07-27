@@ -1,6 +1,9 @@
 ---
-description: PR title·body 생성 요청 시 base branch 대비 브랜치 전체 diff 검토 후 .github/generated/pull-request-title.txt, pull-request-body.md에 작성
-alwaysApply: true
+name: generate-pull-request
+description: >-
+  PR title·body 생성 요청 시 base branch 대비 브랜치 전체 diff 검토 후
+  .github/generated/pull-request-title.txt, pull-request-body.md에 작성한다.
+  Use when the user asks for a PR body, pull request draft, or similar.
 ---
 
 # PR title·body 생성
@@ -10,7 +13,7 @@ alwaysApply: true
 
 > **범위:** PR title·body는 **마지막으로 merge된 base branch 대비 현재 브랜치 전체 변경**을 요약한다.  
 > 최신 커밋 하나, `git diff`(unstaged/staged), 작업 트리 일부만 기준으로 쓰지 않는다.  
-> 단일 커밋 메시지는 **`generate-commit-message.mdc`** 를 따른다.
+> 단일 커밋 메시지는 **`generate-commit-message`** skill을 따른다.
 
 ## 1. Git 변경사항 확인 (PR 전체 범위)
 
@@ -60,12 +63,12 @@ unstaged/staged만 보고 PR을 쓰지 않는다. (아직 커밋 안 된 변경�
 | Checklist | 예 | 검증한 항목만 `[x]` |
 | Additional notes | 아니오 | 리뷰어 참고·제한·후속 작업 없으면 **섹션 삭제** |
 
-- 변경 유형(`feat`/`fix`/…)은 **PR title prefix**로만 표기 — prefix 규칙은 **`generate-commit-message.mdc`** 와 동일.
+- 변경 유형(`feat`/`fix`/…)은 **PR title prefix**로만 표기 — prefix 규칙은 **`generate-commit-message`** skill과 동일.
 - IaC·배포 변경은 내용이 있을 때만 `Deployment notes`에 stack·배포 순서·수동 후속·롤백을 적습니다.
 
 ## 3. Secret 누출 검사
 
-**`generate-commit-message.mdc`** 와 동일한 기준으로 검사합니다. 이상 있으면 파일을 작성하지 않고 경고합니다.
+**`generate-commit-message`** skill과 동일한 기준으로 검사합니다. 이상 있으면 파일을 작성하지 않고 경고합니다.
 
 ## 4. PR title·body 작성
 
@@ -82,7 +85,7 @@ unstaged/staged만 보고 PR을 쓰지 않는다. (아직 커밋 안 된 변경�
 ### pull-request-title.txt
 
 - **한 줄**, 줄바꿈 없음 (마지막 개행 1개는 허용)
-- 형식: `{prefix}: {요약}` — **`generate-commit-message.mdc`** 의 prefix 규칙과 동일
+- 형식: `{prefix}: {요약}` — **`generate-commit-message`** skill의 prefix 규칙과 동일
 - **요약 대상:** `origin/<base>..HEAD` **전체 변경** (여러 커밋·파일이면 공통 주제로 묶음)
 - 마지막 커밋 메시지를 그대로 복사하지 않음
 - `gh pr create --title "$(cat .github/generated/pull-request-title.txt)"` 에 그대로 사용

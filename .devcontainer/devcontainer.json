@@ -12,8 +12,12 @@
     "ghcr.io/devcontainers-extra/features/pulumi:1": {},
     "ghcr.io/devcontainers-extra/features/kubectl-asdf:2": {},
     "ghcr.io/devcontainers/features/python:1": {},
-    //
-    "ghcr.io/devcontainers-extra/features/vault-asdf:2": {}
+    "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
+      "packages": "netcat-openbsd, iputils-ping, parallel, ripgrep, sshpass"
+    },
+    // SOPS Test
+    "ghcr.io/mpriscella/features/sops:1": {},
+    "ghcr.io/devcontainers-extra/features/age-keygen:1": {}
   },
   // Custom
   "customizations": {

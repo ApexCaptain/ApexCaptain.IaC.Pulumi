@@ -4,20 +4,6 @@ echo "🔄 Changing directory ownership for $DIR_PATHS_TO_CHANGE_OWNER to $USER"
 sudo chown -R $USER:$USER $DIR_PATHS_TO_CHANGE_OWNER
 echo "✅ Changed directory ownership for $DIR_PATHS_TO_CHANGE_OWNER to $USER"
 
-echo "🔄 Updating apt packages"
-sudo apt update -y
-sudo apt upgrade -y
-echo "✅ Updated apt packages"
-
-echo "🔄 Installing apt packages"
-sudo apt install -y \
-    netcat-openbsd \
-    iputils-ping \
-    parallel \
-    ripgrep \
-    sshpass
-echo "✅ Apt packages installed"
-
 # Parallel Installations
 install_oci() {
     echo "🔄 Installing OCI CLI"

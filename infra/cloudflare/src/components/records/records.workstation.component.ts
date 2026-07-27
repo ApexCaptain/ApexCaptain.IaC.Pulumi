@@ -189,23 +189,6 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
-    const argoWorkflowsRecord = new cloudflare.DnsRecord(
-      `${resourceName}-argoWorkflowsRecord`,
-      {
-        name: 'argo-workflows',
-        ttl: 1,
-        zoneId: args.zoneId,
-        type: 'CNAME',
-        content: args.workstationDomain,
-        proxied: true,
-        comment: 'Cloudflare DNS Record for Argo Workflows Service',
-      },
-      {
-        ...opts,
-        provider: args.providers.cloudflare,
-      },
-    );
-
     // @TODO 임시로 넣어둠, 나중에 블로그 마이그레이션 하게 되면 수정해야 함
     const blogRecord = new cloudflare.DnsRecord(
       `${resourceName}-blogRecord`,
@@ -266,10 +249,6 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
           ),
           argoCd: utils.functions.toCloudflareRecordFqdn(
             argoCdRecord.name,
-            args.zoneDomain,
-          ),
-          argoWorkflows: utils.functions.toCloudflareRecordFqdn(
-            argoWorkflowsRecord.name,
             args.zoneDomain,
           ),
           blog: utils.functions.toCloudflareRecordFqdn(

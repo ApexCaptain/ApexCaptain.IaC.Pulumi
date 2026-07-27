@@ -120,6 +120,9 @@ importers:
 
   common/bridged-provider:
     dependencies:
+      '@pulumi/argocd':
+        specifier: file:sdks/argocd
+        version: file:common/bridged-provider/sdks/argocd(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))
       '@pulumi/authentik':
         specifier: file:sdks/authentik
         version: file:common/bridged-provider/sdks/authentik(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))
@@ -474,6 +477,12 @@ importers:
       '@pulumi/pulumi':
         specifier: ^3.250.0
         version: 3.250.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
+      '@pulumi/random':
+        specifier: ^4.21.0
+        version: 4.21.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
+      '@pulumi/std':
+        specifier: ^2.3.2
+        version: 2.3.2(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
       '@pulumi/tls':
         specifier: ^5.5.0
         version: 5.5.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
@@ -922,6 +931,9 @@ packages:
 
   '@protobufjs/utf8@1.1.1':
     resolution: {integrity: sha512-oOAWABowe8EAbMyWKM0tYDKi8Yaox52D+HWZhAIJqQXbqe0xI/GV7FhLWqlEKreMkfDjshR5FKgi3mnle0h6Eg==}
+
+  '@pulumi/argocd@file:common/bridged-provider/sdks/argocd':
+    resolution: {directory: common/bridged-provider/sdks/argocd, type: directory}
 
   '@pulumi/authentik@file:common/bridged-provider/sdks/authentik':
     resolution: {directory: common/bridged-provider/sdks/authentik, type: directory}
@@ -3491,6 +3503,15 @@ snapshots:
 
   '@protobufjs/utf8@1.1.1': {}
 
+  '@pulumi/argocd@file:common/bridged-provider/sdks/argocd(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))':
+    dependencies:
+      '@pulumi/pulumi': 3.250.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
+      '@types/node': 25.9.4
+      typescript: 6.0.3
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+
   '@pulumi/authentik@file:common/bridged-provider/sdks/authentik(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))':
     dependencies:
       '@pulumi/pulumi': 3.250.0(ts-node@10.9.2(@types/node@25.9.4)(typescript@6.0.3))(typescript@6.0.3)
@@ -4448,7 +4469,7 @@ snapshots:
       tinyglobby: 0.2.17
       unrs-resolver: 1.12.2
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.62.1(eslint@9.39.4)(typescript@6.0.3))(eslint-import-resolver-typescript@4.4.5)(eslint@9.39.4)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4)(typescript@6.0.3))(eslint-import-resolver-typescript@4.4.5)(eslint@9.39.4)
     transitivePeerDependencies:
       - supports-color
 

@@ -27,6 +27,14 @@ interface JellyfinServiceMeshComponentArgsShape {
       port: number;
     };
   };
+  /**
+   * Direct Play 등 대용량 응답이 WAN 업로드를 포화시키지 않도록
+   * ingress gateway에서 응답(다운스트림 방향) 대역폭 상한을 건다.
+   */
+  bandwidthLimit: {
+    // 주의: Envoy limit_kbps는 이름과 달리 KiB/s 단위 (1024 KiB/s = 1 MiB/s)
+    responseLimitKiBps: number;
+  };
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -87,6 +95,97 @@ export const JellyfinServiceMeshComponent = utils.functions.defineComponent(
             mtls: {
               mode: 'STRICT',
             },
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
+
+    /**
+     * Envoy bandwidth_limit 필터 — jellyfin vhost 응답에만 대역폭 상한 적용.
+     *
+     * HTTP_FILTER 패치는 gateway 전체 체인에 들어가지만 enable_mode: DISABLED라
+     * 다른 서비스에는 영향이 없고, jellyfin vhost의 typed_per_filter_config에서만
+     * RESPONSE 방향으로 활성화된다. Direct Play의 무제한 버스트가 집 회선
+     * 업로드를 포화시켜 전체 서비스가 질식하는 문제를 페이싱으로 방지한다.
+     */
+    const jellyfinBandwidthLimitEnvoyFilter =
+      new customResources.resources.k8s.crd.istio.EnvoyFilterV1Alpha3(
+        `${resourceName}-jellyfinBandwidthLimitEnvoyFilter`,
+        {
+          metadata: {
+            name: 'jellyfin-bandwidth-limit',
+            // workloadSelector는 같은 네임스페이스의 워크로드만 선택하므로
+            // ingress gateway가 있는 istio 네임스페이스에 생성해야 한다
+            namespace: args.authorizationPolicy.from.istioIngress.namespace,
+          },
+          spec: {
+            workloadSelector: {
+              labels: {
+                istio: 'ingressgateway',
+              },
+            },
+            configPatches: [
+              {
+                applyTo: 'HTTP_FILTER',
+                match: {
+                  context: 'GATEWAY',
+                  listener: {
+                    filterChain: {
+                      filter: {
+                        name: 'envoy.filters.network.http_connection_manager',
+                        subFilter: {
+                          name: 'envoy.filters.http.router',
+                        },
+                      },
+                    },
+                  },
+                },
+                patch: {
+                  operation: 'INSERT_BEFORE',
+                  value: {
+                    name: 'envoy.filters.http.bandwidth_limit',
+                    typed_config: {
+                      '@type':
+                        'type.googleapis.com/envoy.extensions.filters.http.bandwidth_limit.v3.BandwidthLimit',
+                      'stat_prefix': 'bandwidth_limiter_default',
+                      'enable_mode': 'DISABLED',
+                    },
+                  },
+                },
+              },
+              {
+                applyTo: 'HTTP_ROUTE',
+                match: {
+                  context: 'GATEWAY',
+                  routeConfiguration: {
+                    vhost: {
+                      name: pulumi.interpolate`${args.ingress.jellyfinWebUi.host}:443`,
+                      route: {
+                        action: 'ANY',
+                      },
+                    },
+                  },
+                },
+                patch: {
+                  operation: 'MERGE',
+                  value: {
+                    typed_per_filter_config: {
+                      'envoy.filters.http.bandwidth_limit': {
+                        '@type':
+                          'type.googleapis.com/envoy.extensions.filters.http.bandwidth_limit.v3.BandwidthLimit',
+                        'stat_prefix': 'bandwidth_limiter_jellyfin',
+                        'enable_mode': 'RESPONSE',
+                        'limit_kbps': args.bandwidthLimit.responseLimitKiBps,
+                        'fill_interval': '0.05s',
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           },
         },
         {

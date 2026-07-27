@@ -105,6 +105,12 @@ export const constants = (() => {
         providerSource: 'goauthentik/authentik',
         providerVersion: '2026.5.0',
       }),
+      // https://registry.terraform.io/providers/argoproj-labs/argocd/latest
+      argocd: new TerraformBridgedProvider({
+        name: 'argocd',
+        providerSource: 'argoproj-labs/argocd',
+        providerVersion: '7.15.3',
+      }),
     },
   };
 
@@ -129,6 +135,8 @@ export const constants = (() => {
     pulumiPackages.std,
     'protobufjs',
     'unrs-resolver',
+    'ssh2',
+    'cpu-features',
   ];
 
   const helmChartRepositoryUrls = {

@@ -719,7 +719,10 @@ void (async () => {
   const commonProjects = (() => {
     const bridgedProviderProject = inflateCommonProject({
       projectName: 'bridged-provider',
-      bridgedProviders: [src.constants.bridgedProviders.terraform.authentik],
+      bridgedProviders: [
+        src.constants.bridgedProviders.terraform.authentik,
+        src.constants.bridgedProviders.terraform.argocd,
+      ],
     });
 
     const utilsProject = inflateCommonProject({
@@ -793,6 +796,8 @@ void (async () => {
         src.constants.pulumiPackages.time,
         src.constants.pulumiPackages.vault,
         src.constants.pulumiPackages.github,
+        src.constants.pulumiPackages.random,
+        src.constants.pulumiPackages.std,
       ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,

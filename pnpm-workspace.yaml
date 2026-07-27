@@ -5,11 +5,14 @@ packages:
   - infra/*
 allowBuilds:
   "@pulumi/authentik": true
+  "@pulumi/argocd": true
   "@pulumi/command": true
   "@pulumi/kubernetes": true
   "@pulumi/std": true
   protobufjs: true
   unrs-resolver: true
+  ssh2: true
+  cpu-features: true
 overrides:
   "@pulumi/pulumi": $@pulumi/pulumi
   "@pulumi/esc-sdk": $@pulumi/esc-sdk

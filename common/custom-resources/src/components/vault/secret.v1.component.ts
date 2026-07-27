@@ -60,7 +60,7 @@ export const SecretV1Component = utils.functions.defineComponent(
 
     // External Developer Identity
     if (pulumi.getStack() != utils.enums.StackStage.PROD) {
-      const developerGroupName = pulumi.interpolate`developer-${secretName}`;
+      const developerGroupName = pulumi.interpolate`vault-reader-group-${secretName}`;
 
       const authentikDeveloperGroup = new authentik.Group(
         `${resourceName}-authentikDeveloperGroup`,

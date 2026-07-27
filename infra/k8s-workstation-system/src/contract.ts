@@ -9,7 +9,7 @@
  * - Authentik PG는 Longhorn SSD SC에, Longhorn UI는 Authentik proxy에 의존
  *   → Longhorn↔Authentik 3단계 분리는 아래 JSDoc 참고
  */
-import { authentik } from '@common/bridged-provider';
+import { authentik, argocd } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import * as utils from '@common/utils/src';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
@@ -76,7 +76,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             certManager: {
-              version: 'v1.20.3',
+              version: 'v1.21.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.jetstack.io'],
             },
@@ -116,7 +116,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           vault: {
-            version: '0.33.0',
+            version: '0.34.0',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
           },
@@ -357,7 +357,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: authentikNamespace,
           helm: {
             authentik: {
-              version: '2026.5.3',
+              version: '2026.5.4',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
             },
@@ -610,27 +610,81 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
 
     const argoGitOps = new components.argo.ArgoGitOpsComponent('argoGitOps', {
       gitOpsRepositoryName: projectEsc.esc.argoCd.gitOpsRepositoryName,
+      argoCdHost: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
       providers: {
         github: apexCaptainGithubProvider,
       },
     });
 
-    // const argoCd = new components.argo.ArgoCdComponent('argoCd', {
-    //   host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
-    //   helm: {
-    //     argoCd: {
-    //       version: argoVersion,
-    //       repositoryUrl: argoChartRepositoryUrl,
-    //     },
-    //     argocdImageUpdate: {
-    //       version: argoVersion,
-    //       repositoryUrl: argoChartRepositoryUrl,
-    //     },
-    //   },
-    //   providers: {
-    //     kubernetes: workstationK8sProvider,
-    //   },
-    // });
+    const argoCd = new components.argo.ArgoCdComponent('argoCd', {
+      host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
+      bootstrapPassword: projectEsc.esc.argoCd.bootstrapPassword,
+      githubSecret: argoGitOps.secret.webHookSecret,
+      helm: {
+        argoCd: {
+          version: argoVersion,
+          repositoryUrl: argoChartRepositoryUrl,
+        },
+      },
+      providers: {
+        kubernetes: workstationK8sProvider,
+      },
+    });
+
+    const argoServiceMesh = new components.argo.ArgoServiceMeshComponent(
+      'argoServiceMesh',
+      {
+        namespace: argoCd.output.namespace,
+        bootstrapPassword: projectEsc.esc.argoCd.bootstrapPassword,
+        ingress: {
+          argoCd: {
+            host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
+            serviceName: argoCd.output.services.argoCdServer.name,
+            gatewayPath: istioGateway.output.istioIngressGatewayPath,
+            port: argoCd.output.services.argoCdServer.port.webUi,
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+    );
+
+    const argoCdProvider = new argocd.Provider(
+      'argoCdProvider',
+      argoServiceMesh.secret.argoCdProviderConfig,
+      {
+        dependsOn: [argoCd, argoServiceMesh],
+      },
+    );
+
+    const argoResources = new components.argo.ArgoResourcesComponent(
+      'argoResources',
+      {
+        namespace: argoCd.output.namespace,
+        gitOpsRepository: {
+          name: argoGitOps.output.dataGitOpsRepository.name,
+          sshCloneUrl: argoGitOps.output.dataGitOpsRepository.sshCloneUrl,
+          deployPrivateKeyPem: argoGitOps.secret.deployPrivateKeyPem,
+        },
+        gitOpsProjects: {
+          apps: {
+            name: argoCd.output.projects.apps.name,
+            accountName: argoCd.output.projects.apps.accountName,
+          },
+          tools: {
+            name: argoCd.output.projects.tools.name,
+            accountName: argoCd.output.projects.tools.accountName,
+          },
+        },
+        providers: {
+          argocd: argoCdProvider,
+        },
+      },
+      {
+        dependsOn: [argoCd, argoServiceMesh, argoCdProvider],
+      },
+    );
 
     return {
       output: pulumi.output({

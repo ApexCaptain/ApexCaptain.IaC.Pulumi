@@ -1,6 +1,9 @@
 ---
-description: 커밋 메시지 생성 요청 시 staged/unstaged diff 검토 후 .github/generated/commit-message.txt에 작성
-alwaysApply: true
+name: generate-commit-message
+description: >-
+  커밋 메시지 생성 요청 시 staged/unstaged diff 검토 후
+  .github/generated/commit-message.txt에 작성한다. Use when the user asks for
+  a commit message, commit-message.txt, or similar.
 ---
 
 # 커밋 메시지 생성
@@ -9,7 +12,7 @@ alwaysApply: true
 **`git commit`은 사용자가 명시적으로 요청할 때만** 실행합니다.
 
 > **범위:** **다음 커밋에 담을** staged/unstaged 변경만 요약한다.  
-> PR title·body는 **`generate-pull-request.mdc`** 를 따른다.
+> PR title·body는 **`generate-pull-request`** skill을 따른다.
 
 ## 1. Git 변경사항 확인
 
