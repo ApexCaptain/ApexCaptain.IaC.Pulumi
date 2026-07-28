@@ -1,4 +1,4 @@
-import { argocd } from '@common/bridged-provider';
+import { argocd, authentik } from '@common/bridged-provider';
 import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
 
@@ -13,14 +13,17 @@ interface ArgoResourcesComponentArgsShape {
     apps: {
       name: string;
       accountName: string;
+      readerGroupName: string;
     };
     tools: {
       name: string;
       accountName: string;
+      readerGroupName: string;
     };
   };
   providers: {
     argocd: argocd.Provider;
+    authentik: authentik.Provider;
   };
 }
 
@@ -34,6 +37,28 @@ export const ArgoResourcesComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
+    const appsReaderGroup = new authentik.Group(
+      `${resourceName}-appsReaderGroup`,
+      {
+        name: args.gitOpsProjects.apps.readerGroupName,
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    const toolsReaderGroup = new authentik.Group(
+      `${resourceName}-toolsReaderGroup`,
+      {
+        name: args.gitOpsProjects.tools.readerGroupName,
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
     const appsDeployerAccountToken = new argocd.AccountToken(
       `${resourceName}-appsDeployerAccountToken`,
       {
@@ -44,6 +69,7 @@ export const ArgoResourcesComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.argocd,
+        dependsOn: [appsReaderGroup],
       },
     );
 
@@ -57,6 +83,7 @@ export const ArgoResourcesComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.argocd,
+        dependsOn: [toolsReaderGroup],
       },
     );
 
@@ -117,7 +144,6 @@ export const ArgoResourcesComponent = utils.functions.defineComponent(
     const gitOpsRepository = new argocd.Repository(
       `${resourceName}-gitOpsRepository`,
       {
-        // `name` is Helm-repo only; for git the identity is `repo` (clone URL).
         repo: args.gitOpsRepository.sshCloneUrl,
         sshPrivateKey: args.gitOpsRepository.deployPrivateKeyPem,
       },

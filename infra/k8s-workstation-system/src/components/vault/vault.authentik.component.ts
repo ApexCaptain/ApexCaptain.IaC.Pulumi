@@ -58,6 +58,7 @@ export const VaultAuthentikComponent = utils.functions.defineComponent(
     const vaultOidcRoleName = 'default';
     /** Authentik groups scope → id_token claim 이름 (Vault groupsClaim과 동일해야 함) */
     const vaultOidcGroupsClaim = 'groups';
+    const vaultOidcGroupsScopeName = 'vault_groups';
 
     const authentikProviderOpts = {
       ...opts,
@@ -95,9 +96,9 @@ export const VaultAuthentikComponent = utils.functions.defineComponent(
       `${resourceName}-groupsScopeMapping`,
       {
         name: 'vault-oidc-groups-scope',
-        scopeName: vaultOidcGroupsClaim,
+        scopeName: vaultOidcGroupsScopeName,
         description: 'OIDC groups claim for Vault identity group alias',
-        expression: `return {\n  "${vaultOidcGroupsClaim}": [group.name for group in request.user.ak_groups.all()],\n}`,
+        expression: `return {\n  "${vaultOidcGroupsClaim}": sorted({group.name for group in request.user.ak_groups.all()}),\n}`,
       },
       authentikProviderOpts,
     );
@@ -200,7 +201,7 @@ export const VaultAuthentikComponent = utils.functions.defineComponent(
           ...vaultOidcCliCallbackUrls,
         ],
         groupsClaim: vaultOidcGroupsClaim,
-        oidcScopes: [vaultOidcGroupsClaim],
+        oidcScopes: [vaultOidcGroupsScopeName],
         tokenPolicies: ['default'],
       },
       {

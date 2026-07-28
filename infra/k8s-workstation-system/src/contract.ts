@@ -604,7 +604,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     });
 
     // Argo CD
-    const argoVersion = '10.1.2';
+    const argoVersion = '10.2.1';
     const argoChartRepositoryUrl =
       commonEsc.esc.helmRepositoryUrls['argoproj.github.io/argo-helm'];
 
@@ -616,20 +616,60 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     });
 
-    const argoCd = new components.argo.ArgoCdComponent('argoCd', {
-      host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
-      bootstrapPassword: projectEsc.esc.argoCd.bootstrapPassword,
-      githubSecret: argoGitOps.secret.webHookSecret,
-      helm: {
-        argoCd: {
-          version: argoVersion,
-          repositoryUrl: argoChartRepositoryUrl,
+    const argoAuthentik = new components.argo.ArgoAuthentikComponent(
+      'argoAuthentik',
+      {
+        hosts: {
+          argoCd: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
+          authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
+        },
+        authentik: {
+          allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
+          flow: {
+            authorizationFlowId:
+              authentikResources.output.flow
+                .defaultProviderAuthorizationImplicitConsentId,
+            invalidationFlowId:
+              authentikResources.output.flow.defaultInvalidationFlowId,
+          },
+        },
+        providers: {
+          authentik: authentikProvider,
         },
       },
-      providers: {
-        kubernetes: workstationK8sProvider,
+      {
+        dependsOn: [authentikResources, authentikProvider],
       },
-    });
+    );
+
+    const argoCd = new components.argo.ArgoCdComponent(
+      'argoCd',
+      {
+        host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
+        bootstrapPassword: projectEsc.esc.argoCd.bootstrapPassword,
+        githubSecret: argoGitOps.secret.webHookSecret,
+        oidc: {
+          name: argoAuthentik.output.oidc.name,
+          issuerUrl: argoAuthentik.output.oidc.issuerUrl,
+          groupsClaim: argoAuthentik.output.oidc.groupsClaim,
+          requestedScopes: argoAuthentik.output.oidc.requestedScopes,
+          clientId: argoAuthentik.secret.oidc.clientId,
+          clientSecret: argoAuthentik.secret.oidc.clientSecret,
+        },
+        helm: {
+          argoCd: {
+            version: argoVersion,
+            repositoryUrl: argoChartRepositoryUrl,
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+      {
+        dependsOn: [argoAuthentik],
+      },
+    );
 
     const argoServiceMesh = new components.argo.ArgoServiceMeshComponent(
       'argoServiceMesh',
@@ -671,18 +711,27 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           apps: {
             name: argoCd.output.projects.apps.name,
             accountName: argoCd.output.projects.apps.accountName,
+            readerGroupName: argoCd.output.projects.apps.readerGroupName,
           },
           tools: {
             name: argoCd.output.projects.tools.name,
             accountName: argoCd.output.projects.tools.accountName,
+            readerGroupName: argoCd.output.projects.tools.readerGroupName,
           },
         },
         providers: {
           argocd: argoCdProvider,
+          authentik: authentikProvider,
         },
       },
       {
-        dependsOn: [argoCd, argoServiceMesh, argoCdProvider],
+        dependsOn: [
+          argoCd,
+          argoServiceMesh,
+          argoCdProvider,
+          argoAuthentik,
+          authentikProvider,
+        ],
       },
     );
 

@@ -2,11 +2,20 @@ import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import * as std from '@pulumi/std';
+import yaml from 'yaml';
 
 interface ArgoCdComponentArgsShape {
   host: string;
   bootstrapPassword: string;
   githubSecret: string;
+  oidc: {
+    name: string;
+    issuerUrl: string;
+    groupsClaim: string;
+    requestedScopes: string[];
+    clientId: string;
+    clientSecret: string;
+  };
   helm: {
     argoCd: {
       version: string;
@@ -26,11 +35,15 @@ const gitOpsProjects = {
     name: 'apps',
     accountName: 'gitops-apps-deployer',
     roleName: 'role:apps-deployer',
+    readerRoleName: 'role:apps-reader',
+    readerGroupName: 'argo-apps-reader',
   },
   tools: {
     name: 'tools',
     accountName: 'gitops-tools-deployer',
     roleName: 'role:tools-deployer',
+    readerRoleName: 'role:tools-reader',
+    readerGroupName: 'argo-tools-reader',
   },
 } as const;
 
@@ -76,8 +89,26 @@ export const ArgoCdComponent = utils.functions.defineComponent(
           },
           configs: {
             cm: {
+              'url': pulumi.interpolate`https://${args.host}`,
               [`accounts.${gitOpsProjects.apps.accountName}`]: 'apiKey',
               [`accounts.${gitOpsProjects.tools.accountName}`]: 'apiKey',
+              'oidc.config': pulumi
+                .all([
+                  args.oidc.name,
+                  args.oidc.issuerUrl,
+                  args.oidc.clientId,
+                  args.oidc.requestedScopes,
+                ])
+                .apply(
+                  ([name, issuerUrl, clientId, requestedScopes]) =>
+                    yaml.stringify({
+                      name,
+                      issuer: issuerUrl,
+                      clientID: clientId,
+                      clientSecret: '$oidc.authentik.clientSecret',
+                      requestedScopes,
+                    }),
+                ),
             },
             rbac: {
               'policy.csv': utils.functions.createArgoCdPolicyCsv({
@@ -95,6 +126,42 @@ export const ArgoCdComponent = utils.functions.defineComponent(
                     object: gitOpsProjects.apps.name,
                   },
                   {
+                    role: gitOpsProjects.apps.readerRoleName,
+                    resource: 'applications',
+                    action: 'get',
+                    object: `${gitOpsProjects.apps.name}/*`,
+                  },
+                  {
+                    role: gitOpsProjects.apps.readerRoleName,
+                    resource: 'applications',
+                    action: 'sync',
+                    object: `${gitOpsProjects.apps.name}/*`,
+                  },
+                  {
+                    role: gitOpsProjects.apps.readerRoleName,
+                    resource: 'applicationprojects',
+                    action: 'get',
+                    object: gitOpsProjects.apps.name,
+                  },
+                  {
+                    role: gitOpsProjects.apps.readerRoleName,
+                    resource: 'projects',
+                    action: 'get',
+                    object: gitOpsProjects.apps.name,
+                  },
+                  {
+                    role: gitOpsProjects.apps.readerRoleName,
+                    resource: 'logs',
+                    action: 'get',
+                    object: `${gitOpsProjects.apps.name}/*`,
+                  },
+                  {
+                    role: gitOpsProjects.apps.readerRoleName,
+                    resource: 'repositories',
+                    action: 'get',
+                    object: '*',
+                  },
+                  {
                     role: gitOpsProjects.tools.roleName,
                     resource: 'applications',
                     action: '*',
@@ -106,6 +173,42 @@ export const ArgoCdComponent = utils.functions.defineComponent(
                     action: 'get',
                     object: gitOpsProjects.tools.name,
                   },
+                  {
+                    role: gitOpsProjects.tools.readerRoleName,
+                    resource: 'applications',
+                    action: 'get',
+                    object: `${gitOpsProjects.tools.name}/*`,
+                  },
+                  {
+                    role: gitOpsProjects.tools.readerRoleName,
+                    resource: 'applications',
+                    action: 'sync',
+                    object: `${gitOpsProjects.tools.name}/*`,
+                  },
+                  {
+                    role: gitOpsProjects.tools.readerRoleName,
+                    resource: 'applicationprojects',
+                    action: 'get',
+                    object: gitOpsProjects.tools.name,
+                  },
+                  {
+                    role: gitOpsProjects.tools.readerRoleName,
+                    resource: 'projects',
+                    action: 'get',
+                    object: gitOpsProjects.tools.name,
+                  },
+                  {
+                    role: gitOpsProjects.tools.readerRoleName,
+                    resource: 'logs',
+                    action: 'get',
+                    object: `${gitOpsProjects.tools.name}/*`,
+                  },
+                  {
+                    role: gitOpsProjects.tools.readerRoleName,
+                    resource: 'repositories',
+                    action: 'get',
+                    object: '*',
+                  },
                 ],
                 bindings: [
                   {
@@ -116,8 +219,19 @@ export const ArgoCdComponent = utils.functions.defineComponent(
                     subject: gitOpsProjects.tools.accountName,
                     role: gitOpsProjects.tools.roleName,
                   },
+                  {
+                    subject: gitOpsProjects.apps.readerGroupName,
+                    role: gitOpsProjects.apps.readerRoleName,
+                  },
+                  {
+                    subject: gitOpsProjects.tools.readerGroupName,
+                    role: gitOpsProjects.tools.readerRoleName,
+                  },
                 ],
               }),
+              'scopes': pulumi
+                .output(args.oidc.groupsClaim)
+                .apply(groupsClaim => `[${groupsClaim}]`),
             },
             params: {
               'server.insecure': true,
@@ -128,6 +242,9 @@ export const ArgoCdComponent = utils.functions.defineComponent(
                 cost: 10,
               }).result,
               githubSecret: args.githubSecret,
+              extra: {
+                'oidc.authentik.clientSecret': args.oidc.clientSecret,
+              },
             },
           },
         },
@@ -156,10 +273,12 @@ export const ArgoCdComponent = utils.functions.defineComponent(
           apps: {
             name: gitOpsProjects.apps.name,
             accountName: gitOpsProjects.apps.accountName,
+            readerGroupName: gitOpsProjects.apps.readerGroupName,
           },
           tools: {
             name: gitOpsProjects.tools.name,
             accountName: gitOpsProjects.tools.accountName,
+            readerGroupName: gitOpsProjects.tools.readerGroupName,
           },
         },
       }),
