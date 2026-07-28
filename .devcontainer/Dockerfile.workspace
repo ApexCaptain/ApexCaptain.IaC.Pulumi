@@ -1,6 +1,6 @@
 # check=skip=InvalidDefaultArgInFrom
 
-FROM mcr.microsoft.com/devcontainers/base:dev-noble
+FROM mcr.microsoft.com/devcontainers/base:dev-resolute
 
 USER root
 

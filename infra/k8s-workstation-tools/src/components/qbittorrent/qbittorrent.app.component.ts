@@ -342,7 +342,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                     },
                     {
                       name: 'SERVER_COUNTRIES',
-                      value: 'Japan',
+                      value: 'Japan,Taiwan,Singapore',
                     },
                     {
                       name: 'SERVER_CATEGORIES',
