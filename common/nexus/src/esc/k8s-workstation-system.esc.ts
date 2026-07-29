@@ -60,6 +60,13 @@ const k8sWorkstationSystemEscSchema = z
           .required(),
       })
       .required(),
+
+    argoCd: z
+      .object({
+        gitOpsRepositoryName: z.string(),
+        bootstrapPassword: z.string(),
+      })
+      .required(),
   })
   .required();
 

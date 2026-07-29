@@ -8,12 +8,18 @@
   // Features
   "features": {
     "ghcr.io/devcontainers-contrib/features/projen:1": {},
+    "ghcr.io/devcontainers/features/python:1": {},
+
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers-extra/features/pulumi:1": {},
     "ghcr.io/devcontainers-extra/features/kubectl-asdf:2": {},
-    "ghcr.io/devcontainers/features/python:1": {},
-    //
-    "ghcr.io/devcontainers-extra/features/vault-asdf:2": {}
+
+    "ghcr.io/jsburckhardt/devcontainer-features/glow:1": {},
+    "ghcr.io/rio/features/k9s:1": {},
+
+    "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
+      "packages": "netcat-openbsd, iputils-ping, parallel, ripgrep, sshpass"
+    }
   },
   // Custom
   "customizations": {

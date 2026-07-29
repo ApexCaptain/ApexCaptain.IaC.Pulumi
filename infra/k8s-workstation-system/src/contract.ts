@@ -9,10 +9,11 @@
  * - Authentik PG는 Longhorn SSD SC에, Longhorn UI는 Authentik proxy에 의존
  *   → Longhorn↔Authentik 3단계 분리는 아래 JSDoc 참고
  */
-import { authentik } from '@common/bridged-provider';
+import { authentik, argocd } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import * as utils from '@common/utils/src';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
+import * as github from '@pulumi/github';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as oci from '@pulumi/oci';
 import * as pulumi from '@pulumi/pulumi';
@@ -25,6 +26,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     // ESC
     const commonEsc = nexus.esc.commonEsc;
     const projectEsc = nexus.esc.k8sWorkstationSystemEsc;
+    const githubEsc = nexus.esc.githubEsc;
 
     const authentikNamespace = 'authentik';
     const authentikProxyOutpostName = 'authentik-proxy-outpost';
@@ -36,6 +38,14 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       'workstationK8sProvider',
       {
         kubeconfig: nexus.esc.commonEsc.esc.workstationKubeconfig,
+      },
+    );
+
+    // Github Provider
+    const apexCaptainGithubProvider = new github.Provider(
+      'apexCaptainGithubProvider',
+      {
+        token: githubEsc.esc.apexCaptain.token,
       },
     );
 
@@ -66,7 +76,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             certManager: {
-              version: 'v1.20.3',
+              version: 'v1.21.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.jetstack.io'],
             },
@@ -106,7 +116,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           vault: {
-            version: '0.33.0',
+            version: '0.34.0',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
           },
@@ -175,7 +185,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           istio: {
-            version: '1.30.2',
+            version: '1.30.3',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'istio-release.storage.googleapis.com/charts'
@@ -294,19 +304,20 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
-    const vaultKubernetesAuth = new components.vault.VaultKubernetesAuthComponent(
-      'vaultKubernetesAuth',
-      {
-        kubeconfig: commonEsc.esc.workstationKubeconfig,
-        providers: {
-          kubernetes: workstationK8sProvider,
-          vault: vaultProvider,
+    const vaultKubernetesAuth =
+      new components.vault.VaultKubernetesAuthComponent(
+        'vaultKubernetesAuth',
+        {
+          kubeconfig: commonEsc.esc.workstationKubeconfig,
+          providers: {
+            kubernetes: workstationK8sProvider,
+            vault: vaultProvider,
+          },
         },
-      },
-      {
-        dependsOn: [vaultResources, vaultProvider],
-      },
-    );
+        {
+          dependsOn: [vaultResources, vaultProvider],
+        },
+      );
 
     // Longhorn
     const longhornHelmChart =
@@ -346,7 +357,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: authentikNamespace,
           helm: {
             authentik: {
-              version: '2026.5.3',
+              version: '2026.5.6',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
             },
@@ -542,7 +553,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             vaultSecretOperator: {
-              version: '1.4.1',
+              version: '1.5.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
             },
@@ -576,18 +587,166 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
       );
 
+    // Reloader
     new components.reloader.ReloaderHelmChartComponent('reloaderHelmChart', {
       helm: {
         reloader: {
           version: '2.2.14',
           repositoryUrl:
-            commonEsc.esc.helmRepositoryUrls['stakater.github.io/stakater-charts'],
+            commonEsc.esc.helmRepositoryUrls[
+              'stakater.github.io/stakater-charts'
+            ],
         },
       },
       providers: {
         kubernetes: workstationK8sProvider,
       },
     });
+
+    // Argo (CD / Rollouts / Workflows …)
+    const argoChartRepositoryUrl =
+      commonEsc.esc.helmRepositoryUrls['argoproj.github.io/argo-helm'];
+
+    // Argo Rollouts — CD와 독립. Application이 Rollout CR을 쓰기 전에 컨트롤러 준비.
+    new components.argo.ArgoRolloutsComponent('argoRollouts', {
+      helm: {
+        argoRollouts: {
+          version: '2.41.0',
+          repositoryUrl: argoChartRepositoryUrl,
+        },
+      },
+      providers: {
+        kubernetes: workstationK8sProvider,
+      },
+    });
+
+    // Argo CD
+    const argoGitOps = new components.argo.ArgoGitOpsComponent('argoGitOps', {
+      gitOpsRepositoryName: projectEsc.esc.argoCd.gitOpsRepositoryName,
+      argoCdHost: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
+      providers: {
+        github: apexCaptainGithubProvider,
+      },
+    });
+
+    const argoAuthentik = new components.argo.ArgoAuthentikComponent(
+      'argoAuthentik',
+      {
+        hosts: {
+          argoCd: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
+          authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
+        },
+        authentik: {
+          allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
+          flow: {
+            authorizationFlowId:
+              authentikResources.output.flow
+                .defaultProviderAuthorizationImplicitConsentId,
+            invalidationFlowId:
+              authentikResources.output.flow.defaultInvalidationFlowId,
+          },
+        },
+        providers: {
+          authentik: authentikProvider,
+        },
+      },
+      {
+        dependsOn: [authentikResources, authentikProvider],
+      },
+    );
+
+    const argoCd = new components.argo.ArgoCdComponent(
+      'argoCd',
+      {
+        host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
+        bootstrapPassword: projectEsc.esc.argoCd.bootstrapPassword,
+        githubSecret: argoGitOps.secret.webHookSecret,
+        oidc: {
+          name: argoAuthentik.output.oidc.name,
+          issuerUrl: argoAuthentik.output.oidc.issuerUrl,
+          groupsClaim: argoAuthentik.output.oidc.groupsClaim,
+          requestedScopes: argoAuthentik.output.oidc.requestedScopes,
+          clientId: argoAuthentik.secret.oidc.clientId,
+          clientSecret: argoAuthentik.secret.oidc.clientSecret,
+        },
+        helm: {
+          argoCd: {
+            version: '10.2.1',
+            repositoryUrl: argoChartRepositoryUrl,
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+      {
+        dependsOn: [argoAuthentik],
+      },
+    );
+
+    const argoServiceMesh = new components.argo.ArgoServiceMeshComponent(
+      'argoServiceMesh',
+      {
+        namespace: argoCd.output.namespace,
+        bootstrapPassword: projectEsc.esc.argoCd.bootstrapPassword,
+        ingress: {
+          argoCd: {
+            host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
+            serviceName: argoCd.output.services.argoCdServer.name,
+            gatewayPath: istioGateway.output.istioIngressGatewayPath,
+            port: argoCd.output.services.argoCdServer.port.webUi,
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+    );
+
+    const argoCdProvider = new argocd.Provider(
+      'argoCdProvider',
+      argoServiceMesh.secret.argoCdProviderConfig,
+      {
+        dependsOn: [argoCd, argoServiceMesh],
+      },
+    );
+
+    const argoResources = new components.argo.ArgoResourcesComponent(
+      'argoResources',
+      {
+        namespace: argoCd.output.namespace,
+        gitOpsRepository: {
+          name: argoGitOps.output.dataGitOpsRepository.name,
+          sshCloneUrl: argoGitOps.output.dataGitOpsRepository.sshCloneUrl,
+          deployPrivateKeyPem: argoGitOps.secret.deployPrivateKeyPem,
+        },
+        gitOpsProjects: {
+          apps: {
+            name: argoCd.output.projects.apps.name,
+            accountName: argoCd.output.projects.apps.accountName,
+            readerGroupName: argoCd.output.projects.apps.readerGroupName,
+          },
+          tools: {
+            name: argoCd.output.projects.tools.name,
+            accountName: argoCd.output.projects.tools.accountName,
+            readerGroupName: argoCd.output.projects.tools.readerGroupName,
+          },
+        },
+        providers: {
+          argocd: argoCdProvider,
+          authentik: authentikProvider,
+        },
+      },
+      {
+        dependsOn: [
+          argoCd,
+          argoServiceMesh,
+          argoCdProvider,
+          argoAuthentik,
+          authentikProvider,
+        ],
+      },
+    );
 
     return {
       output: pulumi.output({

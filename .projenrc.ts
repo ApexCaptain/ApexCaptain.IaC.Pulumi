@@ -83,6 +83,47 @@ const rootProject = new typescript.TypeScriptProject(
       },
 
       // Node Project Options
+      pnpmOptions: {
+        workspaceYamlOptions: {
+          packages: [
+            `${src.constants.paths.dirs.commonDir}/*`,
+            `${src.constants.paths.dirs.infraDir}/*`,
+          ],
+          // Bridged Providers에 공통 네이밍 컨벤션이 있을 경우 Dynamic하게 설정될 수 있도록 변경
+          allowBuilds: Object.fromEntries([
+            ...Object.values(src.constants.bridgedProviders)
+              .flatMap(eachBridgedProvider =>
+                Object.values(eachBridgedProvider),
+              )
+              .map(eachBridgedProvider => [
+                `@pulumi/${eachBridgedProvider.name}`,
+                true,
+              ]),
+            ...src.constants.packagesAllowingBuildScripts.map(eachPackage => [
+              eachPackage,
+              true,
+            ]),
+          ]),
+          overrides: {
+            '@pulumi/pulumi': '$@pulumi/pulumi',
+            '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
+            '@types/node': '$@types/node',
+            typescript: '$typescript',
+            ...Object.fromEntries(
+              Object.values(src.constants.bridgedProviders)
+                .flatMap(eachBridgedProvider =>
+                  Object.values(eachBridgedProvider),
+                )
+                .flatMap(eachBridgedProvider =>
+                  eachBridgedProvider.packagesToOverride.map(eachPackage => [
+                    `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
+                    `$${eachPackage}`,
+                  ]),
+                ),
+            ),
+          },
+        },
+      },
       npmignoreEnabled: false,
       buildWorkflow: false,
       release: false,
@@ -154,6 +195,7 @@ const rootProject = new typescript.TypeScriptProject(
         'Pulumi*.yaml',
         'Pulumi*.yml',
         'inventory.ini',
+        '.specstory',
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
         `/${src.constants.paths.dirs.githubGeneratedDir}`,
@@ -604,6 +646,21 @@ const initPulumiEsc = async () => {
     },
   );
 
+  await NexusEsc.githubEsc.upsertEsc(
+    accountName,
+    pulumiEscClient,
+    {
+      apexCaptain: {
+        owner: process.env.GITHUB_OWNER_APEX_CAPTAIN,
+        token: process.env.GH_TOKEN,
+      },
+    },
+    {
+      prod: {},
+      dev: {},
+    },
+  );
+
   await NexusEsc.k8sWorkstationSystemEsc.upsertEsc(
     accountName,
     pulumiEscClient,
@@ -665,6 +722,10 @@ const initPulumiEsc = async () => {
           },
         },
       },
+      argoCd: {
+        gitOpsRepositoryName: process.env.ARGOCD_GITOPS_REPOSITORY_NAME,
+        bootstrapPassword: process.env.ARGOCD_BOOTSTRAP_PASSWORD,
+      },
     },
     {
       prod: {},
@@ -699,7 +760,10 @@ void (async () => {
   const commonProjects = (() => {
     const bridgedProviderProject = inflateCommonProject({
       projectName: 'bridged-provider',
-      bridgedProviders: [src.constants.bridgedProviders.terraform.authentik],
+      bridgedProviders: [
+        src.constants.bridgedProviders.terraform.authentik,
+        src.constants.bridgedProviders.terraform.argocd,
+      ],
     });
 
     const utilsProject = inflateCommonProject({
@@ -760,7 +824,7 @@ void (async () => {
         commonProjects.utilsProject.project.package.packageName,
         commonProjects.nexusProject.project.package.packageName,
       ],
-      esc: [NexusEsc.commonEsc, NexusEsc.cloudflareEsc],
+      esc: [NexusEsc.commonEsc, NexusEsc.cloudflareEsc, NexusEsc.githubEsc],
     });
 
     const k8sWorkstationSystemProject = inflatePulumiProject({
@@ -772,6 +836,9 @@ void (async () => {
         src.constants.pulumiPackages.tls,
         src.constants.pulumiPackages.time,
         src.constants.pulumiPackages.vault,
+        src.constants.pulumiPackages.github,
+        src.constants.pulumiPackages.random,
+        src.constants.pulumiPackages.std,
       ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,
@@ -784,6 +851,7 @@ void (async () => {
         NexusEsc.commonEsc,
         NexusEsc.ociEsc,
         NexusEsc.k8sWorkstationSystemEsc,
+        NexusEsc.githubEsc,
       ],
     });
 
@@ -946,6 +1014,23 @@ void (async () => {
             }),
           },
         },
+        specstory: {
+          cloudSync: {
+            enabled: 'never',
+          },
+          providers: {
+            enabled: new src.classes.VsCodeObject({
+              'Cursor IDE': true,
+              'Copilot IDE': false,
+              'Claude Code': false,
+              'Factory Droid CLI': false,
+              'Cursor CLI': false,
+              'Gemini CLI': false,
+              'Codex CLI': false,
+              'DeepSeek TUI': false,
+            }),
+          },
+        },
       },
       {
         safe: true,
@@ -960,45 +1045,6 @@ void (async () => {
       },
     ),
   );
-
-  // pnpm-workspace.yaml file
-  new YamlFile(rootProject, 'pnpm-workspace.yaml', {
-    obj: {
-      packages: [
-        `${src.constants.paths.dirs.commonDir}/*`,
-        `${src.constants.paths.dirs.infraDir}/*`,
-      ],
-      // Bridged Providers에 공통 네이밍 컨벤션이 있을 경우 Dynamic하게 설정될 수 있도록 변경
-      allowBuilds: Object.fromEntries([
-        ...Object.values(src.constants.bridgedProviders)
-          .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-          .map(eachBridgedProvider => [
-            `@pulumi/${eachBridgedProvider.name}`,
-            true,
-          ]),
-        ...src.constants.packagesAllowingBuildScripts.map(eachPackage => [
-          eachPackage,
-          true,
-        ]),
-      ]),
-      overrides: {
-        '@pulumi/pulumi': '$@pulumi/pulumi',
-        '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
-        '@types/node': '$@types/node',
-        typescript: '$typescript',
-        ...Object.fromEntries(
-          Object.values(src.constants.bridgedProviders)
-            .flatMap(eachBridgedProvider => Object.values(eachBridgedProvider))
-            .flatMap(eachBridgedProvider =>
-              eachBridgedProvider.packagesToOverride.map(eachPackage => [
-                `@pulumi/${eachBridgedProvider.name}>${eachPackage}`,
-                `$${eachPackage}`,
-              ]),
-            ),
-        ),
-      },
-    },
-  });
 
   // Nova Config File
   const novaConfigFile = new JsonFile(
@@ -1162,6 +1208,9 @@ void (async () => {
         command: 'npx',
         args: ['-y', 'kubernetes-mcp-server@latest'],
       },
+      pulumi: {
+        url: 'https://mcp.ai.pulumi.com/mcp',
+      },
     },
   };
   const mcpJsonFile = new JsonFile(
@@ -1169,6 +1218,36 @@ void (async () => {
     src.constants.paths.files.cursorMcpJsonFile,
     {
       obj: mcpJsonConfig,
+    },
+  );
+
+  const cursorSettingsConfig: src.interfaces.CursorSettings = {
+    plugins: {
+      superpowers: {
+        enabled: true,
+      },
+      orchestrate: {
+        enabled: true,
+      },
+      thermos: {
+        enabled: true,
+      },
+      'continual-learning': {
+        enabled: true,
+      },
+      'docs-canvas': {
+        enabled: true,
+      },
+      'pr-review-canvas': {
+        enabled: true,
+      },
+    },
+  };
+  const cursorSettingsFile = new JsonFile(
+    rootProject,
+    src.constants.paths.files.cursorSettingsJsonFile,
+    {
+      obj: cursorSettingsConfig,
     },
   );
 

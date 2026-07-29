@@ -201,6 +201,17 @@ export const SftpV1Component = utils.functions.defineComponent(
             securityContext: {
               capabilities: { add: ['SYS_CHROOT'] },
             },
+            // idle ~2–3Mi; SSH burst만 여유
+            resources: {
+              requests: {
+                cpu: '10m',
+                memory: '32Mi',
+              },
+              limits: {
+                cpu: '100m',
+                memory: '128Mi',
+              },
+            },
           };
 
           const volumeSpec: kubernetes.types.input.core.v1.Volume = {

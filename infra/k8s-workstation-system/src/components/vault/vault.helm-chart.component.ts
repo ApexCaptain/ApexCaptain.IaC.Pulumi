@@ -282,6 +282,17 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
                 name: vaultOciCredentialsSecretName,
               },
             ],
+            // idle ~91Mi; seal/unseal·raft 여유
+            resources: {
+              requests: {
+                cpu: '100m',
+                memory: '128Mi',
+              },
+              limits: {
+                cpu: '500m',
+                memory: '384Mi',
+              },
+            },
 
             ha: {
               enabled: true,

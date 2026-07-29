@@ -25,6 +25,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "@pulumi/argocd": "file:sdks/argocd",
     "@pulumi/authentik": "file:sdks/authentik",
     "@pulumi/pulumi": "^3.242.0",
     "dedent": "^1.7.2",

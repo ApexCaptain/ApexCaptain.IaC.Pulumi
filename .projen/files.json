@@ -1,6 +1,7 @@
 {
   "files": [
     ".cursor/mcp.json",
+    ".cursor/settings.json",
     ".eslintrc.json",
     ".gitattributes",
     ".github/pull_request_template.md",
@@ -17,7 +18,6 @@
     ".vscode/settings.json",
     "ansible/workstation/inventory/inventory.ini",
     "LICENSE",
-    "pnpm-workspace.yaml",
     "projenrc/tsconfig.json",
     "README.md",
     "requirements.txt",

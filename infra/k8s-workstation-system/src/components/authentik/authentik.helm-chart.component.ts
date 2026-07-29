@@ -177,6 +177,17 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
                 mountPath: '/dev/shm',
               },
             ],
+            // idle ~546Mi
+            resources: {
+              requests: {
+                cpu: '100m',
+                memory: '640Mi',
+              },
+              limits: {
+                cpu: '1',
+                memory: '1280Mi',
+              },
+            },
           },
           worker: {
             volumes: [
@@ -194,6 +205,17 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
                 readOnly: true,
               },
             ],
+            // idle ~262Mi; task burst
+            resources: {
+              requests: {
+                cpu: '100m',
+                memory: '320Mi',
+              },
+              limits: {
+                cpu: '1',
+                memory: '768Mi',
+              },
+            },
           },
           postgresql: {
             enabled: true,
@@ -208,6 +230,17 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
                 enabled: true,
                 storageClass: args.pvc.postgresql.storageClass,
                 size: args.pvc.postgresql.size,
+              },
+              // idle ~174Mi
+              resources: {
+                requests: {
+                  cpu: '100m',
+                  memory: '256Mi',
+                },
+                limits: {
+                  cpu: '500m',
+                  memory: '512Mi',
+                },
               },
             },
           },

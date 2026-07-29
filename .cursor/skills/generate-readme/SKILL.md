@@ -1,6 +1,8 @@
 ---
-description: README 작성 요청 시 pnpm workspace 서브모듈 README를 프로젝트 현황에 맞게 갱신
-alwaysApply: true
+name: generate-readme
+description: >-
+  README 작성 요청 시 pnpm workspace 서브모듈 README를 프로젝트 현황에 맞게 갱신한다.
+  Use when the user asks to write or update submodule READMEs.
 ---
 
 # README 작성 (pnpm 서브모듈)

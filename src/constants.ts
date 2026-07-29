@@ -40,6 +40,7 @@ export const constants = (() => {
   const novaConfigFile =
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
   const cursorMcpJsonFile = path.join(cursorDir, 'mcp.json');
+  const cursorSettingsJsonFile = path.join(cursorDir, 'settings.json');
   const workstationSshPrivateKeyFile = path.join(
     keysDir,
     process.env.WORKSTATION_SSH_PRIVATE_KEY_FILE_NAME || 'workstation.key',
@@ -85,6 +86,7 @@ export const constants = (() => {
     files: {
       novaConfigFile,
       cursorMcpJsonFile,
+      cursorSettingsJsonFile,
       workstationSshPrivateKeyFile,
       ansibleWorkstationInventoryFile,
       githubGeneratedCommitMessageFile,
@@ -105,6 +107,12 @@ export const constants = (() => {
         providerSource: 'goauthentik/authentik',
         providerVersion: '2026.5.0',
       }),
+      // https://registry.terraform.io/providers/argoproj-labs/argocd/latest
+      argocd: new TerraformBridgedProvider({
+        name: 'argocd',
+        providerSource: 'argoproj-labs/argocd',
+        providerVersion: '7.15.3',
+      }),
     },
   };
 
@@ -120,6 +128,7 @@ export const constants = (() => {
     oci: '@pulumi/oci',
     time: '@pulumiverse/time',
     vault: '@pulumi/vault',
+    github: '@pulumi/github',
   };
 
   const packagesAllowingBuildScripts = [
@@ -128,6 +137,8 @@ export const constants = (() => {
     pulumiPackages.std,
     'protobufjs',
     'unrs-resolver',
+    'ssh2',
+    'cpu-features',
   ];
 
   const helmChartRepositoryUrls = {
@@ -145,6 +156,7 @@ export const constants = (() => {
       'https://cloudnative-pg.github.io/charts',
     'stakater.github.io/stakater-charts':
       'https://stakater.github.io/stakater-charts',
+    'argoproj.github.io/argo-helm': 'https://argoproj.github.io/argo-helm',
   };
 
   return {

@@ -89,9 +89,11 @@ export const PrivateKeyV1Component = utils.functions.defineComponent(
       secret: pulumi.secret({
         privateKey: {
           openssh: privateKey.privateKeyOpenssh,
+          pem: privateKey.privateKeyPem,
         },
         publicKey: {
           openssh: privateKey.publicKeyOpenssh,
+          pem: privateKey.publicKeyPem,
         },
       }),
     };

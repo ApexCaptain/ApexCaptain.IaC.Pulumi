@@ -105,6 +105,17 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
             multiCluster: { clusterName: args.topology.clusterName },
             network: args.topology.network,
           },
+          // idle ~36Mi; chart default request 100m/100Mi → 워크스테이션에 맞춤
+          resources: {
+            requests: {
+              cpu: '50m',
+              memory: '64Mi',
+            },
+            limits: {
+              cpu: '200m',
+              memory: '256Mi',
+            },
+          },
         },
       },
       {
@@ -129,6 +140,17 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
           profile: 'ambient',
           pilot: {
             cni: { enabled: true },
+            // idle ~73Mi; chart default 500m/2Gi는 단일 노드 워크스테이션에 과다
+            resources: {
+              requests: {
+                cpu: '100m',
+                memory: '128Mi',
+              },
+              limits: {
+                cpu: '500m',
+                memory: '512Mi',
+              },
+            },
           },
           global: {
             meshID: args.meshId,
@@ -189,6 +211,17 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
             meshID: args.meshId,
             multiCluster: { clusterName: args.topology.clusterName },
             network: args.topology.network,
+          },
+          // idle ~7Mi; chart default 200m/512Mi → rightsize
+          resources: {
+            requests: {
+              cpu: '50m',
+              memory: '64Mi',
+            },
+            limits: {
+              cpu: '200m',
+              memory: '256Mi',
+            },
           },
         },
       },
@@ -255,6 +288,17 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
               }),
             loadBalancerIP: args.ingressGatewayIp,
             externalIPs: [args.workstationIpV4Address],
+          },
+          // idle ~54Mi
+          resources: {
+            requests: {
+              cpu: '50m',
+              memory: '128Mi',
+            },
+            limits: {
+              cpu: '500m',
+              memory: '512Mi',
+            },
           },
         },
       },

@@ -37,6 +37,11 @@
       "type": "build"
     },
     {
+      "name": "@pulumi/argocd",
+      "version": "file:sdks/argocd",
+      "type": "runtime"
+    },
+    {
       "name": "@pulumi/authentik",
       "version": "file:sdks/authentik",
       "type": "runtime"
