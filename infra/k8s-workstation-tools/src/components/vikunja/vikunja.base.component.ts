@@ -108,6 +108,17 @@ export const VikunjaBaseComponent = utils.functions.defineComponent(
               size: args.pvc.postgresqlCluster.size,
               storageClass: args.pvc.postgresqlCluster.storageClass,
             },
+            // idle ~79Mi
+            resources: {
+              requests: {
+                cpu: '100m',
+                memory: '128Mi',
+              },
+              limits: {
+                cpu: '500m',
+                memory: '512Mi',
+              },
+            },
             inheritedMetadata: {
               labels: {
                 // PG는 sidecar 없이 동작 — ambient ztunnel 제외

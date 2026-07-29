@@ -48,6 +48,23 @@ export const ReloaderHelmChartComponent = utils.functions.defineComponent(
           repo: args.helm.reloader.repositoryUrl,
         },
         waitForJobs: true,
+        values: {
+          reloader: {
+            deployment: {
+              // idle ~52Mi
+              resources: {
+                requests: {
+                  cpu: '20m',
+                  memory: '64Mi',
+                },
+                limits: {
+                  cpu: '200m',
+                  memory: '256Mi',
+                },
+              },
+            },
+          },
+        },
       },
       {
         ...opts,

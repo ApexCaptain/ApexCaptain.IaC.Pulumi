@@ -247,6 +247,97 @@ export const ArgoCdComponent = utils.functions.defineComponent(
               },
             },
           },
+          controller: {
+            // idle ~39Mi; sync burst
+            resources: {
+              requests: {
+                cpu: '50m',
+                memory: '128Mi',
+              },
+              limits: {
+                cpu: '500m',
+                memory: '512Mi',
+              },
+            },
+          },
+          server: {
+            // idle ~53Mi
+            resources: {
+              requests: {
+                cpu: '50m',
+                memory: '128Mi',
+              },
+              limits: {
+                cpu: '500m',
+                memory: '256Mi',
+              },
+            },
+          },
+          repoServer: {
+            // idle ~28Mi; git clone spike
+            resources: {
+              requests: {
+                cpu: '50m',
+                memory: '64Mi',
+              },
+              limits: {
+                cpu: '500m',
+                memory: '512Mi',
+              },
+            },
+          },
+          redis: {
+            // idle ~6Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '32Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '128Mi',
+              },
+            },
+          },
+          applicationSet: {
+            // idle ~44Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '64Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '256Mi',
+              },
+            },
+          },
+          dex: {
+            // idle ~38Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '64Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '128Mi',
+              },
+            },
+          },
+          notifications: {
+            // idle ~21Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '64Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '128Mi',
+              },
+            },
+          },
         },
       },
       {

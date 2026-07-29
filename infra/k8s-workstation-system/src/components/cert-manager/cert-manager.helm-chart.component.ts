@@ -59,6 +59,43 @@ export const CertManagerHelmChartComponent = utils.functions.defineComponent(
             keep: true,
           },
           enableCertificateOwnerRef: true,
+          // idle ~28Mi
+          resources: {
+            requests: {
+              cpu: '20m',
+              memory: '64Mi',
+            },
+            limits: {
+              cpu: '200m',
+              memory: '256Mi',
+            },
+          },
+          webhook: {
+            // idle ~29Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '64Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '128Mi',
+              },
+            },
+          },
+          cainjector: {
+            // idle ~44Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '64Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '256Mi',
+              },
+            },
+          },
         },
       },
       {

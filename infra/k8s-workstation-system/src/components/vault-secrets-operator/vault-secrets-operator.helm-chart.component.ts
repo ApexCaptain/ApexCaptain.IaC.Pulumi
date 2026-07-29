@@ -50,6 +50,36 @@ export const VaultSecretsOperatorHelmChartComponent =
               repo: args.helm.vaultSecretOperator.repositoryUrl,
             },
             waitForJobs: true,
+            values: {
+              controller: {
+                manager: {
+                  // idle ~22Mi; chart default limit 128Mi → 명시적 상향
+                  resources: {
+                    requests: {
+                      cpu: '20m',
+                      memory: '64Mi',
+                    },
+                    limits: {
+                      cpu: '200m',
+                      memory: '256Mi',
+                    },
+                  },
+                },
+                kubeRbacProxy: {
+                  // idle ~11Mi
+                  resources: {
+                    requests: {
+                      cpu: '10m',
+                      memory: '32Mi',
+                    },
+                    limits: {
+                      cpu: '100m',
+                      memory: '128Mi',
+                    },
+                  },
+                },
+              },
+            },
           },
           {
             ...opts,

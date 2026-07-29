@@ -70,6 +70,19 @@ export const LonghornHelmChartComponent = utils.functions.defineComponent(
           persistence: {
             createStorageClass: false, // Helm이 StorageClass를 생성하지 않음
           },
+          longhornManager: {
+            // idle ~224Mi / 38m
+            resources: {
+              requests: {
+                cpu: '100m',
+                memory: '256Mi',
+              },
+              limits: {
+                cpu: '1',
+                memory: '768Mi',
+              },
+            },
+          },
         },
       },
       {

@@ -603,11 +603,24 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     });
 
-    // Argo CD
-    const argoVersion = '10.2.1';
+    // Argo (CD / Rollouts / Workflows …)
     const argoChartRepositoryUrl =
       commonEsc.esc.helmRepositoryUrls['argoproj.github.io/argo-helm'];
 
+    // Argo Rollouts — CD와 독립. Application이 Rollout CR을 쓰기 전에 컨트롤러 준비.
+    new components.argo.ArgoRolloutsComponent('argoRollouts', {
+      helm: {
+        argoRollouts: {
+          version: '2.41.0',
+          repositoryUrl: argoChartRepositoryUrl,
+        },
+      },
+      providers: {
+        kubernetes: workstationK8sProvider,
+      },
+    });
+
+    // Argo CD
     const argoGitOps = new components.argo.ArgoGitOpsComponent('argoGitOps', {
       gitOpsRepositoryName: projectEsc.esc.argoCd.gitOpsRepositoryName,
       argoCdHost: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
@@ -658,7 +671,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: argoVersion,
+            version: '10.2.1',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },

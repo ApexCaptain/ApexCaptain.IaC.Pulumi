@@ -49,7 +49,19 @@ export const PostgreSQLOperatorHelmChartComponent =
             repo: args.helm.postgresqlOperator.repositoryUrl,
           },
           waitForJobs: true,
-          values: {},
+          values: {
+            // idle ~50Mi
+            resources: {
+              requests: {
+                cpu: '50m',
+                memory: '64Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '256Mi',
+              },
+            },
+          },
         },
         {
           ...opts,

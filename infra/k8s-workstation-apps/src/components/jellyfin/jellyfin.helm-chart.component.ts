@@ -210,6 +210,17 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
           },
           // @Note 나중에 GPU Operator 설치 후 사용
           // runtimeClassName: 'nvidia',
+          // idle ~570Mi; 트랜스코딩 스파이크용 CPU/RAM headroom
+          resources: {
+            requests: {
+              cpu: '200m',
+              memory: '768Mi',
+            },
+            limits: {
+              cpu: '2',
+              memory: '3Gi',
+            },
+          },
           persistence: {
             config: {
               existingClaim: jellyfinConfigPvc.metadata.name,

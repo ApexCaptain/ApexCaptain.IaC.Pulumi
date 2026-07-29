@@ -1,13 +1,15 @@
 /**
- * qBittorrent — NordLynx VPN sidecar Pod
+ * qBittorrent 앱 — NordLynx(WireGuard) VPN 사이드카 Pod
  *
  * ```
  * [Pod] qBittorrent ──► nordlynx (WireGuard) ──► 인터넷
  *       Web UI :8080  ◄── mesh ingress (VPN 밖에서 접근)
  * ```
  *
- * namespace `dataplane-mode: none` — VPN 라우팅 꼬임 방지.
- * DNS는 DoT(1.1.1.1)로 묶어서 ISP DNS 유출을 줄인다.
+ * - 네임스페이스 `dataplane-mode: none`: VPN 라우팅이 Istio와 꼬이지 않도록 메시에서 제외
+ * - DNS는 DoT(Cloudflare/Google)로 터널 안에서 처리해 ISP DNS 유출을 줄임
+ * - gluetun은 K8s native sidecar(initContainers + restartPolicy: Always)로
+ *   VPN이 뜬 뒤에야 qbittorrent/sftp가 시작되도록 함
  */
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
@@ -61,6 +63,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
+    // Istio Ambient 제외 — WireGuard/방화벽과 메시 프록시가 겹치면 안 됨
     const namespace = new kubernetes.core.v1.Namespace(
       `${resourceName}-namespace`,
       {
@@ -77,7 +80,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       },
     );
 
-    // Secrets
+    // NordLynx WireGuard 개인키 (projenrc에서 액세스 토큰 → API로 조회)
     const nordLynxPrivateKeySecretDataKey = 'nord-lynx-private-key';
     const nordLynxPrivateKeySecret = new kubernetes.core.v1.Secret(
       `${resourceName}-nordLynxPrivateKeySecret`,
@@ -96,7 +99,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       },
     );
 
-    // PVCs
+    // 영속 볼륨: VueTorrent 모드 캐시 / 설정 / 완료·미완료 다운로드
     const qbittorrentModCachePvc = new kubernetes.core.v1.PersistentVolumeClaim(
       `${resourceName}-qbittorrentModCachePvc`,
       {
@@ -193,7 +196,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
         },
       );
 
-    // Configurations
+    // Pod/서비스 공통 상수
     const qbittorrentLabel = {
       'app.kubernetes.io/name': 'qbittorrent',
     };
@@ -208,10 +211,10 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       'qbittorrent-incomplete-downloads';
     const sftpAdapterPort = 22;
     const tunDeviceVolumeName = 'tun-device';
-
+    // gluetun 런타임 상태(공인 IP 파일 등). emptyDir라 Pod 재생성 시 초기화됨
     const gluetunStateVolumeName = 'gluetun-state';
 
-    // Service
+    // WebUI용 ClusterIP 서비스 (메시 ingress → 여기로)
     const qbittorrentService = new kubernetes.core.v1.Service(
       `${resourceName}-qbittorrentService`,
       {
@@ -235,7 +238,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       },
     );
 
-    // Sftp Adapter
+    // SFTP 사이드카 — 다운로드/설정 디렉터리를 외부에서 직접 접근
     const sftpAdapter = new customResources.components.adapter.SftpV1Component(
       'sftpAdapter',
       {
@@ -271,7 +274,8 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       },
     );
 
-    // Deployment
+    // Deployment — gluetun(VPN) + qbittorrent + sftp 한 Pod에 묶음
+    // Recreate: PVC ReadWriteOnce라 RollingUpdate 불가
     const qbittorrentDeployment = new kubernetes.apps.v1.Deployment(
       `${resourceName}-qbittorrentDeployment`,
       {
@@ -298,6 +302,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
               },
               initContainers: [
                 {
+                  // WireGuard 마크 라우팅용 커널 파라미터
                   name: 'init-sysctl',
                   image: 'busybox',
                   command: [
@@ -311,11 +316,23 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                   securityContext: {
                     privileged: true,
                   },
+                  resources: {
+                    requests: {
+                      cpu: '10m',
+                      memory: '16Mi',
+                    },
+                    limits: {
+                      cpu: '100m',
+                      memory: '64Mi',
+                    },
+                  },
                 },
                 {
-                  // K8s native sidecar: VPN must be up before qbittorrent starts
+                  // native sidecar: VPN이 Ready여야 qbittorrent/sftp 시작
+                  // (killswitch 켜진 동안 앱이 먼저 뜨면 외부 통신이 막힘)
                   name: 'gluetun',
-                  image: 'qmcgaw/gluetun:v3.41.1',
+                  // 최신 안정 라인. 내장 servers.json도 이미지와 함께 갱신됨
+                  image: 'qmcgaw/gluetun:v3',
                   imagePullPolicy: 'Always',
                   restartPolicy: 'Always',
                   env: [
@@ -341,26 +358,37 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                       },
                     },
                     {
+                      // 국가 OR 풀. Asia-only + P2P로 좁히면 핸드셰이크 실패
+                      // (tun0 RX=0) 루프가 났던 적 있음 → 풀을 넓게 유지
+                      // SERVER_CATEGORIES(P2P)는 의도적으로 넣지 않음
                       name: 'SERVER_COUNTRIES',
-                      value: 'Japan,Taiwan,Singapore',
+                      value:
+                        'Japan,Taiwan,Singapore,Hong Kong,Netherlands,Germany,United Kingdom,United States',
                     },
                     {
-                      name: 'SERVER_CATEGORIES',
-                      value: 'P2P',
+                      // 클러스터 eth0 MTU(1450)보다 여유 있게
+                      name: 'WIREGUARD_MTU',
+                      value: '1280',
                     },
                     {
+                      // 터널 정상화 후 Nord 서버 IP/공개키 목록 주기 갱신
+                      name: 'UPDATER_PERIOD',
+                      value: '24h',
+                    },
+                    {
+                      // 클러스터 CIDR은 VPN 우회 허용 (kube DNS/서비스 통신)
                       name: 'FIREWALL_OUTBOUND_SUBNETS',
                       value: pulumi
                         .output(args.nordLynx.allowedCidrBlocks)
                         .apply(cidrBlocks => cidrBlocks.join(',')),
                     },
                     {
+                      // WebUI·SFTP는 eth0로 인바운드 허용 (메시/SFTP 게이트웨이)
                       name: 'FIREWALL_INPUT_PORTS',
                       value: `${qbittorrentWebUiPort.toString()},${sftpAdapterPort.toString()}`,
                     },
                     {
-                      // NordVPN does not support port forwarding; use DoT DNS
-                      // instead of plain UDP to avoid firewall/DNS leaks.
+                      // NordVPN은 포트포워딩 미지원 → DoT로 DNS 유출 방지
                       name: 'DNS_UPSTREAM_RESOLVER_TYPE',
                       value: 'dot',
                     },
@@ -373,6 +401,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                       value: 'off',
                     },
                     {
+                      // killswitch: 터널 죽으면 외부 트래픽 DROP
                       name: 'FIREWALL',
                       value: 'on',
                     },
@@ -393,6 +422,18 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                     },
                     allowPrivilegeEscalation: true,
                   },
+                  // idle ~27Mi; handshake/updater 스파이크 여유
+                  resources: {
+                    requests: {
+                      cpu: '50m',
+                      memory: '64Mi',
+                    },
+                    limits: {
+                      cpu: '200m',
+                      memory: '256Mi',
+                    },
+                  },
+                  // :9999 = gluetun VPN health. 실패 시 Pod NotReady → Service에서 제외
                   startupProbe: {
                     exec: {
                       command: [
@@ -447,6 +488,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                       value: qbittorrentWebUiPort.toString(),
                     },
                     {
+                      // VueTorrent WebUI 모드
                       name: 'DOCKER_MODS',
                       value: 'ghcr.io/gabe565/linuxserver-mod-vuetorrent',
                     },
@@ -469,6 +511,18 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                       mountPath: '/incomplete',
                     },
                   ],
+                  // 실측 ~4Gi (시딩/해시); 피크 여유를 limit에
+                  resources: {
+                    requests: {
+                      cpu: '250m',
+                      memory: '4Gi',
+                    },
+                    limits: {
+                      cpu: '2',
+                      memory: '8Gi',
+                    },
+                  },
+                  // WebUI 포트만 봄 — VPN 상태는 gluetun readiness가 담당
                   startupProbe: {
                     tcpSocket: {
                       port: qbittorrentWebUiPort,
@@ -490,6 +544,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
               ],
               volumes: [
                 {
+                  // 호스트 /dev/net/tun — WireGuard용
                   name: tunDeviceVolumeName,
                   hostPath: {
                     path: '/dev/net/tun',
