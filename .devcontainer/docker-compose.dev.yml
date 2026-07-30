@@ -17,7 +17,7 @@ services:
       # Disable Corepack Download Prompt
       COREPACK_ENABLE_DOWNLOAD_PROMPT: 0
       # 소유자를 변경할 디렉토리 경로 (복수 지정시 Space 구분)
-      DIR_PATHS_TO_CHANGE_OWNER: ${CONTAINER_PNPM_STORE_DIR_PATH} ${PULUMI_PLUGIN_DIR} ${PULUMI_DYNAMIC_TF_PLUGIN_DIR}
+      DIR_PATHS_TO_CHANGE_OWNER: ${CONTAINER_PNPM_STORE_DIR_PATH} ${PULUMI_PLUGIN_DIR} ${PULUMI_DYNAMIC_TF_PLUGIN_DIR} ${CONTAINER_CURSOR_DIR_PATH}
 
       # Nova Version
       # https://github.com/FairwindsOps/nova
@@ -56,6 +56,8 @@ services:
       - Pulumi-Plugin:${PULUMI_PLUGIN_DIR}
       ## Pulumi Dynamic TF Plugin
       - Pulumi-Dynamic-TF-Plugin:${PULUMI_DYNAMIC_TF_PLUGIN_DIR}
+      ## Cursor CLI home
+      - Cursor:${CONTAINER_CURSOR_DIR_PATH}
 
 volumes:
   Pnpm-Store:
@@ -64,3 +66,5 @@ volumes:
     name: Shared-Volume_Pulumi-Plugin
   Pulumi-Dynamic-TF-Plugin:
     name: Shared-Volume_Pulumi-Dynamic-TF-Plugin
+  Cursor:
+    name: Shared-Volume_Cursor

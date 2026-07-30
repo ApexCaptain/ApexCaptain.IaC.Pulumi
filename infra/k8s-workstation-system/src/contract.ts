@@ -69,6 +69,25 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    // Lxcfs
+    const lxcfsHelmChart = new components.lxcfs.LxcfsHelmChartComponent(
+      'lxcfsHelmChart',
+      {
+        helm: {
+          lxcfs: {
+            version: '0.2.7',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls[
+                'cndoit18.github.io/lxcfs-on-kubernetes'
+              ],
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+    );
+
     // Cert Manager
     const certManagerHelmChart =
       new components.certManager.CertManagerHelmChartComponent(

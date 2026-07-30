@@ -157,6 +157,8 @@ export const constants = (() => {
     'stakater.github.io/stakater-charts':
       'https://stakater.github.io/stakater-charts',
     'argoproj.github.io/argo-helm': 'https://argoproj.github.io/argo-helm',
+    'cndoit18.github.io/lxcfs-on-kubernetes':
+      'https://cndoit18.github.io/lxcfs-on-kubernetes/',
   };
 
   return {

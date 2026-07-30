@@ -1,5 +1,7 @@
 export * as cilium from './cilium';
 
+export * as lxcfs from './lxcfs';
+
 export * as certManager from './cert-manager';
 
 export * as istio from './istio';
