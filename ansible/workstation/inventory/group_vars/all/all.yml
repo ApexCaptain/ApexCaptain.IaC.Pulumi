@@ -12,10 +12,13 @@ ntp_enabled: true
 ntp_package: ntpsec
 ntp_timezone: 'Asia/Seoul'
 
-# Sysbox CE version (install-sysbox-runc role)
+# Sysbox CE — pre-configure `install-sysbox-runc` 역할이 deb로 설치
+# (공식 sysbox-deploy-k8s DaemonSet은 쓰지 않음; 호스트 설치와 중복)
 sysbox_ce_version: '0.7.0'
 
-# Sysbox runtime handler for containerd (Kubernetes RuntimeClass: sysbox-runc)
+# Kubespray → containerd 추가 runtime handler
+# Pod는 runtimeClassName: sysbox-runc + 노드 라벨 sysbox-runtime=running 필요
+# @see host_vars/*/node_labels, infra SysboxComponent RuntimeClass
 containerd_additional_runtimes:
   - name: sysbox-runc
     type: 'io.containerd.runc.v2'

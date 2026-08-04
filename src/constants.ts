@@ -111,7 +111,13 @@ export const constants = (() => {
       argocd: new TerraformBridgedProvider({
         name: 'argocd',
         providerSource: 'argoproj-labs/argocd',
-        providerVersion: '7.15.3',
+        providerVersion: '7.16.0',
+      }),
+      // https://registry.terraform.io/providers/coder/coderd/latest
+      coderd: new TerraformBridgedProvider({
+        name: 'coderd',
+        providerSource: 'coder/coderd',
+        providerVersion: '0.0.22',
       }),
     },
   };
@@ -159,6 +165,8 @@ export const constants = (() => {
     'argoproj.github.io/argo-helm': 'https://argoproj.github.io/argo-helm',
     'cndoit18.github.io/lxcfs-on-kubernetes':
       'https://cndoit18.github.io/lxcfs-on-kubernetes/',
+    'charts.gabe565.com': 'https://charts.gabe565.com',
+    'helm.coder.com/v2': 'https://helm.coder.com/v2',
   };
 
   return {

@@ -54,6 +54,8 @@ const commonEscSchema = z
         'stakater.github.io/stakater-charts': z.string(),
         'argoproj.github.io/argo-helm': z.string(),
         'cndoit18.github.io/lxcfs-on-kubernetes': z.string(),
+        'charts.gabe565.com': z.string(),
+        'helm.coder.com/v2': z.string(),
       })
       .required(),
   })

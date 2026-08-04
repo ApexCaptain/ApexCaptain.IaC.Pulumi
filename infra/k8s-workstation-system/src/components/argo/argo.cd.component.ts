@@ -1,12 +1,11 @@
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
-import * as std from '@pulumi/std';
 import yaml from 'yaml';
 
 interface ArgoCdComponentArgsShape {
   host: string;
-  bootstrapPassword: string;
+  bootstrapPasswordBcrypt: string;
   githubSecret: string;
   oidc: {
     name: string;
@@ -99,15 +98,14 @@ export const ArgoCdComponent = utils.functions.defineComponent(
                   args.oidc.clientId,
                   args.oidc.requestedScopes,
                 ])
-                .apply(
-                  ([name, issuerUrl, clientId, requestedScopes]) =>
-                    yaml.stringify({
-                      name,
-                      issuer: issuerUrl,
-                      clientID: clientId,
-                      clientSecret: '$oidc.authentik.clientSecret',
-                      requestedScopes,
-                    }),
+                .apply(([name, issuerUrl, clientId, requestedScopes]) =>
+                  yaml.stringify({
+                    name,
+                    issuer: issuerUrl,
+                    clientID: clientId,
+                    clientSecret: '$oidc.authentik.clientSecret',
+                    requestedScopes,
+                  }),
                 ),
             },
             rbac: {
@@ -237,10 +235,7 @@ export const ArgoCdComponent = utils.functions.defineComponent(
               'server.insecure': true,
             },
             secret: {
-              argocdServerAdminPassword: std.bcryptOutput({
-                input: args.bootstrapPassword,
-                cost: 10,
-              }).result,
+              argocdServerAdminPassword: args.bootstrapPasswordBcrypt,
               githubSecret: args.githubSecret,
               extra: {
                 'oidc.authentik.clientSecret': args.oidc.clientSecret,

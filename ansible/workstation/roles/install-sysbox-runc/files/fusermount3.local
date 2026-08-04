@@ -1,0 +1,14 @@
+# AppArmor local drop-in for profile `fusermount3`
+# (included by /etc/apparmor.d/fusermount3 via `include if exists <local/fusermount3>`).
+#
+# Sysbox(sysbox-fs) mounts a FUSE filesystem per container under /var/lib/sysboxfs/.
+# Ubuntu 25.04+ stock fusermount3 rules only allow paths like @{HOME}, /mnt, /tmp, …
+# so Sysbox mounts get: apparmor="DENIED" info="failed mntpnt match".
+#
+# Keep this surgical (sysboxfs only). Prefer over `aa-complain fusermount3`.
+#
+# @see https://github.com/nestybox/sysbox/issues/947  (maintainer workaround)
+# @see https://github.com/nestybox/sysbox/issues/1005 (Ubuntu 26.04 / Sysbox 0.7.0)
+mount fstype=@{fuse_types} options=(nosuid,nodev,rw) -> /var/lib/sysboxfs/**/,
+mount fstype=@{fuse_types} options=(nosuid,nodev,ro) -> /var/lib/sysboxfs/**/,
+umount /var/lib/sysboxfs/**/,

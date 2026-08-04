@@ -1,6 +1,6 @@
 {
     "name": "@pulumi/argocd",
-    "version": "7.15.3",
+    "version": "7.16.0",
     "description": "A Pulumi provider dynamically bridged from argocd.",
     "repository": "https://github.com/argoproj-labs/terraform-provider-argocd",
     "main": "bin/index.js",
@@ -19,8 +19,8 @@
         "version": "1.2.1",
         "parameterization": {
             "name": "argocd",
-            "version": "7.15.3",
-            "value": "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2FyZ29wcm9qLWxhYnMvYXJnb2NkIiwidmVyc2lvbiI6IjcuMTUuMyJ9fQ=="
+            "version": "7.16.0",
+            "value": "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2FyZ29wcm9qLWxhYnMvYXJnb2NkIiwidmVyc2lvbiI6IjcuMTYuMCJ9fQ=="
         }
     }
 }

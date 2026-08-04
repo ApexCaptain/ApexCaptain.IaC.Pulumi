@@ -82,10 +82,6 @@
       "type": "runtime"
     },
     {
-      "name": "@pulumi/std",
-      "type": "runtime"
-    },
-    {
       "name": "@pulumi/tls",
       "type": "runtime"
     },

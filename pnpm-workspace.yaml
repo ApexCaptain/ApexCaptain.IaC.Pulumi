@@ -11,6 +11,7 @@ overrides:
 allowBuilds:
   "@pulumi/authentik": true
   "@pulumi/argocd": true
+  "@pulumi/coderd": true
   "@pulumi/command": true
   "@pulumi/kubernetes": true
   "@pulumi/std": true

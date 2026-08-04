@@ -185,6 +185,8 @@ export const VikunjaHelmChartComponent = utils.functions.defineComponent(
             env: pulumi.output(args.oidc.providerKey).apply(oidcProviderKey => ({
               VIKUNJA_DATABASE_TYPE: 'postgres',
               VIKUNJA_DATABASE_HOST: args.postgresql.host,
+              // Cluster-internal: encrypt without CA mount (no MITM verification).
+              VIKUNJA_DATABASE_SSLMODE: 'require',
               VIKUNJA_DATABASE_USER: {
                 valueFrom: {
                   secretKeyRef: {

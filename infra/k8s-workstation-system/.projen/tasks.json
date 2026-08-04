@@ -138,7 +138,7 @@
             "--peer",
             "--no-deprecated",
             "--dep=dev,prod,peer,optional",
-            "--filter=@types/node,eslint-import-resolver-typescript,eslint-plugin-import,typescript,@pulumi/github,@pulumi/kubernetes,@pulumi/oci,@pulumi/pulumi,@pulumi/random,@pulumi/std,@pulumi/tls,@pulumi/vault,@pulumiverse/time,dedent,lodash,yaml"
+            "--filter=@types/node,eslint-import-resolver-typescript,eslint-plugin-import,typescript,@pulumi/github,@pulumi/kubernetes,@pulumi/oci,@pulumi/pulumi,@pulumi/random,@pulumi/tls,@pulumi/vault,@pulumiverse/time,dedent,lodash,yaml"
           ]
         },
         {
@@ -166,7 +166,6 @@
             "@pulumi/oci",
             "@pulumi/pulumi",
             "@pulumi/random",
-            "@pulumi/std",
             "@pulumi/tls",
             "@pulumi/vault",
             "@pulumiverse/time",

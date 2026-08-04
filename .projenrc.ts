@@ -725,6 +725,7 @@ const initPulumiEsc = async () => {
       argoCd: {
         gitOpsRepositoryName: process.env.ARGOCD_GITOPS_REPOSITORY_NAME,
         bootstrapPassword: process.env.ARGOCD_BOOTSTRAP_PASSWORD,
+        bootstrapPasswordBcrypt: process.env.ARGOCD_BOOTSTRAP_PASSWORD_BCRYPT,
       },
     },
     {
@@ -745,7 +746,16 @@ const initPulumiEsc = async () => {
   await NexusEsc.k8sWorkstationToolsEsc.upsertEsc(
     accountName,
     pulumiEscClient,
-    {},
+    {
+      coder: {
+        firstUser: {
+          email: process.env.CODER_FIRST_USER_EMAIL!!,
+          username: process.env.CODER_FIRST_USER_USERNAME!!,
+          fullName: process.env.CODER_FIRST_USER_FULLNAME!!,
+          password: process.env.CODER_FIRST_USER_PASSWORD!!,
+        },
+      },
+    },
     {
       prod: {},
       dev: {},
@@ -763,6 +773,7 @@ void (async () => {
       bridgedProviders: [
         src.constants.bridgedProviders.terraform.authentik,
         src.constants.bridgedProviders.terraform.argocd,
+        src.constants.bridgedProviders.terraform.coderd,
       ],
     });
 
@@ -838,7 +849,6 @@ void (async () => {
         src.constants.pulumiPackages.vault,
         src.constants.pulumiPackages.github,
         src.constants.pulumiPackages.random,
-        src.constants.pulumiPackages.std,
       ],
       commonDeps: [
         commonProjects.bridgedProviderProject.project.package.packageName,

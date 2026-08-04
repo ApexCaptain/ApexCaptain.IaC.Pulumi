@@ -225,19 +225,20 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
      * 권한 tier 그룹 트리.
      *
      * Application / Tools 두 축이 있고, 각 축은 User → Manager 로 올라간다.
-     * System tier는 두 Manager 그룹의 **공통 자식**으로 붙어, 두 축의 descendant 체인에 동시에 속한다.
+     * System User는 두 **User** 그룹의 공통 자식 (User급 앱만 상속, Manager급은 미포함).
+     * System Manager는 System User + 두 **Manager** 의 공통 자식 (전 축 Manager급까지 포함).
      *
      * ```
-     * applicationUser
-     *   └── applicationManager ──┐
-     *                            ├── systemUser
-     * toolsUser                  │     └── systemManager
-     *   └── toolsManager ────────┘
+     * applicationUser ──┬── applicationManager ──┐
+     *                   │                        │
+     *                   ├── systemUser ──────────┼── systemManager
+     *                   │                        │
+     * toolsUser ────────┴── toolsManager ────────┘
      * ```
      *
-     * 주의: parents를 둘 다 지정해도 "양쪽 Manager에 이미 속한 사람만 System에 들어갈 수 있다"는
-     * 교집합 조건이 되지는 않는다. System 그룹에 직접 넣어야 하며, 넣으면 자식→부모 상속으로
-     * applicationManager·toolsManager(및 그 상위 user 그룹) 멤버로도 간주된다.
+     * 주의: parents를 여러 개 지정해도 "이미 모든 parent에 속한 사람만 들어갈 수 있다"는
+     * 교집합 조건이 되지는 않는다. 해당 그룹에 직접 넣어야 하며, 넣으면 자식→부모 상속으로
+     * parent(및 그 상위) 멤버로도 간주된다.
      *
      * Authentik 앱 bind는 bind 대상 그룹의 자식(descendants)에게만 access가 퍼진다.
      * 권한이 높을수록 tree 아래(child)에 두면, 상위 tier 앱 bind 시 하위 그룹 멤버는 제외된다.
@@ -292,12 +293,13 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
       },
     );
 
-    // 두 Manager 축의 공통 자식. 멤버는 양쪽 Manager·User 그룹 상속 멤버로도 취급됨.
+    // 두 User 축의 공통 자식. Vault 등 System 앱 bind 대상.
+    // User급 앱만 상속하고, Manager급 앱(qBittorrent 등)은 열리지 않는다.
     const systemUserGroup = new authentik.Group(
       `${resourceName}-systemUserGroup`,
       {
         name: 'System User',
-        parents: [applicationManagerGroup.id, toolsManagerGroup.id],
+        parents: [applicationUserGroup.id, toolsUserGroup.id],
       },
       {
         ...opts,
@@ -305,12 +307,16 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
       },
     );
 
-    // System tier 최상위. 클러스터/IdP 전역 관리 권한 bind 대상.
+    // System tier 최상위. System User + 양쪽 Manager를 상속 (전 축 고권한 앱 포함).
     const systemManagerGroup = new authentik.Group(
       `${resourceName}-systemManagerGroup`,
       {
         name: 'System Manager',
-        parents: [systemUserGroup.id],
+        parents: [
+          systemUserGroup.id,
+          applicationManagerGroup.id,
+          toolsManagerGroup.id,
+        ],
       },
       {
         ...opts,

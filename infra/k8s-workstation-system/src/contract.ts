@@ -88,6 +88,30 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    // Sysbox — RuntimeClass only (host install via Ansible/Kubespray)
+    const sysbox = new components.sysbox.SysboxComponent('sysbox', {
+      providers: {
+        kubernetes: workstationK8sProvider,
+      },
+    });
+
+    // Generic Device Plugin — expose host /dev as extended resources
+    new components.genericDevicePlugin.GenericDevicePluginHelmChartComponent(
+      'genericDevicePluginHelmChart',
+      {
+        helm: {
+          genericDevicePlugin: {
+            version: '0.1.3',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls['charts.gabe565.com'],
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+    );
+
     // Cert Manager
     const certManagerHelmChart =
       new components.certManager.CertManagerHelmChartComponent(
@@ -678,7 +702,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       'argoCd',
       {
         host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
-        bootstrapPassword: projectEsc.esc.argoCd.bootstrapPassword,
+        bootstrapPasswordBcrypt: projectEsc.esc.argoCd.bootstrapPasswordBcrypt,
         githubSecret: argoGitOps.secret.webHookSecret,
         oidc: {
           name: argoAuthentik.output.oidc.name,

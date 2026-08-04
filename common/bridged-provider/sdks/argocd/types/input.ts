@@ -1235,6 +1235,10 @@ export interface ApplicationSetSpecGeneratorGitDirectory {
 
 export interface ApplicationSetSpecGeneratorGitFile {
     /**
+     * Exclude file when generating parameters.
+     */
+    exclude?: pulumi.Input<boolean | undefined>;
+    /**
      * Path to the file in the repository.
      */
     path: pulumi.Input<string>;
@@ -3343,6 +3347,10 @@ export interface ApplicationSetSpecGeneratorMatrixGeneratorGitDirectory {
 
 export interface ApplicationSetSpecGeneratorMatrixGeneratorGitFile {
     /**
+     * Exclude file when generating parameters.
+     */
+    exclude?: pulumi.Input<boolean | undefined>;
+    /**
      * Path to the file in the repository.
      */
     path: pulumi.Input<string>;
@@ -5443,6 +5451,10 @@ export interface ApplicationSetSpecGeneratorMatrixGeneratorMatrixGeneratorGitDir
 
 export interface ApplicationSetSpecGeneratorMatrixGeneratorMatrixGeneratorGitFile {
     /**
+     * Exclude file when generating parameters.
+     */
+    exclude?: pulumi.Input<boolean | undefined>;
+    /**
      * Path to the file in the repository.
      */
     path: pulumi.Input<string>;
@@ -6942,6 +6954,10 @@ export interface ApplicationSetSpecGeneratorMatrixGeneratorMatrixGeneratorPullRe
      * Generator template. Used to override the values of the spec-level template.
      */
     template?: pulumi.Input<inputs.ApplicationSetSpecGeneratorMatrixGeneratorMatrixGeneratorPullRequestTemplate | undefined>;
+    /**
+     * Arbitrary string key-value pairs to pass to the template via the values field of the pull request generator.
+     */
+    values?: pulumi.Input<{[key: string]: pulumi.Input<string>} | undefined>;
 }
 
 export interface ApplicationSetSpecGeneratorMatrixGeneratorMatrixGeneratorPullRequestAzureDevops {
@@ -7039,6 +7055,10 @@ export interface ApplicationSetSpecGeneratorMatrixGeneratorMatrixGeneratorPullRe
      * Allow insecure tls, for self-signed certificates; default: false.
      */
     insecure?: pulumi.Input<boolean | undefined>;
+    /**
+     * Labels is used to filter the PRs that you want to target.
+     */
+    labels?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Gitea org or user to scan.
      */
@@ -10010,6 +10030,10 @@ export interface ApplicationSetSpecGeneratorMatrixGeneratorMergeGeneratorGitDire
 
 export interface ApplicationSetSpecGeneratorMatrixGeneratorMergeGeneratorGitFile {
     /**
+     * Exclude file when generating parameters.
+     */
+    exclude?: pulumi.Input<boolean | undefined>;
+    /**
      * Path to the file in the repository.
      */
     path: pulumi.Input<string>;
@@ -11509,6 +11533,10 @@ export interface ApplicationSetSpecGeneratorMatrixGeneratorMergeGeneratorPullReq
      * Generator template. Used to override the values of the spec-level template.
      */
     template?: pulumi.Input<inputs.ApplicationSetSpecGeneratorMatrixGeneratorMergeGeneratorPullRequestTemplate | undefined>;
+    /**
+     * Arbitrary string key-value pairs to pass to the template via the values field of the pull request generator.
+     */
+    values?: pulumi.Input<{[key: string]: pulumi.Input<string>} | undefined>;
 }
 
 export interface ApplicationSetSpecGeneratorMatrixGeneratorMergeGeneratorPullRequestAzureDevops {
@@ -11606,6 +11634,10 @@ export interface ApplicationSetSpecGeneratorMatrixGeneratorMergeGeneratorPullReq
      * Allow insecure tls, for self-signed certificates; default: false.
      */
     insecure?: pulumi.Input<boolean | undefined>;
+    /**
+     * Labels is used to filter the PRs that you want to target.
+     */
+    labels?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Gitea org or user to scan.
      */
@@ -13972,6 +14004,10 @@ export interface ApplicationSetSpecGeneratorMatrixGeneratorPullRequest {
      * Generator template. Used to override the values of the spec-level template.
      */
     template?: pulumi.Input<inputs.ApplicationSetSpecGeneratorMatrixGeneratorPullRequestTemplate | undefined>;
+    /**
+     * Arbitrary string key-value pairs to pass to the template via the values field of the pull request generator.
+     */
+    values?: pulumi.Input<{[key: string]: pulumi.Input<string>} | undefined>;
 }
 
 export interface ApplicationSetSpecGeneratorMatrixGeneratorPullRequestAzureDevops {
@@ -14069,6 +14105,10 @@ export interface ApplicationSetSpecGeneratorMatrixGeneratorPullRequestGitea {
      * Allow insecure tls, for self-signed certificates; default: false.
      */
     insecure?: pulumi.Input<boolean | undefined>;
+    /**
+     * Labels is used to filter the PRs that you want to target.
+     */
+    labels?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Gitea org or user to scan.
      */
@@ -17048,6 +17088,10 @@ export interface ApplicationSetSpecGeneratorMergeGeneratorGitDirectory {
 
 export interface ApplicationSetSpecGeneratorMergeGeneratorGitFile {
     /**
+     * Exclude file when generating parameters.
+     */
+    exclude?: pulumi.Input<boolean | undefined>;
+    /**
      * Path to the file in the repository.
      */
     path: pulumi.Input<string>;
@@ -19148,6 +19192,10 @@ export interface ApplicationSetSpecGeneratorMergeGeneratorMatrixGeneratorGitDire
 
 export interface ApplicationSetSpecGeneratorMergeGeneratorMatrixGeneratorGitFile {
     /**
+     * Exclude file when generating parameters.
+     */
+    exclude?: pulumi.Input<boolean | undefined>;
+    /**
      * Path to the file in the repository.
      */
     path: pulumi.Input<string>;
@@ -20647,6 +20695,10 @@ export interface ApplicationSetSpecGeneratorMergeGeneratorMatrixGeneratorPullReq
      * Generator template. Used to override the values of the spec-level template.
      */
     template?: pulumi.Input<inputs.ApplicationSetSpecGeneratorMergeGeneratorMatrixGeneratorPullRequestTemplate | undefined>;
+    /**
+     * Arbitrary string key-value pairs to pass to the template via the values field of the pull request generator.
+     */
+    values?: pulumi.Input<{[key: string]: pulumi.Input<string>} | undefined>;
 }
 
 export interface ApplicationSetSpecGeneratorMergeGeneratorMatrixGeneratorPullRequestAzureDevops {
@@ -20744,6 +20796,10 @@ export interface ApplicationSetSpecGeneratorMergeGeneratorMatrixGeneratorPullReq
      * Allow insecure tls, for self-signed certificates; default: false.
      */
     insecure?: pulumi.Input<boolean | undefined>;
+    /**
+     * Labels is used to filter the PRs that you want to target.
+     */
+    labels?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Gitea org or user to scan.
      */
@@ -23715,6 +23771,10 @@ export interface ApplicationSetSpecGeneratorMergeGeneratorMergeGeneratorGitDirec
 
 export interface ApplicationSetSpecGeneratorMergeGeneratorMergeGeneratorGitFile {
     /**
+     * Exclude file when generating parameters.
+     */
+    exclude?: pulumi.Input<boolean | undefined>;
+    /**
      * Path to the file in the repository.
      */
     path: pulumi.Input<string>;
@@ -25214,6 +25274,10 @@ export interface ApplicationSetSpecGeneratorMergeGeneratorMergeGeneratorPullRequ
      * Generator template. Used to override the values of the spec-level template.
      */
     template?: pulumi.Input<inputs.ApplicationSetSpecGeneratorMergeGeneratorMergeGeneratorPullRequestTemplate | undefined>;
+    /**
+     * Arbitrary string key-value pairs to pass to the template via the values field of the pull request generator.
+     */
+    values?: pulumi.Input<{[key: string]: pulumi.Input<string>} | undefined>;
 }
 
 export interface ApplicationSetSpecGeneratorMergeGeneratorMergeGeneratorPullRequestAzureDevops {
@@ -25311,6 +25375,10 @@ export interface ApplicationSetSpecGeneratorMergeGeneratorMergeGeneratorPullRequ
      * Allow insecure tls, for self-signed certificates; default: false.
      */
     insecure?: pulumi.Input<boolean | undefined>;
+    /**
+     * Labels is used to filter the PRs that you want to target.
+     */
+    labels?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Gitea org or user to scan.
      */
@@ -27677,6 +27745,10 @@ export interface ApplicationSetSpecGeneratorMergeGeneratorPullRequest {
      * Generator template. Used to override the values of the spec-level template.
      */
     template?: pulumi.Input<inputs.ApplicationSetSpecGeneratorMergeGeneratorPullRequestTemplate | undefined>;
+    /**
+     * Arbitrary string key-value pairs to pass to the template via the values field of the pull request generator.
+     */
+    values?: pulumi.Input<{[key: string]: pulumi.Input<string>} | undefined>;
 }
 
 export interface ApplicationSetSpecGeneratorMergeGeneratorPullRequestAzureDevops {
@@ -27774,6 +27846,10 @@ export interface ApplicationSetSpecGeneratorMergeGeneratorPullRequestGitea {
      * Allow insecure tls, for self-signed certificates; default: false.
      */
     insecure?: pulumi.Input<boolean | undefined>;
+    /**
+     * Labels is used to filter the PRs that you want to target.
+     */
+    labels?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Gitea org or user to scan.
      */
@@ -30140,6 +30216,10 @@ export interface ApplicationSetSpecGeneratorPullRequest {
      * Generator template. Used to override the values of the spec-level template.
      */
     template?: pulumi.Input<inputs.ApplicationSetSpecGeneratorPullRequestTemplate | undefined>;
+    /**
+     * Arbitrary string key-value pairs to pass to the template via the values field of the pull request generator.
+     */
+    values?: pulumi.Input<{[key: string]: pulumi.Input<string>} | undefined>;
 }
 
 export interface ApplicationSetSpecGeneratorPullRequestAzureDevops {
@@ -30237,6 +30317,10 @@ export interface ApplicationSetSpecGeneratorPullRequestGitea {
      * Allow insecure tls, for self-signed certificates; default: false.
      */
     insecure?: pulumi.Input<boolean | undefined>;
+    /**
+     * Labels is used to filter the PRs that you want to target.
+     */
+    labels?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Gitea org or user to scan.
      */
@@ -32900,6 +32984,10 @@ export interface ProjectSpecClusterResourceBlacklist {
      * The Kubernetes resource Kind to match for.
      */
     kind?: pulumi.Input<string | undefined>;
+    /**
+     * The Kubernetes resource name to match for. Supports glob patterns (Go filepath.Match syntax). Requires ArgoCD 3.3.0+.
+     */
+    name?: pulumi.Input<string | undefined>;
 }
 
 export interface ProjectSpecClusterResourceWhitelist {
@@ -32911,6 +32999,10 @@ export interface ProjectSpecClusterResourceWhitelist {
      * The Kubernetes resource Kind to match for.
      */
     kind?: pulumi.Input<string | undefined>;
+    /**
+     * The Kubernetes resource name to match for. Supports glob patterns (Go filepath.Match syntax). Requires ArgoCD 3.3.0+.
+     */
+    name?: pulumi.Input<string | undefined>;
 }
 
 export interface ProjectSpecDestination {
