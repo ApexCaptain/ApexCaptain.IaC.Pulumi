@@ -110,11 +110,15 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
           },
           helm: {
             coder: {
-              version: '2.35.3',
+              version: '2.36.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.coder.com/v2'],
             },
           },
+          workspaceNamespaces: [
+            coderBase.output.sysboxUbuntuNamespace,
+            coderBase.output.sysboxUbuntuTestNamespace,
+          ],
           adminApiToken: {
             kubeconfig: commonEsc.esc.workstationKubeconfig,
           },
@@ -181,18 +185,49 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
         },
       );
 
-      const coderResources = new components.coder.CoderResourcesComponent(
+      new components.coder.CoderResourcesComponent(
         'coderResources',
         {
+          templateVariables: {
+            sysboxUbuntu: {
+              namespace: coderBase.output.sysboxUbuntuNamespace,
+              runtimeClassName:
+                k8sWorkstationSystemContract.output.sysbox.runtimeClassName,
+              storageClassName:
+                k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+              lxcfsHostMountPath:
+                k8sWorkstationSystemContract.output.lxcfs.mountPath,
+              devicePluginFuseKey: pulumi.interpolate`${k8sWorkstationSystemContract.output.genericDevicePlugin.deviceDomain}/fuse`,
+              meshProxy: {
+                host: coderBase.output.meshProxies.sysboxUbuntu.host,
+                port: coderBase.output.meshProxies.sysboxUbuntu.port,
+                url: coderBase.output.meshProxies.sysboxUbuntu.url,
+              },
+            },
+            sysboxUbuntuTest: {
+              namespace: coderBase.output.sysboxUbuntuTestNamespace,
+              runtimeClassName:
+                k8sWorkstationSystemContract.output.sysbox.runtimeClassName,
+              storageClassName:
+                k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+              lxcfsHostMountPath:
+                k8sWorkstationSystemContract.output.lxcfs.mountPath,
+              devicePluginFuseKey: pulumi.interpolate`${k8sWorkstationSystemContract.output.genericDevicePlugin.deviceDomain}/fuse`,
+              meshProxy: {
+                host: coderBase.output.meshProxies.sysboxUbuntuTest.host,
+                port: coderBase.output.meshProxies.sysboxUbuntuTest.port,
+                url: coderBase.output.meshProxies.sysboxUbuntuTest.url,
+              },
+            },
+          },
           providers: {
             coderd: coderdProvider,
           },
         },
         {
-          dependsOn: [coderdProvider],
+          dependsOn: [coderBase, coderdProvider],
         },
       );
-      void coderResources;
 
       // Vikunja
       const vikunjaBase = new components.vikunja.VikunjaBaseComponent(

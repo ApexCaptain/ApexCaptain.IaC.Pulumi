@@ -3,6 +3,7 @@ import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import * as random from '@pulumi/random';
+import { CoderWorkspaceMeshProxyComponent } from './coder.workspace-mesh-proxy.component';
 
 interface CoderBaseComponentArgsShape {
   pvc: {
@@ -72,6 +73,35 @@ export const CoderBaseComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+      },
+    );
+
+    const sysboxUbuntuMeshProxy = new CoderWorkspaceMeshProxyComponent(
+      'coderWorkspaceMeshProxy',
+      {
+        namespace: sysboxUbuntuNamespace.metadata.name,
+        providers: {
+          kubernetes: args.providers.kubernetes,
+        },
+      },
+      {
+        ...opts,
+        dependsOn: [sysboxUbuntuNamespace],
+      },
+    );
+
+    const sysboxUbuntuTestMeshProxy = new CoderWorkspaceMeshProxyComponent(
+      'coderWorkspaceTestMeshProxy',
+      {
+        namespace: sysboxUbuntuTestNamespace.metadata.name,
+        providers: {
+          kubernetes: args.providers.kubernetes,
+        },
+      },
+      {
+        ...opts,
+        aliases: [{ parent: pulumi.rootStackResource }],
+        dependsOn: [sysboxUbuntuTestNamespace],
       },
     );
 
@@ -185,6 +215,10 @@ export const CoderBaseComponent = utils.functions.defineComponent(
         namespace: namespace.metadata.name,
         sysboxUbuntuNamespace: sysboxUbuntuNamespace.metadata.name,
         sysboxUbuntuTestNamespace: sysboxUbuntuTestNamespace.metadata.name,
+        meshProxies: {
+          sysboxUbuntu: sysboxUbuntuMeshProxy.output,
+          sysboxUbuntuTest: sysboxUbuntuTestMeshProxy.output,
+        },
       }),
       secret: pulumi.secret({
         postgresqlDatabase,

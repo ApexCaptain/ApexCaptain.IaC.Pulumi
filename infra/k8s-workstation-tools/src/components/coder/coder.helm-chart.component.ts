@@ -32,6 +32,7 @@ interface CoderHelmChartComponentArgsShape {
   adminApiToken: {
     kubeconfig: string;
   };
+  workspaceNamespaces: string[];
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -93,6 +94,7 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
 
     const coderReleaseName = 'coder';
     const coderContainerName = 'coder';
+    const coderServiceAccountName = 'coder';
     const coderHelmChartRelease = new kubernetes.helm.v3.Release(
       `${resourceName}-coderHelmChartRelease`,
       {
@@ -179,6 +181,23 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
             ingress: {
               enable: false,
             },
+            serviceAccount: {
+              name: coderServiceAccountName,
+              extraRules: [
+                {
+                  apiGroups: [''],
+                  resources: ['configmaps', 'services'],
+                  verbs: ['create', 'delete', 'get', 'list', 'patch', 'update'],
+                },
+              ],
+              workspaceNamespaces: pulumi
+                .output(args.workspaceNamespaces)
+                .apply(namespaces =>
+                  namespaces.map(namespace => ({
+                    name: namespace,
+                  })),
+                ),
+            },
           },
         },
       },
@@ -186,6 +205,54 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
         ...opts,
         provider: args.providers.kubernetes,
         dependsOn: [coderOidcSecret, coderFirstUserSecret],
+      },
+    );
+
+    const coderClusterRole = new kubernetes.rbac.v1.ClusterRole(
+      `${resourceName}-coderClusterRole`,
+      {
+        metadata: {
+          name: 'coder-cluster-role',
+        },
+        rules: [
+          {
+            // Allow Coder to use CRD
+            apiGroups: ['apiextensions.k8s.io'],
+            resources: ['customresourcedefinitions'],
+            verbs: ['get', 'list', 'watch'],
+          },
+        ],
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [coderHelmChartRelease],
+      },
+    );
+
+    const coderClusterRoleBinding = new kubernetes.rbac.v1.ClusterRoleBinding(
+      `${resourceName}-coderClusterRoleBinding`,
+      {
+        metadata: {
+          name: 'coder-cluster-role-binding',
+        },
+        roleRef: {
+          apiGroup: 'rbac.authorization.k8s.io',
+          kind: 'ClusterRole',
+          name: coderClusterRole.metadata.name,
+        },
+        subjects: [
+          {
+            kind: 'ServiceAccount',
+            name: coderServiceAccountName,
+            namespace: args.namespace,
+          },
+        ],
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [coderClusterRole],
       },
     );
 

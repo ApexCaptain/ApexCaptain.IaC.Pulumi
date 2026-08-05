@@ -28,14 +28,24 @@ variable "storage_class_name" {
   description = "The storage class name to use for the workspace"
 }
 
-variable "socks5_proxy_port" {
-  type        = number
-  description = "The port to use for the SOCKS5 proxy"
-}
-
 variable "workspace_directory_name" {
   type        = string
   description = "The name of the workspace directory"
+}
+
+variable "mesh_proxy_host" {
+  type        = string
+  description = "The namespace-shared SOCKS5 proxy host used to reach mesh services"
+}
+
+variable "mesh_proxy_port" {
+  type        = number
+  description = "The namespace-shared SOCKS5 proxy port used to reach mesh services"
+}
+
+variable "mesh_proxy_url" {
+  type        = string
+  description = "The namespace-shared SOCKS5 proxy URL; applications should resolve destination DNS through the proxy"
 }
 
 variable "lxcfs_host_mount_path" {

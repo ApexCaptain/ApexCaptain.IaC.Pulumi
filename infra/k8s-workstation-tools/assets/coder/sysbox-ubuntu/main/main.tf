@@ -6,7 +6,7 @@ resource "kubernetes_persistent_volume_claim_v1" "home" {
       "app.kubernetes.io/name"     = "coder-home-pvc"
       "app.kubernetes.io/instance" = "coder-home-pvc-${data.coder_workspace.me.id}"
       "app.kubernetes.io/part-of"  = "coder"
-      //Coder-specific labels.
+      // Coder-specific labels.
       "com.coder.resource"       = "true"
       "com.coder.workspace.id"   = data.coder_workspace.me.id
       "com.coder.workspace.name" = data.coder_workspace.me.name
@@ -37,7 +37,7 @@ resource "kubernetes_persistent_volume_claim_v1" "docker" {
       "app.kubernetes.io/name"     = "coder-docker-pvc"
       "app.kubernetes.io/instance" = "coder-docker-pvc-${data.coder_workspace.me.id}"
       "app.kubernetes.io/part-of"  = "coder"
-      //Coder-specific labels.
+      // Coder-specific labels.
       "com.coder.resource"       = "true"
       "com.coder.workspace.id"   = data.coder_workspace.me.id
       "com.coder.workspace.name" = data.coder_workspace.me.name
@@ -80,171 +80,6 @@ resource "kubernetes_config_map_v1" "docker_daemon_json" {
   }
 }
 
-resource "kubernetes_service_v1" "proxy" {
-  count = data.coder_workspace.me.start_count
-  metadata {
-    name = "coder-${data.coder_workspace.me.id}-proxy"
-    namespace = var.namespace
-    labels = {
-      "app.kubernetes.io/name"     = "coder-workspace-proxy-svc"
-      "app.kubernetes.io/instance" = "coder-workspace-proxy-svc-${data.coder_workspace.me.id}"
-      "app.kubernetes.io/part-of"  = "coder"
-      "com.coder.resource"         = "true"
-      "com.coder.workspace.id"     = data.coder_workspace.me.id
-      "com.coder.workspace.name"   = data.coder_workspace.me.name
-      "com.coder.user.id"          = data.coder_workspace_owner.me.id
-      "com.coder.user.username"    = data.coder_workspace_owner.me.name
-    }
-  }
-  spec {
-    selector = {
-      "app.kubernetes.io/name"     = "coder-workspace-proxy"
-      "app.kubernetes.io/instance" = "coder-workspace-proxy-${data.coder_workspace.me.id}"
-      "app.kubernetes.io/part-of"  = "coder"
-      "com.coder.resource"         = "true"
-      "com.coder.workspace.id"     = data.coder_workspace.me.id
-      "com.coder.workspace.name"   = data.coder_workspace.me.name
-      "com.coder.user.id"          = data.coder_workspace_owner.me.id
-      "com.coder.user.username"    = data.coder_workspace_owner.me.name
-    }
-    port {
-      name = "proxy"
-      port = var.socks5_proxy_port
-      target_port = var.socks5_proxy_port
-      protocol = "TCP"
-    }
-    type = "ClusterIP"
-  }
-}
-
-resource "kubernetes_deployment_v1" "proxy" {
-  count = data.coder_workspace.me.start_count
-  wait_for_rollout = false
-  metadata {
-    name      = "coder-${data.coder_workspace.me.id}-proxy"
-    namespace = var.namespace
-    labels = {
-      "app.kubernetes.io/name"     = "coder-workspace-proxy"
-      "app.kubernetes.io/instance" = "coder-workspace-proxy-${data.coder_workspace.me.id}"
-      "app.kubernetes.io/part-of"  = "coder"
-      "com.coder.resource"         = "true"
-      "com.coder.workspace.id"     = data.coder_workspace.me.id
-      "com.coder.workspace.name"   = data.coder_workspace.me.name
-      "com.coder.user.id"          = data.coder_workspace_owner.me.id
-      "com.coder.user.username"    = data.coder_workspace_owner.me.name
-    }
-    annotations = {
-      "com.coder.user.email" = data.coder_workspace_owner.me.email
-    }
-  }
-
-  spec {
-    replicas = 2
-    selector {
-      match_labels = {
-        "app.kubernetes.io/name"     = "coder-workspace-proxy"
-        "app.kubernetes.io/instance" = "coder-workspace-proxy-${data.coder_workspace.me.id}"
-        "app.kubernetes.io/part-of"  = "coder"
-        "com.coder.resource"         = "true"
-        "com.coder.workspace.id"     = data.coder_workspace.me.id
-        "com.coder.workspace.name"   = data.coder_workspace.me.name
-        "com.coder.user.id"          = data.coder_workspace_owner.me.id
-        "com.coder.user.username"    = data.coder_workspace_owner.me.name
-      }
-    }
-    strategy {
-      type = "Recreate"
-    }
-
-    template {
-      metadata {
-        annotations = {
-          "traffic.sidecar.istio.io/excludeInboundPorts" = var.socks5_proxy_port
-        }
-        labels = {
-          "app.kubernetes.io/name"     = "coder-workspace-proxy"
-          "app.kubernetes.io/instance" = "coder-workspace-proxy-${data.coder_workspace.me.id}"
-          "app.kubernetes.io/part-of"  = "coder"
-          "com.coder.resource"         = "true"
-          "com.coder.workspace.id"     = data.coder_workspace.me.id
-          "com.coder.workspace.name"   = data.coder_workspace.me.name
-          "com.coder.user.id"          = data.coder_workspace_owner.me.id
-          "com.coder.user.username"    = data.coder_workspace_owner.me.name
-          "sidecar.istio.io/inject"    = "true"
-        }
-      }
-      spec {
-        enable_service_links = false
-        container {
-          name              = "proxy"
-          image             = "alpine"
-          image_pull_policy = "Always"
-          command = [
-            "sh",
-            "-c",
-            <<-EOT
-              while ! command -v sshd > /dev/null 2>&1; do
-                  echo "Installing APK Packages..."
-                  apk add --no-cache openssh curl
-                  if [ $? -eq 0 ]; then
-                      echo "SSH installed successfully."
-                      mkdir -p /root/.ssh && chmod 700 /root/.ssh
-                      ssh-keygen -t rsa -b 2048 -f /root/.ssh/id_rsa -N ''
-                      cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
-                      chmod 600 /root/.ssh/authorized_keys
-                      ls -al /root/.ssh
-                      ssh-keygen -A
-                      break
-                  else
-                      echo "Failed to install APK Packages. Retrying in 5 seconds..."
-                      sleep 5
-                  fi
-              done
-
-              sed -i 's/^AllowTcpForwarding no$/AllowTcpForwarding yes/' /etc/ssh/sshd_config
-              if ! grep -q '^AllowTcpForwarding yes$' /etc/ssh/sshd_config; then
-                printf '\nAllowTcpForwarding yes\n' >> /etc/ssh/sshd_config
-              fi
-
-              if ! grep -q '^PermitOpen any$' /etc/ssh/sshd_config; then
-                printf 'PermitOpen any\n' >> /etc/ssh/sshd_config
-              fi
-
-              /usr/sbin/sshd
-
-
-              while ! nc -z localhost 22; do   
-                echo "Waiting for SSH to be available on port 22..."
-                sleep 5
-              done
-
-              echo "Starting SSH tunnel..."
-              ssh -g \
-                -o GatewayPorts=yes \
-                -o ExitOnForwardFailure=yes \
-                -o StrictHostKeyChecking=no \
-                -N -D 0.0.0.0:${var.socks5_proxy_port} root@localhost
-            EOT
-          ]
-          liveness_probe {
-            exec {
-              command = [
-                "sh",
-                "-c",
-                "curl --socks5 localhost:${var.socks5_proxy_port} google.com",
-              ]
-            }
-            failure_threshold = 3
-            initial_delay_seconds = 120
-            period_seconds = 15
-            success_threshold = 1
-            timeout_seconds = 5
-          }
-        }
-      }
-    }
-  }
-}
 
 resource "kubernetes_service_v1" "main" {
   count = data.coder_workspace.me.start_count
@@ -327,7 +162,7 @@ resource "kubernetes_manifest" "main" {
             "com.coder.workspace.name"   = data.coder_workspace.me.name
             "com.coder.user.id"          = data.coder_workspace_owner.me.id
             "com.coder.user.username"    = data.coder_workspace_owner.me.name
-            "sidecar.istio.io/inject"    = "false"
+            "istio.io/dataplane-mode"    = "none"
           }
         }
         spec = {
@@ -358,7 +193,7 @@ resource "kubernetes_manifest" "main" {
           containers = [
             {
               name = "dev"
-              image = "codercom/enterprise-base:ubuntu"
+              image = "codercom/enterprise-base:ubuntu-resolute"
               imagePullPolicy = "Always"
               command = [
                 "sh",
@@ -390,13 +225,17 @@ resource "kubernetes_manifest" "main" {
                   value = "${kubernetes_service_v1.main[count.index].metadata[0].name}.${var.namespace}.svc.cluster.local"
                 },
                 {
-                  name = "CODER_ISTIO_PROXY_HOST"
-                  value = kubernetes_service_v1.proxy[count.index].metadata[0].name
+                  name  = "CODER_MESH_SOCKS5_PROXY_HOST"
+                  value = var.mesh_proxy_host
                 },
                 {
-                  name = "CODER_ISTIO_PROXY_PORT"
-                  value = kubernetes_service_v1.proxy[count.index].spec[0].port[0].port
-                }
+                  name  = "CODER_MESH_SOCKS5_PROXY_PORT"
+                  value = tostring(var.mesh_proxy_port)
+                },
+                {
+                  name  = "CODER_MESH_SOCKS5_PROXY_URL"
+                  value = var.mesh_proxy_url
+                },
               ]
               resources = {
                 requests = {
@@ -547,5 +386,4 @@ resource "kubernetes_manifest" "main" {
       }
     }
   }
-  depends_on = [ kubernetes_deployment_v1.proxy ]
 }

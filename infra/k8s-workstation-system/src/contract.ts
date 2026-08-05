@@ -96,21 +96,22 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     });
 
     // Generic Device Plugin — expose host /dev as extended resources
-    new components.genericDevicePlugin.GenericDevicePluginHelmChartComponent(
-      'genericDevicePluginHelmChart',
-      {
-        helm: {
-          genericDevicePlugin: {
-            version: '0.1.3',
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls['charts.gabe565.com'],
+    const genericDevicePluginHelmChart =
+      new components.genericDevicePlugin.GenericDevicePluginHelmChartComponent(
+        'genericDevicePluginHelmChart',
+        {
+          helm: {
+            genericDevicePlugin: {
+              version: '0.1.3',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['charts.gabe565.com'],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
           },
         },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-    );
+      );
 
     // Cert Manager
     const certManagerHelmChart =
@@ -119,7 +120,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             certManager: {
-              version: 'v1.21.0',
+              version: 'v1.21.1',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.jetstack.io'],
             },
@@ -714,7 +715,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.2.1',
+            version: '10.3.0',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },
@@ -809,6 +810,9 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           directGatewayPath: istioGateway.output.istioDirectGatewayPath,
         },
         storageClasses: longhornResources.output.storageClasses,
+        sysbox: sysbox.output,
+        lxcfs: lxcfsHelmChart.output,
+        genericDevicePlugin: genericDevicePluginHelmChart.output,
         authentik: {
           flow: authentikResources.output.flow,
           groupIds: authentikResources.output.groupIds,
