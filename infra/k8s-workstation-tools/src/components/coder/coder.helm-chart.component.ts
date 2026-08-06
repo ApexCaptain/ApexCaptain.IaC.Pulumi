@@ -17,6 +17,13 @@ interface CoderHelmChartComponentArgsShape {
     clientId: string;
     clientSecret: string;
   };
+  /** GitHub OAuth App — workspace 내 git 자격증명 (External Auth) */
+  externalAuth: {
+    github: {
+      clientId: string;
+      clientSecret: string;
+    };
+  };
   postgresql: {
     urlSecret: {
       name: string;
@@ -92,6 +99,28 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
+    const coderGithubExternalAuthSecretClientIdKey = 'client-id';
+    const coderGithubExternalAuthSecretClientSecretKey = 'client-secret';
+    const coderGithubExternalAuthSecret = new kubernetes.core.v1.Secret(
+      `${resourceName}-coderGithubExternalAuthSecret`,
+      {
+        metadata: {
+          name: 'coder-github-external-auth-secret',
+          namespace: args.namespace,
+        },
+        stringData: {
+          [coderGithubExternalAuthSecretClientIdKey]:
+            args.externalAuth.github.clientId,
+          [coderGithubExternalAuthSecretClientSecretKey]:
+            args.externalAuth.github.clientSecret,
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
     const coderReleaseName = 'coder';
     const coderContainerName = 'coder';
     const coderServiceAccountName = 'coder';
@@ -146,7 +175,7 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
               },
               {
                 name: 'CODER_OIDC_SCOPES',
-                value: 'openid,profile,email,offline_access',
+                value: 'openid,profile,email,offline_access,vault_groups',
               },
               {
                 // Authentik은 email_verified claim을 false/미설정으로 주는 경우가 많음.
@@ -157,6 +186,33 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
               {
                 name: 'CODER_OAUTH2_GITHUB_DEFAULT_PROVIDER_ENABLE',
                 value: 'false',
+              },
+              // GitHub External Auth — workspace 내 private repo clone/push
+              {
+                name: 'CODER_EXTERNAL_AUTH_0_ID',
+                value: 'github',
+              },
+              {
+                name: 'CODER_EXTERNAL_AUTH_0_TYPE',
+                value: 'github',
+              },
+              {
+                name: 'CODER_EXTERNAL_AUTH_0_CLIENT_ID',
+                valueFrom: {
+                  secretKeyRef: {
+                    name: coderGithubExternalAuthSecret.metadata.name,
+                    key: coderGithubExternalAuthSecretClientIdKey,
+                  },
+                },
+              },
+              {
+                name: 'CODER_EXTERNAL_AUTH_0_CLIENT_SECRET',
+                valueFrom: {
+                  secretKeyRef: {
+                    name: coderGithubExternalAuthSecret.metadata.name,
+                    key: coderGithubExternalAuthSecretClientSecretKey,
+                  },
+                },
               },
               {
                 name: 'CODER_OIDC_SIGN_IN_TEXT',
@@ -204,7 +260,11 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
-        dependsOn: [coderOidcSecret, coderFirstUserSecret],
+        dependsOn: [
+          coderOidcSecret,
+          coderFirstUserSecret,
+          coderGithubExternalAuthSecret,
+        ],
       },
     );
 

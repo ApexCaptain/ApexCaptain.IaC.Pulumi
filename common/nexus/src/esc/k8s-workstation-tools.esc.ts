@@ -5,6 +5,10 @@ const k8sWorkstationToolsEscSchema = z
   .object({
     coder: z
       .object({
+        githubApp: z.object({
+          clientId: z.string(),
+          clientSecret: z.string(),
+        }),
         firstUser: z
           .object({
             email: z.email(),

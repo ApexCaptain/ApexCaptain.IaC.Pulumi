@@ -64,3 +64,18 @@ variable "device_plugin_fuse_count_limit" {
   description = "The count limit to use for the device plugin fuse per workspace"
   default     = 2
 }
+
+variable "vault_addr" {
+  type        = string
+  description = "Public Vault API URL (HTTPS)"
+}
+
+variable "vault_jwt_auth_path" {
+  type        = string
+  description = "Vault JWT auth mount path for Coder workspace login"
+}
+
+variable "vault_jwt_role" {
+  type        = string
+  description = "Vault JWT auth role for Coder workspace login"
+}

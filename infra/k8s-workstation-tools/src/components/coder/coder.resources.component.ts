@@ -17,6 +17,11 @@ interface CoderResourcesComponentArgsShape {
         port: number;
         url: string;
       };
+      vault: {
+        addr: string;
+        jwtAuthPath: string;
+        jwtRole: string;
+      };
     };
     sysboxUbuntuTest: {
       namespace: string;
@@ -28,6 +33,11 @@ interface CoderResourcesComponentArgsShape {
         host: string;
         port: number;
         url: string;
+      };
+      vault: {
+        addr: string;
+        jwtAuthPath: string;
+        jwtRole: string;
       };
     };
   };
@@ -112,6 +122,18 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
                 name: 'mesh_proxy_url',
                 value: args.templateVariables.sysboxUbuntu.meshProxy.url,
               },
+              {
+                name: 'vault_addr',
+                value: args.templateVariables.sysboxUbuntu.vault.addr,
+              },
+              {
+                name: 'vault_jwt_auth_path',
+                value: args.templateVariables.sysboxUbuntu.vault.jwtAuthPath,
+              },
+              {
+                name: 'vault_jwt_role',
+                value: args.templateVariables.sysboxUbuntu.vault.jwtRole,
+              },
             ],
           },
         ],
@@ -189,6 +211,18 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
               {
                 name: 'mesh_proxy_url',
                 value: args.templateVariables.sysboxUbuntuTest.meshProxy.url,
+              },
+              {
+                name: 'vault_addr',
+                value: args.templateVariables.sysboxUbuntuTest.vault.addr,
+              },
+              {
+                name: 'vault_jwt_auth_path',
+                value: args.templateVariables.sysboxUbuntuTest.vault.jwtAuthPath,
+              },
+              {
+                name: 'vault_jwt_role',
+                value: args.templateVariables.sysboxUbuntuTest.vault.jwtRole,
               },
             ],
           },

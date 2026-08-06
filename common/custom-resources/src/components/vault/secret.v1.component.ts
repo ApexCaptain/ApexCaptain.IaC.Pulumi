@@ -13,6 +13,8 @@ type SecretV1 = {
 
 interface SecretV1ComponentArgsShape {
   oidcMountAccessor: string;
+  /** Coder workspace JWT mount — identity group alias duplicate target */
+  coderJwtMountAccessor: string;
   kvMount: string;
   vaultConnectionRef: string;
   kubernetesAuthMountPath: string;
@@ -161,6 +163,20 @@ export const SecretV1Component = utils.functions.defineComponent(
           ...opts,
           provider: args.providers.vault,
           dependsOn: [vaultDeveloperGroup],
+        },
+      );
+
+      new vault.identity.GroupAlias(
+        `${resourceName}-vaultCoderJwtGroupAlias`,
+        {
+          name: developerGroupName,
+          mountAccessor: args.coderJwtMountAccessor,
+          canonicalId: vaultDeveloperGroup.id,
+        },
+        {
+          ...opts,
+          provider: args.providers.vault,
+          dependsOn: [vaultDeveloperGroup, valutGroupAlias],
         },
       );
     }

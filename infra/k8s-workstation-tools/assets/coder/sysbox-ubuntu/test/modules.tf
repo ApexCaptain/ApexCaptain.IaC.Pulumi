@@ -12,7 +12,7 @@ module "cursor" {
 module "vscode-web" {
   count          = contains(local.selected_additional_ides, "vscode-web") ? data.coder_workspace.me.start_count : 0
   source         = "registry.coder.com/coder/vscode-web/coder"
-  version        = "1.5.0"
+  version        = "1.6.1"
   agent_id       = coder_agent.main.id
   accept_license = true
   folder         = "/home/coder/${var.workspace_directory_name}"
@@ -34,4 +34,23 @@ module "nodejs" {
   source   = "registry.coder.com/thezoker/nodejs/coder"
   version  = "1.0.13"
   agent_id = coder_agent.main.id
+}
+
+# https://registry.coder.com/modules/coder/git-config
+module "git-config" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder/git-config/coder"
+  version  = "1.0.34"
+  agent_id = coder_agent.main.id
+}
+
+# https://registry.coder.com/modules/coder/filebrowser
+module "filebrowser" {
+  count      = data.coder_workspace.me.start_count
+  source     = "registry.coder.com/coder/filebrowser/coder"
+  version    = "1.1.5"
+  agent_id   = coder_agent.main.id
+  agent_name = "main"
+  subdomain  = false
+  folder     = "/home/coder"
 }

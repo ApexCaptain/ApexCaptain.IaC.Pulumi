@@ -43,6 +43,8 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
     if (pulumi.getStack() === utils.enums.StackStage.PROD) {
       const coderHost =
         cloudflareContract.output.zones.ayteneve93com.records.coder;
+      const vaultHost =
+        k8sWorkstationSystemContract.output.vault.host;
       const vikunjaHost =
         cloudflareContract.output.zones.ayteneve93com.records.todo;
       const authentikHost =
@@ -101,6 +103,12 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
             issuerUrl: coderAuthentik.output.oidc.issuerUrl,
             clientId: coderAuthentik.secret.oidc.clientId,
             clientSecret: coderAuthentik.secret.oidc.clientSecret,
+          },
+          externalAuth: {
+            github: {
+              clientId: projectEsc.esc.coder.githubApp.clientId,
+              clientSecret: projectEsc.esc.coder.githubApp.clientSecret,
+            },
           },
           postgresql: {
             urlSecret: {
@@ -203,6 +211,13 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                 port: coderBase.output.meshProxies.sysboxUbuntu.port,
                 url: coderBase.output.meshProxies.sysboxUbuntu.url,
               },
+              vault: {
+                addr: pulumi.interpolate`https://${vaultHost}`,
+                jwtAuthPath:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.mountPath,
+                jwtRole:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.roleName,
+              },
             },
             sysboxUbuntuTest: {
               namespace: coderBase.output.sysboxUbuntuTestNamespace,
@@ -217,6 +232,13 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                 host: coderBase.output.meshProxies.sysboxUbuntuTest.host,
                 port: coderBase.output.meshProxies.sysboxUbuntuTest.port,
                 url: coderBase.output.meshProxies.sysboxUbuntuTest.url,
+              },
+              vault: {
+                addr: pulumi.interpolate`https://${vaultHost}`,
+                jwtAuthPath:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.mountPath,
+                jwtRole:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.roleName,
               },
             },
           },

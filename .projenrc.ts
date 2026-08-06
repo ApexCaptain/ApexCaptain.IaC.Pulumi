@@ -748,6 +748,10 @@ const initPulumiEsc = async () => {
     pulumiEscClient,
     {
       coder: {
+        githubApp: {
+          clientId: process.env.CODER_GITHUB_APP_CLIENT_ID!!,
+          clientSecret: process.env.CODER_GITHUB_APP_CLIENT_SECRET!!,
+        },
         firstUser: {
           email: process.env.CODER_FIRST_USER_EMAIL!!,
           username: process.env.CODER_FIRST_USER_USERNAME!!,

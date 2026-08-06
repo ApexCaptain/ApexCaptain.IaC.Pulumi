@@ -533,6 +533,22 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    const vaultCoderJwt = new components.vault.VaultCoderJwtComponent(
+      'vaultCoderJwt',
+      {
+        hosts: {
+          authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
+        },
+        allowedGroupNames: ['System User', 'System Manager'],
+        providers: {
+          vault: vaultProvider,
+        },
+      },
+      {
+        dependsOn: [vaultAuthentik, vaultResources],
+      },
+    );
+
     const longhornServiceMesh =
       new components.longhorn.LonghornServiceMeshComponent(
         'longhornServiceMesh',
@@ -655,7 +671,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.argo.ArgoRolloutsComponent('argoRollouts', {
       helm: {
         argoRollouts: {
-          version: '2.41.0',
+          version: '2.41.1',
           repositoryUrl: argoChartRepositoryUrl,
         },
       },
@@ -828,6 +844,13 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           vaultConnectionRef:
             vaultSecretsOperatorResources.output.vaultConnectionRef,
         },
+        vault: {
+          host: cloudflareContract.output.zones.ayteneve93com.records.vault,
+          coderJwt: {
+            mountPath: vaultCoderJwt.output.jwt.mountPath,
+            roleName: vaultCoderJwt.output.jwt.roleName,
+          },
+        },
       }),
       secret: pulumi.secret({
         providerConfigs: {
@@ -836,6 +859,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         vault: {
           oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,
+          coderJwtMountAccessor: vaultCoderJwt.output.jwt.mountAccessor,
           kvMount: vaultResources.output.kv.mountPath,
           kubernetesAuthMountPath: vaultKubernetesAuth.output.mountPath,
         },

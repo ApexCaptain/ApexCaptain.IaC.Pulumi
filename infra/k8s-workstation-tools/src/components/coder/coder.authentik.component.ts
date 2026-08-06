@@ -53,6 +53,12 @@ export const CoderAuthentikComponent = utils.functions.defineComponent(
         ),
       ]);
 
+    const vaultGroupsScopeMapping =
+      await authentik.getPropertyMappingProviderScope(
+        { name: 'vault-oidc-groups-scope' },
+        providerOpts,
+      );
+
     const coderOidcSigningKey = await authentik.getCertificateKeyPair(
       { name: 'authentik Self-signed Certificate' },
       providerOpts,
@@ -74,11 +80,14 @@ export const CoderAuthentikComponent = utils.functions.defineComponent(
         ],
         clientType: 'confidential',
         grantTypes: ['authorization_code', 'refresh_token'],
+        accessTokenValidity: 'days=3',
+        refreshTokenValidity: 'days=30',
         propertyMappings: [
           openidScope.id,
           profileScope.id,
           emailScope.id,
           offlineAccessScope.id,
+          vaultGroupsScopeMapping.id,
         ],
         subMode: 'user_email',
         includeClaimsInIdToken: true,
