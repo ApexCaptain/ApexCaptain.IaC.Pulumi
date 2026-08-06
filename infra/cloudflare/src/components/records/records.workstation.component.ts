@@ -212,6 +212,23 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const coderRecord = new cloudflare.DnsRecord(
+      `${resourceName}-coderRecord`,
+      {
+        name: 'coder',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: false,
+        comment: 'Cloudflare DNS Record for Coder Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     return {
       output: pulumi.output({
         records: {
@@ -253,6 +270,10 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
           ),
           blog: utils.functions.toCloudflareRecordFqdn(
             blogRecord.name,
+            args.zoneDomain,
+          ),
+          coder: utils.functions.toCloudflareRecordFqdn(
+            coderRecord.name,
             args.zoneDomain,
           ),
         },

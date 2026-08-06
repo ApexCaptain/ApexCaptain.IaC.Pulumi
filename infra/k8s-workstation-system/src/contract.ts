@@ -69,6 +69,50 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    // Lxcfs
+    const lxcfsHelmChart = new components.lxcfs.LxcfsHelmChartComponent(
+      'lxcfsHelmChart',
+      {
+        helm: {
+          lxcfs: {
+            version: '0.2.7',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls[
+                'cndoit18.github.io/lxcfs-on-kubernetes'
+              ],
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+    );
+
+    // Sysbox — RuntimeClass only (host install via Ansible/Kubespray)
+    const sysbox = new components.sysbox.SysboxComponent('sysbox', {
+      providers: {
+        kubernetes: workstationK8sProvider,
+      },
+    });
+
+    // Generic Device Plugin — expose host /dev as extended resources
+    const genericDevicePluginHelmChart =
+      new components.genericDevicePlugin.GenericDevicePluginHelmChartComponent(
+        'genericDevicePluginHelmChart',
+        {
+          helm: {
+            genericDevicePlugin: {
+              version: '0.1.3',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['charts.gabe565.com'],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+      );
+
     // Cert Manager
     const certManagerHelmChart =
       new components.certManager.CertManagerHelmChartComponent(
@@ -76,7 +120,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             certManager: {
-              version: 'v1.21.0',
+              version: 'v1.21.1',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.jetstack.io'],
             },
@@ -489,6 +533,22 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    const vaultCoderJwt = new components.vault.VaultCoderJwtComponent(
+      'vaultCoderJwt',
+      {
+        hosts: {
+          authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
+        },
+        allowedGroupNames: ['System User', 'System Manager'],
+        providers: {
+          vault: vaultProvider,
+        },
+      },
+      {
+        dependsOn: [vaultAuthentik, vaultResources],
+      },
+    );
+
     const longhornServiceMesh =
       new components.longhorn.LonghornServiceMeshComponent(
         'longhornServiceMesh',
@@ -611,7 +671,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.argo.ArgoRolloutsComponent('argoRollouts', {
       helm: {
         argoRollouts: {
-          version: '2.41.0',
+          version: '2.41.1',
           repositoryUrl: argoChartRepositoryUrl,
         },
       },
@@ -659,7 +719,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       'argoCd',
       {
         host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
-        bootstrapPassword: projectEsc.esc.argoCd.bootstrapPassword,
+        bootstrapPasswordBcrypt: projectEsc.esc.argoCd.bootstrapPasswordBcrypt,
         githubSecret: argoGitOps.secret.webHookSecret,
         oidc: {
           name: argoAuthentik.output.oidc.name,
@@ -671,7 +731,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.2.1',
+            version: '10.3.0',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },
@@ -766,6 +826,9 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           directGatewayPath: istioGateway.output.istioDirectGatewayPath,
         },
         storageClasses: longhornResources.output.storageClasses,
+        sysbox: sysbox.output,
+        lxcfs: lxcfsHelmChart.output,
+        genericDevicePlugin: genericDevicePluginHelmChart.output,
         authentik: {
           flow: authentikResources.output.flow,
           groupIds: authentikResources.output.groupIds,
@@ -781,6 +844,13 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           vaultConnectionRef:
             vaultSecretsOperatorResources.output.vaultConnectionRef,
         },
+        vault: {
+          host: cloudflareContract.output.zones.ayteneve93com.records.vault,
+          coderJwt: {
+            mountPath: vaultCoderJwt.output.jwt.mountPath,
+            roleName: vaultCoderJwt.output.jwt.roleName,
+          },
+        },
       }),
       secret: pulumi.secret({
         providerConfigs: {
@@ -789,6 +859,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         vault: {
           oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,
+          coderJwtMountAccessor: vaultCoderJwt.output.jwt.mountAccessor,
           kvMount: vaultResources.output.kv.mountPath,
           kubernetesAuthMountPath: vaultKubernetesAuth.output.mountPath,
         },

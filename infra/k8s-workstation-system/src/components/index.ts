@@ -1,5 +1,11 @@
 export * as cilium from './cilium';
 
+export * as sysbox from './sysbox';
+
+export * as lxcfs from './lxcfs';
+
+export * as genericDevicePlugin from './generic-device-plugin';
+
 export * as certManager from './cert-manager';
 
 export * as istio from './istio';

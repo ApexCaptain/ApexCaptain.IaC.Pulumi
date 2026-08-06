@@ -11,6 +11,7 @@ interface PriceQuestVaultComponentArgsShape {
   projectName: string;
   vault: {
     oidcMountAccessor: string;
+    coderJwtMountAccessor: string;
     kvMount: string;
     vaultConnectionRef: string;
     kubernetesAuthMountPath: string;
@@ -36,6 +37,7 @@ export const PriceQuestVaultComponent = utils.functions.defineComponent(
       `${resourceName}-apiSecret`,
       {
         oidcMountAccessor: args.vault.oidcMountAccessor,
+        coderJwtMountAccessor: args.vault.coderJwtMountAccessor,
         kvMount: args.vault.kvMount,
         vaultConnectionRef: args.vault.vaultConnectionRef,
         kubernetesAuthMountPath: args.vault.kubernetesAuthMountPath,

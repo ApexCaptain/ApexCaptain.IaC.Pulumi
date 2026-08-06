@@ -1,4 +1,14 @@
 ---
+# Sysbox CE 호스트 설치 (K8s DaemonSet 대신 deb 패키지)
+#
+# - 바이너리/systemd: sysbox-ce deb
+# - containerd handler: group_vars `containerd_additional_runtimes` (Kubespray)
+# - RuntimeClass: Pulumi `SysboxComponent` (infra/k8s-workstation-system)
+# - 노드 라벨 `sysbox-runtime=running`: host_vars `node_labels`
+#
+# @see https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-package.md
+# @see https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-k8s.md
+
 - name: Ensure amd64 architecture for Sysbox package
   ansible.builtin.assert:
     that:
@@ -15,6 +25,7 @@
 - name: Install Sysbox dependencies
   ansible.builtin.apt:
     name:
+      # Sysbox installer / helpers expect jq on the host
       - jq
     state: present
     update_cache: true
@@ -35,6 +46,54 @@
     name: sysbox
     enabled: true
     state: started
+
+# ---------------------------------------------------------------------------
+# AppArmor: fusermount3 vs Sysbox FUSE (/var/lib/sysboxfs)
+#
+# Ubuntu 25.04+ 가 /etc/apparmor.d/fusermount3 을 도입하면서, 허용 목록에 없는
+# 마운트 포인트는 DENY 된다. Sysbox는 /var/lib/sysboxfs 아래에 FUSE를 올리므로
+# Pod/컨테이너 생성 시 Permission denied 가 난다.
+#
+# 우회: 부모 프로필이 `include if exists <local/fusermount3>` 를 쓰므로
+# /etc/apparmor.d/local/fusermount3 에 sysboxfs 규칙만 추가한다.
+# (프로필 파일이 없는 구 Ubuntu 에서는 아래 태스크 전부 스킵)
+#
+# @see https://github.com/nestybox/sysbox/issues/947
+# @see https://github.com/nestybox/sysbox/issues/1005
+# ---------------------------------------------------------------------------
+- name: Check for fusermount3 AppArmor profile
+  ansible.builtin.stat:
+    path: /etc/apparmor.d/fusermount3
+  register: fusermount3_apparmor_profile
+
+- name: Ensure AppArmor local profile directory exists
+  ansible.builtin.file:
+    path: /etc/apparmor.d/local
+    state: directory
+    mode: "0755"
+  when: fusermount3_apparmor_profile.stat.exists
+
+- name: Allow Sysbox FUSE mounts in fusermount3 AppArmor local profile
+  ansible.builtin.copy:
+    src: fusermount3.local
+    dest: /etc/apparmor.d/local/fusermount3
+    mode: "0644"
+  register: sysbox_fusermount3_local_profile
+  when: fusermount3_apparmor_profile.stat.exists
+
+- name: Reload fusermount3 AppArmor profile
+  ansible.builtin.command: apparmor_parser -r /etc/apparmor.d/fusermount3
+  when:
+    - fusermount3_apparmor_profile.stat.exists
+    - sysbox_fusermount3_local_profile is changed
+
+- name: Restart sysbox after AppArmor local profile change
+  ansible.builtin.systemd:
+    name: sysbox
+    state: restarted
+  when:
+    - fusermount3_apparmor_profile.stat.exists
+    - sysbox_fusermount3_local_profile is changed
 
 - name: Verify sysbox-runc binary exists
   ansible.builtin.stat:

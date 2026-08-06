@@ -65,6 +65,7 @@ const k8sWorkstationSystemEscSchema = z
       .object({
         gitOpsRepositoryName: z.string(),
         bootstrapPassword: z.string(),
+        bootstrapPasswordBcrypt: z.string(),
       })
       .required(),
   })

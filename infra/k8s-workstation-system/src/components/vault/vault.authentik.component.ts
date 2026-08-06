@@ -23,6 +23,9 @@ import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
 
+/** Vault OIDC role client token TTL (3 days) */
+const vaultTokenTtlSeconds = 3 * 24 * 3600;
+
 interface VaultAuthentikComponentArgsShape {
   hosts: {
     vault: string;
@@ -203,6 +206,8 @@ export const VaultAuthentikComponent = utils.functions.defineComponent(
         groupsClaim: vaultOidcGroupsClaim,
         oidcScopes: [vaultOidcGroupsScopeName],
         tokenPolicies: ['default'],
+        tokenTtl: vaultTokenTtlSeconds,
+        tokenMaxTtl: vaultTokenTtlSeconds,
       },
       {
         ...vaultProviderOpts,

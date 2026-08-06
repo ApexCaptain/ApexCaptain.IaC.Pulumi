@@ -184,6 +184,8 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
         vault: {
           oidcMountAccessor:
             k8sWorkstationSystemContract.secret.vault.oidcMountAccessor,
+          coderJwtMountAccessor:
+            k8sWorkstationSystemContract.secret.vault.coderJwtMountAccessor,
           kvMount: k8sWorkstationSystemContract.secret.vault.kvMount,
           vaultConnectionRef:
             k8sWorkstationSystemContract.output.vaultSecretsOperator

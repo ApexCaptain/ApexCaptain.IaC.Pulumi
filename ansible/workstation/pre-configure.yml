@@ -7,4 +7,5 @@
     - role: eanble-iscsi
     - role: longhorn-disks
     - role: init-wol
+    # Sysbox CE deb + (Ubuntu 25.04+) fusermount3 AppArmor local allow for sysboxfs
     - role: install-sysbox-runc

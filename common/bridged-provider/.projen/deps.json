@@ -47,6 +47,11 @@
       "type": "runtime"
     },
     {
+      "name": "@pulumi/coderd",
+      "version": "file:sdks/coderd",
+      "type": "runtime"
+    },
+    {
       "name": "@pulumi/pulumi",
       "type": "runtime"
     },

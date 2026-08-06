@@ -19,9 +19,10 @@ src/
     ├── k8s/crd/  # istio, cert-manager, cilium, longhorn, cnpg
     ├── k8s/      # kube-config-file
     ├── local/    # textFile
-    └── vault/    # bootstrap-token Command
+    ├── vault/    # bootstrap-token Command
+    └── coder/    # admin-api-token Command
 
-scripts/          # Command subprocess (bootstrap token, pod exec)
+scripts/          # Command subprocess (bootstrap/admin token, pod exec)
 ```
 
 ## CRD 네임스페이스

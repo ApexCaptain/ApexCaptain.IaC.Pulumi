@@ -4,7 +4,7 @@
  * NordLynx VPN sidecar로 트래픽을 터널 밖으로만 보내는 구조.
  * Web UI는 Longhorn과 같은 Authentik Proxy + OutpostProviderAttachment 패턴.
  */
-import { authentik } from '@common/bridged-provider';
+import { authentik, coderd } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import * as utils from '@common/utils';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
@@ -41,10 +41,215 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
 
     // Production Only Tools
     if (pulumi.getStack() === utils.enums.StackStage.PROD) {
+      const coderHost =
+        cloudflareContract.output.zones.ayteneve93com.records.coder;
+      const vaultHost =
+        k8sWorkstationSystemContract.output.vault.host;
       const vikunjaHost =
         cloudflareContract.output.zones.ayteneve93com.records.todo;
       const authentikHost =
         cloudflareContract.output.zones.ayteneve93com.records.auth;
+
+      // Coder
+      const coderBase = new components.coder.CoderBaseComponent('coderBase', {
+        pvc: {
+          postgresqlCluster: {
+            storageClass:
+              k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+            size: '10Gi',
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      });
+      const coderAuthentik = new components.coder.CoderAuthentikComponent(
+        'coderAuthentik',
+        {
+          hosts: {
+            coder: coderHost,
+            authentik: authentikHost,
+          },
+          authentik: {
+            allowedGroupId:
+              k8sWorkstationSystemContract.output.authentik.groupIds
+                .toolsUserGroup,
+            flow: {
+              authorizationFlowId:
+                k8sWorkstationSystemContract.output.authentik.flow
+                  .defaultProviderAuthorizationImplicitConsentId,
+              invalidationFlowId:
+                k8sWorkstationSystemContract.output.authentik.flow
+                  .defaultInvalidationFlowId,
+            },
+          },
+          providers: {
+            authentik: authentikProvider,
+          },
+        },
+      );
+      const coderHelmChart = new components.coder.CoderHelmChartComponent(
+        'coderHelmChart',
+        {
+          namespace: coderBase.output.namespace,
+          host: coderHost,
+          adminUser: {
+            email: projectEsc.esc.coder.firstUser.email,
+            username: projectEsc.esc.coder.firstUser.username,
+            fullName: projectEsc.esc.coder.firstUser.fullName,
+            password: projectEsc.esc.coder.firstUser.password,
+          },
+          oidc: {
+            issuerUrl: coderAuthentik.output.oidc.issuerUrl,
+            clientId: coderAuthentik.secret.oidc.clientId,
+            clientSecret: coderAuthentik.secret.oidc.clientSecret,
+          },
+          externalAuth: {
+            github: {
+              clientId: projectEsc.esc.coder.githubApp.clientId,
+              clientSecret: projectEsc.esc.coder.githubApp.clientSecret,
+            },
+          },
+          postgresql: {
+            urlSecret: {
+              name: coderBase.secret.postgresqlUrlSecretName,
+              key: coderBase.secret.postgresqlUrlSecretKey,
+            },
+          },
+          helm: {
+            coder: {
+              version: '2.36.0',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['helm.coder.com/v2'],
+            },
+          },
+          workspaceNamespaces: [
+            coderBase.output.sysboxUbuntuNamespace,
+            coderBase.output.sysboxUbuntuTestNamespace,
+          ],
+          adminApiToken: {
+            kubeconfig: commonEsc.esc.workstationKubeconfig,
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          dependsOn: [coderBase, coderAuthentik],
+        },
+      );
+
+      const coderServiceMesh = new components.coder.CoderServiceMeshComponent(
+        'coderServiceMesh',
+        {
+          namespace: coderBase.output.namespace,
+          authorizationPolicy: {
+            from: {
+              istioIngress: {
+                namespace: k8sWorkstationSystemContract.output.namespaces.istio,
+                serviceAccountName:
+                  k8sWorkstationSystemContract.output.serviceAccounts
+                    .istioIngressGateway,
+              },
+              allowedNamespaces: [
+                coderBase.output.sysboxUbuntuNamespace,
+                coderBase.output.sysboxUbuntuTestNamespace,
+              ],
+            },
+          },
+          adminApiToken: {
+            token: coderHelmChart.secret.adminApiToken.token,
+            organizationId: coderHelmChart.secret.adminApiToken.organizationId,
+          },
+          ingress: {
+            coderWebUi: {
+              host: coderHost,
+              serviceName: coderHelmChart.output.services.coder.name,
+              gatewayPath:
+                k8sWorkstationSystemContract.output.gatewayPaths
+                  .ingressGatewayPath,
+              port: coderHelmChart.output.services.coder.port.http,
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          dependsOn: [coderHelmChart],
+        },
+      );
+
+      const coderdProvider = new coderd.Provider(
+        'coderdProvider',
+        {
+          url: coderServiceMesh.secret.coderdProviderConfig.url,
+          token: coderServiceMesh.secret.coderdProviderConfig.token,
+          defaultOrganizationId:
+            coderServiceMesh.secret.coderdProviderConfig.defaultOrganizationId,
+        },
+        {
+          dependsOn: [coderServiceMesh],
+        },
+      );
+
+      new components.coder.CoderResourcesComponent(
+        'coderResources',
+        {
+          templateVariables: {
+            sysboxUbuntu: {
+              namespace: coderBase.output.sysboxUbuntuNamespace,
+              runtimeClassName:
+                k8sWorkstationSystemContract.output.sysbox.runtimeClassName,
+              storageClassName:
+                k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+              lxcfsHostMountPath:
+                k8sWorkstationSystemContract.output.lxcfs.mountPath,
+              devicePluginFuseKey: pulumi.interpolate`${k8sWorkstationSystemContract.output.genericDevicePlugin.deviceDomain}/fuse`,
+              meshProxy: {
+                host: coderBase.output.meshProxies.sysboxUbuntu.host,
+                port: coderBase.output.meshProxies.sysboxUbuntu.port,
+                url: coderBase.output.meshProxies.sysboxUbuntu.url,
+              },
+              vault: {
+                addr: pulumi.interpolate`https://${vaultHost}`,
+                jwtAuthPath:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.mountPath,
+                jwtRole:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.roleName,
+              },
+            },
+            sysboxUbuntuTest: {
+              namespace: coderBase.output.sysboxUbuntuTestNamespace,
+              runtimeClassName:
+                k8sWorkstationSystemContract.output.sysbox.runtimeClassName,
+              storageClassName:
+                k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+              lxcfsHostMountPath:
+                k8sWorkstationSystemContract.output.lxcfs.mountPath,
+              devicePluginFuseKey: pulumi.interpolate`${k8sWorkstationSystemContract.output.genericDevicePlugin.deviceDomain}/fuse`,
+              meshProxy: {
+                host: coderBase.output.meshProxies.sysboxUbuntuTest.host,
+                port: coderBase.output.meshProxies.sysboxUbuntuTest.port,
+                url: coderBase.output.meshProxies.sysboxUbuntuTest.url,
+              },
+              vault: {
+                addr: pulumi.interpolate`https://${vaultHost}`,
+                jwtAuthPath:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.mountPath,
+                jwtRole:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.roleName,
+              },
+            },
+          },
+          providers: {
+            coderd: coderdProvider,
+          },
+        },
+        {
+          dependsOn: [coderBase, coderdProvider],
+        },
+      );
 
       // Vikunja
       const vikunjaBase = new components.vikunja.VikunjaBaseComponent(

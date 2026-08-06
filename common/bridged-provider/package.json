@@ -27,6 +27,7 @@
   "dependencies": {
     "@pulumi/argocd": "file:sdks/argocd",
     "@pulumi/authentik": "file:sdks/authentik",
+    "@pulumi/coderd": "file:sdks/coderd",
     "@pulumi/pulumi": "^3.242.0",
     "dedent": "^1.7.2",
     "lodash": "^4.18.1",
