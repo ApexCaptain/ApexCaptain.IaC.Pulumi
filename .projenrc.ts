@@ -196,6 +196,8 @@ const rootProject = new typescript.TypeScriptProject(
         'Pulumi*.yml',
         'inventory.ini',
         '.specstory',
+        '.superpowers',
+        'docs/superpowers',
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
         `/${src.constants.paths.dirs.githubGeneratedDir}`,
