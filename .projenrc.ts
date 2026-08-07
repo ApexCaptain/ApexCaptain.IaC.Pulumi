@@ -727,6 +727,9 @@ const initPulumiEsc = async () => {
         bootstrapPassword: process.env.ARGOCD_BOOTSTRAP_PASSWORD,
         bootstrapPasswordBcrypt: process.env.ARGOCD_BOOTSTRAP_PASSWORD_BCRYPT,
       },
+      grafana: {
+        adminPassword: process.env.GRAFANA_ADMIN_PASSWORD,
+      },
     },
     {
       prod: {},

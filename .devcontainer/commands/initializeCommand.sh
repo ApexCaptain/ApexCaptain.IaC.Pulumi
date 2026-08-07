@@ -47,8 +47,6 @@ COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 # Shared Volume Arguments
 ## Pnpm Store Directory Path
 CONTAINER_PNPM_STORE_DIR_PATH=${containerWorkspaceFolder}/.pnpm-store
-## Cursor CLI home
-CONTAINER_CURSOR_DIR_PATH=/home/${username}/.cursor
 
 # Kubernetes Arguments
 KUBE_CONFIG_DIR_NAME=$KUBE_CONFIG_DIR_NAME

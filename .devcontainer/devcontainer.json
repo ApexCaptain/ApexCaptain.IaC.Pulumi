@@ -16,7 +16,6 @@
     "ghcr.io/devcontainers/features/terraform:1": {},
 
     "ghcr.io/jsburckhardt/devcontainer-features/glow:1": {},
-    "ghcr.io/stu-bell/devcontainer-features/cursor-cli:0": {},
     "ghcr.io/rio/features/k9s:1": {},
 
     "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {

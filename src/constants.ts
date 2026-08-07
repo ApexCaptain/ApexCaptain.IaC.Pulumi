@@ -167,6 +167,11 @@ export const constants = (() => {
       'https://cndoit18.github.io/lxcfs-on-kubernetes/',
     'charts.gabe565.com': 'https://charts.gabe565.com',
     'helm.coder.com/v2': 'https://helm.coder.com/v2',
+    'open-telemetry.github.io/opentelemetry-helm-charts':
+      'https://open-telemetry.github.io/opentelemetry-helm-charts',
+    'victoriametrics.github.io/helm-charts':
+      'https://victoriametrics.github.io/helm-charts',
+    'grafana.github.io/helm-charts': 'https://grafana.github.io/helm-charts',
   };
 
   return {
