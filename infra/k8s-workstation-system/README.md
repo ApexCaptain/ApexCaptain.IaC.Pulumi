@@ -11,6 +11,7 @@ Workstation K8s 클러스터 **시스템 레이어** Pulumi 스택.
 ```
 Cilium → cert-manager → Vault → Istio → CNPG operator
        → Longhorn → Authentik → Vault/Authentik OIDC → Longhorn mesh → Authentik Outpost
+       → monitoring (OTel stack)
 ```
 
 ### 주요 컴포넌트
@@ -24,6 +25,7 @@ Cilium → cert-manager → Vault → Istio → CNPG operator
 | `postgresqlOperator` | CloudNativePG operator |
 | `longhorn` | 스토리지 + Authentik proxy UI |
 | `authentik` | IdP Helm + mesh + groups/flows/outpost |
+| `monitoring` | OTel operator, VictoriaMetrics, Loki, Tempo, Grafana + Authentik OIDC + mesh ingress |
 
 ### Contract export (요약)
 
@@ -49,7 +51,8 @@ src/
     ├── istio/
     ├── postgresql-operator/
     ├── longhorn/
-    └── authentik/
+    ├── authentik/
+    └── monitoring/
 ```
 
 ## 의존성
