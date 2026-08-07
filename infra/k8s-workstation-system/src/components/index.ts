@@ -23,3 +23,5 @@ export * as vaultSecretsOperator from './vault-secrets-operator';
 export * as reloader from './reloader';
 
 export * as argo from './argo';
+
+export * as monitoring from './monitoring';
