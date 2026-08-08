@@ -196,6 +196,8 @@ const rootProject = new typescript.TypeScriptProject(
         'Pulumi*.yml',
         'inventory.ini',
         '.specstory',
+        '.superpowers',
+        'docs/superpowers',
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
         `/${src.constants.paths.dirs.githubGeneratedDir}`,
@@ -727,6 +729,9 @@ const initPulumiEsc = async () => {
         bootstrapPassword: process.env.ARGOCD_BOOTSTRAP_PASSWORD,
         bootstrapPasswordBcrypt: process.env.ARGOCD_BOOTSTRAP_PASSWORD_BCRYPT,
       },
+      grafana: {
+        adminPassword: process.env.GRAFANA_ADMIN_PASSWORD,
+      },
     },
     {
       prod: {},
@@ -1038,7 +1043,7 @@ void (async () => {
               'Copilot IDE': false,
               'Claude Code': false,
               'Factory Droid CLI': false,
-              'Cursor CLI': true,
+              'Cursor CLI': false,
               'Gemini CLI': false,
               'Codex CLI': false,
               'DeepSeek TUI': false,

@@ -808,6 +808,205 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    // Monitoring stack
+    const otelOperatorHelmChart =
+      new components.monitoring.OtelOperatorHelmChartComponent(
+        'otelOperatorHelmChart',
+        {
+          helm: {
+            opentelemetryOperator: {
+              version: '0.120.2',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls[
+                  'open-telemetry.github.io/opentelemetry-helm-charts'
+                ],
+            },
+          },
+          providers: { kubernetes: workstationK8sProvider },
+        },
+        { dependsOn: [certManagerHelmChart] },
+      );
+
+    const monitoringNamespace = otelOperatorHelmChart.output.namespace;
+    const monitoringStorageClass =
+      longhornResources.output.storageClasses.longhornSsd;
+
+    const victoriaMetricsHelmChart =
+      new components.monitoring.VictoriaMetricsHelmChartComponent(
+        'victoriaMetricsHelmChart',
+        {
+          namespace: monitoringNamespace,
+          storageClassName: monitoringStorageClass,
+          helm: {
+            victoriaMetrics: {
+              version: '0.44.0',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls[
+                  'victoriametrics.github.io/helm-charts'
+                ],
+            },
+          },
+          providers: { kubernetes: workstationK8sProvider },
+        },
+        { dependsOn: [otelOperatorHelmChart, longhornResources] },
+      );
+
+    const lokiHelmChart = new components.monitoring.LokiHelmChartComponent(
+      'lokiHelmChart',
+      {
+        namespace: monitoringNamespace,
+        storageClassName: monitoringStorageClass,
+        helm: {
+          loki: {
+            version: '7.2.0',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls['grafana.github.io/helm-charts'],
+          },
+        },
+        providers: { kubernetes: workstationK8sProvider },
+      },
+      { dependsOn: [otelOperatorHelmChart, longhornResources] },
+    );
+
+    const tempoHelmChart = new components.monitoring.TempoHelmChartComponent(
+      'tempoHelmChart',
+      {
+        namespace: monitoringNamespace,
+        storageClassName: monitoringStorageClass,
+        helm: {
+          tempo: {
+            version: '1.24.4',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls['grafana.github.io/helm-charts'],
+          },
+        },
+        providers: { kubernetes: workstationK8sProvider },
+      },
+      { dependsOn: [otelOperatorHelmChart, longhornResources] },
+    );
+
+    const grafanaHost =
+      cloudflareContract.output.zones.ayteneve93com.records.grafana;
+
+    const grafanaAuthentik =
+      new components.monitoring.GrafanaAuthentikComponent(
+        'grafanaAuthentik',
+        {
+          hosts: {
+            grafana: grafanaHost,
+            authentik:
+              cloudflareContract.output.zones.ayteneve93com.records.auth,
+          },
+          authentik: {
+            allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
+            flow: {
+              authorizationFlowId:
+                authentikResources.output.flow
+                  .defaultProviderAuthorizationImplicitConsentId,
+              invalidationFlowId:
+                authentikResources.output.flow.defaultInvalidationFlowId,
+            },
+          },
+          providers: { authentik: authentikProvider },
+        },
+        { dependsOn: [authentikResources, authentikProvider] },
+      );
+
+    const grafanaHelmChart =
+      new components.monitoring.GrafanaHelmChartComponent(
+        'grafanaHelmChart',
+        {
+          namespace: monitoringNamespace,
+          host: grafanaHost,
+          storageClassName: monitoringStorageClass,
+          adminPassword: projectEsc.esc.grafana.adminPassword,
+          oidc: {
+            name: grafanaAuthentik.output.oidc.name,
+            issuerUrl: grafanaAuthentik.output.oidc.issuerUrl,
+            authUrl: grafanaAuthentik.output.oidc.authUrl,
+            tokenUrl: grafanaAuthentik.output.oidc.tokenUrl,
+            apiUrl: grafanaAuthentik.output.oidc.apiUrl,
+            requestedScopes: grafanaAuthentik.output.oidc.requestedScopes,
+            roleAttributePath: grafanaAuthentik.output.oidc.roleAttributePath,
+            clientId: grafanaAuthentik.secret.oidc.clientId,
+            clientSecret: grafanaAuthentik.secret.oidc.clientSecret,
+          },
+          datasources: {
+            victoriaMetrics: {
+              url: pulumi.interpolate`http://${victoriaMetricsHelmChart.output.services.victoriaMetrics.name}.${monitoringNamespace}.svc.cluster.local:${victoriaMetricsHelmChart.output.services.victoriaMetrics.port.http}`,
+            },
+            loki: {
+              url: pulumi.interpolate`http://${lokiHelmChart.output.services.loki.name}.${monitoringNamespace}.svc.cluster.local:${lokiHelmChart.output.services.loki.port.http}`,
+            },
+            tempo: {
+              url: pulumi.interpolate`http://${tempoHelmChart.output.services.tempo.name}.${monitoringNamespace}.svc.cluster.local:${tempoHelmChart.output.services.tempo.port.query}`,
+            },
+          },
+          helm: {
+            grafana: {
+              version: '10.5.15',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls[
+                  'grafana.github.io/helm-charts'
+                ],
+            },
+          },
+          providers: { kubernetes: workstationK8sProvider },
+        },
+        {
+          dependsOn: [
+            grafanaAuthentik,
+            victoriaMetricsHelmChart,
+            lokiHelmChart,
+            tempoHelmChart,
+          ],
+        },
+      );
+
+    new components.monitoring.OtelResourcesComponent(
+      'otelResources',
+      {
+        namespace: monitoringNamespace,
+        backends: {
+          victoriaMetrics: {
+            remoteWriteUrl: pulumi.interpolate`http://${victoriaMetricsHelmChart.output.services.victoriaMetrics.name}.${monitoringNamespace}.svc.cluster.local:${victoriaMetricsHelmChart.output.services.victoriaMetrics.port.http}/api/v1/write`,
+          },
+          loki: {
+            otlpHttpUrl: pulumi.interpolate`http://${lokiHelmChart.output.services.loki.name}.${monitoringNamespace}.svc.cluster.local:${lokiHelmChart.output.services.loki.port.http}/otlp`,
+          },
+          tempo: {
+            otlpGrpcEndpoint: pulumi.interpolate`${tempoHelmChart.output.services.tempo.name}.${monitoringNamespace}.svc.cluster.local:${tempoHelmChart.output.services.tempo.port.otlpGrpc}`,
+          },
+        },
+        providers: { kubernetes: workstationK8sProvider },
+      },
+      {
+        dependsOn: [
+          otelOperatorHelmChart,
+          victoriaMetricsHelmChart,
+          lokiHelmChart,
+          tempoHelmChart,
+        ],
+      },
+    );
+
+    new components.monitoring.GrafanaServiceMeshComponent(
+      'grafanaServiceMesh',
+      {
+        namespace: monitoringNamespace,
+        ingress: {
+          grafana: {
+            host: grafanaHost,
+            serviceName: grafanaHelmChart.output.services.grafana.name,
+            gatewayPath: istioGateway.output.istioIngressGatewayPath,
+            port: grafanaHelmChart.output.services.grafana.port.http,
+          },
+        },
+        providers: { kubernetes: workstationK8sProvider },
+      },
+      { dependsOn: [grafanaHelmChart, istioGateway] },
+    );
+
     return {
       output: pulumi.output({
         namespaces: {

@@ -68,6 +68,12 @@ const k8sWorkstationSystemEscSchema = z
         bootstrapPasswordBcrypt: z.string(),
       })
       .required(),
+
+    grafana: z
+      .object({
+        adminPassword: z.string(),
+      })
+      .required(),
   })
   .required();
 

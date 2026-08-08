@@ -229,6 +229,23 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const grafanaRecord = new cloudflare.DnsRecord(
+      `${resourceName}-grafanaRecord`,
+      {
+        name: 'grafana',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Grafana Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     return {
       output: pulumi.output({
         records: {
@@ -274,6 +291,10 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
           ),
           coder: utils.functions.toCloudflareRecordFqdn(
             coderRecord.name,
+            args.zoneDomain,
+          ),
+          grafana: utils.functions.toCloudflareRecordFqdn(
+            grafanaRecord.name,
             args.zoneDomain,
           ),
         },

@@ -94,20 +94,9 @@ export const CoderWorkspaceMeshProxyComponent =
                         protocol: 'TCP',
                       },
                     ],
-                    readinessProbe: {
-                      tcpSocket: {
-                        port: 'socks5',
-                      },
-                      initialDelaySeconds: 2,
-                      periodSeconds: 5,
-                    },
-                    livenessProbe: {
-                      tcpSocket: {
-                        port: 'socks5',
-                      },
-                      initialDelaySeconds: 10,
-                      periodSeconds: 10,
-                    },
+                    // distroless 단일 바이너리: 프로세스 종료 = 컨테이너 종료.
+                    // tcpSocket probe는 SOCKS 핸드셰이크 없이 연결만 열어
+                    // "Failed to get version byte: EOF" 노이즈를 만든다.
                     resources: {
                       requests: {
                         cpu: '10m',
@@ -167,8 +156,7 @@ export const CoderWorkspaceMeshProxyComponent =
         },
       );
 
-      // 인증 없는 공용 proxy이므로 동일 namespace의 workload와
-      // Istio ambient가 식별한 kubelet health probe만 접속을 허용한다.
+      // 인증 없는 공용 proxy이므로 동일 namespace workload만 접속을 허용한다.
       new kubernetes.networking.v1.NetworkPolicy(
         `${resourceName}-networkPolicy`,
         {
@@ -190,11 +178,6 @@ export const CoderWorkspaceMeshProxyComponent =
                       matchLabels: {
                         'kubernetes.io/metadata.name': args.namespace,
                       },
-                    },
-                  },
-                  {
-                    ipBlock: {
-                      cidr: '169.254.7.127/32',
                     },
                   },
                 ],

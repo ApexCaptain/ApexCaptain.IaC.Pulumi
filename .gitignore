@@ -35,6 +35,8 @@ Pulumi*.yaml
 Pulumi*.yml
 inventory.ini
 .specstory
+.superpowers
+docs/superpowers
 .turbo
 tmp
 /.github/generated
