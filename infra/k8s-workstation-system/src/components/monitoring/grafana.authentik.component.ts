@@ -126,12 +126,17 @@ export const GrafanaAuthentikComponent = utils.functions.defineComponent(
     );
 
     const issuerUrl = pulumi.interpolate`https://${args.hosts.authentik}/application/o/${grafanaApplicationSlug}/`;
+    // Authentik serves authorize/token/userinfo at shared /application/o/* (not under slug)
+    const oauthBaseUrl = pulumi.interpolate`https://${args.hosts.authentik}/application/o`;
 
     return {
       output: pulumi.output({
         oidc: {
           name: 'Authentik',
           issuerUrl,
+          authUrl: pulumi.interpolate`${oauthBaseUrl}/authorize/`,
+          tokenUrl: pulumi.interpolate`${oauthBaseUrl}/token/`,
+          apiUrl: pulumi.interpolate`${oauthBaseUrl}/userinfo/`,
           groupsClaim: grafanaOidcGroupsClaim,
           requestedScopes: [
             'openid',

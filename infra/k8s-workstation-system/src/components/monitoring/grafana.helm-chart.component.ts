@@ -4,6 +4,12 @@
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
+import {
+  k8sNodeResourcesDashboardJson,
+  k8sPodResourcesDashboardJson,
+  lokiPodLogsDashboardJson,
+  lokiServiceLogsDashboardJson,
+} from './dashboards';
 
 interface GrafanaHelmChartComponentArgsShape {
   namespace: string;
@@ -13,6 +19,9 @@ interface GrafanaHelmChartComponentArgsShape {
   oidc: {
     name: string;
     issuerUrl: string;
+    authUrl: string;
+    tokenUrl: string;
+    apiUrl: string;
     requestedScopes: string[];
     roleAttributePath: string;
     clientId: string;
@@ -58,7 +67,9 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
         args.adminPassword,
         args.storageClassName,
         args.oidc.name,
-        args.oidc.issuerUrl,
+        args.oidc.authUrl,
+        args.oidc.tokenUrl,
+        args.oidc.apiUrl,
         args.oidc.clientId,
         args.oidc.clientSecret,
         args.oidc.requestedScopes,
@@ -73,7 +84,9 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
           adminPassword,
           storageClassName,
           oidcName,
-          issuerUrl,
+          authUrl,
+          tokenUrl,
+          apiUrl,
           clientId,
           clientSecret,
           requestedScopes,
@@ -103,14 +116,19 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                 name: oidcName,
                 allow_sign_up: true,
                 client_id: clientId,
-                client_secret: clientSecret,
+                // Chart assertNoLeakedSecrets forbids plaintext secrets in grafana.ini
+                client_secret:
+                  '$__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}',
                 scopes,
-                auth_url: `${issuerUrl}authorize/`,
-                token_url: `${issuerUrl}token/`,
-                api_url: `${issuerUrl}userinfo/`,
+                auth_url: authUrl,
+                token_url: tokenUrl,
+                api_url: apiUrl,
                 role_attribute_path: roleAttributePath,
                 role_attribute_strict: true,
               },
+            },
+            'envRenderSecret': {
+              GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: clientSecret,
             },
             'adminUser': 'admin',
             adminPassword,
@@ -146,6 +164,53 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                     },
                   },
                 ],
+              },
+            },
+            'dashboardProviders': {
+              'dashboardproviders.yaml': {
+                apiVersion: 1,
+                providers: [
+                  {
+                    name: 'logs',
+                    orgId: 1,
+                    folder: 'logs',
+                    type: 'file',
+                    disableDeletion: false,
+                    editable: true,
+                    options: {
+                      path: '/var/lib/grafana/dashboards/logs',
+                    },
+                  },
+                  {
+                    name: 'metrics',
+                    orgId: 1,
+                    folder: 'metrics',
+                    type: 'file',
+                    disableDeletion: false,
+                    editable: true,
+                    options: {
+                      path: '/var/lib/grafana/dashboards/metrics',
+                    },
+                  },
+                ],
+              },
+            },
+            'dashboards': {
+              logs: {
+                'loki-pod-logs': {
+                  json: lokiPodLogsDashboardJson,
+                },
+                'loki-service-logs': {
+                  json: lokiServiceLogsDashboardJson,
+                },
+              },
+              metrics: {
+                'k8s-node-resources': {
+                  json: k8sNodeResourcesDashboardJson,
+                },
+                'k8s-pod-resources': {
+                  json: k8sPodResourcesDashboardJson,
+                },
               },
             },
             'persistence': {
@@ -190,7 +255,7 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
       output: pulumi.output({
         services: {
           grafana: {
-            name: `${grafanaReleaseName}-grafana`,
+            name: grafanaReleaseName,
             port: {
               http: 80,
             },

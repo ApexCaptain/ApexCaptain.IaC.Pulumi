@@ -1,5 +1,6 @@
 /**
- * Grafana Loki — SingleBinary + filesystem PVC, OTLP distributor enabled
+ * Grafana Loki — SingleBinary + filesystem PVC
+ * OTLP ingest is built-in at /otlp (no distributor.otlp config — invalid in Loki 3.x)
  */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
@@ -50,16 +51,31 @@ export const LokiHelmChartComponent = utils.functions.defineComponent(
             storage: {
               type: 'filesystem',
             },
+            schemaConfig: {
+              configs: [
+                {
+                  from: '2024-01-01',
+                  store: 'tsdb',
+                  object_store: 'filesystem',
+                  schema: 'v13',
+                  index: {
+                    prefix: 'loki_index_',
+                    period: '24h',
+                  },
+                },
+              ],
+            },
+            storage_config: {
+              filesystem: {
+                directory: '/var/loki/chunks',
+              },
+            },
             limits_config: {
               retention_period: '168h',
             },
-            distributor: {
-              otlp: {
-                enabled: true,
-              },
-            },
           },
           singleBinary: {
+            replicas: 1,
             persistence: {
               enabled: true,
               storageClass: args.storageClassName,

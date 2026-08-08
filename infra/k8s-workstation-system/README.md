@@ -25,7 +25,7 @@ Cilium → cert-manager → Vault → Istio → CNPG operator
 | `postgresqlOperator` | CloudNativePG operator |
 | `longhorn` | 스토리지 + Authentik proxy UI |
 | `authentik` | IdP Helm + mesh + groups/flows/outpost |
-| `monitoring` | OTel operator, VictoriaMetrics, Loki, Tempo, Grafana + Authentik OIDC + mesh ingress |
+| `monitoring` | OTel operator, VictoriaMetrics, Loki, Tempo, Grafana + Authentik OIDC + mesh ingress (`istio.io/dataplane-mode: ambient`) |
 
 ### Contract export (요약)
 

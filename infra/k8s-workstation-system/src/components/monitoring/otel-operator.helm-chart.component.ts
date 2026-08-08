@@ -1,7 +1,8 @@
 /**
  * OpenTelemetry Operator Helm — monitoring NS + CRD/controller
  *
- * cert-manager webhook 연동. downstream Collector/Instrumentation CR의 전제.
+ * Namespace는 Istio ambient(`istio.io/dataplane-mode: ambient`) — sidecar 없이
+ * ztunnel L4 mTLS. cert-manager webhook 연동. downstream Collector/Instrumentation CR의 전제.
  */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
@@ -34,6 +35,9 @@ export const OtelOperatorHelmChartComponent = utils.functions.defineComponent(
       {
         metadata: {
           name: 'monitoring',
+          labels: {
+            'istio.io/dataplane-mode': 'ambient',
+          },
         },
       },
       {
@@ -64,6 +68,8 @@ export const OtelOperatorHelmChartComponent = utils.functions.defineComponent(
               repository:
                 'ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s',
             },
+            // ambient: sidecar.istio.io/inject 비활성화 어노테이션을 두지 않음
+            podAnnotations: {},
             resources: {
               requests: {
                 cpu: '50m',

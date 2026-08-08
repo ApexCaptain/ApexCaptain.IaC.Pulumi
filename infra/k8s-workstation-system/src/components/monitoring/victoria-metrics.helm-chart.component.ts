@@ -45,7 +45,7 @@ export const VictoriaMetricsHelmChartComponent = utils.functions.defineComponent
             retentionPeriod: '15d',
             persistentVolume: {
               enabled: true,
-              storageClass: args.storageClassName,
+              storageClassName: args.storageClassName,
               size: '20Gi',
             },
             resources: {
@@ -71,7 +71,7 @@ export const VictoriaMetricsHelmChartComponent = utils.functions.defineComponent
       output: pulumi.output({
         services: {
           victoriaMetrics: {
-            name: 'victoria-metrics-victoria-metrics-single',
+            name: 'victoria-metrics-victoria-metrics-single-server',
             port: {
               http: 8428,
             },

@@ -321,6 +321,14 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
                           tls_key_file  = "/vault/userconfig/${vaultServerCertificateSecretName}/tls.key"
                           address = "[::]:${vaultServicePort}"
                           cluster_address = "[::]:${vaultClusterPort}"
+                          telemetry {
+                            unauthenticated_metrics_access = true
+                          }
+                        }
+
+                        telemetry {
+                          prometheus_retention_time = "24h"
+                          disable_hostname = true
                         }
 
                         storage "raft" {

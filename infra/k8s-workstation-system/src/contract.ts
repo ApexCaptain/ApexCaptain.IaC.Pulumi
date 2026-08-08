@@ -851,41 +851,39 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         { dependsOn: [otelOperatorHelmChart, longhornResources] },
       );
 
-    const lokiHelmChart =
-      new components.monitoring.LokiHelmChartComponent(
-        'lokiHelmChart',
-        {
-          namespace: monitoringNamespace,
-          storageClassName: monitoringStorageClass,
-          helm: {
-            loki: {
-              version: '7.2.0',
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['grafana.github.io/helm-charts'],
-            },
+    const lokiHelmChart = new components.monitoring.LokiHelmChartComponent(
+      'lokiHelmChart',
+      {
+        namespace: monitoringNamespace,
+        storageClassName: monitoringStorageClass,
+        helm: {
+          loki: {
+            version: '7.2.0',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls['grafana.github.io/helm-charts'],
           },
-          providers: { kubernetes: workstationK8sProvider },
         },
-        { dependsOn: [otelOperatorHelmChart, longhornResources] },
-      );
+        providers: { kubernetes: workstationK8sProvider },
+      },
+      { dependsOn: [otelOperatorHelmChart, longhornResources] },
+    );
 
-    const tempoHelmChart =
-      new components.monitoring.TempoHelmChartComponent(
-        'tempoHelmChart',
-        {
-          namespace: monitoringNamespace,
-          storageClassName: monitoringStorageClass,
-          helm: {
-            tempo: {
-              version: '1.24.4',
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['grafana.github.io/helm-charts'],
-            },
+    const tempoHelmChart = new components.monitoring.TempoHelmChartComponent(
+      'tempoHelmChart',
+      {
+        namespace: monitoringNamespace,
+        storageClassName: monitoringStorageClass,
+        helm: {
+          tempo: {
+            version: '1.24.4',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls['grafana.github.io/helm-charts'],
           },
-          providers: { kubernetes: workstationK8sProvider },
         },
-        { dependsOn: [otelOperatorHelmChart, longhornResources] },
-      );
+        providers: { kubernetes: workstationK8sProvider },
+      },
+      { dependsOn: [otelOperatorHelmChart, longhornResources] },
+    );
 
     const grafanaHost =
       cloudflareContract.output.zones.ayteneve93com.records.grafana;
@@ -896,7 +894,8 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           hosts: {
             grafana: grafanaHost,
-            authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
+            authentik:
+              cloudflareContract.output.zones.ayteneve93com.records.auth,
           },
           authentik: {
             allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
@@ -924,6 +923,9 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           oidc: {
             name: grafanaAuthentik.output.oidc.name,
             issuerUrl: grafanaAuthentik.output.oidc.issuerUrl,
+            authUrl: grafanaAuthentik.output.oidc.authUrl,
+            tokenUrl: grafanaAuthentik.output.oidc.tokenUrl,
+            apiUrl: grafanaAuthentik.output.oidc.apiUrl,
             requestedScopes: grafanaAuthentik.output.oidc.requestedScopes,
             roleAttributePath: grafanaAuthentik.output.oidc.roleAttributePath,
             clientId: grafanaAuthentik.secret.oidc.clientId,
@@ -944,7 +946,9 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             grafana: {
               version: '10.5.15',
               repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['grafana.github.io/helm-charts'],
+                commonEsc.esc.helmRepositoryUrls[
+                  'grafana.github.io/helm-charts'
+                ],
             },
           },
           providers: { kubernetes: workstationK8sProvider },

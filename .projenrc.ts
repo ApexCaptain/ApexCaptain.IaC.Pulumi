@@ -1043,7 +1043,7 @@ void (async () => {
               'Copilot IDE': false,
               'Claude Code': false,
               'Factory Droid CLI': false,
-              'Cursor CLI': true,
+              'Cursor CLI': false,
               'Gemini CLI': false,
               'Codex CLI': false,
               'DeepSeek TUI': false,

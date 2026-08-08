@@ -38,7 +38,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 8GB
+          memory: 10GB
 
     volumes:
       # Anonymous Volume
