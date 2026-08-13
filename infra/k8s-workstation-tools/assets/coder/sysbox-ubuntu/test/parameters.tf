@@ -27,7 +27,7 @@ data "coder_parameter" "cpu" {
 data "coder_parameter" "memory" {
   name         = "memory"
   display_name = "Memory"
-  description  = "사용 가능한 최대 메모리(GB) 입니다."
+  description  = "사용 가능한 최대 메모리(GB)입니다."
   default      = "4"
   icon         = local.icons_base64_data_url["ram.png"]
   mutable      = true
@@ -56,15 +56,15 @@ data "coder_parameter" "memory" {
 
 data "coder_parameter" "home_disk_size" {
   name         = "home_disk_size"
-  display_name = "홈 디스크 사이즈 (GB)"
-  description  = "최소: 10 GB, 최대: 50 GB. 디스크 사이즈는 확장만 가능합니다."
+  display_name = "(SSD) Home 디스크 사이즈 (GB)"
+  description  = "최소: 10 GB, 최대: 100 GB. /home/coder 디렉토리에 마운트됩니다. 디스크 사이즈는 확장만 가능합니다."
   default      = "10"
   type         = "number"
   icon         = local.icons_base64_data_url["ssd.png"]
   mutable      = true
   validation {
-    min = 10
-    max = 50
+    min       = 10
+    max       = 100
     monotonic = "increasing"
   }
   order = 3
@@ -72,18 +72,34 @@ data "coder_parameter" "home_disk_size" {
 
 data "coder_parameter" "docker_disk_size" {
   name         = "docker_disk_size"
-  display_name = "Docker 디스크 사이즈 (GB)"
-  description  = "최소: 10 GB, 최대: 50 GB. 디스크 사이즈는 확장만 가능합니다."
+  display_name = "(SSD) Docker 디스크 사이즈 (GB)"
+  description  = "최소: 10 GB, 최대: 100 GB. /var/lib/docker 디렉토리에 마운트됩니다. 디스크 사이즈는 확장만 가능합니다."
   default      = "10"
   type         = "number"
   icon         = local.icons_base64_data_url["ssd.png"]
   mutable      = true
   validation {
-    min = 10
-    max = 50
+    min       = 10
+    max       = 100
     monotonic = "increasing"
   }
   order = 4
+}
+
+data "coder_parameter" "data_disk_size" {
+  name         = "data_disk_size"
+  display_name = "(HDD) Data 디스크 사이즈 (GB)"
+  description  = "최소: 10 GB, 최대: 300 GB. /home/coder/data 디렉토리에 마운트됩니다. 디스크 사이즈는 확장만 가능합니다."
+  default      = "10"
+  type         = "number"
+  icon         = local.icons_base64_data_url["hdd.png"]
+  mutable      = true
+  validation {
+    min       = 10
+    max       = 300
+    monotonic = "increasing"
+  }
+  order = 5
 }
 
 data "coder_parameter" "additional_ides" {
@@ -98,7 +114,7 @@ data "coder_parameter" "additional_ides" {
   option {
     name  = "VS Code (Desktop)"
     value = "vscode-desktop"
-    icon = local.icons_base64_data_url["vscode.png"]
+    icon  = local.icons_base64_data_url["vscode.png"]
   }
   option {
     name  = "VS Code (Web)"
@@ -108,20 +124,18 @@ data "coder_parameter" "additional_ides" {
   option {
     name  = "Terminal"
     value = "terminal"
-    icon = "/icon/terminal.svg"
+    icon  = "/icon/terminal.svg"
   }
   option {
     name  = "Cursor"
     value = "cursor"
-    icon = "/icon/cursor.svg"
+    icon  = "/icon/cursor.svg"
   }
 
-
-  order        = 5
-
+  order = 6
 }
 
-data "coder_parameter" "fuse_count" { 
+data "coder_parameter" "fuse_count" {
   name         = "fuse_count"
   display_name = "Fuse Device 수"
   description  = "Fuse Device 수를 선택합니다. Rclone과 같은 도구를 사용해 Google Drive, OneDrive 등을 마운트할 때 사용됩니다."
@@ -129,7 +143,7 @@ data "coder_parameter" "fuse_count" {
   type         = "number"
   icon         = local.icons_base64_data_url["cloud.png"]
   mutable      = true
-  order        = 6
+  order        = 7
   validation {
     min = 0
     max = var.device_plugin_fuse_count_limit
@@ -139,16 +153,16 @@ data "coder_parameter" "fuse_count" {
 data "coder_parameter" "auto_stop_workspace" {
   name         = "auto_stop_workspace"
   display_name = "Auto Stop Workspace"
-  description  = "비활성 상태일 때 워크스페이스를 종료합니다. Workspace 내부에 Running 상태의 Container가 있을 경우 동작하지 않습니다"
+  description  = "비활성 상태일 때 워크스페이스를 종료합니다. Workspace 내부에 Running 상태의 Container가 있을 경우 동작하지 않습니다."
   default      = true
   type         = "bool"
   icon         = local.icons_base64_data_url["stop.png"]
   mutable      = true
-  order        = 7
+  order        = 8
 }
 
 data "coder_parameter" "auto_stop_workspace_wait_mins" {
-  count = data.coder_parameter.auto_stop_workspace.value ? 1 : 0
+  count        = data.coder_parameter.auto_stop_workspace.value ? 1 : 0
   name         = "auto_stop_workspace_wait_mins"
   display_name = "Auto Stop Workspace 대기 시간 (분)"
   description  = "비활성 상태로 유지된 시간이 이 값을 초과하면 워크스페이스를 자동으로 종료합니다."
@@ -159,7 +173,7 @@ data "coder_parameter" "auto_stop_workspace_wait_mins" {
   validation {
     min = 10
   }
-  order        = 8
+  order = 9
 }
 
 data "coder_parameter" "enable_devcontainer_cleaner" {
@@ -170,11 +184,11 @@ data "coder_parameter" "enable_devcontainer_cleaner" {
   type         = "bool"
   icon         = local.icons_base64_data_url["cleaning.png"]
   mutable      = true
-  order        = 9
+  order        = 10
 }
 
 data "coder_parameter" "devcontainer_cleaner_wait_mins" {
-  count = data.coder_parameter.enable_devcontainer_cleaner.value ? 1 : 0
+  count        = data.coder_parameter.enable_devcontainer_cleaner.value ? 1 : 0
   name         = "devcontainer_cleaner_wait_mins"
   display_name = "DevContainer Cleaner 대기 시간 (분)"
   description  = "비활성 상태로 유지된 시간이 이 값을 초과하면 미사용 DevContainer로 간주해 자동으로 종료(Stop)합니다."
@@ -185,7 +199,7 @@ data "coder_parameter" "devcontainer_cleaner_wait_mins" {
   validation {
     min = 5
   }
-  order        = 10
+  order = 11
 }
 
 data "coder_workspace" "me" {}

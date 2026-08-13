@@ -1,4 +1,3 @@
-
 # https://registry.coder.com/modules/coder/cursor
 module "cursor" {
   count    = contains(local.selected_additional_ides, "cursor") ? data.coder_workspace.me.start_count : 0

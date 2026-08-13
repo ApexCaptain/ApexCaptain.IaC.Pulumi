@@ -19,8 +19,8 @@ resource "kubernetes_persistent_volume_claim_v1" "home" {
   }
   wait_until_bound = false
   spec {
-    storage_class_name = var.storage_class_name
-    access_modes = ["ReadWriteOnce"]
+    storage_class_name = var.home_storage_class_name
+    access_modes       = ["ReadWriteOnce"]
     resources {
       requests = {
         storage = "${data.coder_parameter.home_disk_size.value}Gi"
@@ -50,8 +50,8 @@ resource "kubernetes_persistent_volume_claim_v1" "docker" {
   }
   wait_until_bound = false
   spec {
-    storage_class_name = var.storage_class_name
-    access_modes = ["ReadWriteOnce"]
+    storage_class_name = var.docker_storage_class_name
+    access_modes       = ["ReadWriteOnce"]
     resources {
       requests = {
         storage = "${data.coder_parameter.docker_disk_size.value}Gi"
@@ -60,10 +60,41 @@ resource "kubernetes_persistent_volume_claim_v1" "docker" {
   }
 }
 
+resource "kubernetes_persistent_volume_claim_v1" "data" {
+  metadata {
+    name      = "coder-${data.coder_workspace.me.id}-data"
+    namespace = var.namespace
+    labels = {
+      "app.kubernetes.io/name"     = "coder-data-pvc"
+      "app.kubernetes.io/instance" = "coder-data-pvc-${data.coder_workspace.me.id}"
+      "app.kubernetes.io/part-of"  = "coder"
+      // Coder-specific labels.
+      "com.coder.resource"       = "true"
+      "com.coder.workspace.id"   = data.coder_workspace.me.id
+      "com.coder.workspace.name" = data.coder_workspace.me.name
+      "com.coder.user.id"        = data.coder_workspace_owner.me.id
+      "com.coder.user.username"  = data.coder_workspace_owner.me.name
+    }
+    annotations = {
+      "com.coder.user.email" = data.coder_workspace_owner.me.email
+    }
+  }
+  wait_until_bound = false
+  spec {
+    storage_class_name = var.data_storage_class_name
+    access_modes       = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = "${data.coder_parameter.data_disk_size.value}Gi"
+      }
+    }
+  }
+}
+
 resource "kubernetes_config_map_v1" "docker_daemon_json" {
   count = data.coder_workspace.me.start_count
   metadata {
-    name = "coder-${data.coder_workspace.me.id}-docker-daemon-json"
+    name      = "coder-${data.coder_workspace.me.id}-docker-daemon-json"
     namespace = var.namespace
   }
   data = {
@@ -80,11 +111,10 @@ resource "kubernetes_config_map_v1" "docker_daemon_json" {
   }
 }
 
-
 resource "kubernetes_service_v1" "main" {
   count = data.coder_workspace.me.start_count
   metadata {
-    name = "coder-${data.coder_workspace.me.id}"
+    name      = "coder-${data.coder_workspace.me.id}"
     namespace = var.namespace
     labels = {
       "app.kubernetes.io/name"     = "coder-workspace-svc"
@@ -116,9 +146,9 @@ resource "kubernetes_manifest" "main" {
   count = data.coder_workspace.me.start_count
   manifest = {
     apiVersion = "apps/v1"
-    kind = "Deployment"
+    kind       = "Deployment"
     metadata = {
-      name = "coder-${data.coder_workspace.me.id}"
+      name      = "coder-${data.coder_workspace.me.id}"
       namespace = var.namespace
       annotations = {
         "com.coder.user.email" = data.coder_workspace_owner.me.email
@@ -166,39 +196,43 @@ resource "kubernetes_manifest" "main" {
           }
         }
         spec = {
-          runtimeClassName = var.runtime_class_name
-          hostUsers = false
+          runtimeClassName   = var.runtime_class_name
+          hostUsers          = false
           enableServiceLinks = false
           securityContext = {
-            runAsUser = 1000
+            runAsUser    = 1000
             runAsNonRoot = false
           }
           hostname = "sysbox-ubuntu"
           initContainers = [
             {
-              name = "setup-home-directory"
-              image = "busybox"
-              command = ["sh", "-c", "chown -R 1000:1000 /home/coder"]
+              name    = "setup-home-directory"
+              image   = "busybox"
+              command = ["sh", "-c", "chown -R 1000:1000 /home/coder /home/coder/data"]
               securityContext = {
                 runAsUser = 0
               }
               volumeMounts = [
                 {
-                  name = "home"
+                  name      = "home"
                   mountPath = "/home/coder"
+                },
+                {
+                  name      = "data"
+                  mountPath = "/home/coder/data"
                 }
               ]
             }
           ],
           containers = [
             {
-              name = "dev"
-              image = "codercom/enterprise-base:ubuntu-resolute"
+              name            = "dev"
+              image           = "codercom/enterprise-base:ubuntu-resolute"
               imagePullPolicy = "Always"
               command = [
                 "sh",
-                 "-c",
-                 <<-EOT
+                "-c",
+                <<-EOT
                   # Ubuntu 기본 Mirror 설정을 Kakao로 변경; @ToDO 추후 사용자 환경에 맞게 변경 필요
                   sudo sed -i 's/kr.archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
                   sudo sed -i 's|http://archive.ubuntu.com|http://mirror.kakao.com|g' /etc/apt/sources.list.d/ubuntu.sources
@@ -206,22 +240,21 @@ resource "kubernetes_manifest" "main" {
                   sudo apt-get update -y
                   ${coder_agent.main.init_script}
                  EOT
-                 
               ]
               securityContext = {
                 runAsUser = 1000
               }
               env = [
                 {
-                  name = "TZ",
+                  name  = "TZ"
                   value = "Asia/Seoul"
                 },
                 {
-                  name = "CODER_AGENT_TOKEN"
+                  name  = "CODER_AGENT_TOKEN"
                   value = coder_agent.main.token
                 },
                 {
-                  name = "CODER_WORKSPACE_SERVICE_DOMAIN"
+                  name  = "CODER_WORKSPACE_SERVICE_DOMAIN"
                   value = "${kubernetes_service_v1.main[count.index].metadata[0].name}.${var.namespace}.svc.cluster.local"
                 },
                 {
@@ -239,37 +272,42 @@ resource "kubernetes_manifest" "main" {
               ]
               resources = {
                 requests = {
-                  cpu = "250m"
+                  cpu    = "250m"
                   memory = "512Mi"
                 }
                 limits = {
-                  cpu = "${data.coder_parameter.cpu.value}"
-                  memory = "${data.coder_parameter.memory.value}Gi"
+                  cpu                             = "${data.coder_parameter.cpu.value}"
+                  memory                          = "${data.coder_parameter.memory.value}Gi"
                   "${var.device_plugin_fuse_key}" = data.coder_parameter.fuse_count.value
                 }
               }
               volumeMounts = [
-                // User Data
+                // User Home Volume
                 {
-                  name = "home"
+                  name      = "home"
                   mountPath = "/home/coder"
                 },
-                // Docker Data
+                // Docker Volume
                 {
-                  name = "docker"
+                  name      = "docker"
                   mountPath = "/var/lib/docker"
+                },
+                // Data Volume
+                {
+                  name      = "data"
+                  mountPath = "/home/coder/data"
                 },
                 // Docker Daemon JSON CM
                 {
-                  name = "docker-daemon-json"
+                  name      = "docker-daemon-json"
                   mountPath = "/etc/docker/daemon.json"
-                  subPath = "daemon.json"
+                  subPath   = "daemon.json"
                 },
                 // LXCFS
                 {
-                  name = "lxcfs-meminfo"
+                  name      = "lxcfs-meminfo"
                   mountPath = "/proc/meminfo"
-                  readOnly = true
+                  readOnly  = true
                 },
                 {
                   name      = "lxcfs-cpuinfo"
@@ -295,18 +333,25 @@ resource "kubernetes_manifest" "main" {
             },
           ]
           volumes = [
-            // User Data
+            // Home PVC
             {
               name = "home"
               persistentVolumeClaim = {
                 claimName = kubernetes_persistent_volume_claim_v1.home.metadata[0].name
               }
             },
-            // Docker Data
+            // Docker PVC
             {
               name = "docker"
               persistentVolumeClaim = {
                 claimName = kubernetes_persistent_volume_claim_v1.docker.metadata[0].name
+              }
+            },
+            // Data PVC
+            {
+              name = "data"
+              persistentVolumeClaim = {
+                claimName = kubernetes_persistent_volume_claim_v1.data.metadata[0].name
               }
             },
             // Docker Daemon JSON ConfigMap
@@ -316,7 +361,7 @@ resource "kubernetes_manifest" "main" {
                 name = kubernetes_config_map_v1.docker_daemon_json[count.index].metadata[0].name
                 items = [
                   {
-                    key = "daemon.json"
+                    key  = "daemon.json"
                     path = "daemon.json"
                   }
                 ]
@@ -324,7 +369,7 @@ resource "kubernetes_manifest" "main" {
             },
             // LXCFS
             {
-              name = "lxcfs-meminfo",
+              name = "lxcfs-meminfo"
               hostPath = {
                 path = "${var.lxcfs_host_mount_path}/proc/meminfo"
                 type = "File"
@@ -369,7 +414,7 @@ resource "kubernetes_manifest" "main" {
                     labelSelector = {
                       matchExpressions = [
                         {
-                          key = "app.kubernetes.io/name"
+                          key      = "app.kubernetes.io/name"
                           operator = "In"
                           values = [
                             "coder-workspace"
