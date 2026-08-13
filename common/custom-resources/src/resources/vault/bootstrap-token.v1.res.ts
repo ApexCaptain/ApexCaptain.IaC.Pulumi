@@ -33,6 +33,23 @@ export type BootstrapTokenV1Args =
 
 const BOOTSTRAP_TOKEN_SCRIPT = 'bootstrap-token.v1.script.ts';
 
+/** Command stdout는 JSON이어야 하지만, 로그가 stdout에 섞인 기존 state도 허용한다. */
+function parseBootstrapTokenStdout(stdout: string): { token?: string } {
+  const trimmed = stdout.trim();
+  try {
+    return JSON.parse(trimmed) as { token?: string };
+  } catch {
+    const jsonStart = trimmed.lastIndexOf('{');
+    const jsonEnd = trimmed.lastIndexOf('}');
+    if (jsonStart < 0 || jsonEnd <= jsonStart) {
+      throw new Error('bootstrap token command stdout was not JSON');
+    }
+    return JSON.parse(trimmed.slice(jsonStart, jsonEnd + 1)) as {
+      token?: string;
+    };
+  }
+}
+
 /** Command subprocess — `scripts/`의 TS를 ts-node로 실행 */
 function resolveBootstrapTokenScriptPath(): string {
   let dir = __dirname;
@@ -106,7 +123,7 @@ export class BootstrapTokenV1 extends command.local.Command {
 
     this.token = pulumi.secret(
       this.stdout.apply(stdout => {
-        const parsed = JSON.parse(stdout.trim()) as { token?: string };
+        const parsed = parseBootstrapTokenStdout(stdout);
         if (!parsed.token?.trim()) {
           throw new Error('bootstrap token command returned empty token');
         }

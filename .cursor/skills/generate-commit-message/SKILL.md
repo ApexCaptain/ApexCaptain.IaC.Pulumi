@@ -20,7 +20,7 @@ description: >-
 
 - `git status`
 - `git diff` (staged + unstaged)
-- `git log -5 --oneline` (최근 커밋 메시지 스타일 참고)
+- `git log -5 --oneline` (prefix·본문 길이 등 **형식** 참고. 언어는 아래 규칙, 영어 커밋이 있어도 따르지 않음)
 
 ## 2. Secret 누출 검사
 
@@ -35,6 +35,8 @@ staged/unstaged 변경에 아래가 포함되면 **파일을 작성하지 않고
 이상 없으면 **`.github/generated/commit-message.txt`** 에만 작성합니다.
 
 - 디렉터리가 없으면 생성
+- **언어:** 한국어. 제목·본문 모두 한국어로 쓴다. `git log`가 영어여도 영어 메시지를 쓰지 않는다. 고유명사·명령·경로만 원문 유지 (예: `GH_TOKEN`, `/home/coder/data`)
+- **문체:** 간결한 문체 (~함 / 명사형 종결 혼용 가능, 경어체 불필요). README skill과 동일
 - **제목(첫 줄)** 은 반드시 아래 prefix 중 하나로 시작: `test`, `feat`, `fix`, `chore`, `dev`
   - 형식: `{prefix}: {요약}` (예: `feat: A 기능 추가`)
   - prefix 선택 기준:
@@ -51,3 +53,4 @@ staged/unstaged 변경에 아래가 포함되면 **파일을 작성하지 않고
 
 - 사용자 요청 없이 `git commit` / `git push` 실행
 - secret이 의심되는 변경을 무시하고 메시지 작성
+- **영어 `git log`를 이유로 제목·본문을 영어로 작성**

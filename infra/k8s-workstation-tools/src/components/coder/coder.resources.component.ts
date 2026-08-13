@@ -9,7 +9,11 @@ interface CoderResourcesComponentArgsShape {
     sysboxUbuntu: {
       namespace: string;
       runtimeClassName: string;
-      storageClassName: string;
+      storageClassNames: {
+        home: string;
+        docker: string;
+        data: string;
+      };
       lxcfsHostMountPath: string;
       devicePluginFuseKey: string;
       meshProxy: {
@@ -26,7 +30,11 @@ interface CoderResourcesComponentArgsShape {
     sysboxUbuntuTest: {
       namespace: string;
       runtimeClassName: string;
-      storageClassName: string;
+      storageClassNames: {
+        home: string;
+        docker: string;
+        data: string;
+      };
       lxcfsHostMountPath: string;
       devicePluginFuseKey: string;
       meshProxy: {
@@ -79,7 +87,7 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
             active: true,
             tfVars: [
               {
-                name: 'use-kubeconfig',
+                name: 'use_kubeconfig',
                 value: 'false',
               },
               {
@@ -91,8 +99,19 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
                 value: args.templateVariables.sysboxUbuntu.runtimeClassName,
               },
               {
-                name: 'storage_class_name',
-                value: args.templateVariables.sysboxUbuntu.storageClassName,
+                name: 'home_storage_class_name',
+                value:
+                  args.templateVariables.sysboxUbuntu.storageClassNames.home,
+              },
+              {
+                name: 'docker_storage_class_name',
+                value:
+                  args.templateVariables.sysboxUbuntu.storageClassNames.docker,
+              },
+              {
+                name: 'data_storage_class_name',
+                value:
+                  args.templateVariables.sysboxUbuntu.storageClassNames.data,
               },
               {
                 name: 'workspace_directory_name',
@@ -150,7 +169,7 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
         name: 'sysbox-ubuntu-test-template',
         displayName: 'Ubuntu on Sysbox (Test)',
         description: dedent`
-          Sysbox-runc로 동작하는 Ubuntu 워크스페이스 템플릿입니다. 
+          Sysbox-runc로 동작하는 Ubuntu 워크스페이스 템플릿입니다.
           DevContainer 기능을 사용할 수 있습니다.
         `,
         icon: '/icon/ubuntu.svg',
@@ -167,7 +186,7 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
             active: true,
             tfVars: [
               {
-                name: 'use-kubeconfig',
+                name: 'use_kubeconfig',
                 value: 'false',
               },
               {
@@ -179,8 +198,22 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
                 value: args.templateVariables.sysboxUbuntuTest.runtimeClassName,
               },
               {
-                name: 'storage_class_name',
-                value: args.templateVariables.sysboxUbuntuTest.storageClassName,
+                name: 'home_storage_class_name',
+                value:
+                  args.templateVariables.sysboxUbuntuTest.storageClassNames
+                    .home,
+              },
+              {
+                name: 'docker_storage_class_name',
+                value:
+                  args.templateVariables.sysboxUbuntuTest.storageClassNames
+                    .docker,
+              },
+              {
+                name: 'data_storage_class_name',
+                value:
+                  args.templateVariables.sysboxUbuntuTest.storageClassNames
+                    .data,
               },
               {
                 name: 'workspace_directory_name',
@@ -218,7 +251,8 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
               },
               {
                 name: 'vault_jwt_auth_path',
-                value: args.templateVariables.sysboxUbuntuTest.vault.jwtAuthPath,
+                value:
+                  args.templateVariables.sysboxUbuntuTest.vault.jwtAuthPath,
               },
               {
                 name: 'vault_jwt_role',

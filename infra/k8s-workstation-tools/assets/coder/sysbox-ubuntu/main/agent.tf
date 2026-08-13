@@ -1,13 +1,20 @@
 resource "coder_agent" "main" {
-  os             = "linux"
-  arch           = "amd64"
+  os   = "linux"
+  arch = "amd64"
+
+  # GitHub External Auth 토큰. gh CLI·DevContainer로 넘길 때 사용한다.
+  # GIT_ASKPASS와 달리 빌드 시점 스냅샷이며, 미연결이면 빈 값이다.
+  env = {
+    GH_TOKEN     = data.coder_external_auth.github.access_token
+    GITHUB_TOKEN = data.coder_external_auth.github.access_token
+  }
 
   display_apps {
     port_forwarding_helper = true
-    ssh_helper = true
-    vscode = contains(local.selected_additional_ides, "vscode-desktop")
-    vscode_insiders = false
-    web_terminal = contains(local.selected_additional_ides, "terminal")
+    ssh_helper             = true
+    vscode                 = contains(local.selected_additional_ides, "vscode-desktop")
+    vscode_insiders        = false
+    web_terminal           = contains(local.selected_additional_ides, "terminal")
   }
 
   metadata {
@@ -45,10 +52,10 @@ resource "coder_agent" "main" {
   metadata {
     display_name = "Load Average"
     key          = "4_load_host"
-    script   = <<EOT
+    script       = <<EOT
       echo "`cat /proc/loadavg | awk '{ print $1 }'` `nproc`" | awk '{ printf "%0.2f", $1/$2 }'
     EOT
-    interval = 10
-    timeout  = 1
+    interval     = 10
+    timeout      = 1
   }
 }

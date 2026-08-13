@@ -23,9 +23,19 @@ variable "runtime_class_name" {
   default     = "sysbox-runc"
 }
 
-variable "storage_class_name" {
+variable "home_storage_class_name" {
   type        = string
-  description = "The storage class name to use for the workspace"
+  description = "The storage class name to use for the home storage"
+}
+
+variable "docker_storage_class_name" {
+  type        = string
+  description = "The storage class name to use for the docker storage"
+}
+
+variable "data_storage_class_name" {
+  type        = string
+  description = "The storage class name to use for the data storage"
 }
 
 variable "workspace_directory_name" {

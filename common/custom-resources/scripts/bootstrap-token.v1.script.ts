@@ -2,6 +2,7 @@
  * Vault bootstrap token resolve script (v1)
  *
  * Pulumi Command subprocess entry. Pod exec로 orphan root-policy token을 발급·갱신하고 PVC에 enc 저장.
+ * stdout은 JSON 결과만 출력한다. 로그는 stderr(console.warn/error)로 보낸다.
  */
 import * as crypto from 'crypto';
 import * as utils from '@common/utils/src';
@@ -284,7 +285,7 @@ export async function resolveBootstrapTokenV1(
           return;
         }
 
-        console.info(
+        console.warn(
           `Syncing bootstrap token file to ${writePodName} (scale-up / missing file)`,
         );
         await writeEncryptedBootstrapToken(writePodName, encryptedToken);
@@ -359,12 +360,12 @@ export async function resolveBootstrapTokenV1(
     `);
     previousToken = parseOperatorInitResponse(initJsonStdout);
     isExpired = true;
-    console.info('Vault initialized with root token for bootstrap');
+    console.warn('Vault initialized with root token for bootstrap');
   }
 
   if (isExpired) {
     if (isVaultInitialized) {
-      console.info(
+      console.warn(
         `Vault bootstrap token expired or invalid (rotation interval: ${expirationMinutes}m); issuing new orphan token`,
       );
     }

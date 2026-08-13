@@ -43,8 +43,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
     if (pulumi.getStack() === utils.enums.StackStage.PROD) {
       const coderHost =
         cloudflareContract.output.zones.ayteneve93com.records.coder;
-      const vaultHost =
-        k8sWorkstationSystemContract.output.vault.host;
+      const vaultHost = k8sWorkstationSystemContract.output.vault.host;
       const vikunjaHost =
         cloudflareContract.output.zones.ayteneve93com.records.todo;
       const authentikHost =
@@ -201,8 +200,15 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
               namespace: coderBase.output.sysboxUbuntuNamespace,
               runtimeClassName:
                 k8sWorkstationSystemContract.output.sysbox.runtimeClassName,
-              storageClassName:
-                k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+              storageClassNames: {
+                home: k8sWorkstationSystemContract.output.storageClasses
+                  .longhornSsd,
+                docker:
+                  k8sWorkstationSystemContract.output.storageClasses
+                    .longhornSsd,
+                data: k8sWorkstationSystemContract.output.storageClasses
+                  .longhornHdd,
+              },
               lxcfsHostMountPath:
                 k8sWorkstationSystemContract.output.lxcfs.mountPath,
               devicePluginFuseKey: pulumi.interpolate`${k8sWorkstationSystemContract.output.genericDevicePlugin.deviceDomain}/fuse`,
@@ -223,8 +229,15 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
               namespace: coderBase.output.sysboxUbuntuTestNamespace,
               runtimeClassName:
                 k8sWorkstationSystemContract.output.sysbox.runtimeClassName,
-              storageClassName:
-                k8sWorkstationSystemContract.output.storageClasses.longhornSsd,
+              storageClassNames: {
+                home: k8sWorkstationSystemContract.output.storageClasses
+                  .longhornSsd,
+                docker:
+                  k8sWorkstationSystemContract.output.storageClasses
+                    .longhornSsd,
+                data: k8sWorkstationSystemContract.output.storageClasses
+                  .longhornHdd,
+              },
               lxcfsHostMountPath:
                 k8sWorkstationSystemContract.output.lxcfs.mountPath,
               devicePluginFuseKey: pulumi.interpolate`${k8sWorkstationSystemContract.output.genericDevicePlugin.deviceDomain}/fuse`,

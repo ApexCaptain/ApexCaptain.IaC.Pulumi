@@ -23,7 +23,7 @@ description: >-
 
 - `git status`
 - `git branch -vv` (upstream·추적 브랜치 확인)
-- `git log -5 --oneline` (문체 참고용)
+- `git log -5 --oneline` (prefix·본문 길이 등 **형식** 참고. 언어는 한국어, 영어 커밋이 있어도 따르지 않음)
 
 base branch는 아래 순서로 정한다.
 
@@ -74,6 +74,9 @@ unstaged/staged만 보고 PR을 쓰지 않는다. (아직 커밋 안 된 변경�
 
 이상 없으면 아래 **두 파일만** 작성합니다. 디렉터리가 없으면 생성.
 
+- **언어:** 한국어. title·body 모두 한국어로 쓴다. `git log`가 영어여도 영어 문구를 쓰지 않는다. 고유명사·명령·경로만 원문 유지
+- **문체:** 간결한 문체 (~함 / 명사형 종결 혼용 가능, 경어체 불필요). README·커밋 메시지 skill과 동일
+
 | 파일 | 내용 |
 |------|------|
 | **`.github/generated/pull-request-title.txt`** | PR title **한 줄만** |
@@ -104,6 +107,7 @@ unstaged/staged만 보고 PR을 쓰지 않는다. (아직 커밋 안 된 변경�
 ## 하지 않을 것
 
 - 사용자 요청 없이 `gh pr create` / `git push` 실행
+- **영어 `git log`를 이유로 title·body를 영어로 작성**
 - 템플릿을 읽지 않고 임의 형식으로만 작성
 - secret이 의심되는 변경을 무시하고 본문 작성
 - **내용 없는 섹션에 `N/A`·`None`·빈 `Fixes #`만 남기기**
