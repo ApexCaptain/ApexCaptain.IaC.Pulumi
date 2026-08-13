@@ -20,6 +20,7 @@
     "LICENSE",
     "projenrc/tsconfig.json",
     "README.md",
+    "repomix.config.json",
     "requirements.txt",
     "test/tsconfig.json",
     "tsconfig.json",

@@ -37,6 +37,8 @@ export const constants = (() => {
   const keysDir = process.env.KEYS_DIR_NAME || '.keys';
 
   // Files
+  const repomixOutputXmlFile = 'repomix-output.xml';
+  const repomixConfigJsonFile = 'repomix.config.json';
   const novaConfigFile =
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
   const cursorMcpJsonFile = path.join(cursorDir, 'mcp.json');
@@ -84,6 +86,8 @@ export const constants = (() => {
       githubGeneratedDir,
     },
     files: {
+      repomixOutputXmlFile,
+      repomixConfigJsonFile,
       novaConfigFile,
       cursorMcpJsonFile,
       cursorSettingsJsonFile,

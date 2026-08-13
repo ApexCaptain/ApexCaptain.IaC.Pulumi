@@ -7,7 +7,7 @@
   "remoteUser": "vscode",
   // Features
   "features": {
-    "ghcr.io/devcontainers-contrib/features/projen:1": {},
+    "ghcr.io/devcontainers-extra/features/projen:1": {},
     "ghcr.io/devcontainers/features/python:1": {},
 
     "ghcr.io/devcontainers/features/github-cli:1": {},

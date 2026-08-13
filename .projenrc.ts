@@ -198,8 +198,10 @@ const rootProject = new typescript.TypeScriptProject(
         '.specstory',
         '.superpowers',
         'docs/superpowers',
+
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
+        `/${src.constants.paths.files.repomixOutputXmlFile}`,
         `/${src.constants.paths.dirs.githubGeneratedDir}`,
         `/${src.constants.paths.dirs.keysDir}`,
         `/${src.constants.paths.dirs.secretsDir}`,
@@ -232,6 +234,8 @@ const rootProject = new typescript.TypeScriptProject(
 
         'ssh2',
         '@types/ssh2',
+
+        'repomix',
       ],
     }))(),
     utils.functions.mergeCustomizer,
@@ -1212,6 +1216,85 @@ void (async () => {
         : [],
       committed: false,
       readonly: true,
+    },
+  );
+
+  // Repomix Config File
+  const repomixConfigFile = new JsonFile(
+    rootProject,
+    src.constants.paths.files.repomixConfigJsonFile,
+    {
+      obj: {
+        $schema: 'https://repomix.com/schemas/latest/schema.json',
+        input: {
+          maxFileSize: 52428800,
+        },
+        output: {
+          filePath: src.constants.paths.files.repomixOutputXmlFile,
+          style: 'xml',
+          filePathStyle: 'target-relative',
+          parsableStyle: false,
+          fileSummary: true,
+          directoryStructure: true,
+          files: true,
+          removeComments: false,
+          removeEmptyLines: false,
+          compress: false,
+          topFilesLength: 5,
+          showLineNumbers: false,
+          truncateBase64: false,
+          copyToClipboard: false,
+          includeFullDirectoryStructure: false,
+          tokenCountTree: false,
+          git: {
+            sortByChanges: true,
+            sortByChangesMaxCommits: 100,
+            includeDiffs: false,
+            includeLogs: false,
+            includeLogsCount: 50,
+          },
+        },
+        include: [],
+        ignore: {
+          useGitignore: true,
+          useDotIgnore: true,
+          useDefaultPatterns: true,
+          customPatterns: [
+            // Agents
+            '.agents',
+
+            // Ansible Third Party
+            src.constants.paths.dirs.ansibleThirdPartyDir,
+
+            // Bridged Provider SDKs
+            path.relative(
+              rootProject.outdir,
+              `${commonProjects.bridgedProviderProject.project.outdir}/sdks`,
+            ),
+
+            // Image Assets
+            '**/*.png',
+            '**/*.jpg',
+            '**/*.jpeg',
+            '**/*.svg',
+            '**/*.ico',
+
+            // Package Lock Files
+            'pnpm-lock.yaml',
+            'package-lock.json',
+            'yarn.lock',
+
+            // DevContainer
+            '.devcontainer',
+          ],
+        },
+        security: {
+          enableSecurityCheck: true,
+        },
+        tokenCount: {
+          encoding: 'o200k_base',
+        },
+      },
     },
   );
 
