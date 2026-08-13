@@ -39,6 +39,7 @@ inventory.ini
 docs/superpowers
 .turbo
 tmp
+/repomix-output.xml
 /.github/generated
 /.keys
 /.secrets
@@ -65,6 +66,7 @@ tmp
 !/README.md
 !/requirements.txt
 /.keys/workstation.key
+!/repomix.config.json
 !/.cursor/mcp.json
 !/.cursor/settings.json
 /ansible/workstation/inventory/inventory.ini

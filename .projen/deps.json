@@ -85,6 +85,10 @@
       "type": "build"
     },
     {
+      "name": "repomix",
+      "type": "build"
+    },
+    {
       "name": "sha512-crypt-ts",
       "type": "build"
     },
