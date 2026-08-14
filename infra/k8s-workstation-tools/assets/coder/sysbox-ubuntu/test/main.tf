@@ -27,6 +27,16 @@ resource "kubernetes_persistent_volume_claim_v1" "home" {
       }
     }
   }
+  lifecycle {
+    ignore_changes = [
+      metadata,
+      spec[0].access_modes,
+      spec[0].storage_class_name,
+      spec[0].volume_mode,
+      spec[0].selector,
+      spec[0].volume_name,
+    ]
+  }
 }
 
 resource "kubernetes_persistent_volume_claim_v1" "docker" {
@@ -57,6 +67,16 @@ resource "kubernetes_persistent_volume_claim_v1" "docker" {
         storage = "${data.coder_parameter.docker_disk_size.value}Gi"
       }
     }
+  }
+  lifecycle {
+    ignore_changes = [
+      metadata,
+      spec[0].access_modes,
+      spec[0].storage_class_name,
+      spec[0].volume_mode,
+      spec[0].selector,
+      spec[0].volume_name,
+    ]
   }
 }
 
@@ -89,6 +109,16 @@ resource "kubernetes_persistent_volume_claim_v1" "data" {
       }
     }
   }
+  lifecycle {
+    ignore_changes = [
+      metadata,
+      spec[0].access_modes,
+      spec[0].storage_class_name,
+      spec[0].volume_mode,
+      spec[0].selector,
+      spec[0].volume_name,
+    ]
+  }
 }
 
 resource "kubernetes_config_map_v1" "docker_daemon_json" {
@@ -96,6 +126,19 @@ resource "kubernetes_config_map_v1" "docker_daemon_json" {
   metadata {
     name      = "coder-${data.coder_workspace.me.id}-docker-daemon-json"
     namespace = var.namespace
+    labels = {
+      "app.kubernetes.io/name"     = "coder-docker-daemon-json"
+      "app.kubernetes.io/instance" = "coder-docker-daemon-json-${data.coder_workspace.me.id}"
+      "app.kubernetes.io/part-of"  = "coder"
+      "com.coder.resource"         = "true"
+      "com.coder.workspace.id"     = data.coder_workspace.me.id
+      "com.coder.workspace.name"   = data.coder_workspace.me.name
+      "com.coder.user.id"          = data.coder_workspace_owner.me.id
+      "com.coder.user.username"    = data.coder_workspace_owner.me.name
+    }
+    annotations = {
+      "com.coder.user.email" = data.coder_workspace_owner.me.email
+    }
   }
   data = {
     "daemon.json" = <<-EOT
@@ -203,7 +246,7 @@ resource "kubernetes_manifest" "main" {
             runAsUser    = 1000
             runAsNonRoot = false
           }
-          hostname = "sysbox-ubuntu"
+          hostname = "ws-${replace(lower(data.coder_workspace.me.name), "_", "-")}"
           initContainers = [
             {
               name    = "setup-home-directory"
@@ -228,7 +271,7 @@ resource "kubernetes_manifest" "main" {
             {
               name            = "dev"
               image           = "codercom/enterprise-base:ubuntu-resolute"
-              imagePullPolicy = "Always"
+              imagePullPolicy = "IfNotPresent"
               command = [
                 "sh",
                 "-c",
@@ -238,6 +281,9 @@ resource "kubernetes_manifest" "main" {
                   sudo sed -i 's|http://archive.ubuntu.com|http://mirror.kakao.com|g' /etc/apt/sources.list.d/ubuntu.sources
                   sudo sed -i 's|http://security.ubuntu.com|http://mirror.kakao.com|g' /etc/apt/sources.list.d/ubuntu.sources
                   sudo apt-get update -y
+                  if [ ! -f /home/coder/.bashrc ]; then
+                    echo '${local.files["default.bashrc"]}' | base64 -d > /home/coder/.bashrc
+                  fi
                   ${coder_agent.main.init_script}
                  EOT
               ]
@@ -272,8 +318,8 @@ resource "kubernetes_manifest" "main" {
               ]
               resources = {
                 requests = {
-                  cpu    = "250m"
-                  memory = "512Mi"
+                  cpu    = "${tonumber(data.coder_parameter.cpu.value) / 2}"
+                  memory = "${tonumber(data.coder_parameter.memory.value) / 2}Gi"
                 }
                 limits = {
                   cpu                             = "${data.coder_parameter.cpu.value}"

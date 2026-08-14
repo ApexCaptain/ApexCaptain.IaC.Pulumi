@@ -2,9 +2,16 @@ locals {
   selected_additional_ides = jsondecode(data.coder_parameter.additional_ides.value)
 
   directory_paths = {
-    lifecycle_scripts_directory    = "$HOME/${var.workspace_directory_name}/.lifecycle-scripts"
-    devcontainer_cleaner_directory = "/tmp/devcontainer-cleaner"
-    auto_stop_workspace_directory  = "/tmp/auto-stop-workspace"
+    lifecycle_scripts_directory          = "$HOME/${var.workspace_directory_name}/.lifecycle-scripts"
+    auto_stop_workspace_state_directory  = "/tmp/auto-stop-workspace"
+    auto_stop_workspace_log_subdir       = ".auto-stop"
+    devcontainer_cleaner_state_directory = "/tmp/devcontainer-cleaner"
+    devcontainer_cleaner_log_subdir      = ".devcontainer-cleaner"
+  }
+
+  scripts_b64 = {
+    for eachFile in fileset("./assets/scripts", "*.js") :
+    eachFile => filebase64("./assets/scripts/${eachFile}")
   }
 
   file_paths = {
