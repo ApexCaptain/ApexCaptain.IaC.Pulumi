@@ -15,6 +15,7 @@
 | Fuse Device 수       | Google Drive, OneDrive 등을 마운트할 때 씁니다. 안 쓰면 0으로 두세요.                                  |
 | Auto Stop            | IDE(VS Code/Cursor)·SSH·웹 터미널이 없고 실행 중인 컨테이너도 없으면 워크스페이스를 끕니다. 로그는 `~/.auto-stop/<시작시각>.log`입니다. |
 | DevContainer Cleaner | 그 컨테이너에 IDE·터미널이 없으면 종료합니다. `devcontainer-cleaner.skip=true` 라벨은 건너뜁니다. 로그는 `~/.devcontainer-cleaner/<시작시각>.log`입니다. |
+| Ubuntu APT Mirror    | apt 미러입니다. Kakao(기본) / KAIST / Ubuntu Official. 패키지는 사용자 PC가 아니라 클러스터에서 받습니다. |
 
 디스크는 한 번 키우면 **줄일 수 없습니다.** 큰 파일은 HDD(`~/data`)에 두는 편이 좋습니다.
 
@@ -64,7 +65,9 @@ curl --proxy "$CODER_MESH_SOCKS5_PROXY_URL" http://<mesh-internal-service>
 
 ### ⏱ Auto Stop / DevContainer Cleaner
 
-10초마다 돌아갑니다. 로그는 Home에 남고, 비활성 타이머 상태는 `/tmp`에 있어서 워크스페이스를 재시작하면 다시 셉니다.
+30초마다 돌아갑니다. 로그는 Home에 남고, **10일 동안 갱신되지 않은 로그는 자동으로 지웁니다.** 비활성 타이머 상태는 `/tmp`에 있어서 워크스페이스를 재시작하면 다시 셉니다.
+
+Coder 대시보드에는 **Auto Stop** 남은 시간과 **활동**(IDE · 터미널 · Docker)이 10초마다 갱신됩니다. Auto Stop을 끈 워크스페이스는 `꺼짐`으로 표시됩니다.
 
 Auto Stop은 아래를 **활동**으로 봅니다. 가장 최근 활동 시각부터 대기 시간이 지나면 `coder stop`합니다.
 
@@ -110,6 +113,9 @@ node /tmp/auto-stop-workspace/autostop-workspace.js
 
 ### 2026-08-14
 
+- **Ubuntu APT Mirror**: Kakao / KAIST / Ubuntu Official 중 선택할 수 있습니다. 기본값은 Kakao입니다.
+- **Auto Stop 대시보드**: 남은 유휴 시간과 감지된 활동(IDE · 터미널 · Docker)을 Coder UI 메타데이터로 보여 줍니다.
+- **Auto Stop / DevContainer Cleaner**: 검사 주기를 10초에서 30초로 바꿨습니다. 10일 동안 갱신되지 않은 로그 파일은 자동으로 삭제합니다.
 - **Auto Stop / DevContainer Cleaner**: 로그는 `~/.auto-stop`, `~/.devcontainer-cleaner`에서 `tail -f`로 볼 수 있습니다. 워크스페이스를 재시작하면 타이머가 다시 시작합니다.
 - **DevContainer Cleaner**: compose로 묶인 컨테이너도 같이 끄고, `devcontainer-cleaner.skip=true` 라벨은 건너뜁니다.
 

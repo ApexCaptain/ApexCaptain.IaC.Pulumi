@@ -1,6 +1,6 @@
 'use strict';
 
-// 워크스페이스 Auto Stop. 10초 cron으로 돌며, 로컬 활동과 Coder last_used_at 중
+// 워크스페이스 Auto Stop. 30초 cron으로 돌며, 로컬 활동과 Coder last_used_at 중
 // 더 최근 시각부터 WAIT_SECONDS가 지나면 `coder stop`한다.
 // 상태 파일은 /tmp라서 재시작 후 타이머가 다시 시작한다.
 
@@ -20,11 +20,23 @@ function loadState() {
   };
 }
 
-function saveState(state) {
+function saveState(state, snapshot) {
   lib.writeJsonAtomic(STATE_FILE, {
     lastLocalActivityEpoch: state.lastLocalActivityEpoch,
     lastDecision: state.lastDecision || '',
     lastReasons: state.lastReasons || '',
+    lastActivityEpoch:
+      snapshot && Number.isFinite(snapshot.lastActivityEpoch)
+        ? snapshot.lastActivityEpoch
+        : null,
+    waitSeconds: Number.isFinite(lib.waitSeconds) ? lib.waitSeconds : null,
+    dockerCount:
+      snapshot && Number.isFinite(snapshot.dockerCount) ? snapshot.dockerCount : null,
+    extensionHost:
+      snapshot && typeof snapshot.extensionHost === 'boolean'
+        ? snapshot.extensionHost
+        : null,
+    pts: snapshot && Array.isArray(snapshot.pts) ? snapshot.pts : [],
   });
 }
 
@@ -149,7 +161,8 @@ function main() {
       reason: 'Docker 사용 불가',
       workspace,
     }));
-    saveState(state);
+    state.lastDecision = 'skip';
+    saveState(state, { dockerCount: null, extensionHost: null, pts: [] });
     return;
   }
 
@@ -224,7 +237,12 @@ function main() {
     action,
     workspace,
   }));
-  saveState(state);
+  saveState(state, {
+    lastActivityEpoch,
+    dockerCount: signals.dockerIds.length,
+    extensionHost: signals.extensionHost,
+    pts: signals.pts,
+  });
 }
 
 try {
