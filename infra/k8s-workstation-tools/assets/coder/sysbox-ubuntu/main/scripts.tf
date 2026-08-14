@@ -6,20 +6,37 @@ resource "coder_script" "install-devcontainers-cli" {
         #!/bin/bash
         sudo apt-get install -y \
             curl
-        curl -fsSL https://raw.githubusercontent.com/devcontainers/cli/main/scripts/install.sh | sh -s -- --prefix /tmp/devcontainer-cli
+        curl -fsSL https://raw.githubusercontent.com/devcontainers/cli/v0.87.0/scripts/install.sh | sh -s -- --prefix /tmp/devcontainer-cli --version 0.87.0
         sudo cp -R /tmp/devcontainer-cli/* /usr
     EOF
   run_on_start = true
 }
 
 resource "coder_script" "run-dockerd" {
-  agent_id     = coder_agent.main.id
-  display_name = "Run Dockerd"
-  script       = <<EOF
+  agent_id           = coder_agent.main.id
+  display_name       = "Run Dockerd"
+  start_blocks_login = true
+  script             = <<EOF
         #!/bin/bash
-        sudo dockerd >/tmp/dockerd.log 2>&1 &
+        (
+          while true; do
+            sudo dockerd >>/tmp/dockerd.log 2>&1
+            echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) dockerd exited $?" >>/tmp/dockerd.log
+            sleep 2
+          done
+        ) >/dev/null 2>&1 &
+        disown
+
+        for i in $(seq 1 60); do
+          if docker info >/dev/null 2>&1; then
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) dockerd did not become ready in 60s" >>/tmp/dockerd.log
+        exit 0
     EOF
-  run_on_start = true
+  run_on_start       = true
 }
 
 resource "coder_script" "lifecycle-on-start-script" {
@@ -79,6 +96,11 @@ resource "coder_script" "lifecycle-on-stop-script" {
 
         echo "Stopped At : $(date)" >> ${local.file_paths.lifecycle_scripts.on_stop_log}
 
+        if [ ! -f ${local.file_paths.lifecycle_scripts.on_stop_script} ]; then
+            echo "OnStop script not found, skip" >> ${local.file_paths.lifecycle_scripts.on_stop_log}
+            exit 0
+        fi
+
         tail -n 0 -f ${local.file_paths.lifecycle_scripts.on_stop_log} &
         tailPid=$!
 
@@ -94,37 +116,33 @@ resource "coder_script" "lifecycle-on-stop-script" {
   run_on_stop  = true
 }
 
-resource "coder_script" "copy-default-bashrc" {
-  agent_id     = coder_agent.main.id
-  display_name = "Copy Default Bashrc"
-  script       = <<EOF
-        #!/bin/bash
-        if [ ! -f ${local.file_paths.default_bashrc} ]; then
-            echo '${local.files["default.bashrc"]}' | base64 -d > ${local.file_paths.default_bashrc}
-        fi
-    EOF
-  run_on_start = true
-}
-
 resource "coder_script" "auto-stop-workspace" {
   count        = data.coder_parameter.auto_stop_workspace.value ? 1 : 0
   agent_id     = coder_agent.main.id
   display_name = "Auto Stop Workspace"
-  script = templatefile(local.template_paths["autostop-workspace.sh.tpl"], {
-    wait_seconds  = data.coder_parameter.auto_stop_workspace_wait_mins[0].value * 60
-    main_dir_path = local.directory_paths.auto_stop_workspace_directory
+  script = templatefile(local.template_paths["run-node-cron.sh.tpl"], {
+    wait_seconds    = data.coder_parameter.auto_stop_workspace_wait_mins[0].value * 60
+    log_subdir      = local.directory_paths.auto_stop_workspace_log_subdir
+    state_dir_path  = local.directory_paths.auto_stop_workspace_state_directory
+    script_filename = "autostop-workspace.js"
+    lib_b64         = local.scripts_b64["lib.js"]
+    script_b64      = local.scripts_b64["autostop-workspace.js"]
   })
-  cron = "0 */1 * * * *"
+  cron = "*/10 * * * * *"
 }
 
 resource "coder_script" "devcontainer-cleaner" {
   count        = data.coder_parameter.enable_devcontainer_cleaner.value ? 1 : 0
   agent_id     = coder_agent.main.id
   display_name = "DevContainer Cleaner"
-  script = templatefile(local.template_paths["devContainer-cleaner.sh.tpl"], {
-    wait_seconds  = data.coder_parameter.devcontainer_cleaner_wait_mins[0].value * 60
-    main_dir_path = local.directory_paths.devcontainer_cleaner_directory
+  script = templatefile(local.template_paths["run-node-cron.sh.tpl"], {
+    wait_seconds    = data.coder_parameter.devcontainer_cleaner_wait_mins[0].value * 60
+    log_subdir      = local.directory_paths.devcontainer_cleaner_log_subdir
+    state_dir_path  = local.directory_paths.devcontainer_cleaner_state_directory
+    script_filename = "devcontainer-cleaner.js"
+    lib_b64         = local.scripts_b64["lib.js"]
+    script_b64      = local.scripts_b64["devcontainer-cleaner.js"]
   })
-  cron = "0 */1 * * * *"
+  cron = "*/10 * * * * *"
 }
 

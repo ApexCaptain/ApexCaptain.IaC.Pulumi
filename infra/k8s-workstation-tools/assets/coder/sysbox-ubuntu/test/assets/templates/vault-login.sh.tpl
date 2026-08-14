@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-VAULT_CLI_VERSION="latest"
+VAULT_CLI_VERSION="1.21.4"
 VAULT_JWT_AUTH_PATH="${vault_jwt_auth_path}"
 VAULT_JWT_ROLE="${vault_jwt_role}"
 CODER_OIDC_ACCESS_TOKEN="${oidc_access_token}"

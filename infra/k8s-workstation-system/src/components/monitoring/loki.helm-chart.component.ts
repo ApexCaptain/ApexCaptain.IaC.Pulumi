@@ -92,6 +92,15 @@ export const LokiHelmChartComponent = utils.functions.defineComponent(
               },
             },
           },
+          // Helm 기본 allocatedMemory는 chunks 8192MB / results 1024MB.
+          // 실제 RSS는 각각 ~200Mi / ~30Mi라서 스케줄 request만 수 Gi를 잡아먹음.
+          // allocatedMemory를 낮춰야 memcached -m과 k8s request(×1.2)가 같이 줄어든다.
+          chunksCache: {
+            allocatedMemory: 512,
+          },
+          resultsCache: {
+            allocatedMemory: 128,
+          },
           gateway: {
             enabled: false,
           },

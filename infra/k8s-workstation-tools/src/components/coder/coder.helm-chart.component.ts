@@ -237,6 +237,17 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
             ingress: {
               enable: false,
             },
+            // Helm 기본 request 4Gi. 실제 RSS ~200Mi.
+            resources: {
+              requests: {
+                cpu: '250m',
+                memory: '512Mi',
+              },
+              limits: {
+                cpu: '2000m',
+                memory: '2Gi',
+              },
+            },
             serviceAccount: {
               name: coderServiceAccountName,
               extraRules: [

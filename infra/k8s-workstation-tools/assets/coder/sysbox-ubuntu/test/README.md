@@ -13,8 +13,8 @@
 | (HDD) Data           | 대용량 파일용입니다. `/home/coder/data`, 10–300 GB, 확장만 가능합니다.                                 |
 | IDE                  | VS Code(Desktop/Web), Cursor, Terminal 중 고릅니다. 여러 개 선택할 수 있습니다.                        |
 | Fuse Device 수       | Google Drive, OneDrive 등을 마운트할 때 씁니다. 안 쓰면 0으로 두세요.                                  |
-| Auto Stop            | 오래 안 쓰면 워크스페이스를 끕니다. 실행 중인 컨테이너가 있으면 동작하지 않습니다.                     |
-| DevContainer Cleaner | 안 쓰는 DevContainer를 자동으로 종료합니다. `devcontainer-cleaner.skip=true` 라벨이 있으면 건너뜁니다. |
+| Auto Stop            | IDE(VS Code/Cursor)·SSH·웹 터미널이 없고 실행 중인 컨테이너도 없으면 워크스페이스를 끕니다. 로그는 `~/.auto-stop/<시작시각>.log`입니다. |
+| DevContainer Cleaner | 그 컨테이너에 IDE·터미널이 없으면 종료합니다. `devcontainer-cleaner.skip=true` 라벨은 건너뜁니다. 로그는 `~/.devcontainer-cleaner/<시작시각>.log`입니다. |
 
 디스크는 한 번 키우면 **줄일 수 없습니다.** 큰 파일은 HDD(`~/data`)에 두는 편이 좋습니다.
 
@@ -62,12 +62,56 @@ Coder 계정의 이름·이메일이 `git config --global user.name` / `user.ema
 curl --proxy "$CODER_MESH_SOCKS5_PROXY_URL" http://<mesh-internal-service>
 ```
 
+### ⏱ Auto Stop / DevContainer Cleaner
+
+10초마다 돌아갑니다. 로그는 Home에 남고, 비활성 타이머 상태는 `/tmp`에 있어서 워크스페이스를 재시작하면 다시 셉니다.
+
+Auto Stop은 아래를 **활동**으로 봅니다. 가장 최근 활동 시각부터 대기 시간이 지나면 `coder stop`합니다.
+
+- 실행 중인 Docker 컨테이너
+- VS Code / Cursor `extensionHost`
+- `/dev/pts` (Coder SSH·웹 터미널 PTY). 스크립트 자신의 TTY는 제외합니다
+- Coder `last_used_at` (`coder list -o json`, IDE/SSH/JetBrains/웹 터미널 세션). 로그의 **사용시각**입니다
+
+DevContainer Cleaner는 **그 컨테이너 안**만 봅니다. 워크스페이스 `last_used_at`은 쓰지 않습니다.
+
+- 컨테이너 안 `extensionHost` (VS Code / Cursor가 그 DevContainer에 붙은 경우)
+- 컨테이너 안 `/dev/pts` (`docker exec -it` / `devcontainer exec`)
+
+로그 예:
+
+```text
+[유지]  ·  이유: IDE, 터미널  ·  터미널 pts/0  ·  Docker 0개  ·  IDE 연결  ·  사용시각 12초 전  ·  남은 10분 / 10분
+[유지]  ·  sops_practice_devcon_workspace  ·  활성: IDE, 터미널  ·  터미널 pts/0  ·  남은 10분 / 10분
+[유지]  ·  sops_practice_devcon_workspace  ·  활성: 없음  ·  터미널 없음  ·  남은 9분 50초 / 10분
+```
+
+| | 로그 | 상태 |
+| --- | --- | --- |
+| Auto Stop | `~/.auto-stop/<워크스페이스 시작시각>.log` (텍스트) | `/tmp/auto-stop-workspace/workspace-status.json` |
+| DevContainer Cleaner | `~/.devcontainer-cleaner/<워크스페이스 시작시각>.log` (텍스트) | `/tmp/devcontainer-cleaner/disconnected-devcontainers.json` |
+
+```bash
+tail -f ~/.auto-stop/*.log
+
+# 수동 재현 (nvm이 켜진 셸)
+export WAIT_SECONDS=600
+export LOG_DIR="$HOME/.auto-stop"
+export STATE_DIR=/tmp/auto-stop-workspace
+node /tmp/auto-stop-workspace/autostop-workspace.js
+```
+
 ## 💡 팁
 
 - Node.js(NVM)와 Docker는 시작하자마자 바로 쓸 수 있습니다. (`docker ps`)
 - 셸 설정을 초기화하려면 `~/.bashrc`를 지우고 워크스페이스를 재시작하세요. 기본 설정이 다시 복사됩니다.
 
 ## 변경 사항
+
+### 2026-08-14
+
+- **Auto Stop / DevContainer Cleaner**: 로그는 `~/.auto-stop`, `~/.devcontainer-cleaner`에서 `tail -f`로 볼 수 있습니다. 워크스페이스를 재시작하면 타이머가 다시 시작합니다.
+- **DevContainer Cleaner**: compose로 묶인 컨테이너도 같이 끄고, `devcontainer-cleaner.skip=true` 라벨은 건너뜁니다.
 
 ### 2026-08-13
 

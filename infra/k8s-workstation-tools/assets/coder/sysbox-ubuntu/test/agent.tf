@@ -50,8 +50,16 @@ resource "coder_agent" "main" {
   }
 
   metadata {
+    display_name = "Data Disk"
+    key          = "4_data_disk"
+    script       = "coder stat disk --path /home/coder/data"
+    interval     = 60
+    timeout      = 1
+  }
+
+  metadata {
     display_name = "Load Average"
-    key          = "4_load_host"
+    key          = "5_load_host"
     script       = <<EOT
       echo "`cat /proc/loadavg | awk '{ print $1 }'` `nproc`" | awk '{ printf "%0.2f", $1/$2 }'
     EOT

@@ -153,7 +153,7 @@ data "coder_parameter" "fuse_count" {
 data "coder_parameter" "auto_stop_workspace" {
   name         = "auto_stop_workspace"
   display_name = "Auto Stop Workspace"
-  description  = "비활성 상태일 때 워크스페이스를 종료합니다. Workspace 내부에 Running 상태의 Container가 있을 경우 동작하지 않습니다."
+  description  = "IDE·SSH·웹 터미널 세션이 없고 실행 중인 컨테이너도 없으면 워크스페이스를 종료합니다."
   default      = true
   type         = "bool"
   icon         = local.icons_base64_data_url["stop.png"]
@@ -179,7 +179,7 @@ data "coder_parameter" "auto_stop_workspace_wait_mins" {
 data "coder_parameter" "enable_devcontainer_cleaner" {
   name         = "enable_devcontainer_cleaner"
   display_name = "DevContainer Cleaner 활성화"
-  description  = "미사용 DevContainer를 정기적으로 종료합니다. 'devcontainer-cleaner.skip=true' 라벨로 특정 컨테이너를 제외할 수 있습니다."
+  description  = "IDE·터미널이 붙지 않은 DevContainer를 종료합니다. 'devcontainer-cleaner.skip=true' 라벨은 건너뜁니다."
   default      = true
   type         = "bool"
   icon         = local.icons_base64_data_url["cleaning.png"]
@@ -192,12 +192,12 @@ data "coder_parameter" "devcontainer_cleaner_wait_mins" {
   name         = "devcontainer_cleaner_wait_mins"
   display_name = "DevContainer Cleaner 대기 시간 (분)"
   description  = "비활성 상태로 유지된 시간이 이 값을 초과하면 미사용 DevContainer로 간주해 자동으로 종료(Stop)합니다."
-  default      = 5
+  default      = 10
   type         = "number"
   icon         = local.icons_base64_data_url["time.png"]
   mutable      = true
   validation {
-    min = 5
+    min = 10
   }
   order = 11
 }
