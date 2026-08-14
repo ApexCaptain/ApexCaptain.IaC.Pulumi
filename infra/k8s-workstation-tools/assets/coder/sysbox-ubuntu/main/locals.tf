@@ -1,6 +1,27 @@
 locals {
   selected_additional_ides = jsondecode(data.coder_parameter.additional_ides.value)
 
+  ubuntu_mirrors = {
+    kakao = {
+      name         = "Kakao"
+      uri          = "http://mirror.kakao.com/ubuntu"
+      security_uri = "http://mirror.kakao.com/ubuntu"
+    }
+    kaist = {
+      name         = "KAIST"
+      uri          = "http://ftp.kaist.ac.kr/ubuntu"
+      security_uri = "http://ftp.kaist.ac.kr/ubuntu"
+    }
+    official = {
+      name         = "Ubuntu Official"
+      uri          = "http://archive.ubuntu.com/ubuntu"
+      security_uri = "http://security.ubuntu.com/ubuntu"
+    }
+  }
+  # Map for_each is lexicographic; keep the dropdown order explicit.
+  ubuntu_mirror_ids      = ["kakao", "kaist", "official"]
+  selected_ubuntu_mirror = local.ubuntu_mirrors[data.coder_parameter.ubuntu_mirror.value]
+
   directory_paths = {
     lifecycle_scripts_directory          = "$HOME/${var.workspace_directory_name}/.lifecycle-scripts"
     auto_stop_workspace_state_directory  = "/tmp/auto-stop-workspace"

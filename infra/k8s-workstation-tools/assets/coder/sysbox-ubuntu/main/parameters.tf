@@ -202,6 +202,26 @@ data "coder_parameter" "devcontainer_cleaner_wait_mins" {
   order = 11
 }
 
+data "coder_parameter" "ubuntu_mirror" {
+  name         = "ubuntu_mirror"
+  display_name = "Ubuntu APT Mirror"
+  description  = "워크스페이스 apt가 사용할 Ubuntu 패키지 미러입니다."
+  default      = "kakao"
+  icon         = "/icon/ubuntu.svg"
+  mutable      = true
+  form_type    = "dropdown"
+  order        = 12
+
+  dynamic "option" {
+    for_each = local.ubuntu_mirror_ids
+    content {
+      name        = local.ubuntu_mirrors[option.value].name
+      value       = option.value
+      description = local.ubuntu_mirrors[option.value].uri
+    }
+  }
+}
+
 data "coder_workspace" "me" {}
 
 data "coder_workspace_owner" "me" {}

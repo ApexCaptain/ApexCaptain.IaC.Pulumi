@@ -6,6 +6,9 @@ script_filename='${script_filename}'
 
 mkdir -p "$state_dir_path" "$log_dir_path"
 
+# 10일 동안 갱신되지 않은 세션 로그는 삭제한다. 현재 세션 파일은 cron마다 append되므로 남는다.
+find "$log_dir_path" -maxdepth 1 -type f -name '*.log' -mmin +14400 -delete 2>/dev/null || true
+
 uptime_secs=$(awk '{print int($1)}' /proc/uptime 2>/dev/null || echo 0)
 start_epoch=$(($(date +%s) - uptime_secs))
 stamp=$(date -d "@$start_epoch" +%Y-%m-%dT%H-%M-%S 2>/dev/null || date +%Y-%m-%dT%H-%M-%S)

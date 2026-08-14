@@ -128,7 +128,7 @@ resource "coder_script" "auto-stop-workspace" {
     lib_b64         = local.scripts_b64["lib.js"]
     script_b64      = local.scripts_b64["autostop-workspace.js"]
   })
-  cron = "*/10 * * * * *"
+  cron = "*/30 * * * * *"
 }
 
 resource "coder_script" "devcontainer-cleaner" {
@@ -143,6 +143,6 @@ resource "coder_script" "devcontainer-cleaner" {
     lib_b64         = local.scripts_b64["lib.js"]
     script_b64      = local.scripts_b64["devcontainer-cleaner.js"]
   })
-  cron = "*/10 * * * * *"
+  cron = "*/30 * * * * *"
 }
 

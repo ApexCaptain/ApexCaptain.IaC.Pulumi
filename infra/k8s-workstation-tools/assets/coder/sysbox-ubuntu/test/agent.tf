@@ -66,4 +66,26 @@ resource "coder_agent" "main" {
     interval     = 10
     timeout      = 1
   }
+
+  metadata {
+    display_name = "Auto Stop"
+    key          = "6_auto_stop"
+    script = templatefile(local.template_paths["auto-stop-dashboard.sh.tpl"], {
+      state_file = "${local.directory_paths.auto_stop_workspace_state_directory}/workspace-status.json"
+      mode       = "remaining"
+    })
+    interval = 10
+    timeout  = 3
+  }
+
+  metadata {
+    display_name = "Activity"
+    key          = "7_activity"
+    script = templatefile(local.template_paths["auto-stop-dashboard.sh.tpl"], {
+      state_file = "${local.directory_paths.auto_stop_workspace_state_directory}/workspace-status.json"
+      mode       = "activity"
+    })
+    interval = 10
+    timeout  = 3
+  }
 }

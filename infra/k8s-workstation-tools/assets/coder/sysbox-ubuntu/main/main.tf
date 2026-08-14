@@ -276,10 +276,18 @@ resource "kubernetes_manifest" "main" {
                 "sh",
                 "-c",
                 <<-EOT
-                  # Ubuntu 기본 Mirror 설정을 Kakao로 변경; @ToDO 추후 사용자 환경에 맞게 변경 필요
-                  sudo sed -i 's/kr.archive.ubuntu.com/mirror.kakao.com/g' /etc/apt/sources.list
-                  sudo sed -i 's|http://archive.ubuntu.com|http://mirror.kakao.com|g' /etc/apt/sources.list.d/ubuntu.sources
-                  sudo sed -i 's|http://security.ubuntu.com|http://mirror.kakao.com|g' /etc/apt/sources.list.d/ubuntu.sources
+                  if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+                    sudo sed -i -E \
+                      -e 's|URIs: https?://([a-z0-9.-]+\.)?archive\.ubuntu\.com/ubuntu/?|URIs: ${local.selected_ubuntu_mirror.uri}|g' \
+                      -e 's|URIs: https?://security\.ubuntu\.com/ubuntu/?|URIs: ${local.selected_ubuntu_mirror.security_uri}|g' \
+                      /etc/apt/sources.list.d/ubuntu.sources
+                  fi
+                  if [ -f /etc/apt/sources.list ]; then
+                    sudo sed -i -E \
+                      -e 's|https?://([a-z0-9.-]+\.)?archive\.ubuntu\.com/ubuntu|${local.selected_ubuntu_mirror.uri}|g' \
+                      -e 's|https?://security\.ubuntu\.com/ubuntu|${local.selected_ubuntu_mirror.security_uri}|g' \
+                      /etc/apt/sources.list
+                  fi
                   sudo apt-get update -y
                   if [ ! -f /home/coder/.bashrc ]; then
                     echo '${local.files["default.bashrc"]}' | base64 -d > /home/coder/.bashrc
