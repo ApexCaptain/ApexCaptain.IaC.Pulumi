@@ -318,8 +318,8 @@ resource "kubernetes_manifest" "main" {
               ]
               resources = {
                 requests = {
-                  cpu    = "${tonumber(data.coder_parameter.cpu.value) / 2}"
-                  memory = "${tonumber(data.coder_parameter.memory.value) / 2}Gi"
+                  cpu    = "${tonumber(data.coder_parameter.cpu.value) / 4}"
+                  memory = "${tonumber(data.coder_parameter.memory.value) / 4}Gi"
                 }
                 limits = {
                   cpu                             = "${data.coder_parameter.cpu.value}"
