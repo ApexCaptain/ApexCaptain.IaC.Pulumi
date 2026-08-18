@@ -1,7 +1,7 @@
 /**
  * Jellyfin Helm — 미디어 서버
  *
- * namespace: ambient mesh (`istio.io/dataplane-mode: ambient`).
+ * namespace: mesh 밖 (`istio.io/dataplane-mode: none`) — istio/istio#60074.
  * SFTP는 Istio direct gateway TCP passthrough — ingress HTTPS와 별도 포트.
  */
 import * as customResources from '@common/custom-resources';
@@ -58,7 +58,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
         metadata: {
           name: 'jellyfin',
           labels: {
-            'istio.io/dataplane-mode': 'ambient',
+            'istio.io/dataplane-mode': 'none',
           },
         },
       },
