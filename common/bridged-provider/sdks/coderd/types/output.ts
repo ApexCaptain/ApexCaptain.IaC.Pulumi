@@ -36,6 +36,10 @@ export interface AiProviderSettingsBedrock {
      */
     model: string;
     /**
+     * Bedrock wire protocol. `"invoke-model"` (default) translates the native Messages request into Bedrock's InvokeModel format and requires <span pulumi-lang-nodejs="`model`" pulumi-lang-dotnet="`Model`" pulumi-lang-go="`model`" pulumi-lang-python="`model`" pulumi-lang-yaml="`model`" pulumi-lang-java="`model`" pulumi-lang-hcl="`model`">`model`</span> and <span pulumi-lang-nodejs="`smallFastModel`" pulumi-lang-dotnet="`SmallFastModel`" pulumi-lang-go="`smallFastModel`" pulumi-lang-python="`small_fast_model`" pulumi-lang-yaml="`smallFastModel`" pulumi-lang-java="`smallFastModel`" pulumi-lang-hcl="`small_fast_model`">`smallFastModel`</span>. `"mantle"` forwards the native Messages request body unchanged with AWS SigV4 signing and passes through the client's model; requires <span pulumi-lang-nodejs="`region`" pulumi-lang-dotnet="`Region`" pulumi-lang-go="`region`" pulumi-lang-python="`region`" pulumi-lang-yaml="`region`" pulumi-lang-java="`region`" pulumi-lang-hcl="`region`">`region`</span> (the Mantle base URL is not a canonical Bedrock URL, so the region is never derived from <span pulumi-lang-nodejs="`baseUrl`" pulumi-lang-dotnet="`BaseUrl`" pulumi-lang-go="`baseUrl`" pulumi-lang-python="`base_url`" pulumi-lang-yaml="`baseUrl`" pulumi-lang-java="`baseUrl`" pulumi-lang-hcl="`base_url`">`baseUrl`</span>). Requires Coder v2.36.0 or later for the Mantle protocol. Omit (or set to `"invoke-model"`) to use the default. Removing the attribute clears it back to the default; Coder maps an empty value to `"invoke-model"`.
+     */
+    protocol?: string;
+    /**
      * AWS region for Bedrock. If omitted, derived from the canonical Bedrock <span pulumi-lang-nodejs="`baseUrl`" pulumi-lang-dotnet="`BaseUrl`" pulumi-lang-go="`baseUrl`" pulumi-lang-python="`base_url`" pulumi-lang-yaml="`baseUrl`" pulumi-lang-java="`baseUrl`" pulumi-lang-hcl="`base_url`">`baseUrl`</span> attribute.
      */
     region: string;
@@ -78,11 +82,17 @@ export interface GetTemplateAcl {
 
 export interface GetTemplateAclGroup {
     id: string;
+    /**
+     * Role assigned to the user or group. Valid roles are <span pulumi-lang-nodejs="`admin`" pulumi-lang-dotnet="`Admin`" pulumi-lang-go="`admin`" pulumi-lang-python="`admin`" pulumi-lang-yaml="`admin`" pulumi-lang-java="`admin`" pulumi-lang-hcl="`admin`">`admin`</span> and <span pulumi-lang-nodejs="`use`" pulumi-lang-dotnet="`Use`" pulumi-lang-go="`use`" pulumi-lang-python="`use`" pulumi-lang-yaml="`use`" pulumi-lang-java="`use`" pulumi-lang-hcl="`use`">`use`</span>.
+     */
     role: string;
 }
 
 export interface GetTemplateAclUser {
     id: string;
+    /**
+     * Role assigned to the user or group. Valid roles are <span pulumi-lang-nodejs="`admin`" pulumi-lang-dotnet="`Admin`" pulumi-lang-go="`admin`" pulumi-lang-python="`admin`" pulumi-lang-yaml="`admin`" pulumi-lang-java="`admin`" pulumi-lang-hcl="`admin`">`admin`</span> and <span pulumi-lang-nodejs="`use`" pulumi-lang-dotnet="`Use`" pulumi-lang-go="`use`" pulumi-lang-python="`use`" pulumi-lang-yaml="`use`" pulumi-lang-java="`use`" pulumi-lang-hcl="`use`">`use`</span>.
+     */
     role: string;
 }
 
@@ -134,11 +144,17 @@ export interface TemplateAcl {
 
 export interface TemplateAclGroup {
     id: string;
+    /**
+     * Role assigned to the user or group. Valid roles are <span pulumi-lang-nodejs="`admin`" pulumi-lang-dotnet="`Admin`" pulumi-lang-go="`admin`" pulumi-lang-python="`admin`" pulumi-lang-yaml="`admin`" pulumi-lang-java="`admin`" pulumi-lang-hcl="`admin`">`admin`</span> and <span pulumi-lang-nodejs="`use`" pulumi-lang-dotnet="`Use`" pulumi-lang-go="`use`" pulumi-lang-python="`use`" pulumi-lang-yaml="`use`" pulumi-lang-java="`use`" pulumi-lang-hcl="`use`">`use`</span>.
+     */
     role: string;
 }
 
 export interface TemplateAclUser {
     id: string;
+    /**
+     * Role assigned to the user or group. Valid roles are <span pulumi-lang-nodejs="`admin`" pulumi-lang-dotnet="`Admin`" pulumi-lang-go="`admin`" pulumi-lang-python="`admin`" pulumi-lang-yaml="`admin`" pulumi-lang-java="`admin`" pulumi-lang-hcl="`admin`">`admin`</span> and <span pulumi-lang-nodejs="`use`" pulumi-lang-dotnet="`Use`" pulumi-lang-go="`use`" pulumi-lang-python="`use`" pulumi-lang-yaml="`use`" pulumi-lang-java="`use`" pulumi-lang-hcl="`use`">`use`</span>.
+     */
     role: string;
 }
 

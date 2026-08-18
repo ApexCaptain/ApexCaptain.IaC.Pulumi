@@ -1095,9 +1095,16 @@ void (async () => {
     'utf-8',
   );
 
-  const ventoyWorkstationNodeUserDataFilePath = path.join(
+  const ventoyUserDataDirPath = path.join(
     rootProject.outdir,
     src.constants.paths.dirs.ventoyUserDataDir,
+  );
+  if (!fs.existsSync(ventoyUserDataDirPath)) {
+    fs.mkdirSync(ventoyUserDataDirPath, { recursive: true });
+  }
+
+  const ventoyWorkstationNodeUserDataFilePath = path.join(
+    ventoyUserDataDirPath,
     'workstation-node.yaml',
   );
 

@@ -77,6 +77,8 @@ export class WorkspaceProxy extends pulumi.CustomResource {
             resourceInputs["sessionToken"] = undefined /*out*/;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
+        const secretOpts = { additionalSecretOutputs: ["sessionToken"] };
+        opts = pulumi.mergeOptions(opts, secretOpts);
         super(WorkspaceProxy.__pulumiType, name, resourceInputs, opts, false /*dependency*/, utilities.getPackage());
     }
 }

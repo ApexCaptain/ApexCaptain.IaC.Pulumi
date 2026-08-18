@@ -101,7 +101,7 @@ export async function getPackage(): Promise<string | undefined> {
 		baseProviderVersion: "1.3.0",
 		baseProviderDownloadUrl: "",
 		packageName: "coderd",
-		packageVersion: "0.0.22",
-		base64Parameter: "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2NvZGVyL2NvZGVyZCIsInZlcnNpb24iOiIwLjAuMjIifX0=",
+		packageVersion: "0.0.23",
+		base64Parameter: "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2NvZGVyL2NvZGVyZCIsInZlcnNpb24iOiIwLjAuMjMifX0=",
 	});
 }

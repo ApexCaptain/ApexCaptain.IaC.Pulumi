@@ -50,6 +50,11 @@ export type License = import("./license").License;
 export const License: typeof import("./license").License = null as any;
 utilities.lazyLoad(exports, ["License"], () => require("./license"));
 
+export { Oauth2ProviderSettingsArgs, Oauth2ProviderSettingsState } from "./oauth2ProviderSettings";
+export type Oauth2ProviderSettings = import("./oauth2ProviderSettings").Oauth2ProviderSettings;
+export const Oauth2ProviderSettings: typeof import("./oauth2ProviderSettings").Oauth2ProviderSettings = null as any;
+utilities.lazyLoad(exports, ["Oauth2ProviderSettings"], () => require("./oauth2ProviderSettings"));
+
 export { OrganizationArgs, OrganizationState } from "./organization";
 export type Organization = import("./organization").Organization;
 export const Organization: typeof import("./organization").Organization = null as any;
@@ -112,6 +117,8 @@ const _module = {
                 return new Group(name, <any>undefined, { urn })
             case "coderd:index/license:License":
                 return new License(name, <any>undefined, { urn })
+            case "coderd:index/oauth2ProviderSettings:Oauth2ProviderSettings":
+                return new Oauth2ProviderSettings(name, <any>undefined, { urn })
             case "coderd:index/organization:Organization":
                 return new Organization(name, <any>undefined, { urn })
             case "coderd:index/organizationGroupSync:OrganizationGroupSync":
@@ -136,6 +143,7 @@ pulumi.runtime.registerResourceModule("coderd", "index/aiProvider", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/defaultAgentsModel", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/group", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/license", _module)
+pulumi.runtime.registerResourceModule("coderd", "index/oauth2ProviderSettings", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/organization", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/organizationGroupSync", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/organizationSyncSettings", _module)

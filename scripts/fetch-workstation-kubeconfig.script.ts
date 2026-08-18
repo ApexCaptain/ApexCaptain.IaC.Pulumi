@@ -1,36 +1,42 @@
 import fs from 'fs';
+import path from 'path';
 import { Client, type ConnectConfig } from 'ssh2';
 import yaml from 'yaml';
 import { KubeConfig } from '../common/utils/src/interfaces/kubeconfig.interface';
+
 function connect(client: Client, config: ConnectConfig): Promise<void> {
   return new Promise((resolve, reject) => {
     client.once('ready', resolve).once('error', reject).connect(config);
   });
 }
+
 function exec(
   client: Client,
   command: string,
   stdin?: string,
 ): Promise<{ stdout: string; stderr: string; code: number }> {
   return new Promise((resolve, reject) => {
-    client.exec(command, { pty: true }, (err, stream) => {
+    client.exec(command, (err, stream) => {
       if (err) return reject(err);
-      if (stdin) stream.write(stdin);
+      if (stdin) {
+        stream.write(stdin);
+        stream.end();
+      }
       let stdout = '';
       let stderr = '';
-      stream
-        .on('data', (chunk: Buffer) => {
-          stdout += chunk.toString();
-        })
-        .stderr.on('data', (chunk: Buffer) => {
-          stderr += chunk.toString();
-        })
-        .on('close', (code: number) => {
-          resolve({ stdout, stderr, code });
-        });
+      stream.on('data', (chunk: Buffer) => {
+        stdout += chunk.toString();
+      });
+      stream.stderr.on('data', (chunk: Buffer) => {
+        stderr += chunk.toString();
+      });
+      stream.on('close', (code: number) => {
+        resolve({ stdout, stderr, code });
+      });
     });
   });
 }
+
 async function fetchWorkstationKubeconfig() {
   const client = new Client();
   await connect(client, {
@@ -42,14 +48,21 @@ async function fetchWorkstationKubeconfig() {
     ),
     passphrase: process.env.WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY_PASSPHRASE!,
   });
-  const rawKubeConfigString = (
-    await exec(
-      client,
-      'sudo -S cat /etc/kubernetes/admin.conf',
-      `${process.env.WORKSTATION_BOOTSTRAP_PASSWORD}\n`,
-    )
-  ).stdout;
+
+  const result = await exec(
+    client,
+    'sudo -S -p "" cat /etc/kubernetes/admin.conf',
+    `${process.env.WORKSTATION_BOOTSTRAP_PASSWORD}\n`,
+  );
   client.end();
+
+  if (result.code !== 0) {
+    throw new Error(
+      `Failed to read /etc/kubernetes/admin.conf (exit code ${result.code}): ${result.stderr || result.stdout}`,
+    );
+  }
+
+  const rawKubeConfigString = result.stdout;
 
   const kubeConfig = yaml.parse(rawKubeConfigString) as KubeConfig;
   kubeConfig.clusters[0].name = 'ws';
@@ -60,9 +73,9 @@ async function fetchWorkstationKubeconfig() {
   kubeConfig.users[0].name = 'ws';
   kubeConfig['current-context'] = 'ws';
 
-  fs.writeFileSync(
-    process.env.KUBE_CONFIG_WORKSTATION_FILE_PATH!!,
-    yaml.stringify(kubeConfig),
-  );
+  const targetPath = process.env.KUBE_CONFIG_WORKSTATION_FILE_PATH!;
+  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+  fs.writeFileSync(targetPath, yaml.stringify(kubeConfig));
 }
+
 void fetchWorkstationKubeconfig();
