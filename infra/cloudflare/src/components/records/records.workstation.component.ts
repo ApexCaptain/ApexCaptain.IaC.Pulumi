@@ -163,7 +163,7 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Todo Service',
       },
       {

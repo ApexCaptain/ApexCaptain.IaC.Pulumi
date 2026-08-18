@@ -125,45 +125,28 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
           },
         );
 
-      const jellyfinServiceMesh =
-        new components.jellyfin.JellyfinServiceMeshComponent(
-          'jellyfinServiceMesh',
-          {
-            namespace: jellyfinHelmChart.output.namespace,
-            authorizationPolicy: {
-              from: {
-                istioIngress: {
-                  namespace:
-                    k8sWorkstationSystemContract.output.namespaces.istio,
-                  serviceAccountName:
-                    k8sWorkstationSystemContract.output.serviceAccounts
-                      .istioIngressGateway,
-                },
-              },
-            },
-            ingress: {
-              jellyfinWebUi: {
-                host: jellyfinHost,
-                serviceName: jellyfinHelmChart.output.services.jellyfin.name,
-                gatewayPath:
-                  k8sWorkstationSystemContract.output.gatewayPaths
-                    .ingressGatewayPath,
-                port: jellyfinHelmChart.output.services.jellyfin.port.webUi,
-              },
-            },
-            bandwidthLimit: {
-              // 3750 KiB/s ≈ 30Mbps — Direct Play 버스트가 WAN 업로드를
-              // 포화시키지 않는 상한 (Envoy limit_kbps는 KiB/s 단위)
-              responseLimitKiBps: 3_750,
-            },
-            providers: {
-              kubernetes: workstationK8sProvider,
+      new components.jellyfin.JellyfinServiceMeshComponent(
+        'jellyfinServiceMesh',
+        {
+          namespace: jellyfinHelmChart.output.namespace,
+          ingress: {
+            jellyfinWebUi: {
+              host: jellyfinHost,
+              serviceName: jellyfinHelmChart.output.services.jellyfin.name,
+              gatewayPath:
+                k8sWorkstationSystemContract.output.gatewayPaths
+                  .ingressGatewayPath,
+              port: jellyfinHelmChart.output.services.jellyfin.port.webUi,
             },
           },
-          {
-            dependsOn: [jellyfinHelmChart],
+          providers: {
+            kubernetes: workstationK8sProvider,
           },
-        );
+        },
+        {
+          dependsOn: [jellyfinHelmChart],
+        },
+      );
     }
 
     // Price Quest
