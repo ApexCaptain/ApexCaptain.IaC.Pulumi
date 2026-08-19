@@ -23,6 +23,8 @@
     "script:mergeKubeConfig": "ts-node scripts/merge-kube-config.script.ts",
     "script:generateNovaDiagnosis": "ts-node scripts/generate-nova-diagnosis.script.ts",
     "script:fetchWorkstationKubeconfig": "ts-node scripts/fetch-workstation-kubeconfig.script.ts",
+    "script:generateCommitMessage": "ts-node scripts/generate-commit-message.script.ts",
+    "script:generatePullRequest": "ts-node scripts/generate-pull-request.script.ts",
     "pulumi:preview": "turbo run pulumi:preview --filter \"./infra/*\"",
     "pulumi:up": "turbo run pulumi:up --filter \"./infra/*\" --ui=tui",
     "postpulumi:up": "pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis",
@@ -41,6 +43,7 @@
     "organization": false
   },
   "devDependencies": {
+    "@cursor/sdk": "^1.0.28",
     "@pulumi/esc-sdk": "^0.14.0",
     "@types/json2md": "^1.5.4",
     "@types/lodash": "^4.17.24",

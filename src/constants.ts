@@ -109,7 +109,7 @@ export const constants = (() => {
       authentik: new TerraformBridgedProvider({
         name: 'authentik',
         providerSource: 'goauthentik/authentik',
-        providerVersion: '2026.5.0',
+        providerVersion: '2026.5.1',
       }),
       // https://registry.terraform.io/providers/argoproj-labs/argocd/latest
       argocd: new TerraformBridgedProvider({
@@ -121,7 +121,7 @@ export const constants = (() => {
       coderd: new TerraformBridgedProvider({
         name: 'coderd',
         providerSource: 'coder/coderd',
-        providerVersion: '0.0.22',
+        providerVersion: '0.0.23',
       }),
     },
   };

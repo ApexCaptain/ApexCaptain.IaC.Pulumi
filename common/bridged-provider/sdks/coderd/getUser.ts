@@ -8,6 +8,7 @@ export function getUser(args?: GetUserArgs, opts?: pulumi.InvokeOptions): Promis
     args = args || {};
     opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts || {});
     return pulumi.runtime.invoke("coderd:index/getUser:getUser", {
+        "email": args.email,
         "id": args.id,
         "username": args.username,
     }, opts, utilities.getPackage());
@@ -17,6 +18,7 @@ export function getUser(args?: GetUserArgs, opts?: pulumi.InvokeOptions): Promis
  * A collection of arguments for invoking getUser.
  */
 export interface GetUserArgs {
+    email?: string;
     id?: string;
     username?: string;
 }
@@ -42,6 +44,7 @@ export function getUserOutput(args?: GetUserOutputArgs, opts?: pulumi.InvokeOutp
     args = args || {};
     opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts || {});
     return pulumi.runtime.invokeOutput("coderd:index/getUser:getUser", {
+        "email": args.email,
         "id": args.id,
         "username": args.username,
     }, opts, utilities.getPackage());
@@ -51,6 +54,7 @@ export function getUserOutput(args?: GetUserOutputArgs, opts?: pulumi.InvokeOutp
  * A collection of arguments for invoking getUser.
  */
 export interface GetUserOutputArgs {
+    email?: pulumi.Input<string | undefined>;
     id?: pulumi.Input<string | undefined>;
     username?: pulumi.Input<string | undefined>;
 }

@@ -166,10 +166,10 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
       },
     );
 
-    // OAuth Source로 이미 가입된 사용자가 다시 로그인할 때 사용하는 flow
-    const dataDefaultSourceAuthenticationFlow = await authentik.getFlow(
+    // OAuth Source로 처음 로그인하는 사용자를 Authentik에 등록(enroll)하는 flow
+    const dataDefaultSourceEnrollmentFlow = await authentik.getFlow(
       {
-        slug: 'default-source-authentication',
+        slug: 'default-source-enrollment',
       },
       {
         ...opts,
@@ -177,10 +177,68 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
       },
     );
 
-    // OAuth Source로 처음 로그인하는 사용자를 Authentik에 등록(enroll)하는 flow
-    const dataDefaultSourceEnrollmentFlow = await authentik.getFlow(
+    // OAuth Source 로그인 시 거칠 MFA 검증 stage 및 로그인 stage lookup
+    const dataDefaultAuthenticationMfaValidation = await authentik.getStage(
       {
-        slug: 'default-source-enrollment',
+        name: 'default-authentication-mfa-validation',
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    const dataDefaultSourceAuthenticationLogin = await authentik.getStage(
+      {
+        name: 'default-source-authentication-login',
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    /**
+     * OAuth Source 전용 Authentication Flow (MFA 검증 포함).
+     * 기본 default-source-authentication flow에는 MFA 검증 stage가 없어
+     * MFA를 등록한 사용자도 검증을 건너뛰는 문제가 있으므로,
+     * MFA validation stage -> Login stage 순서로 실행되는 flow를 정의한다.
+     */
+    const sourceAuthenticationFlow = new authentik.Flow(
+      `${resourceName}-sourceAuthenticationFlow`,
+      {
+        name: 'Source Authentication (MFA)',
+        slug: 'source-authentication-mfa',
+        title: 'Sign in with Social / SSO',
+        designation: 'authentication',
+        authentication: 'require_unauthenticated',
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    new authentik.FlowStageBinding(
+      `${resourceName}-sourceAuthMfaBinding`,
+      {
+        target: sourceAuthenticationFlow.uuid,
+        stage: dataDefaultAuthenticationMfaValidation.id,
+        order: 10,
+        reEvaluatePolicies: true,
+      },
+      {
+        ...opts,
+        provider: args.providers.authentik,
+      },
+    );
+
+    new authentik.FlowStageBinding(
+      `${resourceName}-sourceAuthLoginBinding`,
+      {
+        target: sourceAuthenticationFlow.uuid,
+        stage: dataDefaultSourceAuthenticationLogin.id,
+        order: 20,
       },
       {
         ...opts,
@@ -201,7 +259,7 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
         providerType: 'google',
         consumerKey: args.oauth.google.clientId,
         consumerSecret: args.oauth.google.clientSecret,
-        authenticationFlow: dataDefaultSourceAuthenticationFlow.id,
+        authenticationFlow: sourceAuthenticationFlow.uuid,
         enrollmentFlow: dataDefaultSourceEnrollmentFlow.id,
         enabled: true,
       },
