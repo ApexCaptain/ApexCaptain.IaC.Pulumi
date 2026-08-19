@@ -1,115 +1,25 @@
 ---
 name: generate-pull-request
 description: >-
-  PR title·body 생성 요청 시 base branch 대비 브랜치 전체 diff 검토 후
+  PR title·body 생성 요청 시 base branch 대비 diff를 바탕으로 Cursor SDK 스크립트를 실행하여
   .github/generated/pull-request-title.txt, pull-request-body.md에 작성한다.
   Use when the user asks for a PR body, pull request draft, or similar.
 ---
 
-# PR title·body 생성
+# PR Title 및 Body 생성 규칙
 
-사용자가 **PR body**, **pull request 작성**, **pull-request**, **PR 본문** 등을 요청하면 아래 순서를 따릅니다.  
-**`gh pr create` / `git push`는 사용자가 명시적으로 요청할 때만** 실행합니다.
+## 1. 언어 및 문체
+- **언어:** 반드시 한국어로 작성합니다. Title과 Body 모두 한국어로 쓰며, 기존 `git log`가 영어여도 따르지 않습니다. (고유명사, CLI 명령어, 설정 키, 파일 경로는 원문 유지)
+- **문체:** 간결한 문체 (~함 / 명사형 종결 혼용 가능, 경어체 불필요)
 
-> **범위:** PR title·body는 **마지막으로 merge된 base branch 대비 현재 브랜치 전체 변경**을 요약한다.  
-> 최신 커밋 하나, `git diff`(unstaged/staged), 작업 트리 일부만 기준으로 쓰지 않는다.  
-> 단일 커밋 메시지는 **`generate-commit-message`** skill을 따른다.
+## 2. PR Title 규칙
+- 형식: 반드시 `{prefix}: {요약}` 형태의 한 줄로 작성합니다.
+- Prefix는 커밋 규칙과 동일하게 `feat`, `fix`, `test`, `chore`, `dev` 중 하나를 선택합니다.
+- Base 브랜치 대비 현재 브랜치의 전체 변경사항을 대표하는 핵심 주제로 작성하며, 최신 단일 커밋 메시지를 단순 복사하지 않습니다.
 
-## 1. Git 변경사항 확인 (PR 전체 범위)
-
-### 1-1. base branch 결정
-
-**병렬**로 실행:
-
-- `git status`
-- `git branch -vv` (upstream·추적 브랜치 확인)
-- `git log -5 --oneline` (prefix·본문 길이 등 **형식** 참고. 언어는 한국어, 영어 커밋이 있어도 따르지 않음)
-
-base branch는 아래 순서로 정한다.
-
-1. 현재 브랜치의 upstream (예: `origin/develop`)
-2. upstream 없으면 이 저장소 기본 PR 대상 **`develop`**
-3. 사용자가 base를 명시했으면 그 브랜치
-
-원격 최신 기준: `git fetch origin` 후 `origin/<base>` 사용.
-
-### 1-2. PR에 포함될 전체 변경 조회 (필수)
-
-base를 `develop`이라 할 때, **병렬**로 실행:
-
-- `git log origin/develop..HEAD --oneline` — PR에 실릴 **모든 커밋**
-- `git diff origin/develop...HEAD` — PR **전체 diff** (merge-base 기준)
-- 필요 시 `git diff --stat origin/develop...HEAD`
-
-**반드시** 위 범위의 커밋·diff를 모두 검토한 뒤 title·body를 작성한다.  
-unstaged/staged만 보고 PR을 쓰지 않는다. (아직 커밋 안 된 변경도 PR에 넣을 계획이면 status도 참고하되, **요약 범위는 base..HEAD가 기본**.)
-
-## 2. PR 템플릿 참조
-
-반드시 **`.github/pull_request_template.md`** 를 읽고, 그 **구조·섹션·순서**를 따릅니다.
-
-- HTML 주석(`<!-- ... -->`)은 가이드용이므로 **최종 본문에서 제거**합니다.
-- **쓸 내용이 없는 섹션은 `N/A`, `None`, `_N/A_`, `_None_`, "해당 없음" 등으로 채우지 말고, `##` 헤딩부터 섹션 전체를 생략**합니다.
-- 템플릿은 GitHub PR 작성용 골격이며, body(`.github/generated/pull-request-body.md`)에는 **실제로 적을 내용이 있는 섹션만** 남깁니다.
-
-### 섹션별 규칙
-
-| 섹션 | 필수 | 비울 때 |
-|------|------|---------|
-| Related issues | 아니오 | 이슈 연결 없으면 **섹션 삭제** (`Fixes #` 빈 줄만 두지 않음) |
-| Summary | 예 | 항상 작성 |
-| Test plan | 예 | 검증 항목이 없으면 섹션 삭제 (드묾) |
-| Deployment notes | 아니오 | stack·수동 작업·롤백 등 특이사항 없으면 **섹션 삭제** |
-| Checklist | 예 | 검증한 항목만 `[x]` |
-| Additional notes | 아니오 | 리뷰어 참고·제한·후속 작업 없으면 **섹션 삭제** |
-
-- 변경 유형(`feat`/`fix`/…)은 **PR title prefix**로만 표기 — prefix 규칙은 **`generate-commit-message`** skill과 동일.
-- IaC·배포 변경은 내용이 있을 때만 `Deployment notes`에 stack·배포 순서·수동 후속·롤백을 적습니다.
-
-## 3. Secret 누출 검사
-
-**`generate-commit-message`** skill과 동일한 기준으로 검사합니다. 이상 있으면 파일을 작성하지 않고 경고합니다.
-
-## 4. PR title·body 작성
-
-이상 없으면 아래 **두 파일만** 작성합니다. 디렉터리가 없으면 생성.
-
-- **언어:** 한국어. title·body 모두 한국어로 쓴다. `git log`가 영어여도 영어 문구를 쓰지 않는다. 고유명사·명령·경로만 원문 유지
-- **문체:** 간결한 문체 (~함 / 명사형 종결 혼용 가능, 경어체 불필요). README·커밋 메시지 skill과 동일
-
-| 파일 | 내용 |
-|------|------|
-| **`.github/generated/pull-request-title.txt`** | PR title **한 줄만** |
-| **`.github/generated/pull-request-body.md`** | 템플릿 본문 (`## Summary` …) |
-
-- `pull-request.md` 등 **다른 경로에 쓰지 않음**
-- title·body를 **한 파일에 합치지 않음**
-
-### pull-request-title.txt
-
-- **한 줄**, 줄바꿈 없음 (마지막 개행 1개는 허용)
-- 형식: `{prefix}: {요약}` — **`generate-commit-message`** skill의 prefix 규칙과 동일
-- **요약 대상:** `origin/<base>..HEAD` **전체 변경** (여러 커밋·파일이면 공통 주제로 묶음)
-- 마지막 커밋 메시지를 그대로 복사하지 않음
-- `gh pr create --title "$(cat .github/generated/pull-request-title.txt)"` 에 그대로 사용
-
-### pull-request-body.md
-
-- **title 없음** — `## Summary`부터 시작
-- **Summary·Test plan 등:** base 대비 **브랜치 전체** diff·커밋 목록 반영 (최신 커밋만 X)
-- 커밋이 여러 개면 Summary bullet에 주요 변경을 모두 담거나 논리적으로 묶음
-- **빈 섹션·placeholder(`N/A` 등) 없이**, 내용 있는 섹션만 포함
-- `gh pr create --body-file .github/generated/pull-request-body.md` 에 그대로 사용
-
-- HEREDOC 등으로 파일에 직접 기록
-- 채팅에는 **PR title 한 줄** + 요약 전달해도 됨
-
-## 하지 않을 것
-
-- 사용자 요청 없이 `gh pr create` / `git push` 실행
-- **영어 `git log`를 이유로 title·body를 영어로 작성**
-- 템플릿을 읽지 않고 임의 형식으로만 작성
-- secret이 의심되는 변경을 무시하고 본문 작성
-- **내용 없는 섹션에 `N/A`·`None`·빈 `Fixes #`만 남기기**
-- **`git diff`(staged/unstaged)나 최신 커밋만 보고 PR title/body 작성**
-- **title과 body를 `pull-request.md` 한 파일에 합쳐 작성**
+## 3. PR Body 규칙
+- `.github/pull_request_template.md`의 구조와 섹션 순서를 준수합니다.
+- HTML 주석(`<!-- ... -->`)은 완전히 제거합니다.
+- **내용이 없는 섹션(예: Related issues, Deployment notes, Additional notes 등)은 `N/A`, `None`, `해당 없음` 등으로 채우지 말고 섹션 헤더(## ...) 자체를 완전히 생략/삭제합니다.**
+- `Checklist`는 실제로 확인되거나 검증된 항목만 `[x]`로 체크합니다.
+- `Summary`와 `Test plan`은 최신 커밋 하나만이 아닌 브랜치 전체의 주요 변경점과 검증 방법을 논리적으로 묶어 작성합니다.

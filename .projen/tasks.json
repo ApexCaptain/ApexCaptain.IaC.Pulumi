@@ -198,7 +198,7 @@
             "--peer",
             "--no-deprecated",
             "--dep=dev,prod,peer,optional",
-            "--filter=@pulumi/esc-sdk,@types/json2md,@types/lodash,@types/node,@types/semver,@types/ssh2,cron-time-generator,eslint-config-prettier,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,handlebars,json2md,lodash,prettier,projen,repomix,sha512-crypt-ts,ssh2,timezone-enum,ts-node,turbo,typescript,@pulumi/pulumi,axios,chalk,dedent,flat,flatley,semver,yaml"
+            "--filter=@cursor/sdk,@pulumi/esc-sdk,@types/json2md,@types/lodash,@types/node,@types/semver,@types/ssh2,cron-time-generator,eslint-config-prettier,eslint-import-resolver-typescript,eslint-plugin-import,eslint-plugin-prettier,handlebars,json2md,lodash,prettier,projen,repomix,sha512-crypt-ts,ssh2,timezone-enum,ts-node,turbo,typescript,@pulumi/pulumi,axios,chalk,dedent,flat,flatley,semver,yaml"
           ]
         },
         {
@@ -208,6 +208,7 @@
           "execArgs": [
             "pnpm",
             "update",
+            "@cursor/sdk",
             "@pulumi/esc-sdk",
             "@types/json2md",
             "@types/lodash",
