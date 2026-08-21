@@ -1,7 +1,7 @@
 /**
  * Prometheus scrape jobs for cluster services that expose /metrics.
  * Prefer container port names ending in metrics / monitoring.
- * Extra jobs cover ports without those names (Longhorn, Grafana, VM, Reloader, Vault).
+ * Extra jobs cover ports without those names (Longhorn, Grafana, VM, Reloader, Vault, DCGM).
  */
 export const clusterPrometheusScrapeConfigs = [
   {
@@ -12,6 +12,11 @@ export const clusterPrometheusScrapeConfigs = [
       {
         source_labels: ['__meta_kubernetes_pod_phase'],
         regex: 'Pending|Succeeded|Failed|Completed',
+        action: 'drop',
+      },
+      {
+        source_labels: ['__meta_kubernetes_pod_label_app'],
+        regex: 'nvidia-dcgm-exporter',
         action: 'drop',
       },
       {
@@ -39,6 +44,44 @@ export const clusterPrometheusScrapeConfigs = [
         source_labels: ['__meta_kubernetes_pod_container_port_name'],
         action: 'replace',
         target_label: 'endpoint',
+      },
+    ],
+  },
+  {
+    job_name: 'nvidia-dcgm-exporter',
+    scrape_interval: '30s',
+    metrics_path: '/metrics',
+    kubernetes_sd_configs: [
+      {
+        role: 'pod',
+        namespaces: { names: ['gpu-operator'] },
+      },
+    ],
+    relabel_configs: [
+      {
+        source_labels: ['__meta_kubernetes_pod_label_app'],
+        regex: 'nvidia-dcgm-exporter',
+        action: 'keep',
+      },
+      {
+        source_labels: ['__meta_kubernetes_pod_container_port_name'],
+        regex: 'metrics',
+        action: 'keep',
+      },
+      {
+        source_labels: ['__meta_kubernetes_namespace'],
+        action: 'replace',
+        target_label: 'namespace',
+      },
+      {
+        source_labels: ['__meta_kubernetes_pod_name'],
+        action: 'replace',
+        target_label: 'pod',
+      },
+      {
+        source_labels: ['__meta_kubernetes_pod_container_name'],
+        action: 'replace',
+        target_label: 'container',
       },
     ],
   },

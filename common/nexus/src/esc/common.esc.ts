@@ -59,6 +59,7 @@ const commonEscSchema = z
         'open-telemetry.github.io/opentelemetry-helm-charts': z.string(),
         'victoriametrics.github.io/helm-charts': z.string(),
         'grafana.github.io/helm-charts': z.string(),
+        'helm.ngc.nvidia.com/nvidia': z.string(),
       })
       .required(),
   })

@@ -6,6 +6,8 @@ export * as lxcfs from './lxcfs';
 
 export * as genericDevicePlugin from './generic-device-plugin';
 
+export * as gpuOperator from './gpu-operator';
+
 export * as certManager from './cert-manager';
 
 export * as istio from './istio';
