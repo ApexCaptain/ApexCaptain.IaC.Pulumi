@@ -380,28 +380,9 @@ export async function resolveAdminApiTokenV1(
       throw new Error('Coder organization id is empty');
     }
 
-    const listTokens = await curlJsonInPod({
-      kubeconfigPath,
-      namespace,
-      podName: targetPodName,
-      containerName,
-      method: 'GET',
-      url: `${baseUrl}/api/v2/users/me/keys/tokens`,
-      sessionToken,
-    });
-    if (listTokens.statusCode !== 200) {
-      throw new Error(
-        `failed to list tokens (${listTokens.statusCode}): ${listTokens.body}`,
-      );
-    }
-
-    const existingTokens = JSON.parse(listTokens.body) as CoderTokenInfo[];
-    const sameNameTokens = (
-      Array.isArray(existingTokens) ? existingTokens : []
-    ).filter(token => token.token_name === tokenName);
-    for (const token of sameNameTokens) {
+    const deleteTokenById = async (tokenId: string): Promise<void> => {
       console.warn(
-        `Deleting existing Coder API token ${token.id} (${tokenName})`,
+        `Deleting existing Coder API token ${tokenId} (${tokenName})`,
       );
       const deleted = await curlJsonInPod({
         kubeconfigPath,
@@ -409,30 +390,100 @@ export async function resolveAdminApiTokenV1(
         podName: targetPodName,
         containerName,
         method: 'DELETE',
-        url: `${baseUrl}/api/v2/users/me/keys/${token.id}`,
+        url: `${baseUrl}/api/v2/users/me/keys/${tokenId}`,
         sessionToken,
       });
       if (deleted.statusCode !== 204 && deleted.statusCode !== 200) {
         throw new Error(
-          `failed to delete token ${token.id} (${deleted.statusCode}): ${deleted.body}`,
+          `failed to delete token ${tokenId} (${deleted.statusCode}): ${deleted.body}`,
         );
       }
-    }
+    };
 
-    const created = await curlJsonInPod({
-      kubeconfigPath,
-      namespace,
-      podName: targetPodName,
-      containerName,
-      method: 'POST',
-      url: `${baseUrl}/api/v2/users/me/keys/tokens`,
-      sessionToken,
-      body: {
-        token_name: tokenName,
-        lifetime: hoursToNanoseconds(tokenLifetimeHours),
-        scope: 'all',
-      },
-    });
+    const findTokensByName = async (): Promise<CoderTokenInfo[]> => {
+      const tokensById = new Map<string, CoderTokenInfo>();
+
+      const byName = await curlJsonInPod({
+        kubeconfigPath,
+        namespace,
+        podName: targetPodName,
+        containerName,
+        method: 'GET',
+        url: `${baseUrl}/api/v2/users/me/keys/tokens/${encodeURIComponent(tokenName)}`,
+        sessionToken,
+      });
+      if (byName.statusCode === 200) {
+        const token = JSON.parse(byName.body) as CoderTokenInfo;
+        if (token.id?.trim()) {
+          tokensById.set(token.id.trim(), token);
+        }
+      } else if (byName.statusCode !== 404) {
+        throw new Error(
+          `failed to get token by name (${byName.statusCode}): ${byName.body}`,
+        );
+      }
+
+      const listTokens = await curlJsonInPod({
+        kubeconfigPath,
+        namespace,
+        podName: targetPodName,
+        containerName,
+        method: 'GET',
+        url: `${baseUrl}/api/v2/users/me/keys/tokens?include_expired=true`,
+        sessionToken,
+      });
+      if (listTokens.statusCode !== 200) {
+        throw new Error(
+          `failed to list tokens (${listTokens.statusCode}): ${listTokens.body}`,
+        );
+      }
+
+      const existingTokens = JSON.parse(listTokens.body) as CoderTokenInfo[];
+      for (const token of Array.isArray(existingTokens) ? existingTokens : []) {
+        if (token.token_name !== tokenName || !token.id?.trim()) {
+          continue;
+        }
+        tokensById.set(token.id.trim(), token);
+      }
+
+      return [...tokensById.values()];
+    };
+
+    const deleteExistingTokensByName = async (): Promise<void> => {
+      for (const token of await findTokensByName()) {
+        await deleteTokenById(token.id);
+      }
+    };
+
+    const createNamedToken = async (): Promise<{
+      statusCode: number;
+      body: string;
+    }> =>
+      curlJsonInPod({
+        kubeconfigPath,
+        namespace,
+        podName: targetPodName,
+        containerName,
+        method: 'POST',
+        url: `${baseUrl}/api/v2/users/me/keys/tokens`,
+        sessionToken,
+        body: {
+          token_name: tokenName,
+          lifetime: hoursToNanoseconds(tokenLifetimeHours),
+          scope: 'all',
+        },
+      });
+
+    await deleteExistingTokensByName();
+
+    let created = await createNamedToken();
+    if (created.statusCode === 409) {
+      console.warn(
+        `Coder API token ${tokenName} still exists after delete; retrying`,
+      );
+      await deleteExistingTokensByName();
+      created = await createNamedToken();
+    }
     if (created.statusCode !== 201 && created.statusCode !== 200) {
       throw new Error(
         `failed to create API token (${created.statusCode}): ${created.body}`,

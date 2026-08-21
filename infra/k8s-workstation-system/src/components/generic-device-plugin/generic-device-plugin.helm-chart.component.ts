@@ -4,8 +4,9 @@
  * 노드 `/dev` 장치를 K8s extended resource로 노출하는 privileged DaemonSet.
  * mesh 밖 (`istio.io/dataplane-mode: none`).
  *
- * config.data 는 workstation-0 실측 장치 기준 (dri / fuse / snd).
- * Pod 사용 예: resources.limits["squat.ai/dri"] = "1"
+ * config.data 는 workstation-0 실측 장치 기준 (fuse).
+ * GPU(/dev/dri)는 generic-device-plugin에서 노출하지 않음 — GPU Operator(nvidia.com/gpu)로 이관.
+ * Pod 사용 예: resources.limits["squat.ai/fuse"] = "1" (Coder Sysbox)
  *
  * @see https://artifacthub.io/packages/helm/gabe565/generic-device-plugin
  * @see https://github.com/squat/generic-device-plugin
@@ -50,14 +51,6 @@ const DEVICE_DOMAIN = 'squat.ai';
  * Chart defaults (serial / video0 / capture) omitted — those nodes do not exist here.
  */
 const DEVICE_PLUGIN_SETTINGS: GenericDevicePluginSetting[] = [
-  {
-    name: 'dri',
-    groups: [
-      {
-        paths: [{ path: '/dev/dri/card0' }, { path: '/dev/dri/renderD128' }],
-      },
-    ],
-  },
   {
     name: 'fuse',
     groups: [

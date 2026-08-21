@@ -1448,6 +1448,10 @@ void (async () => {
       cd ${src.constants.paths.dirs.ansibleDir}/workstation
       ansible-playbook pre-configure.yml
     `,
+    'ansible:postConfigure': dedent`
+      cd ${src.constants.paths.dirs.ansibleDir}/workstation
+      ansible-playbook post-configure.yml
+    `,
 
     // SSH
     ...Object.fromEntries(

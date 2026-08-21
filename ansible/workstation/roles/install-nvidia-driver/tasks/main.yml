@@ -1,0 +1,70 @@
+---
+# NVIDIA 호스트 드라이버 staging (pre-configure)
+#
+# 변수  host_vars/<hostname>.yml — nvidia_enabled, nvidia_driver_package
+# 검증  같은 playbook verify-nvidia-driver (자동 reboot 없음)
+
+- name: Detect PCI devices
+  ansible.builtin.command: lspci -nn
+  register: nvidia_pci_detect
+  changed_when: false
+
+- name: Skip role when NVIDIA disabled or no GPU on host
+  ansible.builtin.meta: end_role
+  when: >
+    not (nvidia_enabled | default(false) | bool)
+    or (
+      '10de:' not in nvidia_pci_detect.stdout
+      and 'NVIDIA' not in nvidia_pci_detect.stdout
+    )
+
+- name: Check Secure Boot state
+  ansible.builtin.command: mokutil --sb-state
+  register: nvidia_secure_boot_state
+  changed_when: false
+  failed_when: false
+
+- name: Warn when Secure Boot may block proprietary NVIDIA driver
+  ansible.builtin.debug:
+    msg: >
+      Secure Boot appears enabled. Proprietary NVIDIA driver install may fail
+      until Secure Boot is disabled or the driver is MOK-enrolled.
+  when: nvidia_secure_boot_state.stdout is search('enabled', ignorecase=true)
+
+- name: Install NVIDIA driver build dependencies
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - dkms
+      - "linux-headers-{{ ansible_kernel }}"
+    state: present
+    update_cache: true
+
+- name: Blacklist Nouveau for proprietary NVIDIA driver
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/blacklist-nouveau.conf
+    mode: "0644"
+    content: |
+      blacklist nouveau
+      options nouveau modeset=0
+  register: nvidia_nouveau_blacklist
+
+- name: Regenerate initramfs after Nouveau blacklist change
+  ansible.builtin.command: update-initramfs -u
+  when: nvidia_nouveau_blacklist is changed
+
+- name: Install NVIDIA driver package
+  ansible.builtin.apt:
+    name: "{{ nvidia_driver_package }}"
+    state: present
+    update_cache: true
+  register: nvidia_driver_install
+
+- name: Note NVIDIA driver package staging changes
+  ansible.builtin.debug:
+    msg: >
+      NVIDIA driver staging changed on {{ inventory_hostname }}
+      (nouveau={{ nvidia_nouveau_blacklist is changed }},
+      driver={{ nvidia_driver_install is changed }}).
+      verify-nvidia-driver role will check nvidia-smi / reboot guidance next.
+  when: nvidia_nouveau_blacklist is changed or nvidia_driver_install is changed

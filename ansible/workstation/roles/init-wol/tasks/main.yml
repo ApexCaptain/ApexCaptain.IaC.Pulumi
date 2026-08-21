@@ -1,4 +1,6 @@
 ---
+# Wake-on-LAN (pre-configure)
+
 - name: Install ethtool package
   ansible.builtin.apt:
     name: ethtool

@@ -3,13 +3,16 @@ ansible_port: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_EXTERNAL_SSH_PORT'
 ip: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_STATIC_IP') }}"
 etcd_member_name: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_HOSTNAME') }}"
 
-# Sysbox RuntimeClass scheduling.nodeSelector 와 맞춤
-# (업스트림 sysbox-install.yaml: sysbox-runtime: running)
-# 설치용 라벨 sysbox-install=yes 는 DaemonSet 경로용이므로 불필요
+# Kubernetes node_labels — Sysbox RuntimeClass nodeSelector 와 일치
 # @see https://github.com/nestybox/sysbox/blob/master/sysbox-k8s-manifests/sysbox-install.yaml
 node_labels:
   sysbox-runtime: running
 
+# NVIDIA — GPU 노드만. ubuntu-drivers 로 패키지 확인 후 설정
+nvidia_enabled: true
+nvidia_driver_package: nvidia-driver-595-open
+
+# Longhorn — 디스크별 device / mount_path / tags
 longhorn_disks:
   - device: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_DEVICE') }}"
     mount_path: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_NODE_0_LONGHORN_DISK_0_MOUNTPATH') }}"

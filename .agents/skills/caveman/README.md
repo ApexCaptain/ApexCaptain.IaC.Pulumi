@@ -7,8 +7,11 @@ Talk like smart caveman. Same brain, fewer tokens.
 Compress model responses to caveman-style prose by dropping articles, filler,
 pleasantries, and hedging. Instruction preserves technical detail, code blocks,
 error strings, and symbols. Result depends on model and workload; no aggregate
-reduction or quality-equivalence claim is published, and mode persists until
-changed or stopped.
+reduction or quality-equivalence claim is published.
+
+**This workspace:** default ON every response. OFF only when you explicitly disable
+(`stop caveman`, `/caveman off`, `caveman 비활성화`, `일반 모드`, etc.). Intensity
+persists until changed; disable persists until re-enabled.
 
 Six intensity levels:
 
@@ -26,11 +29,13 @@ Auto-clarity rule: caveman drops to normal prose for security warnings, irrevers
 ## How to invoke
 
 ```
-/caveman              # full mode (default)
+# Default: ON (full) — no invocation needed
+
 /caveman lite         # lighter compression
 /caveman ultra        # extreme compression
 /caveman wenyan       # classical Chinese
-stop caveman          # back to normal prose
+stop caveman          # OFF until re-enabled (also: /caveman off, caveman 비활성화, 일반 모드)
+/caveman              # re-enable after OFF
 ```
 
 ## Example output

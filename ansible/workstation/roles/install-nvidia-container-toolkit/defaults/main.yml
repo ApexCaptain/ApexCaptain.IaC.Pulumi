@@ -1,0 +1,5 @@
+---
+# host_vars/<hostname>.yml — nvidia_enabled (GPU 노드만 true)
+nvidia_enabled: false
+# apt 패키지명. 버전 pin 시 예: nvidia-container-toolkit=1.17.8-1
+nvidia_container_toolkit_package: nvidia-container-toolkit

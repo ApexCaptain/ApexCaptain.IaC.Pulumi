@@ -1,0 +1,76 @@
+---
+# NVIDIA driver 상태 확인 (pre-configure 마지막) — 자동 reboot 없음
+#
+# 변수  host_vars/<hostname>.yml — nvidia_enabled, nvidia_driver_package
+# 선행  같은 playbook install-nvidia-driver
+# 후속  수동 host reboot 후 preConfigure 재실행 또는 nvidia-smi 확인 → postConfigure
+
+- name: Detect PCI devices
+  ansible.builtin.command: lspci -nn
+  register: nvidia_pci_detect
+  changed_when: false
+
+- name: Skip role when NVIDIA disabled or no GPU on host
+  ansible.builtin.meta: end_role
+  when: >
+    not (nvidia_enabled | default(false) | bool)
+    or (
+      '10de:' not in nvidia_pci_detect.stdout
+      and 'NVIDIA' not in nvidia_pci_detect.stdout
+    )
+
+- name: Check whether NVIDIA driver package is installed
+  ansible.builtin.command: dpkg-query -W -f='${Status}' {{ nvidia_driver_package }}
+  register: nvidia_driver_package_status
+  changed_when: false
+  failed_when: false
+
+- name: Warn when NVIDIA driver package is not installed
+  ansible.builtin.debug:
+    msg: >
+      {{ nvidia_driver_package }} is not installed on {{ inventory_hostname }}.
+      install-nvidia-driver role may have been skipped or failed.
+  when: nvidia_driver_package_status.stdout is not search('install ok installed')
+
+- name: Verify NVIDIA driver via nvidia-smi
+  ansible.builtin.command: nvidia-smi
+  register: nvidia_smi_check
+  changed_when: false
+  failed_when: false
+  when: nvidia_driver_package_status.stdout is search('install ok installed')
+
+- name: Report NVIDIA driver is active
+  ansible.builtin.debug:
+    msg: |
+      [OK] NVIDIA host driver is active on {{ inventory_hostname }}.
+      nvidia-smi succeeded. Next step: pnpm ansible:postConfigure
+  when:
+    - nvidia_driver_package_status.stdout is search('install ok installed')
+    - nvidia_smi_check.rc == 0
+
+- name: Show nvidia-smi output
+  ansible.builtin.debug:
+    var: nvidia_smi_check.stdout_lines
+  when:
+    - nvidia_driver_package_status.stdout is search('install ok installed')
+    - nvidia_smi_check.rc == 0
+
+- name: Remind operator to reboot host manually
+  ansible.builtin.debug:
+    msg: |
+      [ACTION REQUIRED] Host manual reboot needed on {{ inventory_hostname }}.
+      Ansible will NOT reboot automatically (protects Coder/K8s sessions).
+
+      Why: Nouveau blacklist and/or {{ nvidia_driver_package }} need a reboot
+      before the NVIDIA kernel module loads.
+
+      On the host (maintenance window):
+        sudo reboot
+
+      After the node is back:
+        1. ssh — verify: nvidia-smi
+        2. pnpm ansible:preConfigure   (re-run to print [OK] verification here)
+        3. pnpm ansible:postConfigure
+  when:
+    - nvidia_driver_package_status.stdout is search('install ok installed')
+    - nvidia_smi_check.rc != 0

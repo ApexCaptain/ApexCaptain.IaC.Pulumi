@@ -1,10 +1,10 @@
 ---
-# Sysbox CE 호스트 설치 (K8s DaemonSet 대신 deb 패키지)
+# Sysbox CE 호스트 설치 (pre-configure; K8s DaemonSet 대신 deb)
 #
-# - 바이너리/systemd: sysbox-ce deb
-# - containerd handler: group_vars `containerd_additional_runtimes` (Kubespray)
-# - RuntimeClass: Pulumi `SysboxComponent` (infra/k8s-workstation-system)
-# - 노드 라벨 `sysbox-runtime=running`: host_vars `node_labels`
+#   deb/systemd     이 역할
+#   containerd      group_vars containerd_additional_runtimes (Kubespray)
+#   RuntimeClass    Pulumi SysboxComponent
+#   node_labels     host_vars — sysbox-runtime=running
 #
 # @see https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-package.md
 # @see https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-k8s.md
