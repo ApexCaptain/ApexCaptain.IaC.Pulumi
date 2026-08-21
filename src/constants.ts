@@ -176,6 +176,7 @@ export const constants = (() => {
     'victoriametrics.github.io/helm-charts':
       'https://victoriametrics.github.io/helm-charts',
     'grafana.github.io/helm-charts': 'https://grafana.github.io/helm-charts',
+    'helm.ngc.nvidia.com/nvidia': 'https://helm.ngc.nvidia.com/nvidia',
   };
 
   return {

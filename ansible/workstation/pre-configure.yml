@@ -1,4 +1,15 @@
 ---
+# Workstation 호스트 준비 (Kubespray cluster 전·병행).
+# 실행: pnpm ansible:preConfigure
+#
+# 역할 순서
+#   1. eanble-iscsi           Longhorn iSCSI
+#   2. longhorn-disks         Longhorn 디스크 (host_vars)
+#   3. init-wol               Wake-on-LAN
+#   4. install-nvidia-driver  GPU driver staging (reboot 없음)
+#   5. install-sysbox-runc    Sysbox CE (group_vars)
+#   6. verify-nvidia-driver   nvidia-smi 확인 / 수동 reboot 안내 (reboot 없음)
+
 - name: Pre-Configure Workstation
   hosts: k8s_cluster
   become: true
@@ -7,5 +18,6 @@
     - role: eanble-iscsi
     - role: longhorn-disks
     - role: init-wol
-    # Sysbox CE deb + (Ubuntu 25.04+) fusermount3 AppArmor local allow for sysboxfs
+    - role: install-nvidia-driver
     - role: install-sysbox-runc
+    - role: verify-nvidia-driver

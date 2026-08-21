@@ -1,5 +1,5 @@
-# 노드 공통 변수
-# @Ref https://github.com/kubernetes-sigs/kubespray/blob/master/inventory/sample/group_vars/all/all.yml
+# 클러스터 공통 (모든 노드)
+# @see https://github.com/kubernetes-sigs/kubespray/blob/master/inventory/sample/group_vars/all/all.yml
 
 ansible_connection: paramiko
 ansible_user: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_USERNAME') }}"
@@ -7,21 +7,29 @@ ansible_ssh_pass: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY_PASSP
 ansible_ssh_private_key_file: "{{ lookup('env', 'WORKSTATION_SSH_PRIVATE_KEY_FILE_ABSOLUTE_PATH') }}"
 ansible_become_password: "{{ lookup('env', 'WORKSTATION_BOOTSTRAP_PASSWORD') }}"
 
+# NTP — Ubuntu 24.04+ 는 ntpsec (Kubespray docs/advanced/ntp.md)
 ntp_enabled: true
-# Ubuntu 24.04+: classic ntp 패키지 없음 → ntpsec (Kubespray docs/advanced/ntp.md)
 ntp_package: ntpsec
 ntp_timezone: 'Asia/Seoul'
 
-# Sysbox CE — pre-configure `install-sysbox-runc` 역할이 deb로 설치
-# (공식 sysbox-deploy-k8s DaemonSet은 쓰지 않음; 호스트 설치와 중복)
+# Sysbox CE — pre-configure install-sysbox-runc (deb; sysbox-deploy-k8s DaemonSet 미사용)
 sysbox_ce_version: '0.7.0'
 
-# Kubespray → containerd 추가 runtime handler
-# Pod는 runtimeClassName: sysbox-runc + 노드 라벨 sysbox-runtime=running 필요
-# @see host_vars/*/node_labels, infra SysboxComponent RuntimeClass
+# NVIDIA GPU — 노드별 host_vars (nvidia_enabled, nvidia_driver_package)
+#   preConfigure    install-nvidia-driver + verify-nvidia-driver (수동 reboot 안내, 자동 reboot 없음)
+#   postConfigure   install-nvidia-container-toolkit
+
+# containerd 추가 runtime (Kubespray)
+#   sysbox-runc  pre-configure + host_vars node_labels → RuntimeClass sysbox-runc
+#   nvidia       post-configure toolkit → /usr/bin/nvidia-container-runtime
 containerd_additional_runtimes:
   - name: sysbox-runc
     type: 'io.containerd.runc.v2'
     options:
       BinaryName: /usr/bin/sysbox-runc
+      SystemdCgroup: 'true'
+  - name: nvidia
+    type: 'io.containerd.runc.v2'
+    options:
+      BinaryName: /usr/bin/nvidia-container-runtime
       SystemdCgroup: 'true'

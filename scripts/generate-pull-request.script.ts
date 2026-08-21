@@ -14,19 +14,17 @@ import {
 /**
  * PR 비교 기준(Base)이 되는 브랜치를 결정합니다.
  * 1. CLI 인자(argv[2]) 또는 환경변수(PR_BASE_BRANCH)
- * 2. 현재 브랜치의 Git Upstream
- * 3. origin/develop -> develop -> origin/main -> main 순서로 폴백
+ * 2. origin/main -> main -> origin/develop -> develop 순서로 폴백
  */
 function determineBaseBranch(): string {
   const customBase = process.argv[2] || process.env.PR_BASE_BRANCH;
   if (customBase) return customBase;
 
-  const upstream = getGitOutput(
-    'git rev-parse --abbrev-ref --symbolic-full-name @{u}',
-  );
-  if (upstream) {
-    return upstream;
-  }
+  const hasOriginMain = getGitOutput('git rev-parse --verify origin/main');
+  if (hasOriginMain) return 'origin/main';
+
+  const hasMain = getGitOutput('git rev-parse --verify main');
+  if (hasMain) return 'main';
 
   const hasOriginDevelop = getGitOutput(
     'git rev-parse --verify origin/develop',
@@ -35,9 +33,6 @@ function determineBaseBranch(): string {
 
   const hasDevelop = getGitOutput('git rev-parse --verify develop');
   if (hasDevelop) return 'develop';
-
-  const hasOriginMain = getGitOutput('git rev-parse --verify origin/main');
-  if (hasOriginMain) return 'origin/main';
 
   return 'main';
 }

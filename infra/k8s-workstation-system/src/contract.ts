@@ -113,6 +113,34 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
       );
 
+    // GPU — RuntimeClass + Operator (host driver/toolkit via Ansible)
+    const gpuRuntimeClass = new components.gpuOperator.GpuRuntimeClassComponent(
+      'gpuRuntimeClass',
+      {
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+    );
+
+    const gpuOperatorHelmChart =
+      new components.gpuOperator.GpuOperatorHelmChartComponent(
+        'gpuOperatorHelmChart',
+        {
+          helm: {
+            gpuOperator: {
+              version: 'v25.3.3',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['helm.ngc.nvidia.com/nvidia'],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        { dependsOn: [gpuRuntimeClass] },
+      );
+
     // Cert Manager
     const certManagerHelmChart =
       new components.certManager.CertManagerHelmChartComponent(
@@ -1028,6 +1056,10 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         sysbox: sysbox.output,
         lxcfs: lxcfsHelmChart.output,
         genericDevicePlugin: genericDevicePluginHelmChart.output,
+        gpu: {
+          runtimeClassName: gpuRuntimeClass.output.runtimeClassName,
+          namespace: gpuOperatorHelmChart.output.namespace,
+        },
         authentik: {
           flow: authentikResources.output.flow,
           groupIds: authentikResources.output.groupIds,

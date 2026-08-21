@@ -12,11 +12,18 @@ alwaysApply: true
 - 동시에 여러 스킬이 맞으면 모두 적용하되, **레포 전용(`.cursor/skills`)이 범용(`.agents/skills`)보다 우선**한다.
 - `disable-model-invocation: true`이거나, 스킬/기존 룰이 “사용자가 명시할 때만”이라고 한 것은 자동 적용하지 않는다. 현재: `pulumi-neo-handoff`, `cleanup-specstory-history`.
 
+## caveman (상시 ON)
+
+- 이 워크스페이스에서 **기본 상시 ON**. 매 응답마다 `.agents/skills/caveman/SKILL.md` 적용. 별도 트리거 불필요.
+- **OFF**: 사용자가 **의도적으로** 비활성화 요청할 때만 — `stop caveman`, `normal mode`, `/caveman off`, `caveman 끄`, `caveman 비활성화`, `일반 모드` 등
+- **재활성**: `/caveman`, `caveman 켜`, `caveman 활성화`
+- `짧게`/`토큰 줄여`/`be brief` 등은 **활성화가 아니라** 강도 조정 힌트(예: ultra)
+
 ## 자주 놓치는 의도 → 스킬
 
 | 사용자 패턴 | 스킬 |
 |-------------|------|
-| 짧게/간결히/토큰 줄여/말 줄여 | `caveman` (상시 ON 아님) |
+| 짧게/간결히/토큰 줄여/말 줄여 | `caveman` 강도 상향 (기본 full → ultra 등). **활성화 트리거 아님** |
 | 커밋 메시지/commit-message.txt | `generate-commit-message` |
 | PR 본문·초안 | `generate-pull-request` |
 | README 작성·갱신 | `generate-readme` |

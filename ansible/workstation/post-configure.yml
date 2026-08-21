@@ -1,0 +1,12 @@
+---
+# Kubespray cluster 기동 후 호스트 마무리.
+# 실행: pnpm ansible:postConfigure
+#
+# 선행: preConfigure — verify-nvidia-driver [OK] (nvidia-smi)
+
+- name: Post-Configure Workstation
+  hosts: k8s_cluster
+  become: true
+  gather_facts: true
+  roles:
+    - role: install-nvidia-container-toolkit

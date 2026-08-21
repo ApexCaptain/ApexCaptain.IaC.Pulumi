@@ -1,0 +1,119 @@
+---
+# NVIDIA container toolkit + containerd nvidia runtime (post-configure)
+#
+# 변수  host_vars/<hostname>.yml — nvidia_enabled (driver role과 동일)
+# 선행  pre-configure install-nvidia-driver, Kubespray cluster (containerd)
+# 유지  sysbox-runc runtime — nvidia-ctk merge configure
+
+- name: Detect PCI devices
+  ansible.builtin.command: lspci -nn
+  register: nvidia_pci_detect
+  changed_when: false
+
+- name: Skip role when NVIDIA disabled or no GPU on host
+  ansible.builtin.meta: end_role
+  when: >
+    not (nvidia_enabled | default(false) | bool)
+    or (
+      '10de:' not in nvidia_pci_detect.stdout
+      and 'NVIDIA' not in nvidia_pci_detect.stdout
+    )
+
+- name: Assert nvidia-smi works before container toolkit install
+  ansible.builtin.command: nvidia-smi
+  changed_when: false
+
+- name: Install NVIDIA container toolkit apt prerequisites
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+
+- name: Download NVIDIA container toolkit GPG key
+  ansible.builtin.get_url:
+    url: https://nvidia.github.io/libnvidia-container/gpgkey
+    dest: /tmp/nvidia-container-toolkit.gpg.asc
+    mode: "0644"
+
+- name: Install NVIDIA container toolkit apt keyring
+  ansible.builtin.command:
+    cmd: >-
+      gpg --dearmor
+      -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+      /tmp/nvidia-container-toolkit.gpg.asc
+    creates: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+- name: Map dpkg architecture for NVIDIA apt repository
+  ansible.builtin.set_fact:
+    nvidia_container_toolkit_apt_arch: "{{ 'amd64' if ansible_architecture in ['x86_64', 'amd64'] else ansible_architecture }}"
+
+- name: Add NVIDIA container toolkit apt repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg]
+      https://nvidia.github.io/libnvidia-container/stable/deb/{{ nvidia_container_toolkit_apt_arch }} /
+    filename: nvidia-container-toolkit
+    state: present
+
+- name: Install NVIDIA container toolkit package
+  ansible.builtin.apt:
+    name: "{{ nvidia_container_toolkit_package }}"
+    state: present
+    update_cache: true
+
+- name: Get containerd config checksum before NVIDIA configure
+  ansible.builtin.stat:
+    path: /etc/containerd/config.toml
+  register: containerd_config_before_nvidia
+
+- name: Configure containerd for NVIDIA runtime
+  ansible.builtin.command: nvidia-ctk runtime configure --runtime=containerd
+  changed_when: false
+
+- name: Get containerd config checksum after NVIDIA configure
+  ansible.builtin.stat:
+    path: /etc/containerd/config.toml
+  register: containerd_config_after_nvidia
+
+- name: Restart containerd when NVIDIA configuration changed
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted
+    daemon_reload: true
+  when: containerd_config_before_nvidia.stat.checksum != containerd_config_after_nvidia.stat.checksum
+
+- name: Verify nvidia-container-runtime binary exists
+  ansible.builtin.stat:
+    path: /usr/bin/nvidia-container-runtime
+  register: nvidia_container_runtime_binary
+
+- name: Assert nvidia-container-runtime binary presence
+  ansible.builtin.assert:
+    that:
+      - nvidia_container_runtime_binary.stat.exists
+    fail_msg: /usr/bin/nvidia-container-runtime was not found after toolkit install.
+
+- name: Verify containerd reports nvidia and sysbox-runc runtimes
+  ansible.builtin.shell: |
+    set -o pipefail
+    crictl info | jq -r '.config.containerd.runtimes | keys[]'
+  args:
+    executable: /bin/bash
+  register: nvidia_containerd_runtimes
+  changed_when: false
+
+- name: Assert required containerd runtimes are registered
+  ansible.builtin.assert:
+    that:
+      - "'nvidia' in nvidia_containerd_runtimes.stdout"
+      - "'sysbox-runc' in nvidia_containerd_runtimes.stdout"
+    fail_msg: >-
+      containerd runtimes missing nvidia and/or sysbox-runc.
+      stdout={{ nvidia_containerd_runtimes.stdout }}
+
+- name: Show configured containerd runtimes
+  ansible.builtin.debug:
+    var: nvidia_containerd_runtimes.stdout_lines

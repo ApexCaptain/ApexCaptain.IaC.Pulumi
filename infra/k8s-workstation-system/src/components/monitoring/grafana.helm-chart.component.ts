@@ -7,6 +7,7 @@ import * as pulumi from '@pulumi/pulumi';
 import {
   k8sNodeResourcesDashboardJson,
   k8sPodResourcesDashboardJson,
+  nvidiaGpuDcgmDashboardJson,
   lokiPodLogsDashboardJson,
   lokiServiceLogsDashboardJson,
 } from './dashboards';
@@ -210,6 +211,9 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                 },
                 'k8s-pod-resources': {
                   json: k8sPodResourcesDashboardJson,
+                },
+                'nvidia-gpu-dcgm': {
+                  json: nvidiaGpuDcgmDashboardJson,
                 },
               },
             },

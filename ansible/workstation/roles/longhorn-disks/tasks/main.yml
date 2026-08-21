@@ -1,4 +1,7 @@
 ---
+# Longhorn 디스크 마운트 (pre-configure)
+# 변수: host_vars/<hostname>.yml — longhorn_disks
+
 - name: Validate longhorn_disks structure
   ansible.builtin.assert:
     that:

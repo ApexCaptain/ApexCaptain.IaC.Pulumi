@@ -1,14 +1,3 @@
 ---
-# Example:
-# longhorn_disks:
-#   - device: /dev/sdb1
-#     mount_path: /var/lib/longhorn/ssd
-#     fs_type: ext4
-#     mount_opts: defaults
-#     tags: ["ssd"]
-#   - device: /dev/sdc1
-#     mount_path: /var/lib/longhorn/hdd
-#     fs_type: ext4
-#     mount_opts: defaults
-#     tags: ["hdd"]
+# host_vars/<hostname>.yml 에 longhorn_disks 정의. 비어 있으면 역할 no-op.
 longhorn_disks: []
