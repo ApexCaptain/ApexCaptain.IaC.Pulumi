@@ -20,7 +20,6 @@ async function fetchWorkstationKubeconfig(): Promise<void> {
     privateKey: fs.readFileSync(
       process.env.WORKSTATION_SSH_PRIVATE_KEY_FILE_ABSOLUTE_PATH!,
     ),
-    passphrase: process.env.WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY_PASSPHRASE!,
   });
 
   // 2. 원격 노드의 /etc/kubernetes/admin.conf 파일을 sudo 권한으로 읽기

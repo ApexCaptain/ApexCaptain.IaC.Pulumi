@@ -1208,11 +1208,10 @@ void (async () => {
     {},
   );
   requirementsFile.addPackages(
-    'ansible==11.13.0',
-    'cryptography==46.0.7',
+    'ansible==14.3.1',
+    'cryptography==50.0.0',
     'jmespath==1.1.0',
     'netaddr==1.3.0',
-    'paramiko==3.5.1',
   );
 
   // Keys
@@ -1458,10 +1457,7 @@ void (async () => {
       [0].map(eachNodeNumber => [
         `ssh:workstation:${eachNodeNumber}`,
         dedent`
-        sshpass \
-          -P "passphrase" \
-          -p $WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY_PASSPHRASE \
-        ssh -o StrictHostKeyChecking=accept-new \
+          ssh -o StrictHostKeyChecking=accept-new \
             -i ".keys/workstation.key" \
             -p "${`$WORKSTATION_BOOTSTRAP_NODE_${eachNodeNumber}_EXTERNAL_SSH_PORT`}" \
             $WORKSTATION_BOOTSTRAP_USERNAME@$WORKSTATION_DOMAIN_IPTIME
