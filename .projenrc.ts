@@ -209,6 +209,7 @@ const rootProject = new typescript.TypeScriptProject(
         `/${src.constants.paths.dirs.pnpmStoreDir}`,
         `/${src.constants.paths.dirs.ventoyUserDataDir}`,
         `/${src.constants.paths.dirs.venvDir}`,
+        `/${src.constants.paths.dirs.ociConfigDir}`,
       ],
       deps: ['chalk', 'axios', 'semver', 'flat', 'flatley'],
       devDeps: [
@@ -1227,6 +1228,36 @@ void (async () => {
     },
   );
 
+  const ociApexCaptainSshPrivateKey = new TextFile(
+    rootProject,
+    src.constants.paths.files.ociApexCaptainSshPrivateKeyFile,
+    {
+      lines: process.env.APEX_CAPTAIN_OCI_PRIVATE_KEY
+        ? process.env.APEX_CAPTAIN_OCI_PRIVATE_KEY.split('\\n')
+        : [],
+      committed: false,
+      readonly: true,
+    },
+  );
+
+  // OCI Config File
+  const apexCaptainOciProfile = 'ApexCaptain';
+  const ociConfigFile = new TextFile(
+    rootProject,
+    src.constants.paths.files.ociConfigFile,
+    {
+      lines: [
+        `[${apexCaptainOciProfile}]`,
+        `user=${process.env.APEX_CAPTAIN_OCI_USER_OCID}`,
+        `fingerprint=${process.env.APEX_CAPTAIN_OCI_FINGERPRINT}`,
+        `key_file=${ociApexCaptainSshPrivateKey.absolutePath}`,
+        `tenancy=${process.env.APEX_CAPTAIN_OCI_TENANCY_OCID}`,
+        `region=${process.env.APEX_CAPTAIN_OCI_REGION}`,
+      ],
+      editGitignore: false,
+    },
+  );
+
   // Repomix Config File
   const repomixConfigFile = new JsonFile(
     rootProject,
@@ -1318,6 +1349,15 @@ void (async () => {
       'kubernetes-mcp-server': {
         command: 'npx',
         args: ['-y', 'kubernetes-mcp-server@latest'],
+      },
+      'oracle-oci-cloud-mcp-server': {
+        command: 'uvx',
+        args: ['oracle.oci-cloud-mcp-server@latest'],
+        env: {
+          FASTMCP_LOG_LEVEL: 'ERROR',
+          OCI_CONFIG_FILE: `\${workspaceFolder}/${ociConfigFile.path}`,
+          OCI_CONFIG_PROFILE: apexCaptainOciProfile,
+        },
       },
       pulumi: {
         url: 'https://mcp.ai.pulumi.com/mcp',
@@ -1476,7 +1516,11 @@ void (async () => {
       ).toString();
       console.log(pythonInstallLog);
       // SSH Private Key Permission Change
-      execSync(`chmod 400 ${workstationSshPrivateKey.path}`);
+      [workstationSshPrivateKey, ociApexCaptainSshPrivateKey].forEach(eachKey =>
+        execSync(`chmod 400 ${eachKey.path}`),
+      );
+      // OCI Config File Permission Change
+      execSync(`chmod 600 ${ociConfigFile.path}`);
     }
   };
 

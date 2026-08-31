@@ -35,6 +35,7 @@ export const constants = (() => {
   const githubGeneratedDir = '.github/generated';
   const venvDir = process.env.VIRTUAL_ENV_DIR_NAME || '.venv';
   const keysDir = process.env.KEYS_DIR_NAME || '.keys';
+  const ociConfigDir = process.env.OCI_CONFIG_DIR_NAME || '.oci';
 
   // Files
   const repomixOutputXmlFile = 'repomix-output.xml';
@@ -63,6 +64,11 @@ export const constants = (() => {
     githubGeneratedDir,
     'pull-request-body.md',
   );
+  const ociConfigFile = path.join(ociConfigDir, 'oci.config');
+  const ociApexCaptainSshPrivateKeyFile = path.join(
+    keysDir,
+    'oci-apexcaptain.key',
+  );
 
   const paths = {
     dirs: {
@@ -84,6 +90,7 @@ export const constants = (() => {
       venvDir,
       keysDir,
       githubGeneratedDir,
+      ociConfigDir,
     },
     files: {
       repomixOutputXmlFile,
@@ -96,6 +103,8 @@ export const constants = (() => {
       githubGeneratedCommitMessageFile,
       githubGeneratedPullRequestTitleFile,
       githubGeneratedPullRequestBodyFile,
+      ociConfigFile,
+      ociApexCaptainSshPrivateKeyFile,
     },
   };
 

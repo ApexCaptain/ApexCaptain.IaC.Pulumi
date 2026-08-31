@@ -10,6 +10,7 @@
 /.github/workflows/upgrade-develop.yml linguist-generated
 /.gitignore linguist-generated
 /.nova-config.json linguist-generated
+/.oci/oci.config linguist-generated
 /.prettierignore linguist-generated
 /.prettierrc.json linguist-generated
 /.projen/** linguist-generated

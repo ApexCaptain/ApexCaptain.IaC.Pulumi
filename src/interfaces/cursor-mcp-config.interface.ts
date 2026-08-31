@@ -15,6 +15,8 @@ interface StdioMcpServer extends BaseMcpServer {
 
   args?: string[];
 
+  envFile?: string;
+
   env?: {
     [key: string]: string;
   };

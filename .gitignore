@@ -47,6 +47,7 @@ tmp
 /.pnpm-store
 /ventoy/user-data
 /.venv
+/.oci
 !/.github/workflows/upgrade-develop.yml
 !/.github/pull_request_template.md
 !/.prettierignore
@@ -66,6 +67,7 @@ tmp
 !/README.md
 !/requirements.txt
 /.keys/workstation.key
+/.keys/oci-apexcaptain.key
 !/repomix.config.json
 !/.cursor/mcp.json
 !/.cursor/settings.json

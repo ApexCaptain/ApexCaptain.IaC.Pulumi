@@ -13,6 +13,17 @@
         "kubernetes-mcp-server@latest"
       ]
     },
+    "oracle-oci-cloud-mcp-server": {
+      "command": "uvx",
+      "args": [
+        "oracle.oci-cloud-mcp-server@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "OCI_CONFIG_FILE": "${workspaceFolder}/.oci/oci.config",
+        "OCI_CONFIG_PROFILE": "ApexCaptain"
+      }
+    },
     "pulumi": {
       "url": "https://mcp.ai.pulumi.com/mcp"
     }
