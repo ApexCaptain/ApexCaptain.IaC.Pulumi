@@ -12,6 +12,15 @@ alwaysApply: true
 - 동시에 여러 스킬이 맞으면 모두 적용하되, **레포 전용(`.cursor/skills`)이 범용(`.agents/skills`)보다 우선**한다.
 - `disable-model-invocation: true`이거나, 스킬/기존 룰이 “사용자가 명시할 때만”이라고 한 것은 자동 적용하지 않는다. 현재: `pulumi-neo-handoff`, `cleanup-specstory-history`.
 
+## 스크립트 vs 스킬
+
+일부 작업은 **스킬이 아니라 npm 스크립트**가 SSOT다. 채팅에서 직접 문구를 쓰지 말고 스크립트를 실행한다.
+
+| 작업 | 실행 | 규칙 SSOT | 결과 파일 |
+|------|------|-----------|-----------|
+| 커밋 메시지 | `pnpm script:generateCommitMessage` | `scripts/prompts/` | `.github/generated/commit-message.txt` |
+| PR Title/Body | `pnpm script:generatePullRequest` | `scripts/prompts/` | `.github/generated/pull-request-title.txt`, `pull-request-body.md` |
+
 ## caveman (상시 ON)
 
 - 이 워크스페이스에서 **기본 상시 ON**. 매 응답마다 `.agents/skills/caveman/SKILL.md` 적용. 별도 트리거 불필요.
@@ -21,19 +30,30 @@ alwaysApply: true
 
 ## 자주 놓치는 의도 → 스킬
 
-| 사용자 패턴 | 스킬 |
+| 사용자 패턴 | 적용 |
 |-------------|------|
 | 짧게/간결히/토큰 줄여/말 줄여 | `caveman` 강도 상향 (기본 full → ultra 등). **활성화 트리거 아님** |
-| 커밋 메시지/commit-message.txt | `generate-commit-message` |
-| PR 본문·초안 | `generate-pull-request` |
-| README 작성·갱신 | `generate-readme` |
-| 원인 불명·간헐 실패·왜 안 되는지 먼저 보자 | `investigate-first` |
+| 커밋 메시지/commit-message.txt | `pnpm script:generateCommitMessage` 실행 |
+| PR 본문·초안/pull-request | `pnpm script:generatePullRequest` 실행 |
+| README 작성·갱신 (서브모듈) | `generate-readme` |
+| SpecStory 히스토리 정리·삭제·요약 | `cleanup-specstory-history` (**사용자 명시·승인 시만**) |
+| 원인 불명·간헐 실패·왜 안 되는지 먼저 | `investigate-first` |
 | 작은 버그 수정 | `surgical-patch` |
 | 리팩터·추출·이동 | `safe-refactor` |
 | 검증만/다 됐는지 확인 | `verify-and-stop` |
 | `pulumi up`/`preview` 실패 | `pulumi-debug-failed-operation` |
 | 인프라 배포·프로비저닝·스택 작업 | `pulumi-overview` (+ 해당 시 `pulumi-best-practices`) |
-| provider 버전 올리기 | `provider-upgrade` |
+| Pulumi TS/Python 코드·Output/apply/alias | `pulumi-best-practices` |
+| ComponentResource·컴포넌트 패키지 작성 | `pulumi-component` |
+| provider SDK 버전 올리기 | `provider-upgrade` |
+| 조직 전체 패키지 사용·버전 감사 | `package-usage` |
+| ESC·시크릿·환경·OIDC | `pulumi-esc` |
 | Coder 템플릿 | `coder-templates` |
+| Neo로 넘기기/hand off | `pulumi-neo-handoff` (**사용자 명시 시만**) |
 
 표에 없어도 description이 맞으면 같은 규칙이다.
+
+## 스킬 위치 참고
+
+- **레포 전용:** `.cursor/skills/` — `coder-templates`, `cleanup-specstory-history`, `generate-readme`
+- **범용:** `.agents/skills/` — Pulumi·디버깅·리팩터·caveman 등
