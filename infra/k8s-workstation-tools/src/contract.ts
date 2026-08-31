@@ -117,7 +117,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
           },
           helm: {
             coder: {
-              version: '2.36.1',
+              version: '2.36.3',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.coder.com/v2'],
             },

@@ -25,7 +25,7 @@ services:
 
       # Istioctl Version
       # https://github.com/istio/istio
-      ISTIOCTL_VERSION: 1.30.3
+      ISTIOCTL_VERSION: 1.30.4
 
       # Node Options
       NODE_OPTIONS: --max-old-space-size=6144

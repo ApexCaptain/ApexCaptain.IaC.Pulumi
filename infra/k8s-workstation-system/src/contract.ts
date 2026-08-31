@@ -129,7 +129,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             gpuOperator: {
-              version: 'v26.3.3',
+              version: 'v26.7.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.ngc.nvidia.com/nvidia'],
             },
@@ -257,7 +257,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           istio: {
-            version: '1.30.3',
+            version: '1.30.4',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'istio-release.storage.googleapis.com/charts'
@@ -346,6 +346,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             secret => secret.bootstrapToken.token,
           ),
           rootCaSecretName: vaultHelmChart.output.tls.rootCaSecretName,
+          serverVersion: '2.0.3',
         },
         providers: {
           kubernetes: workstationK8sProvider,
@@ -699,7 +700,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.argo.ArgoRolloutsComponent('argoRollouts', {
       helm: {
         argoRollouts: {
-          version: '2.41.1',
+          version: '2.42.0',
           repositoryUrl: argoChartRepositoryUrl,
         },
       },
@@ -759,7 +760,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.4.0',
+            version: '10.4.2',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },
@@ -886,7 +887,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           loki: {
-            version: '18.11.0',
+            version: '18.11.7',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -905,7 +906,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           tempo: {
-            version: '2.2.4',
+            version: '2.3.0',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -976,7 +977,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
           helm: {
             grafana: {
-              version: '12.11.1',
+              version: '13.0.1',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'grafana-community.github.io/helm-charts'
