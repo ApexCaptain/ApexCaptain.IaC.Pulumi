@@ -129,7 +129,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             gpuOperator: {
-              version: 'v25.3.3',
+              version: 'v26.3.3',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.ngc.nvidia.com/nvidia'],
             },
@@ -188,7 +188,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           vault: {
-            version: '0.34.0',
+            version: '0.34.1',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
           },
@@ -396,7 +396,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       new components.longhorn.LonghornHelmChartComponent('longhornHelmChart', {
         helm: {
           longhorn: {
-            version: '1.12.0',
+            version: '1.12.1',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['charts.longhorn.io'],
           },
@@ -429,7 +429,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: authentikNamespace,
           helm: {
             authentik: {
-              version: '2026.5.6',
+              version: '2026.8.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
             },
@@ -641,7 +641,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             vaultSecretOperator: {
-              version: '1.5.0',
+              version: '1.5.1',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
             },
@@ -679,7 +679,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.reloader.ReloaderHelmChartComponent('reloaderHelmChart', {
       helm: {
         reloader: {
-          version: '2.2.14',
+          version: '2.2.16',
           repositoryUrl:
             commonEsc.esc.helmRepositoryUrls[
               'stakater.github.io/stakater-charts'
@@ -759,7 +759,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.3.0',
+            version: '10.4.0',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },
@@ -843,7 +843,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             opentelemetryOperator: {
-              version: '0.120.2',
+              version: '0.122.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'open-telemetry.github.io/opentelemetry-helm-charts'
@@ -867,7 +867,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           storageClassName: monitoringStorageClass,
           helm: {
             victoriaMetrics: {
-              version: '0.44.0',
+              version: '0.45.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'victoriametrics.github.io/helm-charts'
@@ -886,9 +886,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           loki: {
-            version: '7.2.0',
+            version: '18.11.0',
             repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls['grafana.github.io/helm-charts'],
+              commonEsc.esc.helmRepositoryUrls[
+                'grafana-community.github.io/helm-charts'
+              ],
           },
         },
         providers: { kubernetes: workstationK8sProvider },
@@ -903,9 +905,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           tempo: {
-            version: '1.24.4',
+            version: '2.2.4',
             repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls['grafana.github.io/helm-charts'],
+              commonEsc.esc.helmRepositoryUrls[
+                'grafana-community.github.io/helm-charts'
+              ],
           },
         },
         providers: { kubernetes: workstationK8sProvider },
@@ -972,10 +976,10 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
           helm: {
             grafana: {
-              version: '10.5.15',
+              version: '12.11.1',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
-                  'grafana.github.io/helm-charts'
+                  'grafana-community.github.io/helm-charts'
                 ],
             },
           },

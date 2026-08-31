@@ -209,6 +209,7 @@ const rootProject = new typescript.TypeScriptProject(
         `/${src.constants.paths.dirs.pnpmStoreDir}`,
         `/${src.constants.paths.dirs.ventoyUserDataDir}`,
         `/${src.constants.paths.dirs.venvDir}`,
+        `/${src.constants.paths.dirs.ociConfigDir}`,
       ],
       deps: ['chalk', 'axios', 'semver', 'flat', 'flatley'],
       devDeps: [
@@ -1208,11 +1209,10 @@ void (async () => {
     {},
   );
   requirementsFile.addPackages(
-    'ansible==11.13.0',
-    'cryptography==46.0.7',
+    'ansible==14.3.1',
+    'cryptography==50.0.0',
     'jmespath==1.1.0',
     'netaddr==1.3.0',
-    'paramiko==3.5.1',
   );
 
   // Keys
@@ -1225,6 +1225,36 @@ void (async () => {
         : [],
       committed: false,
       readonly: true,
+    },
+  );
+
+  const ociApexCaptainSshPrivateKey = new TextFile(
+    rootProject,
+    src.constants.paths.files.ociApexCaptainSshPrivateKeyFile,
+    {
+      lines: process.env.APEX_CAPTAIN_OCI_PRIVATE_KEY
+        ? process.env.APEX_CAPTAIN_OCI_PRIVATE_KEY.split('\\n')
+        : [],
+      committed: false,
+      readonly: true,
+    },
+  );
+
+  // OCI Config File
+  const apexCaptainOciProfile = 'ApexCaptain';
+  const ociConfigFile = new TextFile(
+    rootProject,
+    src.constants.paths.files.ociConfigFile,
+    {
+      lines: [
+        `[${apexCaptainOciProfile}]`,
+        `user=${process.env.APEX_CAPTAIN_OCI_USER_OCID}`,
+        `fingerprint=${process.env.APEX_CAPTAIN_OCI_FINGERPRINT}`,
+        `key_file=${ociApexCaptainSshPrivateKey.absolutePath}`,
+        `tenancy=${process.env.APEX_CAPTAIN_OCI_TENANCY_OCID}`,
+        `region=${process.env.APEX_CAPTAIN_OCI_REGION}`,
+      ],
+      editGitignore: false,
     },
   );
 
@@ -1319,6 +1349,15 @@ void (async () => {
       'kubernetes-mcp-server': {
         command: 'npx',
         args: ['-y', 'kubernetes-mcp-server@latest'],
+      },
+      'oracle-oci-cloud-mcp-server': {
+        command: 'uvx',
+        args: ['oracle.oci-cloud-mcp-server@latest'],
+        env: {
+          FASTMCP_LOG_LEVEL: 'ERROR',
+          OCI_CONFIG_FILE: `\${workspaceFolder}/${ociConfigFile.path}`,
+          OCI_CONFIG_PROFILE: apexCaptainOciProfile,
+        },
       },
       pulumi: {
         url: 'https://mcp.ai.pulumi.com/mcp',
@@ -1458,10 +1497,7 @@ void (async () => {
       [0].map(eachNodeNumber => [
         `ssh:workstation:${eachNodeNumber}`,
         dedent`
-        sshpass \
-          -P "passphrase" \
-          -p $WORKSTATION_BOOTSTRAP_SSH_PRIVATE_KEY_PASSPHRASE \
-        ssh -o StrictHostKeyChecking=accept-new \
+          ssh -o StrictHostKeyChecking=accept-new \
             -i ".keys/workstation.key" \
             -p "${`$WORKSTATION_BOOTSTRAP_NODE_${eachNodeNumber}_EXTERNAL_SSH_PORT`}" \
             $WORKSTATION_BOOTSTRAP_USERNAME@$WORKSTATION_DOMAIN_IPTIME
@@ -1480,7 +1516,11 @@ void (async () => {
       ).toString();
       console.log(pythonInstallLog);
       // SSH Private Key Permission Change
-      execSync(`chmod 400 ${workstationSshPrivateKey.path}`);
+      [workstationSshPrivateKey, ociApexCaptainSshPrivateKey].forEach(eachKey =>
+        execSync(`chmod 400 ${eachKey.path}`),
+      );
+      // OCI Config File Permission Change
+      execSync(`chmod 600 ${ociConfigFile.path}`);
     }
   };
 

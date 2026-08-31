@@ -8,7 +8,7 @@ import {
   checkSecretLeak,
   cleanMarkdownCodeFence,
   getGitOutput,
-  loadSkillRules,
+  loadGenerationRules,
 } from './common';
 
 /**
@@ -39,7 +39,7 @@ function determineBaseBranch(): string {
 
 /**
  * Base 브랜치 대비 현재 브랜치의 전체 변경 사항을 검토하고,
- * PR 생성 규칙 및 템플릿을 선택적으로 로드하여 Cursor SDK로 PR Title/Body를 생성한 뒤 파일로 저장합니다.
+ * scripts/prompts/ 규칙 및 PR 템플릿을 로드하여 Cursor SDK로 PR Title/Body를 생성한 뒤 파일로 저장합니다.
  */
 async function generatePullRequest(): Promise<void> {
   const apiKey = process.env.CURSOR_API_KEY;
@@ -78,10 +78,8 @@ async function generatePullRequest(): Promise<void> {
   // 2. 보안 가드레일: Diff 및 작업 트리 내 민감 정보 누출 여부 검사
   checkSecretLeak(gitStatus, prDiff);
 
-  // 3. PR 스킬 규칙 문서 및 템플릿 선택적 로드
-  const rulesContent = loadSkillRules(
-    '.cursor/skills/generate-pull-request/SKILL.md',
-  );
+  // 3. 공통·PR 전용 프롬프트 규칙 및 템플릿 로드
+  const rulesContent = loadGenerationRules('pull-request');
 
   const templatePath = path.join(
     process.cwd(),
@@ -95,25 +93,11 @@ async function generatePullRequest(): Promise<void> {
   const prompt = dedent`
     당신은 숙련된 소프트웨어 엔지니어로서 아래 전달된 지침 문서와 템플릿에 따라 GitHub PR 제목(Title)과 본문(Body)을 작성해야 합니다.
 
-    [지침 및 스킬 규칙]
+    [지침 및 규칙]
     ${rulesContent}
 
     [PR 템플릿 참조]
     ${templateContent}
-
-    [핵심 요약 지침]
-    1. 언어: 반드시 한국어 (고유명사, CLI 명령어, 경로는 원문 유지)
-    2. PR Title: 반드시 "{prefix}: {요약}" 형태의 단일 줄 (허용 prefix: feat, fix, test, chore, dev)
-    3. PR Body:
-       - 템플릿의 섹션 구조를 따르되 HTML 주석은 모두 제거
-       - 내용 없는 섹션은 N/A 등을 넣지 말고 섹션 헤더(## ...) 전체를 완전히 삭제
-       - Checklist는 확인된 항목만 [x] 표기
-    4. 출력 형식:
-       아래의 JSON 형식으로만 응답하세요. 마크다운 코드블록(\`\`\`json)으로 감싸지 마세요.
-       {
-         "title": "prefix: PR 제목 요약",
-         "body": "## Summary\\n\\n- 주요 변경 내용\\n\\n## Test plan\\n\\n- [ ] 검증 계획\\n\\n## Checklist\\n\\n- [x] Self-review 완료..."
-       }
 
     [브랜치 커밋 목록 (${baseBranch}..HEAD)]
     ${prCommits || '(커밋 없음, 작업 트리 변경사항 참조)'}

@@ -17,9 +17,10 @@
 
     "ghcr.io/jsburckhardt/devcontainer-features/glow:1": {},
     "ghcr.io/rio/features/k9s:1": {},
+    "ghcr.io/jsburckhardt/devcontainer-features/uv:1": {},
 
     "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
-      "packages": "netcat-openbsd, iputils-ping, parallel, ripgrep, sshpass"
+      "packages": "netcat-openbsd, iputils-ping, parallel, ripgrep"
     }
   },
   // Custom
