@@ -32,6 +32,15 @@ install_nova() {
     echo "✅ Fairwinds Nova installed"
 }
 
+install_pluto() {
+    echo "🔄 Installing Fairwinds Pluto"
+    asdf plugin-add pluto
+    asdf install pluto latest
+    asdf global pluto ${PLUTO_VERSION}
+    echo "✅ Fairwinds Pluto installed"
+}
+
+
 install_istioctl() {
     echo "🔄 Installing istioctl ${ISTIOCTL_VERSION}"
     curl -fsSL "https://github.com/istio/istio/releases/download/${ISTIOCTL_VERSION}/istioctl-${ISTIOCTL_VERSION}-linux-amd64.tar.gz" \
@@ -39,7 +48,7 @@ install_istioctl() {
     echo "✅ istioctl ${ISTIOCTL_VERSION} installed"
 }
 
-export -f install_oci install_helm install_pnpm install_nova install_istioctl
-parallel --jobs 10 ::: install_oci install_helm install_pnpm install_nova install_istioctl
+export -f install_oci install_helm install_pnpm install_nova install_pluto install_istioctl
+parallel --jobs 10 ::: install_oci install_helm install_pnpm install_nova install_pluto install_istioctl
 
 ./.devcontainer/commands/common/synchronizeProject.sh

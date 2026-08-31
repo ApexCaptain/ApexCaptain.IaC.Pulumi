@@ -239,6 +239,8 @@ const rootProject = new typescript.TypeScriptProject(
         'repomix',
 
         '@cursor/sdk',
+
+        'concurrently',
       ],
     }))(),
     utils.functions.mergeCustomizer,
@@ -1454,6 +1456,7 @@ void (async () => {
     // Scripts
     'script:mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
     'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
+    'script:generatePlutoDiagnosis': `ts-node scripts/generate-pluto-diagnosis.script.ts`,
     'script:fetchWorkstationKubeconfig': `ts-node scripts/fetch-workstation-kubeconfig.script.ts`,
     'script:generateCommitMessage': `ts-node scripts/generate-commit-message.script.ts`,
     'script:generatePullRequest': `ts-node scripts/generate-pull-request.script.ts`,
@@ -1461,7 +1464,12 @@ void (async () => {
     // Pulumi — refresh는 PULUMI_REFRESH=1 로 선택 (기본 off)
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
     'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
-    'postpulumi:up': `pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis`,
+    'postpulumi:up': dedent`
+      pnpm script:mergeKubeConfig && \
+      concurrently --kill-others-on-fail \
+        "pnpm script:generateNovaDiagnosis" \
+        "pnpm script:generatePlutoDiagnosis"
+    `,
     'pulumi:install': [
       ...commonProjectWithBridgedProviderOrder,
       ...pulumiProjectWithBridgedProviderOrder,
