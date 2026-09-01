@@ -1324,9 +1324,6 @@ void (async () => {
             'pnpm-lock.yaml',
             'package-lock.json',
             'yarn.lock',
-
-            // DevContainer
-            '.devcontainer',
           ],
         },
         security: {

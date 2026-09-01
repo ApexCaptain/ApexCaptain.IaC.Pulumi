@@ -44,8 +44,7 @@
       "**/*.ico",
       "pnpm-lock.yaml",
       "package-lock.json",
-      "yarn.lock",
-      ".devcontainer"
+      "yarn.lock"
     ]
   },
   "security": {
