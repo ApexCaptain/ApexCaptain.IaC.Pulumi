@@ -7,7 +7,7 @@ Pulumi IaC 모노레포 전역에서 쓰는 공통 유틸·타입·헬퍼.
 - `defineComponent` — 컴포넌트 `output`/`secret` 패턴 표준화
 - `DeepPulumiInput` 등 Pulumi args 타입 유틸
 - `StackStage` enum, stack stage fallback 설정
-- kebab-case, OCI policy statement 등 범용 함수
+- kebab-case, OCI policy statement, Argo CD policy CSV, Cloudflare FQDN 등 범용 함수
 
 ## 구조
 

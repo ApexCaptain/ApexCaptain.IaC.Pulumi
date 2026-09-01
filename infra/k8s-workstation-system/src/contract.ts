@@ -760,7 +760,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.4.2',
+            version: '10.5.0',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },

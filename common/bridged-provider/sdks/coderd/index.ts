@@ -5,20 +5,30 @@ import * as pulumi from "@pulumi/pulumi";
 import * as utilities from "./utilities";
 
 // Export members:
+export { AgentsDefaultModelArgs, AgentsDefaultModelState } from "./agentsDefaultModel";
+export type AgentsDefaultModel = import("./agentsDefaultModel").AgentsDefaultModel;
+export const AgentsDefaultModel: typeof import("./agentsDefaultModel").AgentsDefaultModel = null as any;
+utilities.lazyLoad(exports, ["AgentsDefaultModel"], () => require("./agentsDefaultModel"));
+
+export { AgentsMcpServerArgs, AgentsMcpServerState } from "./agentsMcpServer";
+export type AgentsMcpServer = import("./agentsMcpServer").AgentsMcpServer;
+export const AgentsMcpServer: typeof import("./agentsMcpServer").AgentsMcpServer = null as any;
+utilities.lazyLoad(exports, ["AgentsMcpServer"], () => require("./agentsMcpServer"));
+
 export { AgentsModelArgs, AgentsModelState } from "./agentsModel";
 export type AgentsModel = import("./agentsModel").AgentsModel;
 export const AgentsModel: typeof import("./agentsModel").AgentsModel = null as any;
 utilities.lazyLoad(exports, ["AgentsModel"], () => require("./agentsModel"));
 
+export { AgentsSystemPromptArgs, AgentsSystemPromptState } from "./agentsSystemPrompt";
+export type AgentsSystemPrompt = import("./agentsSystemPrompt").AgentsSystemPrompt;
+export const AgentsSystemPrompt: typeof import("./agentsSystemPrompt").AgentsSystemPrompt = null as any;
+utilities.lazyLoad(exports, ["AgentsSystemPrompt"], () => require("./agentsSystemPrompt"));
+
 export { AiProviderArgs, AiProviderState } from "./aiProvider";
 export type AiProvider = import("./aiProvider").AiProvider;
 export const AiProvider: typeof import("./aiProvider").AiProvider = null as any;
 utilities.lazyLoad(exports, ["AiProvider"], () => require("./aiProvider"));
-
-export { DefaultAgentsModelArgs, DefaultAgentsModelState } from "./defaultAgentsModel";
-export type DefaultAgentsModel = import("./defaultAgentsModel").DefaultAgentsModel;
-export const DefaultAgentsModel: typeof import("./defaultAgentsModel").DefaultAgentsModel = null as any;
-utilities.lazyLoad(exports, ["DefaultAgentsModel"], () => require("./defaultAgentsModel"));
 
 export { GetGroupArgs, GetGroupResult, GetGroupOutputArgs } from "./getGroup";
 export const getGroup: typeof import("./getGroup").getGroup = null as any;
@@ -107,12 +117,16 @@ const _module = {
     version: utilities.getVersion(),
     construct: (name: string, type: string, urn: string): pulumi.Resource => {
         switch (type) {
+            case "coderd:index/agentsDefaultModel:AgentsDefaultModel":
+                return new AgentsDefaultModel(name, <any>undefined, { urn })
+            case "coderd:index/agentsMcpServer:AgentsMcpServer":
+                return new AgentsMcpServer(name, <any>undefined, { urn })
             case "coderd:index/agentsModel:AgentsModel":
                 return new AgentsModel(name, <any>undefined, { urn })
+            case "coderd:index/agentsSystemPrompt:AgentsSystemPrompt":
+                return new AgentsSystemPrompt(name, <any>undefined, { urn })
             case "coderd:index/aiProvider:AiProvider":
                 return new AiProvider(name, <any>undefined, { urn })
-            case "coderd:index/defaultAgentsModel:DefaultAgentsModel":
-                return new DefaultAgentsModel(name, <any>undefined, { urn })
             case "coderd:index/group:Group":
                 return new Group(name, <any>undefined, { urn })
             case "coderd:index/license:License":
@@ -138,9 +152,11 @@ const _module = {
         }
     },
 };
+pulumi.runtime.registerResourceModule("coderd", "index/agentsDefaultModel", _module)
+pulumi.runtime.registerResourceModule("coderd", "index/agentsMcpServer", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/agentsModel", _module)
+pulumi.runtime.registerResourceModule("coderd", "index/agentsSystemPrompt", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/aiProvider", _module)
-pulumi.runtime.registerResourceModule("coderd", "index/defaultAgentsModel", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/group", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/license", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/oauth2ProviderSettings", _module)

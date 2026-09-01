@@ -33,6 +33,7 @@ export interface GetTemplateResult {
     readonly activeUserCount: number;
     readonly activeVersionId: string;
     readonly activityBumpMs: number;
+    readonly agentsAllowed: boolean;
     readonly allowUserAutostart: boolean;
     readonly allowUserAutostop: boolean;
     readonly allowUserCancelWorkspaceJobs: boolean;

@@ -1013,7 +1013,7 @@ void (async () => {
           exclude: ['**/node_modules/**', '.vscode'],
         },
         workbench: {
-          colorTheme: 'Tomorrow Night Blue',
+          colorTheme: 'Abyss',
         },
         'material-icon-theme': {
           files: {

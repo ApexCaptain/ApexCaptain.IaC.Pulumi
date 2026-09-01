@@ -14,7 +14,7 @@
 src/
 ├── abstract/    # AbstractEsc
 ├── classes/     # Contract
-└── esc/         # common, cloudflare, oci, k8s-workstation-* ESC
+└── esc/         # common, cloudflare, oci, github, k8s-workstation-* ESC
 ```
 
 ## Contract 사용 패턴
