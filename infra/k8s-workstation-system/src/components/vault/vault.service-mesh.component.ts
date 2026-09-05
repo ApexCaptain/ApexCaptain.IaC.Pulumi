@@ -35,6 +35,8 @@ interface VaultServiceMeshComponentArgsShape {
   vault: {
     bootstrapToken: string;
     rootCaSecretName: string;
+    /** Vault server image tag — provider version auto-fetch may fail via ingress */
+    serverVersion: string;
   };
   providers: {
     kubernetes: kubernetes.Provider;
@@ -152,6 +154,8 @@ export const VaultServiceMeshComponent = utils.functions.defineComponent(
     const vaultProviderConfig: vault.ProviderArgs = {
       address: pulumi.interpolate`https://${args.ingress.vault.host}`,
       token: args.vault.bootstrapToken,
+      skipGetVaultVersion: true,
+      vaultVersionOverride: args.vault.serverVersion,
     };
 
     return {

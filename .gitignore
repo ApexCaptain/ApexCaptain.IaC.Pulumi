@@ -39,7 +39,7 @@ inventory.ini
 docs/superpowers
 .turbo
 tmp
-/repomix-output.xml
+/apexcaptain-iac-repomix-output.xml
 /.github/generated
 /.keys
 /.secrets

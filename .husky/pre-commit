@@ -2,6 +2,6 @@ if ! command -v pnpm >/dev/null 2>&1; then
   exit 0
 fi
 
-pnpm projen
-pnpm eslint
-git add .
+export ESLINT_USE_FLAT_CONFIG=false
+export NODE_NO_WARNINGS=1
+pnpm exec lint-staged

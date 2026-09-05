@@ -239,6 +239,10 @@ const rootProject = new typescript.TypeScriptProject(
         'repomix',
 
         '@cursor/sdk',
+
+        'concurrently',
+
+        'lint-staged',
       ],
     }))(),
     utils.functions.mergeCustomizer,
@@ -1011,7 +1015,7 @@ void (async () => {
           exclude: ['**/node_modules/**', '.vscode'],
         },
         workbench: {
-          colorTheme: 'Tomorrow Night Blue',
+          colorTheme: 'Abyss',
         },
         'material-icon-theme': {
           files: {
@@ -1182,6 +1186,12 @@ void (async () => {
     ],
   });
 
+  // lint-staged — staged TS only. Env must live in the hook: lint-staged does not expand shell env in commands.
+  rootProject.package.addField('lint-staged', {
+    '**/*.{ts,tsx}':
+      'eslint --fix --no-error-on-unmatched-pattern --ignore-pattern **/sdks/** --ignore-pattern **/node_modules/** --ignore-pattern **/lib/**',
+  });
+
   // Husky
   src.functions.generateHuskyHooks({
     projectPath: rootProject.outdir,
@@ -1191,9 +1201,9 @@ void (async () => {
           exit 0
         fi
 
-        pnpm projen
-        pnpm eslint
-        git add .
+        export ESLINT_USE_FLAT_CONFIG=false
+        export NODE_NO_WARNINGS=1
+        pnpm exec lint-staged
       `,
 
       'post-commit': dedent`
@@ -1322,9 +1332,6 @@ void (async () => {
             'pnpm-lock.yaml',
             'package-lock.json',
             'yarn.lock',
-
-            // DevContainer
-            '.devcontainer',
           ],
         },
         security: {
@@ -1454,6 +1461,7 @@ void (async () => {
     // Scripts
     'script:mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
     'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
+    'script:generatePlutoDiagnosis': `ts-node scripts/generate-pluto-diagnosis.script.ts`,
     'script:fetchWorkstationKubeconfig': `ts-node scripts/fetch-workstation-kubeconfig.script.ts`,
     'script:generateCommitMessage': `ts-node scripts/generate-commit-message.script.ts`,
     'script:generatePullRequest': `ts-node scripts/generate-pull-request.script.ts`,
@@ -1461,7 +1469,12 @@ void (async () => {
     // Pulumi — refresh는 PULUMI_REFRESH=1 로 선택 (기본 off)
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,
     'pulumi:up': `turbo run pulumi:up --filter ${infraPackageFilter} --ui=tui`,
-    'postpulumi:up': `pnpm script:mergeKubeConfig && pnpm script:generateNovaDiagnosis`,
+    'postpulumi:up': dedent`
+      pnpm script:mergeKubeConfig && \
+      concurrently --kill-others-on-fail \
+        "pnpm script:generateNovaDiagnosis" \
+        "pnpm script:generatePlutoDiagnosis"
+    `,
     'pulumi:install': [
       ...commonProjectWithBridgedProviderOrder,
       ...pulumiProjectWithBridgedProviderOrder,

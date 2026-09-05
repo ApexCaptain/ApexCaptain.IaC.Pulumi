@@ -23,9 +23,13 @@ services:
       # https://github.com/FairwindsOps/nova
       NOVA_VERSION: 3.12.0
 
+      # Pluto Version
+      # https://github.com/FairwindsOps/pluto
+      PLUTO_VERSION: 5.24.3
+
       # Istioctl Version
       # https://github.com/istio/istio
-      ISTIOCTL_VERSION: 1.30.3
+      ISTIOCTL_VERSION: 1.30.4
 
       # Node Options
       NODE_OPTIONS: --max-old-space-size=6144

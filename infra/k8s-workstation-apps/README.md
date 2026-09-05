@@ -4,7 +4,7 @@ Workstation **사용자 앱** Pulumi 스택 — Jellyfin, Price Quest 등.
 
 ## 역할
 
-- system 스택 output(mesh gateway, storage class, Authentik group, Vault provider) 참조
+- system 스택 output(mesh gateway, storage class, Authentik group, Vault provider, VSO VaultConnection) 참조
 - Jellyfin은 PROD 스택에서만 배포 (dev/staging은 비용·노이즈 절감)
 - Price Quest는 스택별(`dev`/`prod`) namespace·Vault 시크릿을 선언 (Helm·mesh는 후속)
 
@@ -12,8 +12,8 @@ Workstation **사용자 앱** Pulumi 스택 — Jellyfin, Price Quest 등.
 
 | 앱 | 스택 | DB | 인증 | mesh |
 |----|------|-----|------|------|
-| **Jellyfin** | prod | — | Authentik OIDC + jellyfin-plugin-sso (Admin UI 수동) | ambient, ingress SA ALLOW |
-| **Price Quest** | dev, prod | — | Vault OIDC developer group (`SecretV1Component`) | ambient namespace만 |
+| **Jellyfin** | prod | — | Authentik OIDC + jellyfin-plugin-sso (Admin UI 수동) | sidecar (`dataplane-mode: none`), ingress SA ALLOW |
+| **Price Quest** | dev, prod | — | Vault OIDC developer group (`SecretV1Component` + VSO) | ambient namespace만 |
 
 Price Quest Vault 경로: `secret/price-quest/api/{stack}/{shared|developer|runtime}`
 

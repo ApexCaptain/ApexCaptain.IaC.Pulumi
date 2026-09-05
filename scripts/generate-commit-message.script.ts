@@ -7,8 +7,11 @@ import * as src from '../src';
 import {
   checkSecretLeak,
   cleanMarkdownCodeFence,
+  getCombinedDiffStat,
   getGitOutput,
   loadGenerationRules,
+  parseChangedFilesFromStatus,
+  prepareDiffForPrompt,
 } from './common';
 
 /**
@@ -51,11 +54,31 @@ async function generateCommitMessage(): Promise<void> {
   // 2. 보안 가드레일: Diff 및 상태에 민감 정보가 포함되어 있는지 검사
   checkSecretLeak(gitStatus, fullDiff);
 
-  // 3. 저장소의 최근 커밋 로그 조회
+  // 3. 저장소의 최근 커밋 로그 및 변경 요약 조회
   const recentLogs = getGitOutput('git log -5 --oneline');
+  const diffStat = getCombinedDiffStat();
+  const changedFiles = parseChangedFilesFromStatus(gitStatus);
+  const preparedDiff = prepareDiffForPrompt(fullDiff);
 
   // 4. 공통·커밋 전용 프롬프트 규칙 로드
   const rulesContent = loadGenerationRules('commit-message');
+
+  const diffContextNotes = [
+    preparedDiff.diffExcludedFiles.length > 0
+      ? `- diff 본문 제외 경로(파일명·stat만 참고): ${preparedDiff.diffExcludedFiles.join(', ')}`
+      : null,
+    preparedDiff.truncated
+      ? '- 아래 [Git Diff]는 토큰 제한으로 일부 파일이 생략되었거나 축약되었습니다. [Git Diff Stat]과 [변경 파일 목록]을 반드시 함께 참고하세요.'
+      : null,
+    preparedDiff.abbreviatedFiles.length > 0
+      ? `- 축약된 파일: ${preparedDiff.abbreviatedFiles.join(', ')}`
+      : null,
+    preparedDiff.omittedFiles.length > 0
+      ? `- 생략된 파일: ${preparedDiff.omittedFiles.join(', ')}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   // 5. 프롬프트 구성
   const prompt = dedent`
@@ -70,8 +93,15 @@ async function generateCommitMessage(): Promise<void> {
     [Git 상태]
     ${gitStatus}
 
+    [변경 파일 목록]
+    ${changedFiles.map(file => `- ${file}`).join('\n') || '(없음)'}
+
+    [Git Diff Stat]
+    ${diffStat || '(없음)'}
+    ${diffContextNotes ? `\n[Diff 컨텍스트 참고]\n${diffContextNotes}` : ''}
+
     [Git Diff]
-    ${fullDiff.slice(0, 8000)}
+    ${preparedDiff.diffExcerpt || '(없음)'}
   `;
 
   console.log(

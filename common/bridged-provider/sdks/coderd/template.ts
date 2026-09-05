@@ -43,6 +43,10 @@ export class Template extends pulumi.CustomResource {
      */
     declare public readonly activityBumpMs: pulumi.Output<number>;
     /**
+     * Whether Coder Agents can create workspaces from this template. Coder defaults this setting to true. Requires a Coder deployment running v2.37.0 or later.
+     */
+    declare public readonly agentsAllowed: pulumi.Output<boolean>;
+    /**
      * (Enterprise) Whether users can auto-start workspaces created from this template. Defaults to true.
      */
     declare public readonly allowUserAutoStart: pulumi.Output<boolean>;
@@ -138,6 +142,7 @@ export class Template extends pulumi.CustomResource {
             const state = argsOrState as TemplateState | undefined;
             resourceInputs["acl"] = state?.acl;
             resourceInputs["activityBumpMs"] = state?.activityBumpMs;
+            resourceInputs["agentsAllowed"] = state?.agentsAllowed;
             resourceInputs["allowUserAutoStart"] = state?.allowUserAutoStart;
             resourceInputs["allowUserAutoStop"] = state?.allowUserAutoStop;
             resourceInputs["allowUserCancelWorkspaceJobs"] = state?.allowUserCancelWorkspaceJobs;
@@ -162,6 +167,7 @@ export class Template extends pulumi.CustomResource {
             const args = argsOrState as TemplateArgs | undefined;
             resourceInputs["acl"] = args?.acl;
             resourceInputs["activityBumpMs"] = args?.activityBumpMs;
+            resourceInputs["agentsAllowed"] = args?.agentsAllowed;
             resourceInputs["allowUserAutoStart"] = args?.allowUserAutoStart;
             resourceInputs["allowUserAutoStop"] = args?.allowUserAutoStop;
             resourceInputs["allowUserCancelWorkspaceJobs"] = args?.allowUserCancelWorkspaceJobs;
@@ -200,6 +206,10 @@ export interface TemplateState {
      * The activity bump duration for all workspaces created from this template, in milliseconds. Defaults to one hour.
      */
     activityBumpMs?: pulumi.Input<number | undefined>;
+    /**
+     * Whether Coder Agents can create workspaces from this template. Coder defaults this setting to true. Requires a Coder deployment running v2.37.0 or later.
+     */
+    agentsAllowed?: pulumi.Input<boolean | undefined>;
     /**
      * (Enterprise) Whether users can auto-start workspaces created from this template. Defaults to true.
      */
@@ -294,6 +304,10 @@ export interface TemplateArgs {
      * The activity bump duration for all workspaces created from this template, in milliseconds. Defaults to one hour.
      */
     activityBumpMs?: pulumi.Input<number | undefined>;
+    /**
+     * Whether Coder Agents can create workspaces from this template. Coder defaults this setting to true. Requires a Coder deployment running v2.37.0 or later.
+     */
+    agentsAllowed?: pulumi.Input<boolean | undefined>;
     /**
      * (Enterprise) Whether users can auto-start workspaces created from this template. Defaults to true.
      */
