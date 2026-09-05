@@ -5,8 +5,8 @@
 | **발생** | 2026-07-18 (최초), 2026-08-17 (재현·원인 확정) |
 | **서비스** | Jellyfin (`jellyfin.ayteneve93.com`) |
 | **스택** | `k8s-workstation-apps` (PROD) |
-| **Istio** | 1.30.3, profile `ambient` |
-| **상태** | **완화 조치 적용** — Jellyfin namespace `dataplane-mode: none` |
+| **Istio** | 1.30.4, profile `ambient` |
+| **상태** | **완화** — sidecar (`dataplane-mode: none` + `istio-injection: enabled`), ingress SA ALLOW. Ambient 재도입은 upstream 픽스 대기 |
 
 ---
 
@@ -32,7 +32,7 @@ upstream: envoy://connect_originate/<pod-ip>:8096
 flags: DR http2.remote_reset
 ```
 
-### Ingress access log 패턴 (완화 후)
+### Ingress access log 패턴 (mesh 제외 완화 후)
 
 ```
 upstream: <pod-ip>:8096   # connect_originate / HBONE 없음
@@ -55,6 +55,8 @@ Gateway가 ambient in-mesh destination(Jellyfin namespace `dataplane-mode: ambie
 > Istio maintainer: ambient 전체 문제가 아니라 **Gateway 경유 + HBONE + mid-stream abort** 조합의 Envoy 버그.  
 > ([istio/istio#60074](https://github.com/istio/istio/issues/60074) 코멘트)
 
+Envoy 픽스 [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198)은 이슈 완료 시점(2026-09-06) 기준 **미머지**. Istio 1.30.4 `proxyv2`에도 없음. Ambient 경로로는 해결 불가.
+
 ### 조사 중 배제된 가설
 
 | 시도 | 결과 |
@@ -68,9 +70,25 @@ Gateway가 ambient in-mesh destination(Jellyfin namespace `dataplane-mode: ambie
 
 ---
 
-## 조치 (현재)
+## 조치
 
-### 1. Jellyfin namespace를 ambient mesh 밖으로 이동
+### 1. Sidecar + Gateway SA only (2026-09-06) — 채택
+
+Ambient 재도입은 Envoy 픽스 전까지 불가. Sidecar로 mTLS·Authz를 복원하고 HBONE `connect_originate`를 피했다.
+
+```yaml
+# jellyfin Namespace
+metadata:
+  labels:
+    istio-injection: enabled
+```
+
+- Gateway → sidecar ISTIO_MUTUAL. HBONE/`connect_originate` 없음.
+- `PeerAuthentication` STRICT.
+- `AuthorizationPolicy` ALLOW only `cluster.local/ns/istio-system/sa/istio-ingressgateway`.
+- Direct gateway SFTP도 같은 ingressgateway SA.
+
+### 2. 이전 완화 (2026-08-17): mesh 완전 제외
 
 ```yaml
 # jellyfin Namespace
@@ -79,19 +97,18 @@ metadata:
     istio.io/dataplane-mode: none
 ```
 
-- **효과:** Ingress → Jellyfin 구간에서 HBONE/`connect_originate` 제거 → **시크·연속 재생 정상**
-- **유지:** `VirtualService` + `istio-ingressgateway` L7 HTTPS 라우팅
-- **제거:** PeerAuthentication STRICT, AuthorizationPolicy, bandwidth EnvoyFilter (ambient 전제 리소스 — mesh 밖에서 불필요)
+- Ingress → Jellyfin 평문. VirtualService만 유지.
+- PeerAuthentication / AuthorizationPolicy 제거 (sidecar 재도입 전까지).
 
-### 2. 코드 반영 위치
+### 3. 코드 반영 위치
 
 | 파일 | 변경 |
 |------|------|
-| `infra/k8s-workstation-apps/src/components/jellyfin/jellyfin.helm-chart.component.ts` | `dataplane-mode: none` |
-| `infra/k8s-workstation-apps/src/components/jellyfin/jellyfin.service-mesh.component.ts` | VirtualService만 유지 |
-| `infra/k8s-workstation-apps/src/contract.ts` | mesh 정책·bandwidth args 제거 |
+| `infra/k8s-workstation-apps/src/components/jellyfin/jellyfin.helm-chart.component.ts` | `istio-injection: enabled` |
+| `infra/k8s-workstation-apps/src/components/jellyfin/jellyfin.service-mesh.component.ts` | VirtualService + PeerAuthentication STRICT + Authz ingress SA |
+| `infra/k8s-workstation-apps/src/contract.ts` | `serviceAccounts.istioIngressGateway` 전달 |
 
-### 3. 장애 시 임시 복구
+### 4. 장애 시 임시 복구 (sidecar 이전)
 
 ```bash
 kubectl rollout restart deploy/istio-ingressgateway -n istio-system
@@ -99,34 +116,29 @@ kubectl rollout restart deploy/istio-ingressgateway -n istio-system
 
 ---
 
-## 추후: Ambient 모드 재활성화 계획
+## 검증 (2026-09-06)
 
-Jellyfin namespace를 다시 `istio.io/dataplane-mode: ambient`로 올리려면 **upstream fix 포함 Istio proxy 빌드** 확인 후 아래 순서로 검증한다.
+클러스터:
 
-### 전제 조건
+- Pod `3/3 Ready` (`jellyfin` + `sftp-sidecar` + native `istio-proxy` 1.30.4).
+- `https://jellyfin.ayteneve93.com/health` → 200 `Healthy`. `/web/` → 200.
+- Pod 내부 `127.0.0.1:8096/health` → 200.
+- ClusterIP·Pod IP plaintext → `Connection reset by peer` (STRICT + Authz).
 
-- [ ] [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 및 **사용 중 Istio 버전의 proxyv2에 포함** 확인
-- [ ] Istio 릴리스 노트 / [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 여부 확인
-- [ ] 클러스터 Istio 업그레이드 (현재 1.30.3)
+사용자: Direct Play 시크 재현, Ingress 마비 없음.
 
-### 재활성화 절차 (제안)
+---
 
-1. 스테이징 또는 PROD 유지보수 창에서 `dataplane-mode: ambient` 복원
-2. Jellyfin Pod rollout
-3. **Direct Play + 시크** 스트레스 테스트 (mp4/mkv, 연속 시크 10회+)
-4. Ingress `/health` 및 `istio-ingressgateway` 메트릭 모니터링:
-   - `outbound|8096||jellyfin.jellyfin.svc.cluster.local` cluster
-   - `rq_active` vs `cx_active` 1:1 고착 여부
-5. OK → PeerAuthentication / AuthorizationPolicy 재도입 검토  
-   NG → `none` 롤백, Istio 버전 추가 확인
+## 추후: Ambient 모드 재활성화
 
-### 재활성화 시 복원 가능 리소스 (선택)
+Jellyfin을 다시 `istio.io/dataplane-mode: ambient`로 올리려면 아래가 끝난 뒤 **이 이슈에서** 검증한다.
 
-| 리소스 | 목적 | 비고 |
-|--------|------|------|
-| `PeerAuthentication` STRICT | namespace mTLS | ambient 필수 전제 |
-| `AuthorizationPolicy` | ingress SA만 ALLOW | mesh 내부 직접 접근 차단 |
-| bandwidth `EnvoyFilter` | WAN 업로드 상한 | 시크 버그와 무관; 7/18 WAN 포화 가설 대비 |
+- [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 및 사용 중 Istio `proxyv2` 포함
+- [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈
+- Direct Play + 시크 스트레스 (mp4/mkv, 연속 시크 10회+)
+- Gateway `rq_active` vs `cx_active` 1:1 고착 여부
+
+그때 PeerAuthentication / AuthorizationPolicy는 유지하고 sidecar injection만 제거하면 된다.
 
 ---
 
@@ -172,12 +184,14 @@ flowchart LR
   Browser["Browser (HTTP/2)"]
   IG["istio-ingressgateway"]
   ZT["ztunnel / HBONE"]
+  SC["istio-proxy sidecar"]
   JF["Jellyfin :8096"]
 
   Browser --> IG
   IG -->|"ambient ON ❌"| ZT
   ZT --> JF
-  IG -->|"dataplane-mode: none ✅"| JF
+  IG -->|"sidecar ✅"| SC
+  SC --> JF
 ```
 
 ---
@@ -190,3 +204,6 @@ flowchart LR
 | 2026-08-17 | 재현. mesh 튜닝(1·2·B·C) 및 VS-only baseline 실패 |
 | 2026-08-17 | **`dataplane-mode: none`** → 즉시 정상. mp4/mkv 무관 확인 |
 | 2026-08-17 | 코드 정리 (VirtualService only). istio#60074와 1:1 매칭 확인 |
+| 2026-09-06 | sidecar + PeerAuthentication STRICT + Authz ingress SA 배포 |
+| 2026-09-06 | Direct Play 시크 정상 확인. 이슈 완료. `docs/issues/` → `docs/resolved/` 아카이브 |
+| 2026-09-06 | 완화·upstream 대기로 `docs/resolved/` → `docs/issues/` 복원 |

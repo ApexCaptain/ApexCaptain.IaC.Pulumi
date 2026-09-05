@@ -1,8 +1,9 @@
 /**
  * Jellyfin Helm — 미디어 서버
  *
- * namespace: mesh 밖 (`istio.io/dataplane-mode: none`) — istio/istio#60074.
- * SFTP는 Istio direct gateway TCP passthrough — ingress HTTPS와 별도 포트.
+ * namespace: ambient 밖 + sidecar (`dataplane-mode: none`, `istio-injection: enabled`).
+ * Gateway → sidecar mTLS. HBONE `connect_originate` 회피 (istio/istio#60074).
+ * SFTP는 Istio direct gateway TCP passthrough — 같은 ingressgateway SA.
  */
 import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
@@ -58,7 +59,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
         metadata: {
           name: 'jellyfin',
           labels: {
-            'istio.io/dataplane-mode': 'none',
+            'istio-injection': 'enabled',
           },
         },
       },
@@ -207,6 +208,10 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
           },
           podLabels: {
             [customPodLabelKey]: customPodLabelValue,
+          },
+          podAnnotations: {
+            'proxy.istio.io/config':
+              '{"holdApplicationUntilProxyStarts": true}',
           },
           // @Note 나중에 GPU Operator 설치 후 사용
           // runtimeClassName: 'nvidia',

@@ -269,6 +269,15 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
             dev: {
               enabled: false,
             },
+            // Helm 기본 OnDelete는 Reloader가 STS annotation만 패치해도 Pod를 안 굴린다.
+            // replica 1 + ocikms auto-unseal이라 RollingUpdate 한 번이면 된다.
+            updateStrategyType: 'RollingUpdate',
+            statefulSet: {
+              annotations: {
+                'secret.reloader.stakater.com/reload':
+                  vaultServerCertificateSecretName,
+              },
+            },
             extraEnvironmentVars: {
               OCI_CONFIG_FILE: `/vault/userconfig/${vaultOciCredentialsSecretName}/config`,
             },

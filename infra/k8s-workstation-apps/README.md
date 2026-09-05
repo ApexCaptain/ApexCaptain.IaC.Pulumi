@@ -12,7 +12,7 @@ Workstation **사용자 앱** Pulumi 스택 — Jellyfin, Price Quest 등.
 
 | 앱 | 스택 | DB | 인증 | mesh |
 |----|------|-----|------|------|
-| **Jellyfin** | prod | — | Authentik OIDC + jellyfin-plugin-sso (Admin UI 수동) | ambient, ingress SA ALLOW |
+| **Jellyfin** | prod | — | Authentik OIDC + jellyfin-plugin-sso (Admin UI 수동) | sidecar (`dataplane-mode: none`), ingress SA ALLOW |
 | **Price Quest** | dev, prod | — | Vault OIDC developer group (`SecretV1Component` + VSO) | ambient namespace만 |
 
 Price Quest Vault 경로: `secret/price-quest/api/{stack}/{shared|developer|runtime}`

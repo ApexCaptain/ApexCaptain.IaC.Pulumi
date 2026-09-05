@@ -4,7 +4,7 @@
     "maxFileSize": 52428800
   },
   "output": {
-    "filePath": "repomix-output.xml",
+    "filePath": "apexcaptain-iac-repomix-output.xml",
     "style": "xml",
     "filePathStyle": "target-relative",
     "parsableStyle": false,

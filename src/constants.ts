@@ -38,7 +38,7 @@ export const constants = (() => {
   const ociConfigDir = process.env.OCI_CONFIG_DIR_NAME || '.oci';
 
   // Files
-  const repomixOutputXmlFile = 'repomix-output.xml';
+  const repomixOutputXmlFile = 'apexcaptain-iac-repomix-output.xml';
   const repomixConfigJsonFile = 'repomix.config.json';
   const novaConfigFile =
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';

@@ -81,6 +81,10 @@
       "type": "build"
     },
     {
+      "name": "lint-staged",
+      "type": "build"
+    },
+    {
       "name": "lodash",
       "type": "build"
     },

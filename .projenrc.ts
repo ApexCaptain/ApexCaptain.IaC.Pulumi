@@ -241,6 +241,8 @@ const rootProject = new typescript.TypeScriptProject(
         '@cursor/sdk',
 
         'concurrently',
+
+        'lint-staged',
       ],
     }))(),
     utils.functions.mergeCustomizer,
@@ -1184,6 +1186,12 @@ void (async () => {
     ],
   });
 
+  // lint-staged — staged TS only. Env must live in the hook: lint-staged does not expand shell env in commands.
+  rootProject.package.addField('lint-staged', {
+    '**/*.{ts,tsx}':
+      'eslint --fix --no-error-on-unmatched-pattern --ignore-pattern **/sdks/** --ignore-pattern **/node_modules/** --ignore-pattern **/lib/**',
+  });
+
   // Husky
   src.functions.generateHuskyHooks({
     projectPath: rootProject.outdir,
@@ -1193,9 +1201,9 @@ void (async () => {
           exit 0
         fi
 
-        pnpm projen
-        pnpm eslint
-        git add .
+        export ESLINT_USE_FLAT_CONFIG=false
+        export NODE_NO_WARNINGS=1
+        pnpm exec lint-staged
       `,
 
       'post-commit': dedent`

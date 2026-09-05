@@ -129,6 +129,16 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
         'jellyfinServiceMesh',
         {
           namespace: jellyfinHelmChart.output.namespace,
+          authorizationPolicy: {
+            from: {
+              istioIngress: {
+                namespace: k8sWorkstationSystemContract.output.namespaces.istio,
+                serviceAccountName:
+                  k8sWorkstationSystemContract.output.serviceAccounts
+                    .istioIngressGateway,
+              },
+            },
+          },
           ingress: {
             jellyfinWebUi: {
               host: jellyfinHost,
