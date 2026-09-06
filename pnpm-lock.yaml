@@ -106,8 +106,8 @@ importers:
         specifier: ^3.9.6
         version: 3.9.6
       projen:
-        specifier: ^0.103.19
-        version: 0.103.19(constructs@10.8.1)
+        specifier: ^0.103.20
+        version: 0.103.20(constructs@10.8.1)
       repomix:
         specifier: ^1.18.0
         version: 1.18.0(typescript@6.0.3)
@@ -3071,8 +3071,8 @@ packages:
     resolution: {integrity: sha512-MbA4R+WQT76ZBm/5JUpV9yqcJt92175+Y0Bodg3HgiXzrmKu7Ggq+bpn6y6wHH+gN9NcyKn3yg1+d47VaKwNAQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  projen@0.103.19:
-    resolution: {integrity: sha512-vfXSicFngBmMtmIe+mOqrqLF+dfbmgey2jBp9KgkpqvGcvNddJmOsvXwg5dgfXaMpzH62gbTdFNT7unuakU8nw==}
+  projen@0.103.20:
+    resolution: {integrity: sha512-0VXSaZiSv+UMvaK1lwqksUc3ou0cDpXJH+dwhHLKX/L2d5kN3tUcx2VoE5+uYBLe+9bn163zPh2wFhuDUZUN5Q==}
     engines: {node: '>= 16.0.0'}
     hasBin: true
     peerDependencies:
@@ -4092,7 +4092,7 @@ snapshots:
       '@npmcli/name-from-folder': 4.0.0
       '@npmcli/package-json': 7.0.5
       glob: 13.0.6
-      minimatch: 10.2.5
+      minimatch: 10.2.6
 
   '@npmcli/metavuln-calculator@9.0.3':
     dependencies:
@@ -6611,7 +6611,7 @@ snapshots:
 
   proggy@4.0.0: {}
 
-  projen@0.103.19(constructs@10.8.1):
+  projen@0.103.20(constructs@10.8.1):
     dependencies:
       constructs: 10.8.1
 
