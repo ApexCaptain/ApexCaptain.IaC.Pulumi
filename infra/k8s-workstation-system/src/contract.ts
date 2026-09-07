@@ -953,6 +953,19 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           host: grafanaHost,
           storageClassName: monitoringStorageClass,
           adminPassword: projectEsc.esc.grafana.adminPassword,
+          slackWebhookUrlInfraAlerts: pulumi
+            .output(projectEsc.esc.grafana)
+            .apply(grafana => {
+              const fromEsc = grafana.slackWebhookUrlInfraAlerts;
+              const fromEnv = process.env.SLACK_WEBHOOK_URL_INFRA_ALERTS;
+              const url = fromEsc || fromEnv;
+              if (!url) {
+                throw new Error(
+                  'Missing Slack webhook: set ESC grafana.slackWebhookUrlInfraAlerts or env SLACK_WEBHOOK_URL_INFRA_ALERTS',
+                );
+              }
+              return url;
+            }),
           oidc: {
             name: grafanaAuthentik.output.oidc.name,
             issuerUrl: grafanaAuthentik.output.oidc.issuerUrl,

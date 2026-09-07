@@ -4,6 +4,13 @@
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
+import * as yaml from 'yaml';
+import {
+  buildPvcUsageAlertRules,
+  buildPvcUsageContactPoints,
+  buildPvcUsageMuteTimes,
+  buildPvcUsageNotificationPolicies,
+} from './alerting/pvc-usage-alerting';
 import {
   k8sNodeResourcesDashboardJson,
   k8sPodResourcesDashboardJson,
@@ -17,6 +24,7 @@ interface GrafanaHelmChartComponentArgsShape {
   host: string;
   adminPassword: string;
   storageClassName: string;
+  slackWebhookUrlInfraAlerts: string;
   oidc: {
     name: string;
     issuerUrl: string;
@@ -62,6 +70,31 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
   ) => {
     const grafanaReleaseName = 'grafana';
 
+    const providerOpts = {
+      ...opts,
+      provider: args.providers.kubernetes,
+    };
+
+    const grafanaAlertingSlackSecretName = 'grafana-alerting-slack';
+
+    const grafanaAlertingSlackSecret = new kubernetes.core.v1.Secret(
+      `${resourceName}-alertingSlackSecret`,
+      {
+        metadata: {
+          name: grafanaAlertingSlackSecretName,
+          namespace: args.namespace,
+        },
+        stringData: {
+          'contactpoints.yaml': pulumi
+            .output(args.slackWebhookUrlInfraAlerts)
+            .apply(url =>
+              yaml.stringify(buildPvcUsageContactPoints(String(url))),
+            ),
+        },
+      },
+      providerOpts,
+    );
+
     const helmValues = pulumi
       .all([
         args.host,
@@ -98,7 +131,7 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
         ]) => {
           const scopes = Array.isArray(requestedScopes)
             ? requestedScopes.join(' ')
-            : requestedScopes;
+            : String(requestedScopes);
 
           return {
             'ingress': {
@@ -126,6 +159,9 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                 api_url: apiUrl,
                 role_attribute_path: roleAttributePath,
                 role_attribute_strict: true,
+              },
+              'unified_alerting': {
+                enabled: true,
               },
             },
             'envRenderSecret': {
@@ -167,6 +203,23 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                 ],
               },
             },
+            // rules/policies/muteTimes — Slack webhook lives in Secret mount below
+            'alerting': {
+              'mutetimes.yaml': buildPvcUsageMuteTimes(),
+              'policies.yaml': buildPvcUsageNotificationPolicies(),
+              'rules.yaml': buildPvcUsageAlertRules(),
+            },
+            'extraSecretMounts': [
+              {
+                name: 'alerting-slack-contactpoints',
+                secretName: grafanaAlertingSlackSecretName,
+                defaultMode: 420,
+                mountPath:
+                  '/etc/grafana/provisioning/alerting/contactpoints.yaml',
+                subPath: 'contactpoints.yaml',
+                readOnly: true,
+              },
+            ],
             'dashboardProviders': {
               'dashboardproviders.yaml': {
                 apiVersion: 1,
@@ -250,8 +303,8 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
         values: helmValues,
       },
       {
-        ...opts,
-        provider: args.providers.kubernetes,
+        ...providerOpts,
+        dependsOn: [grafanaAlertingSlackSecret],
       },
     );
 

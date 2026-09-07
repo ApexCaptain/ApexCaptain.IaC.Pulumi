@@ -1,0 +1,27 @@
+---
+description: DevContainer에서 형제 레포는 /workspace-hub 읽기 전용 마운트로 참조. 이 레포 워크스페이스와 섞지 말 것
+alwaysApply: true
+---
+
+# 형제 레포 참조 (`/workspace-hub`)
+
+DevContainer 안 에이전트가 **다른 레포 코드를 읽을 때**는 이 레포 `workspaceFolder`가 아니라 컨테이너 루트의 `/workspace-hub`를 쓴다. 사용자가 형제 레포·IaC 비교·기존 구현 참조를 말하면 여기부터 본다.
+
+자식 디렉터리가 레포 목록이다. 이름은 고정이 아니다. 추측하지 말고 먼저 `/workspace-hub`를 나열한다.
+
+## 규칙
+
+- 참조는 `Read` / `Grep` / `Glob`로 `/workspace-hub/<레포>/...`만. 클론하거나 이 레포 안으로 복사하지 않는다.
+- **읽기만.** 허브 경로에 수정·포맷·생성·삭제를 하지 않는다. 쓸 내용은 이 레포(`workspaceFolder`)에만 적용한다.
+- `/workspace-hub`를 이 프로젝트 워크스페이스로 취급하지 않는다. git status·인덱스·검색 범위를 허브로 넓히지 않는다.
+- 경로가 없으면 이 환경에 허브가 없는 것이다. 호스트 경로를 추측하지 말고, 허브 없이 이 레포만으로 진행한다.
+
+```
+# 맞음
+ls /workspace-hub
+Read /workspace-hub/<레포>/README.md
+
+# 아님 — 워크스페이스 아래 허브, 허브에 쓰기, 목록 하드코딩
+Read workspace-hub/<레포>/README.md
+Edit /workspace-hub/<레포>/src/foo.ts
+```

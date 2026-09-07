@@ -742,6 +742,7 @@ const initPulumiEsc = async () => {
       },
       grafana: {
         adminPassword: process.env.GRAFANA_ADMIN_PASSWORD,
+        slackWebhookUrlInfraAlerts: process.env.SLACK_WEBHOOK_URL_INFRA_ALERTS,
       },
     },
     {

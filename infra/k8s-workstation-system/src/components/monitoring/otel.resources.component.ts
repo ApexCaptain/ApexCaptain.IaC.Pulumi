@@ -81,6 +81,11 @@ export const OtelResourcesComponent = utils.functions.defineComponent(
             verbs: ['get', 'list', 'watch'],
           },
           {
+            apiGroups: [''],
+            resources: ['persistentvolumeclaims', 'persistentvolumes'],
+            verbs: ['get', 'list', 'watch'],
+          },
+          {
             apiGroups: ['discovery.k8s.io'],
             resources: ['endpointslices'],
             verbs: ['get', 'list', 'watch'],
@@ -153,6 +158,12 @@ export const OtelResourcesComponent = utils.functions.defineComponent(
             auth_type: 'serviceAccount',
             endpoint: 'https://${env:K8S_NODE_IP}:10250',
             insecure_skip_verify: true,
+            // default is container/pod/node only — volume required for PVC usage
+            metric_groups: ['container', 'pod', 'node', 'volume'],
+            extra_metadata_labels: ['k8s.volume.type'],
+            k8s_api_config: {
+              auth_type: 'serviceAccount',
+            },
           },
           prometheus: {
             config: {
