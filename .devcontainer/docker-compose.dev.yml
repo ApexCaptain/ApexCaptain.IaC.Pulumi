@@ -46,11 +46,13 @@ services:
 
     volumes:
       # Anonymous Volume
-      ## Workspace Cache
+      ## Cache
       - ..:${containerWorkspaceFolder}:cached
-      ## Files
+      ## Workspace Hub
+      - ${WORKSPACE_HUB_APEX_CAPTAIN:-$HOME/workspace-hub}:${WORKSPACE_HUB_CONTAINER_DIR_PATH}:ro
+      ## Settings
       - ./data/workspace/docker-daemon.json:/etc/docker/daemon.json
-      ## Mount Secrets
+      ## Secrets
       - ${HOST_SECRETS_DIR_PATH}:${CONTAINER_SECRETS_DIR_PATH}
 
       # Shared Volume
