@@ -302,6 +302,7 @@ const inflateCommonProject = (option: {
   commonDeps?: string[];
   devDeps?: string[];
   bridgedProviders?: src.classes.BridgedProvider[];
+  jest?: boolean;
 }) => {
   const outdir = path.join(
     src.constants.paths.dirs.commonDir,
@@ -319,10 +320,24 @@ const inflateCommonProject = (option: {
         outdir,
         eslintOptions: {
           dirs: [src.constants.paths.dirs.srcDir],
-          devdirs: [src.constants.paths.dirs.scriptDir],
+          devdirs: option.jest
+            ? [src.constants.paths.dirs.scriptDir, 'test']
+            : [src.constants.paths.dirs.scriptDir],
           tsconfigPath: './test/tsconfig.json',
           projectService: false,
         },
+        ...(option.jest
+          ? {
+              jest: true,
+              jestOptions: {
+                configFilePath: 'jest.config.json',
+                jestConfig: {
+                  testMatch: ['**/test/**/*.test.ts'],
+                  passWithNoTests: true,
+                } as javascript.JestConfigOptions,
+              },
+            }
+          : { jest: false }),
         tsconfigDev: {
           include: [
             `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
@@ -801,6 +816,7 @@ void (async () => {
     const utilsProject = inflateCommonProject({
       projectName: 'utils',
       deps: ['zod'],
+      jest: true,
     });
 
     const customResourcesProject = inflateCommonProject({
@@ -820,6 +836,7 @@ void (async () => {
         '@kubernetes/client-node',
       ],
       devDeps: ['@types/ws'],
+      jest: true,
     });
 
     const nexusProject = inflateCommonProject({
@@ -970,7 +987,7 @@ void (async () => {
           outputs: ['lib/**'],
         },
         test: {
-          dependsOn: ['build'],
+          dependsOn: ['^build'],
         },
         upgrade: {
           cache: false,
@@ -1454,6 +1471,7 @@ void (async () => {
           --body-file "${src.constants.paths.files.githubGeneratedPullRequestBodyFile}"`,
 
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
+    'test:workspaces': `turbo run test --filter ${workspacePackageFilters}`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 
     // ESLint
