@@ -362,6 +362,10 @@ const inflateCommonProject = (option: {
     ),
   );
 
+  if (option.jest && project.jest) {
+    project.jest.config.testMatch = ['**/test/**/*.test.ts'];
+  }
+
   if (option.bridgedProviders && option.bridgedProviders.length > 0) {
     commonProjectWithBridgedProviderOrder.push(project);
     const pulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {

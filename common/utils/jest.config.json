@@ -1,9 +1,7 @@
 {
   "coverageProvider": "v8",
   "testMatch": [
-    "**/test/**/*.test.ts",
-    "<rootDir>/@(src|test)/**/*(*.)@(spec|test).ts?(x)",
-    "<rootDir>/@(src|test)/**/__tests__/**/*.ts?(x)"
+    "**/test/**/*.test.ts"
   ],
   "passWithNoTests": true,
   "clearMocks": true,
