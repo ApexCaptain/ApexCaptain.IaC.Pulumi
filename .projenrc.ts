@@ -364,6 +364,7 @@ const inflateCommonProject = (option: {
   );
 
   if (option.jest && project.jest) {
+    // Projen appends default src/** and test/** patterns unless testMatch is overwritten.
     project.jest.config.testMatch = ['**/test/**/*.test.ts'];
   }
 
