@@ -7,21 +7,40 @@
   "remoteUser": "vscode",
   // Features
   "features": {
+    // Projen
     "ghcr.io/devcontainers-extra/features/projen:1": {},
+
+    // Python
     "ghcr.io/devcontainers/features/python:1": {},
 
+    // Github CLI
     "ghcr.io/devcontainers/features/github-cli:1": {},
+
+    // Pulumi
     "ghcr.io/devcontainers-extra/features/pulumi:1": {},
+
+    // Kubectl
     "ghcr.io/devcontainers-extra/features/kubectl-asdf:2": {},
+    
+    // Terraform
     "ghcr.io/devcontainers/features/terraform:1": {},
 
+    // Glow
     "ghcr.io/jsburckhardt/devcontainer-features/glow:1": {},
+    
+    // K9s
     "ghcr.io/rio/features/k9s:1": {},
+    
+    // UV
     "ghcr.io/jsburckhardt/devcontainer-features/uv:1": {},
 
+    // Apt-get Packages
     "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
       "packages": "netcat-openbsd, iputils-ping, parallel, ripgrep"
-    }
+    },
+
+    // Codex
+    "ghcr.io/jsburckhardt/devcontainer-features/codex:1" : {}
   },
   // Custom
   "customizations": {
@@ -36,7 +55,9 @@
         "bierner.markdown-preview-github-styles",
         "ms-azuretools.vscode-docker",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
-        "hashicorp.terraform"
+        "hashicorp.terraform",
+        // testing
+        "openai.chatgpt"
       ]
     }
   },

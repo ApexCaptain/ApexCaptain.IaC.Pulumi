@@ -126,4 +126,20 @@ echo "🔄 Installing Husky"
 npx -y husky
 echo "✅ Initialized Husky"
 
+echo "🔄 Logging in to Codex"
+printenv CODEX_API_KEY | codex login --with-api-key
+
+CODEX_CONFIG="${HOME}/.codex/config.toml"
+mkdir -p "${HOME}/.codex"
+touch "$CODEX_CONFIG"
+sed -i '/^# BEGIN CODEX_PROJECT_TRUST$/,/^# END CODEX_PROJECT_TRUST$/d' "$CODEX_CONFIG"
+{
+    echo "# BEGIN CODEX_PROJECT_TRUST"
+    echo "[projects.\"${containerWorkspaceFolder}\"]"
+    echo 'trust_level = "trusted"'
+    echo "# END CODEX_PROJECT_TRUST"
+} >> "$CODEX_CONFIG"
+
+echo "✅ Logged in to Codex"
+
 echo "✅ Synchronization completed"
