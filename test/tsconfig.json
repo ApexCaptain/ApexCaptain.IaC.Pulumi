@@ -9,6 +9,7 @@
     "**/*.ts",
     "../src/**/*.ts",
     "../scripts/**/*.ts",
+    "../common/**/test/**/*.ts",
     "../.projenrc.ts",
     "../projenrc/**/*.ts"
   ],

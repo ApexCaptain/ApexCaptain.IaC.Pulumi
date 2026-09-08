@@ -1,7 +1,12 @@
 import * as pulumi from '@pulumi/pulumi';
 
-export async function unwrap<T>(output: pulumi.Output<T>): Promise<T> {
-  return await output.promise();
+export function unwrap<T>(output: pulumi.Output<T>): Promise<T> {
+  return new Promise(resolve => {
+    output.apply(value => {
+      resolve(value);
+      return value;
+    });
+  });
 }
 
 export function installPulumiMocks(option?: {

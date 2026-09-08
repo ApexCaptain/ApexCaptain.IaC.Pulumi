@@ -77,6 +77,7 @@ const rootProject = new typescript.TypeScriptProject(
         include: [
           `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
           `../${src.constants.paths.dirs.scriptDir}/**/*.ts`,
+          '../common/**/test/**/*.ts',
           '../.projenrc.ts',
           '../projenrc/**/*.ts',
         ],
