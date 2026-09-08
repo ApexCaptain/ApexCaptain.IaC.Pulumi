@@ -187,6 +187,7 @@ export const constants = (() => {
     'grafana-community.github.io/helm-charts':
       'https://grafana-community.github.io/helm-charts',
     'helm.ngc.nvidia.com/nvidia': 'https://helm.ngc.nvidia.com/nvidia',
+    'charts.fairwinds.com/stable': 'https://charts.fairwinds.com/stable',
   };
 
   return {

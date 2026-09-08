@@ -71,6 +71,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
           name: 'qbittorrent',
           labels: {
             'istio.io/dataplane-mode': 'none',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },

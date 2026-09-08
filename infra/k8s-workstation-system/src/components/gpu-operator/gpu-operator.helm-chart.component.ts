@@ -40,6 +40,7 @@ export const GpuOperatorHelmChartComponent = utils.functions.defineComponent(
           name: 'gpu-operator',
           labels: {
             'istio.io/dataplane-mode': 'none',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },

@@ -30,6 +30,9 @@ export const PostgreSQLOperatorHelmChartComponent =
         {
           metadata: {
             name: 'postgresql-operator',
+            labels: {
+              'goldilocks.fairwinds.com/enabled': 'true',
+            },
           },
         },
         {

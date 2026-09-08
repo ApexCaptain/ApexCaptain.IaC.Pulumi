@@ -34,6 +34,9 @@ export const CertManagerHelmChartComponent = utils.functions.defineComponent(
       {
         metadata: {
           name: 'cert-manager',
+          labels: {
+            'goldilocks.fairwinds.com/enabled': 'true',
+          },
         },
       },
       {

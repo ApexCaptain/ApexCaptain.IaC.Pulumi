@@ -43,6 +43,7 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
           name: 'lxcfs',
           labels: {
             'istio.io/dataplane-mode': 'none',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },

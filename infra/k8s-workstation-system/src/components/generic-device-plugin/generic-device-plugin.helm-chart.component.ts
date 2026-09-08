@@ -77,6 +77,7 @@ export const GenericDevicePluginHelmChartComponent =
             name: 'generic-device-plugin',
             labels: {
               'istio.io/dataplane-mode': 'none',
+              'goldilocks.fairwinds.com/enabled': 'true',
             },
           },
         },
