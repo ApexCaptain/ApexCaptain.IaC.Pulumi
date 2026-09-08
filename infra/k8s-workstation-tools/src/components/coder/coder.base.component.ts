@@ -35,6 +35,7 @@ export const CoderBaseComponent = utils.functions.defineComponent(
           name: 'coder',
           labels: {
             'istio.io/dataplane-mode': 'ambient',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },

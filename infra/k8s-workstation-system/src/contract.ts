@@ -636,6 +636,80 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    // VPA (recommender only) + Goldilocks dashboard
+    const vpaHelmChart = new components.vpa.VpaHelmChartComponent(
+      'vpaHelmChart',
+      {
+        helm: {
+          vpa: {
+            version: '5.0.1',
+            repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls['charts.fairwinds.com/stable'],
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+    );
+
+    const goldilocksHelmChart =
+      new components.goldilocks.GoldilocksHelmChartComponent(
+        'goldilocksHelmChart',
+        {
+          helm: {
+            goldilocks: {
+              version: '11.1.0',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['charts.fairwinds.com/stable'],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        { dependsOn: [vpaHelmChart] },
+      );
+
+    new components.goldilocks.GoldilocksServiceMeshComponent(
+      'goldilocksServiceMesh',
+      {
+        namespace: goldilocksHelmChart.output.namespace,
+        ingress: {
+          istioNamespace: istioHelmChart.output.namespace,
+          goldilocksDashboard: {
+            host: cloudflareContract.output.zones.ayteneve93com.records
+              .goldilocks,
+            serviceName:
+              goldilocksHelmChart.output.services.goldilocksDashboard.name,
+            gatewayPath: istioGateway.output.istioIngressGatewayPath,
+            gatewayLabel: istioHelmChart.output.istioIngressGatewayLabel,
+            port: goldilocksHelmChart.output.services.goldilocksDashboard.port
+              .http,
+          },
+        },
+        authentik: {
+          allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
+          proxyOutpostId: authentikOutpost.output.outpostIds.proxyOutpostId,
+          proxyOutpostProviderName: authentikProxyOutpostProviderName,
+          flow: {
+            authorizationFlowId:
+              authentikResources.output.flow
+                .defaultProviderAuthorizationImplicitConsentId,
+            invalidationFlowId:
+              authentikResources.output.flow.defaultInvalidationFlowId,
+          },
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+          authentik: authentikProvider,
+        },
+      },
+      {
+        dependsOn: [istioGateway, goldilocksHelmChart, authentikOutpost],
+      },
+    );
+
     const vaultSecretsOperatorHelmChart =
       new components.vaultSecretsOperator.VaultSecretsOperatorHelmChartComponent(
         'vaultSecretsOperatorHelmChart',
@@ -760,7 +834,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.8.0',
+            version: '10.8.2',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },
@@ -868,7 +942,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           storageClassName: monitoringStorageClass,
           helm: {
             victoriaMetrics: {
-              version: '0.45.0',
+              version: '0.46.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'victoriametrics.github.io/helm-charts'
@@ -990,7 +1064,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
           helm: {
             grafana: {
-              version: '13.2.1',
+              version: '13.2.2',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'grafana-community.github.io/helm-charts'

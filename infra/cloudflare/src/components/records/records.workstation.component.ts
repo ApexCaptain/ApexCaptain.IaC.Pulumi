@@ -246,6 +246,23 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
       },
     );
 
+    const goldilocksRecord = new cloudflare.DnsRecord(
+      `${resourceName}-goldilocksRecord`,
+      {
+        name: 'goldilocks',
+        ttl: 1,
+        zoneId: args.zoneId,
+        type: 'CNAME',
+        content: args.workstationDomain,
+        proxied: true,
+        comment: 'Cloudflare DNS Record for Goldilocks Service',
+      },
+      {
+        ...opts,
+        provider: args.providers.cloudflare,
+      },
+    );
+
     return {
       output: pulumi.output({
         records: {
@@ -295,6 +312,10 @@ export const RecordsWorkstationComponent = utils.functions.defineComponent(
           ),
           grafana: utils.functions.toCloudflareRecordFqdn(
             grafanaRecord.name,
+            args.zoneDomain,
+          ),
+          goldilocks: utils.functions.toCloudflareRecordFqdn(
+            goldilocksRecord.name,
             args.zoneDomain,
           ),
         },

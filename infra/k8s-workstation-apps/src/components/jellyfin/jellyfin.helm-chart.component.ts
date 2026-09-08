@@ -60,6 +60,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
           name: 'jellyfin',
           labels: {
             'istio-injection': 'enabled',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },

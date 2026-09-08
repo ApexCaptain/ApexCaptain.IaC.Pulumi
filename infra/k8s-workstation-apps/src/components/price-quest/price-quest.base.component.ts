@@ -42,6 +42,7 @@ export const PriceQuestBaseComponent = utils.functions.defineComponent(
           labels: {
             ...commonLabels,
             'istio.io/dataplane-mode': 'ambient',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },

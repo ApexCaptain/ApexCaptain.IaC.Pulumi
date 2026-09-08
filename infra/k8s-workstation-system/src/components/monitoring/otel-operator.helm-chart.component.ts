@@ -37,6 +37,7 @@ export const OtelOperatorHelmChartComponent = utils.functions.defineComponent(
           name: 'monitoring',
           labels: {
             'istio.io/dataplane-mode': 'ambient',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },

@@ -55,6 +55,7 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
           name: args.namespace,
           labels: {
             'istio-injection': 'enabled',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },

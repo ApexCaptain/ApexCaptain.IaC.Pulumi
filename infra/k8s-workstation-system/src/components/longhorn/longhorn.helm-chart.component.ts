@@ -34,6 +34,9 @@ export const LonghornHelmChartComponent = utils.functions.defineComponent(
       {
         metadata: {
           name: 'longhorn',
+          labels: {
+            'goldilocks.fairwinds.com/enabled': 'true',
+          },
         },
       },
       {

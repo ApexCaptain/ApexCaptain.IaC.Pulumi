@@ -27,3 +27,7 @@ export * as reloader from './reloader';
 export * as argo from './argo';
 
 export * as monitoring from './monitoring';
+
+export * as vpa from './vpa';
+
+export * as goldilocks from './goldilocks';

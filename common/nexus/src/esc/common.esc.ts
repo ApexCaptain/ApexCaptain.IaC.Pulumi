@@ -60,6 +60,7 @@ const commonEscSchema = z
         'victoriametrics.github.io/helm-charts': z.string(),
         'grafana-community.github.io/helm-charts': z.string(),
         'helm.ngc.nvidia.com/nvidia': z.string(),
+        'charts.fairwinds.com/stable': z.string(),
       })
       .required(),
   })

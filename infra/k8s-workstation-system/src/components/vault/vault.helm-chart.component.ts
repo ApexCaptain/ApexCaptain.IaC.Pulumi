@@ -66,6 +66,9 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
       {
         metadata: {
           name: 'vault',
+          labels: {
+            'goldilocks.fairwinds.com/enabled': 'true',
+          },
         },
       },
       {

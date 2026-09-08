@@ -42,6 +42,7 @@ export const VikunjaBaseComponent = utils.functions.defineComponent(
           name: 'vikunja',
           labels: {
             'istio.io/dataplane-mode': 'ambient',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },

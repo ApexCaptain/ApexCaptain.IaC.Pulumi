@@ -29,6 +29,9 @@ export const ReloaderHelmChartComponent = utils.functions.defineComponent(
       {
         metadata: {
           name: 'reloader',
+          labels: {
+            'goldilocks.fairwinds.com/enabled': 'true',
+          },
         },
       },
       {

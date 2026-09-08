@@ -30,6 +30,9 @@ export const VaultSecretsOperatorHelmChartComponent =
         {
           metadata: {
             name: 'vault-secrets-operator',
+            labels: {
+              'goldilocks.fairwinds.com/enabled': 'true',
+            },
           },
         },
         {

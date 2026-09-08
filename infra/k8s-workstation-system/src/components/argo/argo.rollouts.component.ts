@@ -32,6 +32,7 @@ export const ArgoRolloutsComponent = utils.functions.defineComponent(
           labels: {
             // @ToDo 일단 끄고, 이상 없으면 ambient로 전환 -> 이후 PA를 STRICT로 모드 격상
             'istio.io/dataplane-mode': 'none',
+            'goldilocks.fairwinds.com/enabled': 'true',
           },
         },
       },
