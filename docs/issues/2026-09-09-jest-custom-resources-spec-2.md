@@ -14,8 +14,8 @@ Spec 1이 Jest 배선, utils 전부, mock harness, 샘플 3개(`TextFileV1`, `Pr
 
 ## 현재 상태
 
-- `pnpm --filter @common/custom-resources test`: 샘플 3개.
-- `installPulumiMocks` / `unwrap`(5s timeout, `stateOverrides`) 이미 있음.
+- `pnpm --filter @common/custom-resources test`: Spec 1 샘플 3개 + Spec 2 CRD 16 + fat 6 (10 suites / 25 tests).
+- `installPulumiMocks` / `unwrap`(5s timeout, `stateOverrides`) 변경 없음.
 - 라이브 클러스터·Vault·Authentik 호출은 테스트에서 금지.
 
 ## 목표
@@ -85,6 +85,7 @@ Spec 1이 Jest 배선, utils 전부, mock harness, 샘플 3개(`TextFileV1`, `Pr
 ## 테스트 규칙
 
 - characterization. src와 다르면 테스트를 고친다.
+- SecretV1: `jest.mock('flat')` — `flat@6`은 ts-jest CJS에서 ESM-only라 require 불가 (라이브 호출 아님; mock에서 flatten은 identity). 이 mock 기준으로 `dataJson` assert 금지.
 - 라이브 axios/kubectl/vault 금지.
 - `parseBootstrapTokenStdout`을 export하지 않음.
 - Mocha/CI/coverage 강제 없음.
@@ -112,3 +113,4 @@ Spec 1이 Jest 배선, utils 전부, mock harness, 샘플 3개(`TextFileV1`, `Pr
 | 2026-09-09 | 등록. 설계 승인 (CRD 테이블 + fat 6파일, harness 재사용) |
 | 2026-09-09 | implementation plan: [2026-09-09-jest-custom-resources-spec-2-plan.md](./2026-09-09-jest-custom-resources-spec-2-plan.md) |
 | 2026-09-09 | Spec 2 구현. CRD 16 + fat 6 mock 테스트 초록. src 변경 없음 |
+| 2026-09-09 | 최종 리뷰: flat ESM mock 주석·현재 상태 절 갱신 |

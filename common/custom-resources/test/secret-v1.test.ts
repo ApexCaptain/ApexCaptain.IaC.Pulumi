@@ -1,6 +1,7 @@
 import * as pulumi from '@pulumi/pulumi';
 import { installPulumiMocks, unwrap } from './pulumi-mocks';
 
+// flat@6 is ESM-only; ts-jest CJS runtime cannot require it.
 jest.mock('flat', () => ({
   flatten: (obj: Record<string, unknown>) => obj,
 }));
