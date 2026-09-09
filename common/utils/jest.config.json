@@ -4,6 +4,7 @@
     "**/test/**/*.test.ts"
   ],
   "passWithNoTests": true,
+  "maxWorkers": 2,
   "clearMocks": true,
   "collectCoverage": true,
   "coverageReporters": [

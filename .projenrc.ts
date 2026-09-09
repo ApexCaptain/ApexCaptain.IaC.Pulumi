@@ -108,7 +108,6 @@ const rootProject = new typescript.TypeScriptProject(
           overrides: {
             '@pulumi/pulumi': '$@pulumi/pulumi',
             '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
-            '@types/node': '$@types/node',
             typescript: '$typescript',
             ...Object.fromEntries(
               Object.values(src.constants.bridgedProviders)
@@ -335,6 +334,8 @@ const inflateCommonProject = (option: {
                 jestConfig: {
                   testMatch: ['**/test/**/*.test.ts'],
                   passWithNoTests: true,
+                  // default is cores-1; Pulumi/k8s test files otherwise saturate the box
+                  maxWorkers: 2,
                 } as javascript.JestConfigOptions,
               },
             }
@@ -366,6 +367,7 @@ const inflateCommonProject = (option: {
   if (option.jest && project.jest) {
     // Projen appends default src/** and test/** patterns unless testMatch is overwritten.
     project.jest.config.testMatch = ['**/test/**/*.test.ts'];
+    project.jest.config.maxWorkers = 2;
   }
 
   if (option.bridgedProviders && option.bridgedProviders.length > 0) {
@@ -1230,6 +1232,14 @@ void (async () => {
         pnpm exec lint-staged
       `,
 
+      'pre-push': dedent`
+        if ! command -v pnpm >/dev/null 2>&1; then
+          exit 0
+        fi
+
+        pnpm test:workspaces
+      `,
+
       'post-commit': dedent`
         git push
       `,
@@ -1477,7 +1487,8 @@ void (async () => {
           --body-file "${src.constants.paths.files.githubGeneratedPullRequestBodyFile}"`,
 
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
-    'test:workspaces': `turbo run test --filter ${workspacePackageFilters}`,
+    posttest: 'pnpm test:workspaces',
+    'test:workspaces': `turbo run test --filter ${workspacePackageFilters} --concurrency=2`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 
     // ESLint

@@ -7,7 +7,6 @@ settings:
 overrides:
   '@pulumi/pulumi': ^3.261.0
   '@pulumi/esc-sdk': ^0.14.0
-  '@types/node': ^25.9.5
   typescript: ^6.0.3
 
 importers:
@@ -158,7 +157,7 @@ importers:
         specifier: ^2
         version: 2.13.0(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
       '@types/node':
-        specifier: ^25.9.5
+        specifier: ^25.9.1
         version: 25.9.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^8
@@ -231,7 +230,7 @@ importers:
         specifier: ^30.0.0
         version: 30.0.0
       '@types/node':
-        specifier: ^25.9.5
+        specifier: ^25.9.1
         version: 25.9.5
       '@types/ws':
         specifier: ^8.18.1
@@ -298,7 +297,7 @@ importers:
         specifier: ^2
         version: 2.13.0(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
       '@types/node':
-        specifier: ^25.9.5
+        specifier: ^25.9.1
         version: 25.9.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^8
@@ -344,7 +343,7 @@ importers:
         specifier: ^30.0.0
         version: 30.0.0
       '@types/node':
-        specifier: ^25.9.5
+        specifier: ^25.9.1
         version: 25.9.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^8
@@ -402,7 +401,7 @@ importers:
         specifier: ^2
         version: 2.13.0(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
       '@types/node':
-        specifier: ^25.9.5
+        specifier: ^25.9.1
         version: 25.9.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^8
@@ -466,7 +465,7 @@ importers:
         specifier: ^2
         version: 2.13.0(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
       '@types/node':
-        specifier: ^25.9.5
+        specifier: ^25.9.1
         version: 25.9.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^8
@@ -542,7 +541,7 @@ importers:
         specifier: ^2
         version: 2.13.0(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
       '@types/node':
-        specifier: ^25.9.5
+        specifier: ^25.9.1
         version: 25.9.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^8
@@ -612,7 +611,7 @@ importers:
         specifier: ^2
         version: 2.13.0(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
       '@types/node':
-        specifier: ^25.9.5
+        specifier: ^25.9.1
         version: 25.9.5
       '@typescript-eslint/eslint-plugin':
         specifier: ^8
@@ -1669,6 +1668,15 @@ packages:
 
   '@types/node-fetch@2.6.13':
     resolution: {integrity: sha512-QGpRVpzSaUs30JBSGPjOg4Uveu384erbHBoT1zeONvyCfwQxIkUshLAOqN/k9EjGviPRmWTTe6aH2qySWKTVSw==}
+
+  '@types/node@18.19.130':
+    resolution: {integrity: sha512-GRaXQx6jGfL8sKfaIDD6OupbIHBr9jv7Jnaml9tB7l4v068PAOXqfcujMMo5PhbIs6ggR1XODELqahT2R8v0fg==}
+
+  '@types/node@20.19.43':
+    resolution: {integrity: sha512-6oYBAi5ikg4Pl+kGsoYtawUMBT2zZMCvPNF7pVLnHZfd1zf38DRiWn/gT01RYCdUqkv7Fhr+C9ot4/tb+2sVvA==}
+
+  '@types/node@24.13.3':
+    resolution: {integrity: sha512-Dh8vAsV36ig5wa9OX4pXvMc9D3Veibfw2wix0CUwYODLD8nkj9UsLjASr49nPg+2eKzxhBV+v7L8pXvT4e639Q==}
 
   '@types/node@25.9.5':
     resolution: {integrity: sha512-OScDchr2fwuUmWdf4kZ9h7PcJiYDVInhJizG/biAq3cAvqwYktuy/TYGGdZNMtNTFUP7rnb0NU4TUdm82kt4Rg==}
@@ -3252,7 +3260,7 @@ packages:
     resolution: {integrity: sha512-L8PKM2X/ngG8PxfLMqglKGZjylPgw84bVPUlMY9W/o76TnLqPWrmQgsaT0HrheGdRtpGE5FbmREA0Kvb+Qx5gQ==}
     engines: {node: ^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0}
     peerDependencies:
-      '@types/node': ^25.9.5
+      '@types/node': '*'
       esbuild-register: '>=3.4.0'
       ts-node: '>=9.0.0'
     peerDependenciesMeta:
@@ -4397,7 +4405,7 @@ packages:
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
-      '@types/node': ^25.9.5
+      '@types/node': '*'
       typescript: ^6.0.3
     peerDependenciesMeta:
       '@swc/core':
@@ -4471,6 +4479,15 @@ packages:
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
     engines: {node: '>= 0.4'}
+
+  undici-types@5.26.5:
+    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
+
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
+  undici-types@7.18.2:
+    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
   undici-types@7.24.6:
     resolution: {integrity: sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg==}
@@ -5297,7 +5314,7 @@ snapshots:
   '@kubernetes/client-node@1.4.0':
     dependencies:
       '@types/js-yaml': 4.0.9
-      '@types/node': 25.9.5
+      '@types/node': 24.13.3
       '@types/node-fetch': 2.6.13
       '@types/stream-buffers': 3.0.8
       form-data: 4.0.5
@@ -5703,7 +5720,7 @@ snapshots:
   '@pulumi/argocd@file:common/bridged-provider/sdks/argocd(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))':
     dependencies:
       '@pulumi/pulumi': 3.261.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
-      '@types/node': 25.9.5
+      '@types/node': 20.19.43
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -5712,7 +5729,7 @@ snapshots:
   '@pulumi/authentik@file:common/bridged-provider/sdks/authentik(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))':
     dependencies:
       '@pulumi/pulumi': 3.261.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
-      '@types/node': 25.9.5
+      '@types/node': 20.19.43
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -5729,7 +5746,7 @@ snapshots:
   '@pulumi/coderd@file:common/bridged-provider/sdks/coderd(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))':
     dependencies:
       '@pulumi/pulumi': 3.261.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
-      '@types/node': 25.9.5
+      '@types/node': 20.19.43
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
@@ -6027,6 +6044,18 @@ snapshots:
       '@types/node': 25.9.5
       form-data: 4.0.5
 
+  '@types/node@18.19.130':
+    dependencies:
+      undici-types: 5.26.5
+
+  '@types/node@20.19.43':
+    dependencies:
+      undici-types: 6.21.0
+
+  '@types/node@24.13.3':
+    dependencies:
+      undici-types: 7.18.2
+
   '@types/node@25.9.5':
     dependencies:
       undici-types: 7.24.6
@@ -6039,7 +6068,7 @@ snapshots:
 
   '@types/ssh2@1.15.6':
     dependencies:
-      '@types/node': 25.9.5
+      '@types/node': 18.19.130
 
   '@types/stack-utils@2.0.3': {}
 
@@ -9360,6 +9389,12 @@ snapshots:
       has-bigints: 1.1.0
       has-symbols: 1.1.0
       which-boxed-primitive: 1.1.1
+
+  undici-types@5.26.5: {}
+
+  undici-types@6.21.0: {}
+
+  undici-types@7.18.2: {}
 
   undici-types@7.24.6: {}
 

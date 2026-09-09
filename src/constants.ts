@@ -158,6 +158,7 @@ export const constants = (() => {
     'unrs-resolver',
     'ssh2',
     'cpu-features',
+    '@parcel/watcher',
   ];
 
   const helmChartRepositoryUrls = {
