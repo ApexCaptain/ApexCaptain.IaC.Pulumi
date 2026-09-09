@@ -125,3 +125,4 @@ Spec 2(별도 이슈)에서 남은 custom-resources를 같은 harness로 채운�
 | 2026-09-08 | 등록. Spec 1 설계 승인 (Projen opt-in, utils 전부 + mock harness + 샘플 3). Spec 2는 별도 |
 | 2026-09-08 | implementation plan: [2026-09-08-jest-unit-test-setup-plan.md](./2026-09-08-jest-unit-test-setup-plan.md) |
 | 2026-09-08 | Spec 1 구현. utils·custom-resources Jest 초록. Spec 2는 미착수 |
+| 2026-09-09 | Spec 2 착수: [2026-09-09-jest-custom-resources-spec-2.md](./2026-09-09-jest-custom-resources-spec-2.md) |
