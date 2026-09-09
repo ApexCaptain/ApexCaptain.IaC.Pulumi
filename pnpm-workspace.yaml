@@ -6,7 +6,6 @@ packages:
 overrides:
   "@pulumi/pulumi": $@pulumi/pulumi
   "@pulumi/esc-sdk": $@pulumi/esc-sdk
-  "@types/node": $@types/node
   typescript: $typescript
 allowBuilds:
   "@pulumi/authentik": true
@@ -19,3 +18,4 @@ allowBuilds:
   unrs-resolver: true
   ssh2: true
   cpu-features: true
+  "@parcel/watcher": true

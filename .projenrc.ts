@@ -77,6 +77,7 @@ const rootProject = new typescript.TypeScriptProject(
         include: [
           `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
           `../${src.constants.paths.dirs.scriptDir}/**/*.ts`,
+          '../common/**/test/**/*.ts',
           '../.projenrc.ts',
           '../projenrc/**/*.ts',
         ],
@@ -107,7 +108,6 @@ const rootProject = new typescript.TypeScriptProject(
           overrides: {
             '@pulumi/pulumi': '$@pulumi/pulumi',
             '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
-            '@types/node': '$@types/node',
             typescript: '$typescript',
             ...Object.fromEntries(
               Object.values(src.constants.bridgedProviders)
@@ -302,6 +302,7 @@ const inflateCommonProject = (option: {
   commonDeps?: string[];
   devDeps?: string[];
   bridgedProviders?: src.classes.BridgedProvider[];
+  jest?: boolean;
 }) => {
   const outdir = path.join(
     src.constants.paths.dirs.commonDir,
@@ -319,10 +320,26 @@ const inflateCommonProject = (option: {
         outdir,
         eslintOptions: {
           dirs: [src.constants.paths.dirs.srcDir],
-          devdirs: [src.constants.paths.dirs.scriptDir],
+          devdirs: option.jest
+            ? [src.constants.paths.dirs.scriptDir, 'test']
+            : [src.constants.paths.dirs.scriptDir],
           tsconfigPath: './test/tsconfig.json',
           projectService: false,
         },
+        ...(option.jest
+          ? {
+              jest: true,
+              jestOptions: {
+                configFilePath: 'jest.config.json',
+                jestConfig: {
+                  testMatch: ['**/test/**/*.test.ts'],
+                  passWithNoTests: true,
+                  // default is cores-1; Pulumi/k8s test files otherwise saturate the box
+                  maxWorkers: 2,
+                } as javascript.JestConfigOptions,
+              },
+            }
+          : { jest: false }),
         tsconfigDev: {
           include: [
             `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
@@ -346,6 +363,12 @@ const inflateCommonProject = (option: {
       utils.functions.mergeCustomizer,
     ),
   );
+
+  if (option.jest && project.jest) {
+    // Projen appends default src/** and test/** patterns unless testMatch is overwritten.
+    project.jest.config.testMatch = ['**/test/**/*.test.ts'];
+    project.jest.config.maxWorkers = 2;
+  }
 
   if (option.bridgedProviders && option.bridgedProviders.length > 0) {
     commonProjectWithBridgedProviderOrder.push(project);
@@ -801,6 +824,7 @@ void (async () => {
     const utilsProject = inflateCommonProject({
       projectName: 'utils',
       deps: ['zod'],
+      jest: true,
     });
 
     const customResourcesProject = inflateCommonProject({
@@ -820,6 +844,7 @@ void (async () => {
         '@kubernetes/client-node',
       ],
       devDeps: ['@types/ws'],
+      jest: true,
     });
 
     const nexusProject = inflateCommonProject({
@@ -970,7 +995,7 @@ void (async () => {
           outputs: ['lib/**'],
         },
         test: {
-          dependsOn: ['build'],
+          dependsOn: ['^build'],
         },
         upgrade: {
           cache: false,
@@ -1205,6 +1230,14 @@ void (async () => {
         export ESLINT_USE_FLAT_CONFIG=false
         export NODE_NO_WARNINGS=1
         pnpm exec lint-staged
+      `,
+
+      'pre-push': dedent`
+        if ! command -v pnpm >/dev/null 2>&1; then
+          exit 0
+        fi
+
+        pnpm test:workspaces
       `,
 
       'post-commit': dedent`
@@ -1454,6 +1487,8 @@ void (async () => {
           --body-file "${src.constants.paths.files.githubGeneratedPullRequestBodyFile}"`,
 
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
+    posttest: 'pnpm test:workspaces',
+    'test:workspaces': `turbo run test --filter ${workspacePackageFilters} --concurrency=2`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 
     // ESLint
