@@ -537,7 +537,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
         },
         authentik: {
-          allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
+          allowedGroupId: authentikResources.output.groupIds.systemManagerGroup,
           flow: {
             authorizationFlowId:
               authentikResources.output.flow
@@ -549,6 +549,9 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         providers: {
           vault: vaultProvider,
           authentik: authentikProvider,
+        },
+        vault: {
+          oidcKvPolicyName: vaultResources.output.oidcKvPolicyName,
         },
       },
       {
@@ -575,6 +578,21 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
       {
         dependsOn: [vaultAuthentik, vaultResources],
+      },
+    );
+
+    const vaultIdentityTiers = new components.vault.VaultIdentityTiersComponent(
+      'vaultIdentityTiers',
+      {
+        oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,
+        coderJwtMountAccessor: vaultCoderJwt.output.jwt.mountAccessor,
+        oidcKvPolicyName: vaultResources.output.oidcKvPolicyName,
+        providers: {
+          vault: vaultProvider,
+        },
+      },
+      {
+        dependsOn: [vaultAuthentik, vaultCoderJwt, vaultResources],
       },
     );
 
@@ -754,7 +772,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.reloader.ReloaderHelmChartComponent('reloaderHelmChart', {
       helm: {
         reloader: {
-          version: '2.2.16',
+          version: '2.2.17',
           repositoryUrl:
             commonEsc.esc.helmRepositoryUrls[
               'stakater.github.io/stakater-charts'
@@ -774,7 +792,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.argo.ArgoRolloutsComponent('argoRollouts', {
       helm: {
         argoRollouts: {
-          version: '2.43.0',
+          version: '2.43.1',
           repositoryUrl: argoChartRepositoryUrl,
         },
       },
@@ -834,7 +852,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.8.2',
+            version: '10.8.4',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },
@@ -1173,6 +1191,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             mountPath: vaultCoderJwt.output.jwt.mountPath,
             roleName: vaultCoderJwt.output.jwt.roleName,
           },
+          identityGroupIds: vaultIdentityTiers.output.identityGroupIds,
         },
       }),
       secret: pulumi.secret({
@@ -1185,6 +1204,16 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           coderJwtMountAccessor: vaultCoderJwt.output.jwt.mountAccessor,
           kvMount: vaultResources.output.kv.mountPath,
           kubernetesAuthMountPath: vaultKubernetesAuth.output.mountPath,
+          ssh: {
+            userCaMount: vaultResources.output.ssh.userCaMount,
+            hostCaMount: vaultResources.output.ssh.hostCaMount,
+          },
+          cluster: {
+            address: pulumi.interpolate`https://${vaultHelmChart.output.tls.serverName}:${vaultHelmChart.output.services.vault.ports.vault}`,
+            tlsServerName: vaultHelmChart.output.tls.serverName,
+            namespace: vaultHelmChart.output.namespace,
+            rootCaSecretName: vaultHelmChart.output.tls.rootCaSecretName,
+          },
         },
       }),
     };

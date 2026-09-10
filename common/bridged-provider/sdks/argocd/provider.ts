@@ -68,6 +68,10 @@ export class Provider extends pulumi.ProviderResource {
      */
     declare public readonly serverAddr: pulumi.Output<string | undefined>;
     /**
+     * Name of the ArgoCD API server; set this when the server's name label differs from the default (`argocd-server`), for example when installed via a Helm chart that renames the component. Only relevant when <span pulumi-lang-nodejs="`portForward " pulumi-lang-dotnet="`PortForward " pulumi-lang-go="`portForward " pulumi-lang-python="`port_forward " pulumi-lang-yaml="`portForward " pulumi-lang-java="`portForward " pulumi-lang-hcl="`port_forward ">`portForward </span>= true` or <span pulumi-lang-nodejs="`portForwardWithNamespace`" pulumi-lang-dotnet="`PortForwardWithNamespace`" pulumi-lang-go="`portForwardWithNamespace`" pulumi-lang-python="`port_forward_with_namespace`" pulumi-lang-yaml="`portForwardWithNamespace`" pulumi-lang-java="`portForwardWithNamespace`" pulumi-lang-hcl="`port_forward_with_namespace`">`portForwardWithNamespace`</span> is set. Can be set through the `ARGOCD_SERVER_NAME` environment variable.
+     */
+    declare public readonly serverName: pulumi.Output<string | undefined>;
+    /**
      * User-Agent request header override.
      */
     declare public readonly userAgent: pulumi.Output<string | undefined>;
@@ -104,6 +108,7 @@ export class Provider extends pulumi.ProviderResource {
             resourceInputs["portForward"] = pulumi.output(args?.portForward).apply(JSON.stringify);
             resourceInputs["portForwardWithNamespace"] = args?.portForwardWithNamespace;
             resourceInputs["serverAddr"] = args?.serverAddr;
+            resourceInputs["serverName"] = args?.serverName;
             resourceInputs["useLocalConfig"] = pulumi.output(args?.useLocalConfig).apply(JSON.stringify);
             resourceInputs["userAgent"] = args?.userAgent;
             resourceInputs["username"] = args?.username;
@@ -204,6 +209,10 @@ export interface ProviderArgs {
      * ArgoCD server address with port. Can be set through the `ARGOCD_SERVER` environment variable.
      */
     serverAddr?: pulumi.Input<string | undefined>;
+    /**
+     * Name of the ArgoCD API server; set this when the server's name label differs from the default (`argocd-server`), for example when installed via a Helm chart that renames the component. Only relevant when <span pulumi-lang-nodejs="`portForward " pulumi-lang-dotnet="`PortForward " pulumi-lang-go="`portForward " pulumi-lang-python="`port_forward " pulumi-lang-yaml="`portForward " pulumi-lang-java="`portForward " pulumi-lang-hcl="`port_forward ">`portForward </span>= true` or <span pulumi-lang-nodejs="`portForwardWithNamespace`" pulumi-lang-dotnet="`PortForwardWithNamespace`" pulumi-lang-go="`portForwardWithNamespace`" pulumi-lang-python="`port_forward_with_namespace`" pulumi-lang-yaml="`portForwardWithNamespace`" pulumi-lang-java="`portForwardWithNamespace`" pulumi-lang-hcl="`port_forward_with_namespace`">`portForwardWithNamespace`</span> is set. Can be set through the `ARGOCD_SERVER_NAME` environment variable.
+     */
+    serverName?: pulumi.Input<string | undefined>;
     /**
      * Use the authentication settings found in the local config file. Useful when you have previously logged in using SSO. Conflicts with <span pulumi-lang-nodejs="`authToken`" pulumi-lang-dotnet="`AuthToken`" pulumi-lang-go="`authToken`" pulumi-lang-python="`auth_token`" pulumi-lang-yaml="`authToken`" pulumi-lang-java="`authToken`" pulumi-lang-hcl="`auth_token`">`authToken`</span>, <span pulumi-lang-nodejs="`username`" pulumi-lang-dotnet="`Username`" pulumi-lang-go="`username`" pulumi-lang-python="`username`" pulumi-lang-yaml="`username`" pulumi-lang-java="`username`" pulumi-lang-hcl="`username`">`username`</span> and <span pulumi-lang-nodejs="`password`" pulumi-lang-dotnet="`Password`" pulumi-lang-go="`password`" pulumi-lang-python="`password`" pulumi-lang-yaml="`password`" pulumi-lang-java="`password`" pulumi-lang-hcl="`password`">`password`</span>.
      */

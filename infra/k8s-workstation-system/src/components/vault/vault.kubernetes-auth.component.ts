@@ -97,6 +97,9 @@ export const VaultKubernetesAuthComponent = utils.functions.defineComponent(
         type: 'kubernetes',
         path: kubernetesAuthMountPath,
         description: 'Kubernetes service account authentication for VSO',
+        // 기본 remount는 path tune 때 mount를 새로 올림. tools가 만든
+        // SFTP VSO role 같은 타 스택 role이 전부 사라진다.
+        disableRemount: true,
       },
       vaultProviderOpts,
     );

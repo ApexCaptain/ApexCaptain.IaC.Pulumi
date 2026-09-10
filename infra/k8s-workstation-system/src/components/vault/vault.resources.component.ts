@@ -9,11 +9,12 @@
  *        ↓
  * vaultServiceMesh (ingress provider)
  *        ↓
- * vaultResources — KV v2 mount `secret`
+ * vaultResources — KV v2 mount `secret` + SSH CA mounts
  *        ↓
  * vaultAuthentik / apps·tools — policy·identity·SecretV2
  * ```
  */
+import { kvV2UiBrowsePolicy } from '@common/custom-resources/src/components/vault/kv-v2-ui-browse.policy';
 import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
@@ -62,12 +63,94 @@ export const VaultResourcesComponent = utils.functions.defineComponent(
       },
     );
 
+    const userCaMount = new vault.Mount(
+      `${resourceName}-sshUserCaMount`,
+      {
+        path: 'ssh-user-ca',
+        type: 'ssh',
+        description: 'Workstation SFTP user SSH CA',
+      },
+      vaultProviderOpts,
+    );
+
+    new vault.ssh.SecretBackendCa(
+      `${resourceName}-sshUserCa`,
+      {
+        backend: userCaMount.path,
+        generateSigningKey: true,
+        keyType: 'ed25519',
+      },
+      {
+        ...vaultProviderOpts,
+        dependsOn: [userCaMount],
+      },
+    );
+
+    const hostCaMount = new vault.Mount(
+      `${resourceName}-sshHostCaMount`,
+      {
+        path: 'ssh-host-ca',
+        type: 'ssh',
+        description: 'Workstation SFTP host SSH CA',
+      },
+      vaultProviderOpts,
+    );
+
+    new vault.ssh.SecretBackendCa(
+      `${resourceName}-sshHostCa`,
+      {
+        backend: hostCaMount.path,
+        generateSigningKey: true,
+        keyType: 'ed25519',
+      },
+      {
+        ...vaultProviderOpts,
+        dependsOn: [hostCaMount],
+      },
+    );
+
+    const oidcKvPolicy = new vault.Policy(
+      `${resourceName}-oidcKvPolicy`,
+      {
+        name: 'vault-oidc-kv',
+        // SecretV1 prefix list. qBit + Jellyfin SftpV3 userKvPath
+        policy: kvMount.path.apply(mount =>
+          [
+            kvV2UiBrowsePolicy({
+              kvMount: mount,
+              pathSegments: ['sftp', 'qbittorrent', 'sftp-adapter', 'user'],
+              readSecretPaths: ['sftp/qbittorrent/sftp-adapter/user'],
+            }),
+            kvV2UiBrowsePolicy({
+              kvMount: mount,
+              pathSegments: [
+                'sftp',
+                'jellyfin',
+                'jellyfin-sftp-adapter',
+                'user',
+              ],
+              readSecretPaths: ['sftp/jellyfin/jellyfin-sftp-adapter/user'],
+            }),
+          ].join('\n'),
+        ),
+      },
+      {
+        ...vaultProviderOpts,
+        dependsOn: [kvMount],
+      },
+    );
+
     return {
       output: pulumi.output({
         kv: {
           mountPath: kvMount.path,
           accessor: kvMount.accessor,
         },
+        ssh: {
+          userCaMount: userCaMount.path,
+          hostCaMount: hostCaMount.path,
+        },
+        oidcKvPolicyName: oidcKvPolicy.name,
       }),
       secret: pulumi.secret({}),
     };

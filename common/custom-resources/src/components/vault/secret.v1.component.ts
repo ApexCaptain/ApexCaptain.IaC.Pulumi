@@ -5,6 +5,7 @@ import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
 import dedent from 'dedent';
 import { flatten } from 'flat';
+import { kvV2UiBrowsePolicy } from './kv-v2-ui-browse.policy';
 import * as vso from '../../resources/k8s/crd/vso';
 
 type SecretV1 = {
@@ -92,40 +93,15 @@ export const SecretV1Component = utils.functions.defineComponent(
                 resolvedKvMount,
                 resolvedSharedSecretPath,
                 resolvedDeveloperSecretPath,
-              ]) => {
-                const segments = resolvedPaths
-                  .map(segment => segment.toLocaleLowerCase())
-                  .filter(Boolean);
-
-                return dedent`
-                  path "${resolvedKvMount}/metadata/" {
-                    capabilities = ["list"]
-                  }
-                  ${segments
-                    .map((__, index) => {
-                      const prefix = segments.slice(0, index + 1).join('/');
-                      return dedent`
-                        path "${resolvedKvMount}/metadata/${prefix}" {
-                          capabilities = ["list"]
-                        }
-                      `;
-                    })
-                    .join('\n')}
-
-                  path "${resolvedKvMount}/data/${resolvedSharedSecretPath}" {
-                    capabilities = ["read"]
-                  }
-                  path "${resolvedKvMount}/metadata/${resolvedSharedSecretPath}" {
-                    capabilities = ["read"]
-                  }
-                  path "${resolvedKvMount}/data/${resolvedDeveloperSecretPath}" {
-                    capabilities = ["read"]
-                  }
-                  path "${resolvedKvMount}/metadata/${resolvedDeveloperSecretPath}" {
-                    capabilities = ["read"]
-                  }
-                `;
-              },
+              ]) =>
+                kvV2UiBrowsePolicy({
+                  kvMount: resolvedKvMount,
+                  pathSegments: resolvedPaths,
+                  readSecretPaths: [
+                    resolvedSharedSecretPath,
+                    resolvedDeveloperSecretPath,
+                  ],
+                }),
             ),
         },
         {
