@@ -13,7 +13,7 @@ import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
 
-/** Authentik access token + Vault client token TTL (3 days) */
+/** Authentik access token과 Vault client token TTL (3일) */
 const vaultTokenTtlSeconds = 3 * 24 * 3600;
 
 interface VaultCoderJwtComponentArgsShape {

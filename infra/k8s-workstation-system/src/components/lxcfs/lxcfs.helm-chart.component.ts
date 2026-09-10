@@ -2,7 +2,7 @@
  * LXCFS on Kubernetes (cndoit18) — 노드에 FUSE 마운트 + MutatingWebhook 주입
  *
  * mesh 밖 (`istio.io/dataplane-mode: none`).
- * webhook는 차트 기본 Pod 라벨 selector를 사용.
+ * webhook은 차트 기본 Pod 라벨 selector를 사용.
  * stale FUSE 마운트는 mount-recovery DaemonSet이 주기적으로 lazy unmount.
  */
 import * as utils from '@common/utils/src';
@@ -32,7 +32,7 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    // 차트 기본값
+    // 차트 기본 mountPath·recovery interval
     const lxcfsHostMountPath = '/var/lib/lxcfs-on-k8s/lxcfs';
     const mountRecoveryIntervalSeconds = 60;
 
@@ -72,11 +72,9 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
              * @see https://github.com/cndoit18/lxcfs-on-kubernetes/issues/128
              */
             manager: 'ghcr.io/cndoit18/lxcfs-manager:v0.2.5',
-            // 노드 LXCFS FUSE DaemonSet 이미지
             agent: pulumi.interpolate`ghcr.io/cndoit18/lxcfs-agent:v${args.helm.lxcfs.version}`,
           },
           lxcfs: {
-            // 노드마다 agent DaemonSet으로 LXCFS 설치
             useDaemonset: true,
             configMaps: {
               crictlConfig: {
@@ -88,7 +86,6 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
             mountPath: lxcfsHostMountPath,
             // lxcfs 바이너리 플래그 (차트 기본과 동일)
             args: ['-l', '--enable-cfs', '--enable-pidfd'],
-            // agent DaemonSet 리소스
             resources: {
               requests: {
                 cpu: '50m',
@@ -100,7 +97,6 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
               },
             },
           },
-          // webhook manager Deployment 리소스
           resources: {
             requests: {
               cpu: '50m',

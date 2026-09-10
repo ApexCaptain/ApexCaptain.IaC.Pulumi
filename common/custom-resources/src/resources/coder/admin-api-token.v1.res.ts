@@ -21,7 +21,7 @@ export interface ResolveAdminApiTokenV1Args {
     password: string;
   };
   tokenName: string;
-  /** API token lifetime (hours) */
+  /** API 토큰 수명 (시간) */
   tokenLifetimeHours: number;
   /** Command 재실행 버킷 간격 (minutes) — Vault BootstrapToken과 동일 */
   expirationMinutes: number;

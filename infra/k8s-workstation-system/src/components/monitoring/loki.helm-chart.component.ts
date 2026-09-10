@@ -1,6 +1,6 @@
 /**
  * Grafana Loki — SingleBinary + filesystem PVC
- * OTLP ingest is built-in at /otlp (no distributor.otlp config — invalid in Loki 3.x)
+ * OTLP ingest는 `/otlp`에 내장. Loki 3.x에서 `distributor.otlp` 설정은 무효.
  */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';

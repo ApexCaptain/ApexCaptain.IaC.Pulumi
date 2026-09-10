@@ -1,5 +1,5 @@
 /**
- * Loki pod logs dashboard — matches OTEL filelog labels
+ * Loki 파드 로그 대시보드. OTEL filelog 라벨과 맞춤
  * (k8s_namespace_name, k8s_pod_name, k8s_container_name, service_name).
  */
 export const lokiPodLogsDashboardJson = JSON.stringify({

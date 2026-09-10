@@ -1,5 +1,5 @@
 /**
- * VictoriaMetrics single — Prometheus-compatible metrics backend
+ * VictoriaMetrics single — Prometheus 호환 메트릭 백엔드
  */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';

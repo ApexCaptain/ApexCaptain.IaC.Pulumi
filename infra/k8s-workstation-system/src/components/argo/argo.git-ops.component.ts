@@ -34,8 +34,8 @@ export const ArgoGitOpsComponent = utils.functions.defineComponent(
           },
         );
 
-        // Flatten invoke result so downstream Components get plain string Outputs
-        // (nested GetRepositoryResult through defineComponent can lose fields like sshCloneUrl).
+        // invoke 결과를 평평한 string Output으로. defineComponent를 거친
+        // nested GetRepositoryResult는 sshCloneUrl 같은 필드가 빠질 수 있음.
         return {
           name: repository.name,
           sshCloneUrl: repository.sshCloneUrl,

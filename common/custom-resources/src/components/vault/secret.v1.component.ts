@@ -14,7 +14,7 @@ type SecretV1 = {
 
 interface SecretV1ComponentArgsShape {
   oidcMountAccessor: string;
-  /** Coder workspace JWT mount — identity group alias duplicate target */
+  /** Coder workspace JWT 마운트 — identity group alias 중복 대상 */
   coderJwtMountAccessor: string;
   kvMount: string;
   vaultConnectionRef: string;
@@ -61,7 +61,7 @@ export const SecretV1Component = utils.functions.defineComponent(
     const sharedK8sSecretName = pulumi.interpolate`shared-${secretName}`;
     const runtimeK8sSecretName = pulumi.interpolate`runtime-${secretName}`;
 
-    // External Developer Identity
+    // non-prod 개발자 identity
     if (pulumi.getStack() != utils.enums.StackStage.PROD) {
       const developerGroupName = pulumi.interpolate`vault-reader-group-${secretName}`;
 
@@ -236,7 +236,7 @@ export const SecretV1Component = utils.functions.defineComponent(
       },
     );
 
-    // Vso
+    // VSO
     const vsoServiceAccount = new kubernetes.core.v1.ServiceAccount(
       `${resourceName}-vsoServiceAccount`,
       {

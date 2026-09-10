@@ -58,17 +58,13 @@ export const LonghornHelmChartComponent = utils.functions.defineComponent(
         waitForJobs: true,
         values: {
           ingress: {
-            enabled: false, // Ingress 사용 안함, Virtual Service 사용
+            enabled: false, // Ingress 끄고 Istio VirtualService 사용
           },
           defaultSettings: {
-            createDefaultDiskLabeledNodes: true, // Labeling 된 Node에만 Default Disk 생성
-            defaultReplicaCount: '1', // 기본 레플리카 수
-            /**
-             * @Note
-             *  - true: Allow to delete longhorn chart
-             *  - false: Prevent to delete longhorn chart
-             */
-            deletingConfirmationFlag: true, // 삭제 방지
+            createDefaultDiskLabeledNodes: true, // 라벨이 붙은 노드에만 Default Disk 생성
+            defaultReplicaCount: '1',
+            // true면 Helm uninstall 허용. false면 차트 삭제를 막음.
+            deletingConfirmationFlag: true,
           },
           persistence: {
             createStorageClass: false, // Helm이 StorageClass를 생성하지 않음

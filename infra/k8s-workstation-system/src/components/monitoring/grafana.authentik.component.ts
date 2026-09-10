@@ -2,7 +2,7 @@
  * Grafana ↔ Authentik OIDC
  *
  * Application slug `grafana`, groups claim `grafana_groups`.
- * System Manager → Admin, else Viewer (via Grafana role_attribute_path).
+ * System Manager면 Admin, 나머지는 Viewer (`role_attribute_path`).
  */
 import { authentik } from '@common/bridged-provider';
 import * as utils from '@common/utils/src';
@@ -126,7 +126,7 @@ export const GrafanaAuthentikComponent = utils.functions.defineComponent(
     );
 
     const issuerUrl = pulumi.interpolate`https://${args.hosts.authentik}/application/o/${grafanaApplicationSlug}/`;
-    // Authentik serves authorize/token/userinfo at shared /application/o/* (not under slug)
+    // authorize/token/userinfo는 slug 아래가 아니라 공통 `/application/o/*`
     const oauthBaseUrl = pulumi.interpolate`https://${args.hosts.authentik}/application/o`;
 
     return {

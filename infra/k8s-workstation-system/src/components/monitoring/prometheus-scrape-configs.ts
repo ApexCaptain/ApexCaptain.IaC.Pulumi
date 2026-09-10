@@ -1,7 +1,7 @@
 /**
- * Prometheus scrape jobs for cluster services that expose /metrics.
- * Prefer container port names ending in metrics / monitoring.
- * Extra jobs cover ports without those names (Longhorn, Grafana, VM, Reloader, Vault, DCGM).
+ * `/metrics`를 노출하는 클러스터 서비스용 Prometheus scrape job.
+ * 컨테이너 포트 이름이 metrics / monitoring으로 끝나는 것을 우선.
+ * 이름이 없는 포트는 별도 job (Longhorn, Grafana, VM, Reloader, Vault, DCGM).
  */
 export const clusterPrometheusScrapeConfigs = [
   {

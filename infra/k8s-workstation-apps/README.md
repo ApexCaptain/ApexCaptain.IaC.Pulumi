@@ -1,19 +1,19 @@
 # @infra/k8s-workstation-apps
 
-Workstation **사용자 앱** Pulumi 스택 — Jellyfin, Price Quest 등.
+Workstation **사용자 앱** Pulumi 스택 — Jellyfin, Price Quest.
 
 ## 역할
 
 - system 스택 output(mesh gateway, storage class, Authentik group, Vault provider, VSO VaultConnection) 참조
 - Jellyfin은 PROD 스택에서만 배포 (dev/staging은 비용·노이즈 절감)
-- Price Quest는 스택별(`dev`/`prod`) namespace·Vault 시크릿을 선언 (Helm·mesh는 후속)
+- Price Quest는 스택별(`dev`/`prod`) namespace·Vault 시크릿을 선언
 
 ### 현재 앱
 
 | 앱 | 스택 | DB | 인증 | mesh |
 |----|------|-----|------|------|
-| **Jellyfin** | prod | — | Authentik OIDC + jellyfin-plugin-sso (Admin UI 수동) | sidecar (`dataplane-mode: none`), ingress SA ALLOW |
-| **Price Quest** | dev, prod | — | Vault OIDC developer group (`SecretV1Component` + VSO) | ambient namespace만 |
+| **Jellyfin** | prod | — | Authentik OIDC + jellyfin-plugin-sso (Admin UI 수동). SFTP는 Vault SSH CA (`SftpV3Component`) | sidecar (`dataplane-mode: none`), ingress SA ALLOW. SFTP는 Istio direct gateway TCP |
+| **Price Quest** | dev, prod | — | Vault OIDC developer group (`SecretV1Component` + VSO) | ambient namespace + Goldilocks opt-in |
 
 Price Quest Vault 경로: `secret/price-quest/api/{stack}/{shared|developer|runtime}`
 
@@ -21,6 +21,7 @@ Price Quest Vault 경로: `secret/price-quest/api/{stack}/{shared|developer|runt
 
 | 항목 | 값 |
 |------|-----|
+| 프로젝트 | `k8s-workstation-apps` |
 | 기본 스택 | `prod` |
 | ESC | `k8sWorkstationAppsEsc`, `commonEsc` |
 
@@ -34,7 +35,7 @@ src/
 └── components/
     ├── jellyfin/
     │   ├── jellyfin.authentik.component.ts
-    │   ├── jellyfin.helm-chart.component.ts
+    │   ├── jellyfin.helm-chart.component.ts   # Helm + SftpV3
     │   └── jellyfin.service-mesh.component.ts
     └── price-quest/
         ├── price-quest.base.component.ts      # namespace (price-quest-{stack})
@@ -45,12 +46,13 @@ src/
 
 - `@infra/cloudflare`, `@infra/k8s-workstation-system`
 - `@common/nexus`, `@common/utils`, `@common/custom-resources`, `@common/bridged-provider`
-- `@pulumi/vault` (Price Quest Vault 시크릿)
+- `@pulumi/kubernetes`, `@pulumi/vault`
 
 ## 명령
 
 ```bash
 pnpm --filter @infra/k8s-workstation-apps build
+pnpm --filter @infra/k8s-workstation-apps eslint
 pnpm --filter @infra/k8s-workstation-apps pulumi:preview
 pnpm --filter @infra/k8s-workstation-apps pulumi:up
 ```

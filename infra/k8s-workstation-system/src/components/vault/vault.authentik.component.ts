@@ -24,7 +24,7 @@ import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
 import dedent from 'dedent';
 
-/** Vault OIDC role client token TTL (3 days) */
+/** OIDC role이 발급하는 Vault client token TTL (3일) */
 const vaultTokenTtlSeconds = 3 * 24 * 3600;
 
 interface VaultAuthentikComponentArgsShape {
@@ -33,7 +33,7 @@ interface VaultAuthentikComponentArgsShape {
     authentik: string;
   };
   authentik: {
-    /** systemManagerGroup — Vault SSO + KV browse. System User는 로그인만 되고 키는 못 봄이 아니라 SSO 자체 Manager만 */
+    /** systemManagerGroup — Vault SSO + KV browse. SSO 자체도 Manager만. System User는 로그인 대상 아님 */
     allowedGroupId: string;
     flow: {
       authorizationFlowId: string;

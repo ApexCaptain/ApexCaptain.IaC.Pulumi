@@ -607,7 +607,7 @@ export const SftpV3Component = utils.functions.defineComponent(
       {
         ...k8sOpts,
         deleteBeforeReplace: true,
-        // Completed bootstrap must not re-run on script edits (new host key = TOFU break).
+        // 부트스트랩 완료 후 스크립트 수정으로 Job을 다시 돌리면 호스트 키가 바뀌어 TOFU가 깨진다.
         ignoreChanges: ['spec'],
         dependsOn: [
           hostSshRole,

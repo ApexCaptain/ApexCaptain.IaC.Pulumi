@@ -92,10 +92,10 @@ Spec 2: 남은 custom-resources CRD 16 + fat 6. 같은 harness. 프로덕션 `sr
 | `crd-wrappers.test.ts` | CRD 16 (VirtualService 제외) |
 | `sftp-v1.test.ts` | `SftpV1Component` |
 | `secret-v1.test.ts` | `SecretV1Component`. 자식 type/kind 존재만. `jest.mock('flat')` — `flat@6` ESM |
-| `kube-config-file-v1.test.ts` | `KubeConfigFileV1`. 소스 필드명 `clustser` |
+| `kube-config-file-v1.test.ts` | `KubeConfigFileV1` |
 | `admin-api-token-v1.test.ts` | create 문자열에 `admin-api-token.v1.script.ts`. exec 없음 |
 | `bootstrap-token-v1.test.ts` | create 문자열에 `bootstrap-token.v1.script.ts`. `parseBootstrapTokenStdout` 미export |
-| `get-policy-expression-v1.test.ts` | `getPolcyExpressionV1`. `jest.mock('axios')` |
+| `get-policy-expression-v1.test.ts` | `getPolicyExpressionV1`. `jest.mock('axios')` |
 
 ### CRD 테이블 (`crd-wrappers.test.ts`)
 

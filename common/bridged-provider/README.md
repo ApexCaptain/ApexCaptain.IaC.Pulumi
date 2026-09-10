@@ -41,3 +41,7 @@ pnpm --filter @common/bridged-provider build
 pnpm --filter @common/bridged-provider build
 pnpm --filter @common/bridged-provider eslint
 ```
+
+## 참조
+
+`@common/custom-resources`, `@infra/k8s-workstation-system`, `@infra/k8s-workstation-apps`, `@infra/k8s-workstation-tools`

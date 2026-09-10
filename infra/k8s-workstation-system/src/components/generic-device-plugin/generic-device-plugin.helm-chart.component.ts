@@ -31,7 +31,7 @@ interface GenericDevicePluginHelmChartComponentArgsShape {
 export type GenericDevicePluginHelmChartComponentArgs =
   utils.types.DeepPulumiInput<GenericDevicePluginHelmChartComponentArgsShape>;
 
-/** squat generic-device-plugin device entry (plugin config YAML) */
+/** squat 플러그인 YAML의 device 항목 */
 export type GenericDevicePluginSetting = {
   name: string;
   groups: {
@@ -43,12 +43,12 @@ export type GenericDevicePluginSetting = {
   }[];
 };
 
-/** Extended resource domain → squat.ai/<name> */
+/** extended resource 도메인. 최종 이름은 squat.ai/<name> */
 const DEVICE_DOMAIN = 'squat.ai';
 
 /**
- * Host paths verified on workstation-0.
- * Chart defaults (serial / video0 / capture) omitted — those nodes do not exist here.
+ * workstation-0에서 확인한 호스트 경로만.
+ * 차트 기본값(serial / video0 / capture)은 이 노드에 없어서 제외.
  */
 const DEVICE_PLUGIN_SETTINGS: GenericDevicePluginSetting[] = [
   {
@@ -106,7 +106,7 @@ export const GenericDevicePluginHelmChartComponent =
               enabled: true,
               data: yaml.stringify({ devices: DEVICE_PLUGIN_SETTINGS }),
             },
-            // Chart default is privileged DaemonSet + hostPath /dev + kubelet plugins.
+            // 차트 기본: privileged DaemonSet + hostPath /dev + kubelet plugin 등록
           },
         },
         {

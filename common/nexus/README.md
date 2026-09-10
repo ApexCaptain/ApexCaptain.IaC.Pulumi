@@ -5,7 +5,7 @@
 ## 역할
 
 - **Contract** — Pulumi 스택의 `output`/`secret` export와 StackReference lazy 로딩
-- **ESC** — 프로젝트별 환경 변수 스키마(zod) 및 typed accessor (`commonEsc`, `cloudflareEsc`, …)
+- **ESC** — 프로젝트별 환경 변수 스키마(zod) 및 typed accessor
 - 스택 해시 파일 생성으로 contract 변경 추적
 
 ## 구조
@@ -27,6 +27,11 @@ export const myContract = new nexus.classes.Contract(__filename, async () => ({
 ```
 
 다른 스택에서 import하면 StackReference로 자동 resolve됨.
+
+## ESC accessor
+
+- `commonEsc`, `cloudflareEsc`, `ociEsc`, `githubEsc`
+- `k8sWorkstationSystemEsc`, `k8sWorkstationAppsEsc`, `k8sWorkstationToolsEsc`
 
 ## 의존성
 

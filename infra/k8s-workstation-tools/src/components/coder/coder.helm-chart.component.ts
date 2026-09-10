@@ -287,7 +287,7 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
         },
         rules: [
           {
-            // Allow Coder to use CRD
+            // Coder가 CRD를 조회할 수 있게
             apiGroups: ['apiextensions.k8s.io'],
             resources: ['customresourcedefinitions'],
             verbs: ['get', 'list', 'watch'],

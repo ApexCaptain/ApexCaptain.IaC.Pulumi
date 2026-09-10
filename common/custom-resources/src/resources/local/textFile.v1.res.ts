@@ -1,5 +1,4 @@
 import * as crypto from 'crypto';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as utils from '@common/utils/src';
 import * as command from '@pulumi/command';
@@ -31,21 +30,9 @@ export class TextFileV1 extends command.local.Command {
         return path.join(resolvedFileDirPath, resolvedFileName);
       });
 
-    const fileHash = pulumi
-      .all([filePath, args.content])
-      .apply(([resolvedFilePath, resolvedContent]) => {
-        try {
-          return crypto
-            .createHash('sha256')
-            .update(
-              fs.existsSync(resolvedFilePath)
-                ? fs.readFileSync(resolvedFilePath)
-                : resolvedContent,
-            )
-            .digest('hex');
-        } catch (error) {}
-        return 'initial-deployment';
-      });
+    const fileHash = pulumi.output(args.content).apply(resolvedContent =>
+      crypto.createHash('sha256').update(resolvedContent, 'utf8').digest('hex'),
+    );
 
     const createCommand = pulumi
       .all([filePath, args.content, args.fileDirPath, args.fileMode])

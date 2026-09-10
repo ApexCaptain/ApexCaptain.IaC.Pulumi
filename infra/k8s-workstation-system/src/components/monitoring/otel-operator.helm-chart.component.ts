@@ -1,5 +1,5 @@
 /**
- * OpenTelemetry Operator Helm — monitoring NS + CRD/controller
+ * OpenTelemetry Operator Helm — monitoring 네임스페이스 + CRD/컨트롤러
  *
  * Namespace는 Istio ambient(`istio.io/dataplane-mode: ambient`) — sidecar 없이
  * ztunnel L4 mTLS. cert-manager webhook 연동. downstream Collector/Instrumentation CR의 전제.

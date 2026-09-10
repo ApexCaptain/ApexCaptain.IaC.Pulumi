@@ -1,5 +1,5 @@
 /**
- * Grafana UI — Istio VirtualService only (no Authentik Proxy)
+ * Grafana UI — Istio VirtualService만 (Authentik Proxy 없음)
  */
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';

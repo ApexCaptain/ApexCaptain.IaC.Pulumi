@@ -1,5 +1,5 @@
 /**
- * OpenTelemetry Collector (DaemonSet) + central Instrumentation CR
+ * OpenTelemetry Collector (DaemonSet) + 중앙 Instrumentation CR
  *
  * monitoring NS는 ambient mesh — pod 간 scraping/export는 ztunnel L4 mTLS.
  * kubeletstats(노드 :10250)만 mesh 밖 직접 접근. sidecar.istio.io/inject 미사용.
@@ -158,7 +158,7 @@ export const OtelResourcesComponent = utils.functions.defineComponent(
             auth_type: 'serviceAccount',
             endpoint: 'https://${env:K8S_NODE_IP}:10250',
             insecure_skip_verify: true,
-            // default is container/pod/node only — volume required for PVC usage
+            // 기본은 container/pod/node만. PVC 사용량 보려면 volume 필요.
             metric_groups: ['container', 'pod', 'node', 'volume'],
             extra_metadata_labels: ['k8s.volume.type'],
             k8s_api_config: {
@@ -183,11 +183,11 @@ export const OtelResourcesComponent = utils.functions.defineComponent(
         exporters: {
           'prometheusremotewrite': {
             endpoint: remoteWriteUrl,
-            // in-cluster HTTP VictoriaMetrics — default TLS would fail
+            // 클러스터 내부 HTTP VictoriaMetrics. 기본 TLS면 실패.
             tls: {
               insecure: true,
             },
-            // kubeletstats resource attrs → Prom labels (k8s_pod_name, …)
+            // kubeletstats resource attr을 Prom 라벨로 (k8s_pod_name 등)
             resource_to_telemetry_conversion: {
               enabled: true,
             },
@@ -239,7 +239,7 @@ export const OtelResourcesComponent = utils.functions.defineComponent(
         spec: {
           mode: 'daemonset',
           serviceAccount: collectorServiceAccountName,
-          // k8s distro lacks prometheusremotewrite; contrib matches operator 0.156.0
+          // k8s distro에는 prometheusremotewrite 없음. contrib는 operator 0.156.0과 맞춤.
           image:
             'ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.156.0',
           // ambient: sidecar inject 비활성화 어노테이션 금지 — ztunnel이 L4 mTLS 처리
@@ -297,7 +297,7 @@ export const OtelResourcesComponent = utils.functions.defineComponent(
         },
         spec: {
           exporter: {
-            // ambient app NS → monitoring collector: ztunnel L4 mTLS (ClusterIP 경유)
+            // ambient 앱 NS → monitoring collector: ztunnel L4 mTLS (ClusterIP)
             endpoint: pulumi.interpolate`http://${collectorName}-collector.${args.namespace}.svc.cluster.local:4317`,
           },
           propagators: ['tracecontext', 'baggage'],

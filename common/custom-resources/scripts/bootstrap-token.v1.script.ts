@@ -1,7 +1,7 @@
 /**
- * Vault bootstrap token resolve script (v1)
+ * Vault bootstrap token 해석 스크립트 (v1)
  *
- * Pulumi Command subprocess entry. Pod exec로 orphan root-policy token을 발급·갱신하고 PVC에 enc 저장.
+ * Pulumi Command subprocess. Pod exec로 orphan root-policy token을 발급·갱신하고 PVC에 enc 저장.
  * stdout은 JSON 결과만 출력한다. 로그는 stderr(console.warn/error)로 보낸다.
  */
 import * as crypto from 'crypto';
