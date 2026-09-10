@@ -1,5 +1,5 @@
 /**
- * Fairwinds VPA Helm — recommender only
+ * Fairwinds VPA Helm — recommender만
  *
  * Goldilocks 추천값 계산용. updater/admissionController는 Pod를 건드리고
  * mutating webhook 장애점이 생기므로 비활성. mesh 밖 (`dataplane-mode: none`).

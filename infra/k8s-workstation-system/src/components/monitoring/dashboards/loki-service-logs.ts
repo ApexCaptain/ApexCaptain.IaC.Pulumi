@@ -1,5 +1,5 @@
 /**
- * Loki logs by service_name — matches OTEL filelog / k8sattributes labels.
+ * Loki 로그를 service_name으로. OTEL filelog / k8sattributes 라벨과 맞춤.
  */
 export const lokiServiceLogsDashboardJson = JSON.stringify({
   annotations: { list: [] },

@@ -1,6 +1,6 @@
 # @infra/k8s-workstation-tools
 
-Workstation **도구/유틸** Pulumi 스택 — Coder, qBittorrent, Vikunja 등.
+Workstation **도구/유틸** Pulumi 스택 — Coder, qBittorrent, Vikunja.
 
 ## 역할
 
@@ -11,14 +11,15 @@ Workstation **도구/유틸** Pulumi 스택 — Coder, qBittorrent, Vikunja 등.
 
 | 도구 | 스택 | DB | 인증 | mesh |
 |------|------|-----|------|------|
-| **Coder** | prod | CNPG (외부 PG) | Authentik OIDC + GitHub external auth | ambient, ingress SA ALLOW + sysbox workspace mesh proxy |
+| **Coder** | prod | CNPG (외부 PG) | Authentik OIDC + GitHub external auth | ambient, ingress SA ALLOW + sysbox workspace SOCKS5 mesh proxy |
 | **Vikunja** | prod | CNPG (외부 PG) | Authentik OIDC (네이티브) | ambient, ingress SA ALLOW |
-| **qBittorrent** | prod | — | Authentik Proxy + Outpost | ext-authz |
+| **qBittorrent** | prod | — | Authentik Proxy + Outpost. SFTP는 Vault SSH CA (`SftpV3Component`) | ext-authz. SFTP는 Istio direct gateway TCP. NordLynx sidecar |
 
 ## Pulumi 프로젝트
 
 | 항목 | 값 |
 |------|-----|
+| 프로젝트 | `k8s-workstation-tools` |
 | 기본 스택 | `prod` (Coder, Vikunja, qBittorrent) |
 | ESC | `k8sWorkstationToolsEsc`, `commonEsc` |
 
@@ -30,21 +31,23 @@ Workstation **도구/유틸** Pulumi 스택 — Coder, qBittorrent, Vikunja 등.
 src/
 ├── contract.ts
 └── components/
-    ├── coder/       # base(CNPG) → authentik → helm → service-mesh → coderd resources
+    ├── coder/       # base(CNPG) → authentik → helm → service-mesh
+    │                # → coderd resources + workspace-mesh-proxy (SOCKS5)
     ├── vikunja/     # base(CNPG) → authentik → helm → service-mesh
-    └── qbittorrent/ # NordLynx VPN sidecar → authentik proxy mesh
+    └── qbittorrent/ # NordLynx + SftpV3 → authentik proxy mesh
 ```
 
 ## 의존성
 
 - `@infra/cloudflare`, `@infra/k8s-workstation-system`
 - `@common/nexus`, `@common/utils`, `@common/custom-resources`, `@common/bridged-provider` (authentik, coderd)
-- `@pulumi/random` (Vikunja secret 등), `@pulumi/vault`
+- `@pulumi/random` (Vikunja secret 등), `@pulumi/vault`, `@pulumi/kubernetes`
 
 ## 명령
 
 ```bash
 pnpm --filter @infra/k8s-workstation-tools build
+pnpm --filter @infra/k8s-workstation-tools eslint
 pnpm --filter @infra/k8s-workstation-tools pulumi:preview
 pnpm --filter @infra/k8s-workstation-tools pulumi:up
 ```

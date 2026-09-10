@@ -1,5 +1,5 @@
 /**
- * Fairwinds Goldilocks Helm — controller + dashboard
+ * Fairwinds Goldilocks Helm — controller + 대시보드
  *
  * VPA recommender 위에 얹는 추천 대시보드. 네임스페이스는 opt-in 라벨
  * (`goldilocks.fairwinds.com/enabled=true`)로만 감시. ambient mesh.
@@ -89,7 +89,7 @@ export const GoldilocksHelmChartComponent = utils.functions.defineComponent(
         releaseName: release.name,
         services: {
           goldilocksDashboard: {
-            // helm release name `goldilocks` → service `goldilocks-dashboard`
+            // Helm release 이름 `goldilocks` → 서비스 `goldilocks-dashboard`
             name: 'goldilocks-dashboard',
             port: {
               http: 80,

@@ -2,16 +2,16 @@ import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
 import axios from 'axios';
 
-interface GetPolcyExpressionV1ArgsShape {
+interface GetPolicyExpressionV1ArgsShape {
   name: string;
   authentikUrl: string;
   authentikToken: string;
 }
 
-export type GetPolcyExpressionV1Args =
-  utils.types.DeepPulumiInput<GetPolcyExpressionV1ArgsShape>;
+export type GetPolicyExpressionV1Args =
+  utils.types.DeepPulumiInput<GetPolicyExpressionV1ArgsShape>;
 
-type GetPolcyExpressionV1Result = {
+type GetPolicyExpressionV1Result = {
   pk: string;
   name: string;
   execution_logging: boolean;
@@ -23,7 +23,7 @@ type GetPolcyExpressionV1Result = {
   expression: string;
 };
 
-type GetPolcyExpressionV1AxiosResponse = {
+type GetPolicyExpressionV1AxiosResponse = {
   pagination: {
     next: number;
     previous: number;
@@ -33,13 +33,13 @@ type GetPolcyExpressionV1AxiosResponse = {
     start_index: number;
     end_index: number;
   };
-  results: GetPolcyExpressionV1Result[];
+  results: GetPolicyExpressionV1Result[];
   autocomplete: {};
 };
 
-export function getPolcyExpressionV1(
-  args: GetPolcyExpressionV1Args,
-): pulumi.Output<GetPolcyExpressionV1Result> {
+export function getPolicyExpressionV1(
+  args: GetPolicyExpressionV1Args,
+): pulumi.Output<GetPolicyExpressionV1Result> {
   return pulumi
     .all([args.name, args.authentikUrl, args.authentikToken])
     .apply(
@@ -55,11 +55,11 @@ export function getPolcyExpressionV1(
             meta_model_name: 'Preview Meta Model Name',
             bound_to: 1,
             expression: 'Preview Expression',
-          } as GetPolcyExpressionV1Result;
+          } as GetPolicyExpressionV1Result;
         }
         try {
           const axiosResponse =
-            await axios.get<GetPolcyExpressionV1AxiosResponse>(
+            await axios.get<GetPolicyExpressionV1AxiosResponse>(
               `${resolvedAuthentikUrl}/api/v3/policies/expression/?search=${resolvedName}`,
               {
                 headers: {

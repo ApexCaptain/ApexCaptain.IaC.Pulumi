@@ -39,7 +39,7 @@ describe('KubeConfigFileV1', () => {
 
     const file = new KubeConfigFileV1('unit-kubeconfig', {
       name: 'workstation',
-      clustser: {
+      cluster: {
         certificateAuthorityData: '-----BEGIN CERTIFICATE-----\nunit\n-----END CERTIFICATE-----',
         server: 'https://127.0.0.1:6443',
       },

@@ -1,5 +1,5 @@
 /**
- * Let's Encrypt ClusterIssuer (DNS-01 via Cloudflare)
+ * Let's Encrypt ClusterIssuer (Cloudflare DNS-01)
  *
  * Istio ingress wildcard cert·기타 공개 TLS가 여기 issuer를 참조한다.
  * prod / staging issuer를 둬서 rate limit·디버깅 때 staging으로 갈아끼우기 쉽게.

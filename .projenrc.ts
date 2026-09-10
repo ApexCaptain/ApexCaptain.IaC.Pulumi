@@ -257,7 +257,7 @@ const modifyUpgradeWorkflow = async () => {
   const upgradeJobSteps = upgradeJob.steps;
 
   // @Note Workflow Schedule에 강제로 Timezone 설정. 매우 지저분, 눈이 썩을 거 같음.
-  // @ToDo Timezone 설정 나온지 3개월은 되었는데 Projen 이놈들 이거 언제 업뎃 해주려나? Issue 한 번 올려서 물어봐야 할듯
+  // @ToDo Timezone 설정 나온 지 3개월은 되었는데 Projen 이놈들 이거 언제 업데이트 해주려나? Issue 한 번 올려서 물어봐야 할 듯
   upgradeWorkflow.workflows[0].on({
     schedule: [
       {
@@ -365,7 +365,7 @@ const inflateCommonProject = (option: {
   );
 
   if (option.jest && project.jest) {
-    // Projen appends default src/** and test/** patterns unless testMatch is overwritten.
+    // testMatch를 덮어쓰지 않으면 Projen이 기본 src/**, test/** 패턴을 붙인다.
     project.jest.config.testMatch = ['**/test/**/*.test.ts'];
     project.jest.config.maxWorkers = 2;
   }

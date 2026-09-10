@@ -1,13 +1,13 @@
 /**
- * Grafana Unified Alerting provisioning for PVC / volume usage.
+ * PVC / 볼륨 사용량 Grafana Unified Alerting 프로비저닝.
  *
- * Ratio = (capacity - available) / capacity for PVC mounts only.
- * Multi-series instances group under one Slack message (group_by: alertname).
- * Notifications only during Saturday 01:00–01:30 Asia/Seoul (active time interval).
+ * 비율 = (capacity - available) / capacity. PVC 마운트만.
+ * 여러 시리즈는 alertname으로 묶어 Slack 한 통 (group_by: alertname).
+ * 알림은 토요일 01:00–01:30 Asia/Seoul (active time interval)만.
  */
 export const PVC_USAGE_ALERT_THRESHOLD = 0.7;
 export const PVC_USAGE_ALERT_FOR = '10m';
-/** Weekly window — one notify per week is enough while firing. */
+/** 주 1회 윈도우. firing 중에도 주 1통이면 충분. */
 export const PVC_USAGE_REPEAT_INTERVAL = '168h';
 export const PVC_USAGE_EVAL_INTERVAL = '1m';
 
@@ -45,7 +45,7 @@ export function buildPvcUsageContactPoints(slackWebhookUrl: string) {
   };
 }
 
-/** Named time interval — applied as active_time_intervals on the policy route. */
+/** 이름 있는 time interval. policy route의 active_time_intervals에 붙임. */
 export function buildPvcUsageMuteTimes() {
   return {
     apiVersion: 1,
@@ -66,8 +66,8 @@ export function buildPvcUsageMuteTimes() {
 }
 
 /**
- * Root cannot carry active_time_intervals (Alertmanager rule).
- * Child route matches storage alerts and only notifies in the Sat window.
+ * 루트 route에는 active_time_intervals를 못 붙임 (Alertmanager 규칙).
+ * 자식 route가 storage 알림만 토요일 창에서 보낸다.
  */
 export function buildPvcUsageNotificationPolicies() {
   return {

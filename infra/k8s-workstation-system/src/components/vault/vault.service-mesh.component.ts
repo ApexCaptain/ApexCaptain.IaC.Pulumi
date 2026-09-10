@@ -35,7 +35,7 @@ interface VaultServiceMeshComponentArgsShape {
   vault: {
     bootstrapToken: string;
     rootCaSecretName: string;
-    /** Vault server image tag — provider version auto-fetch may fail via ingress */
+    /** Vault 서버 이미지 태그. ingress 경유 시 provider 버전 자동 조회가 실패할 수 있음. */
     serverVersion: string;
   };
   providers: {

@@ -5,7 +5,7 @@ import { TextFileV1 } from '../local/textFile.v1.res';
 
 interface KubeConfigFileV1ArgsShape {
   name: string;
-  clustser: {
+  cluster: {
     certificateAuthorityData: string;
     server: string;
     proxyUrl?: string;
@@ -51,11 +51,11 @@ export class KubeConfigFileV1 extends TextFileV1 {
           {
             name: clusterName,
             cluster: {
-              'server': resolvedArgs.clustser.server,
+              'server': resolvedArgs.cluster.server,
               'certificate-authority-data': toKubeConfigBase64(
-                resolvedArgs.clustser.certificateAuthorityData,
+                resolvedArgs.cluster.certificateAuthorityData,
               ),
-              'proxy-url': resolvedArgs.clustser.proxyUrl,
+              'proxy-url': resolvedArgs.cluster.proxyUrl,
             },
           },
         ],

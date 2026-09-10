@@ -88,14 +88,14 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
-    // Sysbox — RuntimeClass only (host install via Ansible/Kubespray)
+    // Sysbox — RuntimeClass만 (호스트 설치는 Ansible/Kubespray)
     const sysbox = new components.sysbox.SysboxComponent('sysbox', {
       providers: {
         kubernetes: workstationK8sProvider,
       },
     });
 
-    // Generic Device Plugin — expose host /dev as extended resources
+    // Generic Device Plugin — 호스트 /dev를 extended resource로 노출
     const genericDevicePluginHelmChart =
       new components.genericDevicePlugin.GenericDevicePluginHelmChartComponent(
         'genericDevicePluginHelmChart',
@@ -113,7 +113,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
       );
 
-    // GPU — RuntimeClass + Operator (host driver/toolkit via Ansible)
+    // GPU — RuntimeClass + Operator (호스트 driver/toolkit은 Ansible)
     const gpuRuntimeClass = new components.gpuOperator.GpuRuntimeClassComponent(
       'gpuRuntimeClass',
       {

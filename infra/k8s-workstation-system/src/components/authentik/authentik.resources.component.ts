@@ -54,7 +54,7 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
      */
     /*
     const dataDefaultSourceEnrollmentIfSsoPolicyExpression =
-      customResources.data.authentik.getPolcyExpressionV1({
+      customResources.data.authentik.getPolicyExpressionV1({
         name: 'default-source-enrollment-if-sso',
         authentikUrl: args.providers.authentik.url,
         authentikToken: args.providers.authentik.token,
@@ -98,7 +98,7 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
       );
 
     const dataDefaultSourceAuthenticationIfSsoPolicyExpression =
-      customResources.data.authentik.getPolcyExpressionV1({
+      customResources.data.authentik.getPolicyExpressionV1({
         name: 'default-source-authentication-if-sso',
         authentikUrl: args.providers.authentik.url,
         authentikToken: args.providers.authentik.token,

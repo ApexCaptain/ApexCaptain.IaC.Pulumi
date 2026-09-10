@@ -87,7 +87,7 @@ export const ArgoResourcesComponent = utils.functions.defineComponent(
       },
     );
 
-    // Bridged TF provider: MaxItems:1 blocks become 1-element arrays (`metadatas`/`specs`).
+    // Bridged TF provider: MaxItems:1 블록은 1원소 배열이 됨 (`metadatas`/`specs`).
     const inClusterDestination = {
       server: 'https://kubernetes.default.svc',
       namespace: '*',

@@ -12,12 +12,12 @@ import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
-/** containerd runtime handler / RuntimeClass name (upstream) */
+/** containerd runtime handler / RuntimeClass 이름 (업스트림과 동일) */
 const SYSBOX_RUNTIME_CLASS_NAME = 'sysbox-runc';
 
 /**
- * Nodes with Sysbox ready (Ansible `node_labels` / upstream installer label).
- * RuntimeClass scheduling.nodeSelector matches this.
+ * Sysbox가 준비된 노드 라벨 (Ansible `node_labels` / 업스트림 설치 라벨).
+ * RuntimeClass scheduling.nodeSelector와 같아야 함.
  */
 const SYSBOX_RUNTIME_NODE_LABEL_KEY = 'sysbox-runtime';
 const SYSBOX_RUNTIME_NODE_LABEL_VALUE = 'running';
@@ -38,15 +38,7 @@ export const SysboxComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    // Upstream:
-    //   apiVersion: node.k8s.io/v1
-    //   kind: RuntimeClass
-    //   metadata:
-    //     name: sysbox-runc
-    //   handler: sysbox-runc
-    //   scheduling:
-    //     nodeSelector:
-    //       sysbox-runtime: running
+    // 업스트림 sysbox-install.yaml RuntimeClass와 동일
     const runtimeClass = new kubernetes.node.v1.RuntimeClass(
       `${resourceName}-runtimeClass`,
       {

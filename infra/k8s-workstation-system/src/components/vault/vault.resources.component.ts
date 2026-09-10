@@ -113,7 +113,7 @@ export const VaultResourcesComponent = utils.functions.defineComponent(
       `${resourceName}-oidcKvPolicy`,
       {
         name: 'vault-oidc-kv',
-        // SecretV1 prefix list. qBit + Jellyfin SftpV3 userKvPath
+        // qBittorrent·Jellyfin SftpV3 userKvPath — SecretV1 prefix
         policy: kvMount.path.apply(mount =>
           [
             kvV2UiBrowsePolicy({

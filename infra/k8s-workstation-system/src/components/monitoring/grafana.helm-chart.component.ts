@@ -1,5 +1,5 @@
 /**
- * Grafana Helm — datasources + Authentik OIDC, Ingress disabled
+ * Grafana Helm — 데이터소스 + Authentik OIDC. Ingress는 끄고 Istio VirtualService 사용.
  */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
@@ -150,7 +150,7 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                 name: oidcName,
                 allow_sign_up: true,
                 client_id: clientId,
-                // Chart assertNoLeakedSecrets forbids plaintext secrets in grafana.ini
+                // 차트 assertNoLeakedSecrets가 grafana.ini 평문 시크릿을 막음. env 플레이스홀더만 허용.
                 client_secret:
                   '$__env{GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET}',
                 scopes,
@@ -203,7 +203,7 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                 ],
               },
             },
-            // rules/policies/muteTimes — Slack webhook lives in Secret mount below
+            // rules/policies/muteTimes. Slack webhook은 아래 Secret 마운트.
             'alerting': {
               'mutetimes.yaml': buildPvcUsageMuteTimes(),
               'policies.yaml': buildPvcUsageNotificationPolicies(),

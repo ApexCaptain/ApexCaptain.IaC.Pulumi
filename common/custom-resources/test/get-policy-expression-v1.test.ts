@@ -12,7 +12,7 @@ installPulumiMocks();
 
 const axiosGet = axios.get as jest.Mock;
 
-describe('getPolcyExpressionV1', () => {
+describe('getPolicyExpressionV1', () => {
   beforeEach(() => {
     axiosGet.mockReset();
   });
@@ -46,12 +46,12 @@ describe('getPolcyExpressionV1', () => {
       },
     });
 
-    const { getPolcyExpressionV1 } = await import(
+    const { getPolicyExpressionV1 } = await import(
       '../src/data/authentik/policy-expression.v1.data'
     );
 
     const result = await unwrap(
-      getPolcyExpressionV1({
+      getPolicyExpressionV1({
         name: 'unit-policy',
         authentikUrl: 'https://authentik.example',
         authentikToken: 'unit-token',

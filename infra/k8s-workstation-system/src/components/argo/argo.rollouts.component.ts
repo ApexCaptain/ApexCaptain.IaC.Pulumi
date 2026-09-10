@@ -54,7 +54,7 @@ export const ArgoRolloutsComponent = utils.functions.defineComponent(
         },
         waitForJobs: true,
         values: {
-          // Controller-only. Dashboard / Argo CD UI extension은 후속.
+          // 컨트롤러만. Dashboard / Argo CD UI 확장은 후속.
           installCRDs: true,
           dashboard: {
             enabled: false,

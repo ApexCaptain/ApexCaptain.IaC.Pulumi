@@ -1,7 +1,7 @@
 /**
  * Istio Gateway CR — ingress(HTTPS) + direct(TCP)
  *
- * - **ingress gateway**: `*.zone` wildcard LE cert, HTTP→HTTPS redirect
+ * - **ingress gateway**: `*.zone` 와일드카드 LE 인증서, HTTP→HTTPS 리다이렉트
  * - **direct gateway**: Jellyfin/qBittorrent SFTP 등 L4 passthrough
  *
  * VirtualService의 `gateways` 필드는 `{namespace}/{gateway-name}` 형식으로 여기 output을 쓴다.
@@ -143,7 +143,7 @@ export const IstioGatewayComponent = utils.functions.defineComponent(
       );
     const istioIngressGatewayPath = pulumi.interpolate`${args.namespace}/${istioIngressGateway.metadata.name}`;
 
-    // Direct Gateway
+    // Direct Gateway — L4 TCP (SFTP 등)
     const istioDirectGateway =
       new customResources.resources.k8s.crd.istio.GatewayV1(
         `${resourceName}-istioDirectGateway`,

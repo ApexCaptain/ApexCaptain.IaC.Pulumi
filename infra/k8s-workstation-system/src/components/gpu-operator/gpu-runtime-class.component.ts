@@ -10,7 +10,7 @@ import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
-/** containerd runtime handler / RuntimeClass name (Ansible `containerd_additional_runtimes`) */
+/** containerd runtime handler / RuntimeClass 이름 (Ansible `containerd_additional_runtimes`) */
 const NVIDIA_RUNTIME_CLASS_NAME = 'nvidia';
 
 interface GpuRuntimeClassComponentArgsShape {

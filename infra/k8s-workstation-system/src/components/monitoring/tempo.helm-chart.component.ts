@@ -1,5 +1,5 @@
 /**
- * Grafana Tempo — single binary local storage + PVC
+ * Grafana Tempo — 단일 바이너리 로컬 스토리지 + PVC
  */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';

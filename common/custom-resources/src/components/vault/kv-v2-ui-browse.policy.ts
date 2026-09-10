@@ -1,9 +1,9 @@
 import dedent from 'dedent';
 
 /**
- * KV v2 UI browse ACL — same shape as SecretV1 developer policy.
- * LIST each metadata prefix (and trailing-slash form the UI uses).
- * READ only the leaf secret data+metadata.
+ * KV v2 UI 탐색 ACL. SecretV1 개발자 정책과 같은 형태.
+ * 각 metadata prefix를 LIST (UI가 쓰는 trailing-slash 형태 포함).
+ * leaf secret의 data+metadata만 READ.
  */
 export function kvV2UiBrowsePolicy(args: {
   kvMount: string;

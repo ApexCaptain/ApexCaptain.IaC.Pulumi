@@ -1,6 +1,6 @@
 /**
- * NVIDIA GPU dashboard for DCGM Exporter (GPU Operator) → VictoriaMetrics.
- * Metrics from nvidia-dcgm-exporter DaemonSet (dcp-metrics-included.csv).
+ * NVIDIA GPU 대시보드. GPU Operator DCGM Exporter → VictoriaMetrics.
+ * nvidia-dcgm-exporter DaemonSet (dcp-metrics-included.csv) 메트릭.
  */
 export const nvidiaGpuDcgmDashboardJson = JSON.stringify({
   annotations: { list: [] },

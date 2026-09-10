@@ -213,7 +213,7 @@ describe('SftpV3Component', () => {
     );
     expect(jobJson).toContain('key_type=ed25519');
     expect(jobJson).toContain('SFTP_JOB_MODE');
-    // Vault SSH issue has private_key + signed_key, not public_key.
+    // Vault SSH issue 응답은 private_key + signed_key. public_key는 없음.
     expect(jobJson).toContain('ssh-keygen -y');
     expect(jobJson).toContain('openssh-keygen');
     expect(jobJson).not.toContain('.data.public_key');

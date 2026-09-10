@@ -11,9 +11,16 @@ Workstation K8s 클러스터 **시스템 레이어** Pulumi 스택.
 ```
 Cilium
   → lxcfs / sysbox / generic-device-plugin / gpu-operator
-  → cert-manager → Istio → CNPG operator
-  → Vault → Longhorn
-  → Authentik (Longhorn UI proxy/outpost 3단계 분리)
+  → cert-manager
+  → Vault Helm (KMS unseal, mesh 밖)
+  → Istio (ambient + ingress/direct gateway)
+  → CNPG operator
+  → Vault mesh ingress → Vault resources / k8s auth
+  → Longhorn
+  → Authentik (Helm은 Longhorn SC, UI는 Authentik proxy — 3단계 분리)
+  → Vault OIDC / Coder JWT / identity tiers
+  → Longhorn UI mesh → Authentik outpost
+  → VPA (recommender only) → Goldilocks dashboard
   → Vault Secrets Operator → Reloader
   → Argo (Rollouts → GitOps → Authentik OIDC → CD → mesh → resources)
   → monitoring (OTel, VictoriaMetrics, Loki, Tempo, Grafana)
@@ -29,11 +36,13 @@ Cilium
 | `genericDevicePlugin` | 호스트 `/dev` extended resource 노출 |
 | `gpuOperator` | NVIDIA GPU RuntimeClass + Operator |
 | `certManager` | LE wildcard cert, ClusterIssuer |
-| `istio` | ambient mesh, ingress/direct gateway |
-| `postgresqlOperator` | CloudNativePG operator |
 | `vault` | Helm + KMS unseal + mesh ingress + Authentik OIDC + Coder JWT |
+| `istio` | ambient mesh, ingress/direct gateway (SFTP L4 포함) |
+| `postgresqlOperator` | CloudNativePG operator |
 | `longhorn` | 스토리지 + Authentik proxy UI |
 | `authentik` | IdP Helm + mesh + groups/flows/outpost |
+| `vpa` | Fairwinds VPA recommender only (`updater`/`admission` 비활성, mesh 밖) |
+| `goldilocks` | VPA 추천 대시보드. opt-in 라벨, Authentik Proxy + ext-authz |
 | `vaultSecretsOperator` | VSO Helm + VaultConnection |
 | `reloader` | Stakater Reloader |
 | `argo` | Rollouts, Argo CD (GitOps repo + Authentik OIDC + mesh) |
@@ -41,13 +50,14 @@ Cilium
 
 ### Contract export (요약)
 
-- `output`: namespaces, gateway paths, storage classes, sysbox/lxcfs/gpu, authentik group/flow/outpost, vaultSecretsOperator, vault host/coderJwt
-- `secret`: authentik/vault provider config, vault OIDC/JWT mount accessor, kv mount, k8s auth mount path
+- `output`: namespaces, gateway paths, storage classes, sysbox/lxcfs/gpu/genericDevicePlugin, authentik group/flow/outpost, vaultSecretsOperator, vault host/coderJwt/identityGroupIds
+- `secret`: authentik/vault provider config, vault OIDC/JWT mount accessor, kv mount, k8s auth mount path, SSH CA mount, cluster TLS
 
 ## Pulumi 프로젝트
 
 | 항목 | 값 |
 |------|-----|
+| 프로젝트 | `k8s-workstation-system` |
 | 기본 스택 | `prod` |
 | ESC | `k8sWorkstationSystemEsc`, `commonEsc`, `ociEsc`, `githubEsc` |
 
@@ -63,11 +73,13 @@ src/
     ├── generic-device-plugin/
     ├── gpu-operator/
     ├── cert-manager/
+    ├── vault/
     ├── istio/
     ├── postgresql-operator/
-    ├── vault/
     ├── longhorn/
     ├── authentik/
+    ├── vpa/
+    ├── goldilocks/
     ├── vault-secrets-operator/
     ├── reloader/
     ├── argo/
@@ -84,6 +96,7 @@ src/
 
 ```bash
 pnpm --filter @infra/k8s-workstation-system build
+pnpm --filter @infra/k8s-workstation-system eslint
 pnpm --filter @infra/k8s-workstation-system pulumi:preview
 pnpm --filter @infra/k8s-workstation-system pulumi:up
 ```

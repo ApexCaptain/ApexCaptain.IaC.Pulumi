@@ -1,6 +1,6 @@
 /**
- * K8s node resources dashboard for OTel kubeletstats → VictoriaMetrics.
- * Labels assume prometheusremotewrite resource_to_telemetry_conversion.
+ * OTel kubeletstats → VictoriaMetrics 노드 리소스 대시보드.
+ * 라벨은 prometheusremotewrite resource_to_telemetry_conversion을 전제.
  */
 export const k8sNodeResourcesDashboardJson = JSON.stringify({
   annotations: { list: [] },

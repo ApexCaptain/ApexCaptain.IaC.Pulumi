@@ -1,7 +1,7 @@
 /**
- * Coder admin API token resolve script (v1)
+ * Coder admin API token 해석 스크립트 (v1)
  *
- * Pulumi Command subprocess entry. `kubectl exec` + Pod localhost curl로
+ * Pulumi Command subprocess. `kubectl exec` + Pod localhost curl로
  * first-user 생성(필요 시) 및 named API token을 발급한다.
  */
 import { spawn } from 'node:child_process';
