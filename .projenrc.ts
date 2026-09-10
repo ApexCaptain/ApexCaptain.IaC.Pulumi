@@ -675,6 +675,9 @@ const initPulumiEsc = async () => {
         ayteneve93com: {
           id: process.env.CLOUDFLARE_APEX_CAPTAIN_AYTENEVE93_COM_ZONE_ID,
         },
+        itemguessercom: {
+          id: process.env.CLOUDFLARE_APEX_CAPTAIN_ITEMGUESSER_COM_ZONE_ID,
+        },
       },
     },
     {
@@ -776,7 +779,9 @@ const initPulumiEsc = async () => {
   await NexusEsc.k8sWorkstationAppsEsc.upsertEsc(
     accountName,
     pulumiEscClient,
-    {},
+    {
+      slackWebhookUrlVaultAlerts: process.env.SLACK_WEBHOOK_URL_VAULT_ALERTS!!,
+    },
     {
       prod: {},
       dev: {},
@@ -799,6 +804,7 @@ const initPulumiEsc = async () => {
           password: process.env.CODER_FIRST_USER_PASSWORD!!,
         },
       },
+      slackWebhookUrlVaultAlerts: process.env.SLACK_WEBHOOK_URL_VAULT_ALERTS!!,
     },
     {
       prod: {},
@@ -1213,9 +1219,10 @@ void (async () => {
   });
 
   // lint-staged — staged TS only. Env must live in the hook: lint-staged does not expand shell env in commands.
+  // cwd per nearest .eslintrc.json — root eslint would resolve ./test/tsconfig.json to the repo, not the package.
   rootProject.package.addField('lint-staged', {
     '**/*.{ts,tsx}':
-      'eslint --fix --no-error-on-unmatched-pattern --ignore-pattern **/sdks/** --ignore-pattern **/node_modules/** --ignore-pattern **/lib/**',
+      'ts-node --transpile-only scripts/lint-staged-eslint.script.ts',
   });
 
   // Husky

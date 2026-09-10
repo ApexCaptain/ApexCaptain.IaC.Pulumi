@@ -12,6 +12,11 @@ const cloudflareEscSchema = z
             id: z.string(),
           })
           .required(),
+        itemguessercom: z
+          .object({
+            id: z.string(),
+          })
+          .required(),
       })
       .required(),
   })

@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import { AbstractEsc } from '../abstract';
 
-const k8sWorkstationAppsEscSchema = z.object({}).required();
+const k8sWorkstationAppsEscSchema = z
+  .object({
+    slackWebhookUrlVaultAlerts: z.string().min(1),
+  })
+  .required();
 
 class K8sWorkstationAppsEsc extends AbstractEsc<
   typeof k8sWorkstationAppsEscSchema

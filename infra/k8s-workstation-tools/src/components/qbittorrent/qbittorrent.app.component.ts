@@ -15,6 +15,7 @@ import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
+import * as vault from '@pulumi/vault';
 import dedent from 'dedent';
 import Timezone from 'timezone-enum';
 
@@ -24,6 +25,26 @@ interface QbittorrentAppComponentArgsShape {
     privateKey: string;
   };
   sftpUserName: string;
+  /** Vault SSH issue 키젠 + KV. 웹 SSO(Tools Manager)와 별개. KV read는 System User/Manager만. */
+  sftp: {
+    issuerGroupName: 'System User' | 'System Manager';
+    issuerIdentityGroupId: string;
+    hostPrincipals: string[];
+    userCaMount: string;
+    hostCaMount: string;
+    kvMount: string;
+    slackWebhookUrl: string;
+    vaultConnectionRef: string;
+    kubernetesAuthMountPath: string;
+    vault: {
+      address: string;
+      tlsServerName: string;
+      ca: {
+        namespace: string;
+        secretName: string;
+      };
+    };
+  };
   directGateway: {
     gatewayPath: string;
     qbitorrentSftp: {
@@ -50,6 +71,7 @@ interface QbittorrentAppComponentArgsShape {
   };
   providers: {
     kubernetes: kubernetes.Provider;
+    vault: vault.Provider;
   };
 }
 
@@ -239,8 +261,8 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       },
     );
 
-    // SFTP 사이드카 — 다운로드/설정 디렉터리를 외부에서 직접 접근
-    const sftpAdapter = new customResources.components.adapter.SftpV1Component(
+    // SFTP 사이드카 — Vault issue 키젠. 웹 SSO는 Tools Manager, KV read는 System Manager
+    const sftpAdapter = new customResources.components.adapter.SftpV3Component(
       'sftpAdapter',
       {
         username: args.sftpUserName,
@@ -266,8 +288,19 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
           gatewayPath: args.directGateway.gatewayPath,
           port: args.directGateway.qbitorrentSftp.port,
         },
+        hostPrincipals: args.sftp.hostPrincipals,
+        issuerGroupName: args.sftp.issuerGroupName,
+        issuerIdentityGroupId: args.sftp.issuerIdentityGroupId,
+        userCaMount: args.sftp.userCaMount,
+        hostCaMount: args.sftp.hostCaMount,
+        kvMount: args.sftp.kvMount,
+        slackWebhookUrl: args.sftp.slackWebhookUrl,
+        vaultConnectionRef: args.sftp.vaultConnectionRef,
+        kubernetesAuthMountPath: args.sftp.kubernetesAuthMountPath,
+        vault: args.sftp.vault,
         providers: {
           kubernetes: args.providers.kubernetes,
+          vault: args.providers.vault,
         },
       },
       {
@@ -283,6 +316,10 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
         metadata: {
           name: 'qbittorrent',
           namespace: namespace.metadata.name,
+          annotations: {
+            'secret.reloader.stakater.com/reload':
+              sftpAdapter.output.userSecretName,
+          },
         },
         spec: {
           replicas: 1,
@@ -543,45 +580,49 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
 
                 sftpAdapter.output.spec.containerSpec,
               ],
-              volumes: [
-                {
-                  // 호스트 /dev/net/tun — WireGuard용
-                  name: tunDeviceVolumeName,
-                  hostPath: {
-                    path: '/dev/net/tun',
-                    type: 'CharDevice',
+              volumes: pulumi
+                .output(sftpAdapter.output.spec.volumeSpecs)
+                .apply(sftpVolumeSpecs => [
+                  {
+                    // 호스트 /dev/net/tun — WireGuard용
+                    name: tunDeviceVolumeName,
+                    hostPath: {
+                      path: '/dev/net/tun',
+                      type: 'CharDevice',
+                    },
                   },
-                },
-                {
-                  name: gluetunStateVolumeName,
-                  emptyDir: {},
-                },
-                {
-                  name: qbittorrentModCacheVolumeName,
-                  persistentVolumeClaim: {
-                    claimName: qbittorrentModCachePvc.metadata.name,
+                  {
+                    name: gluetunStateVolumeName,
+                    emptyDir: {},
                   },
-                },
-                {
-                  name: qbittorrentConfigVolumeName,
-                  persistentVolumeClaim: {
-                    claimName: qbittorrentConfigPvc.metadata.name,
+                  {
+                    name: qbittorrentModCacheVolumeName,
+                    persistentVolumeClaim: {
+                      claimName: qbittorrentModCachePvc.metadata.name,
+                    },
                   },
-                },
-                {
-                  name: qbittorrentCompleteDownloadsVolumeName,
-                  persistentVolumeClaim: {
-                    claimName: qbittorrentCompleteDownloadsPvc.metadata.name,
+                  {
+                    name: qbittorrentConfigVolumeName,
+                    persistentVolumeClaim: {
+                      claimName: qbittorrentConfigPvc.metadata.name,
+                    },
                   },
-                },
-                {
-                  name: qbittorrentIncompleteDownloadsVolumeName,
-                  persistentVolumeClaim: {
-                    claimName: qbittorrentIncompleteDownloadsPvc.metadata.name,
+                  {
+                    name: qbittorrentCompleteDownloadsVolumeName,
+                    persistentVolumeClaim: {
+                      claimName:
+                        qbittorrentCompleteDownloadsPvc.metadata.name,
+                    },
                   },
-                },
-                sftpAdapter.output.spec.volumeSpec,
-              ],
+                  {
+                    name: qbittorrentIncompleteDownloadsVolumeName,
+                    persistentVolumeClaim: {
+                      claimName:
+                        qbittorrentIncompleteDownloadsPvc.metadata.name,
+                    },
+                  },
+                  ...sftpVolumeSpecs,
+                ]),
             },
           },
         },

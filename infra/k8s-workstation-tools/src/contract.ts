@@ -117,7 +117,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
           },
           helm: {
             coder: {
-              version: '2.37.0',
+              version: '2.37.1',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.coder.com/v2'],
             },
@@ -406,6 +406,39 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
             privateKey: commonEsc.esc.nordLynx.privateKey,
           },
           sftpUserName: commonEsc.esc.adapter.sftp.userName,
+          sftp: {
+            issuerGroupName: 'System Manager',
+            issuerIdentityGroupId:
+              k8sWorkstationSystemContract.output.vault.identityGroupIds.apply(
+                ids => ids['System Manager'],
+              ),
+            hostPrincipals: [
+              commonEsc.esc.workstationIptimeDomain,
+              commonEsc.esc.workstationIpV4Address,
+            ],
+            userCaMount: k8sWorkstationSystemContract.secret.vault.ssh.userCaMount,
+            hostCaMount: k8sWorkstationSystemContract.secret.vault.ssh.hostCaMount,
+            kvMount: k8sWorkstationSystemContract.secret.vault.kvMount,
+            slackWebhookUrl: projectEsc.esc.slackWebhookUrlVaultAlerts,
+            vaultConnectionRef:
+              k8sWorkstationSystemContract.output.vaultSecretsOperator
+                .vaultConnectionRef,
+            kubernetesAuthMountPath:
+              k8sWorkstationSystemContract.secret.vault.kubernetesAuthMountPath,
+            vault: {
+              address:
+                k8sWorkstationSystemContract.secret.vault.cluster.address,
+              tlsServerName:
+                k8sWorkstationSystemContract.secret.vault.cluster.tlsServerName,
+              ca: {
+                namespace:
+                  k8sWorkstationSystemContract.secret.vault.cluster.namespace,
+                secretName:
+                  k8sWorkstationSystemContract.secret.vault.cluster
+                    .rootCaSecretName,
+              },
+            },
+          },
           directGateway: {
             gatewayPath:
               k8sWorkstationSystemContract.output.gatewayPaths
@@ -440,6 +473,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
           },
           providers: {
             kubernetes: workstationK8sProvider,
+            vault: vaultProvider,
           },
         },
       );

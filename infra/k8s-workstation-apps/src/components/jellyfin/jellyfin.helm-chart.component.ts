@@ -5,10 +5,11 @@
  * Gateway → sidecar mTLS. HBONE `connect_originate` 회피 (istio/istio#60074).
  * SFTP는 Istio direct gateway TCP passthrough — 같은 ingressgateway SA.
  */
-import * as customResources from '@common/custom-resources';
+import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
+import * as vault from '@pulumi/vault';
 
 interface JellyfinHelmChartComponentArgsShape {
   helm: {
@@ -18,6 +19,26 @@ interface JellyfinHelmChartComponentArgsShape {
     };
   };
   sftpUserName: string;
+  /** Vault SSH issue 키젠 + KV. 웹 SSO는 Application User, KV read는 System Manager */
+  sftp: {
+    issuerGroupName: 'System User' | 'System Manager';
+    issuerIdentityGroupId: string;
+    hostPrincipals: string[];
+    userCaMount: string;
+    hostCaMount: string;
+    kvMount: string;
+    slackWebhookUrl: string;
+    vaultConnectionRef: string;
+    kubernetesAuthMountPath: string;
+    vault: {
+      address: string;
+      tlsServerName: string;
+      ca: {
+        namespace: string;
+        secretName: string;
+      };
+    };
+  };
   directGateway: {
     gatewayPath: string;
     jellyfinSftp: {
@@ -40,6 +61,7 @@ interface JellyfinHelmChartComponentArgsShape {
   };
   providers: {
     kubernetes: kubernetes.Provider;
+    vault: vault.Provider;
   };
 }
 
@@ -148,8 +170,8 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
     const userId = 1000;
     const groupId = 1000;
 
-    const sftpAdapter = new customResources.components.adapter.SftpV1Component(
-      'sftpAdapter',
+    const sftpAdapter = new customResources.components.adapter.SftpV3Component(
+      'jellyfinSftpAdapter',
       {
         username: args.sftpUserName,
         namespace: namespace.metadata.name,
@@ -172,8 +194,19 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
           gatewayPath: args.directGateway.gatewayPath,
           port: args.directGateway.jellyfinSftp.port,
         },
+        hostPrincipals: args.sftp.hostPrincipals,
+        issuerGroupName: args.sftp.issuerGroupName,
+        issuerIdentityGroupId: args.sftp.issuerIdentityGroupId,
+        userCaMount: args.sftp.userCaMount,
+        hostCaMount: args.sftp.hostCaMount,
+        kvMount: args.sftp.kvMount,
+        slackWebhookUrl: args.sftp.slackWebhookUrl,
+        vaultConnectionRef: args.sftp.vaultConnectionRef,
+        kubernetesAuthMountPath: args.sftp.kubernetesAuthMountPath,
+        vault: args.sftp.vault,
         providers: {
           kubernetes: args.providers.kubernetes,
+          vault: args.providers.vault,
         },
       },
       {
@@ -214,6 +247,10 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
             'proxy.istio.io/config':
               '{"holdApplicationUntilProxyStarts": true}',
           },
+          deploymentAnnotations: {
+            'secret.reloader.stakater.com/reload':
+              sftpAdapter.output.userSecretName,
+          },
           // @Note 나중에 GPU Operator 설치 후 사용
           // runtimeClassName: 'nvidia',
           // idle ~570Mi; 트랜스코딩 스파이크용 CPU/RAM headroom
@@ -239,7 +276,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
               existingClaim: jeyllfinCachePvc.metadata.name,
             },
           },
-          volumes: [sftpAdapter.output.spec.volumeSpec],
+          volumes: sftpAdapter.output.spec.volumeSpecs,
           extraContainers: [sftpAdapter.output.spec.containerSpec],
         },
       },

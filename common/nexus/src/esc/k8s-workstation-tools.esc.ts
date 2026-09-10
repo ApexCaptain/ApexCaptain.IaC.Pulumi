@@ -19,6 +19,7 @@ const k8sWorkstationToolsEscSchema = z
           .required(),
       })
       .required(),
+    slackWebhookUrlVaultAlerts: z.string().min(1),
   })
   .required();
 

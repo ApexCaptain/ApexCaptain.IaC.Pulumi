@@ -11,3 +11,5 @@ export * from './vault.coder-jwt.component';
 export * from './vault.kubernetes-auth.component';
 
 export * from './vault.resources.component';
+
+export * from './vault.identity-tiers.component';

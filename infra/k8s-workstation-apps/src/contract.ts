@@ -87,6 +87,41 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
               },
             },
             sftpUserName: commonEsc.esc.adapter.sftp.userName,
+            sftp: {
+              issuerGroupName: 'System Manager',
+              issuerIdentityGroupId:
+                k8sWorkstationSystemContract.output.vault.identityGroupIds.apply(
+                  ids => ids['System Manager'],
+                ),
+              hostPrincipals: [
+                commonEsc.esc.workstationIptimeDomain,
+                commonEsc.esc.workstationIpV4Address,
+              ],
+              userCaMount:
+                k8sWorkstationSystemContract.secret.vault.ssh.userCaMount,
+              hostCaMount:
+                k8sWorkstationSystemContract.secret.vault.ssh.hostCaMount,
+              kvMount: k8sWorkstationSystemContract.secret.vault.kvMount,
+              slackWebhookUrl: projectEsc.esc.slackWebhookUrlVaultAlerts,
+              vaultConnectionRef:
+                k8sWorkstationSystemContract.output.vaultSecretsOperator
+                  .vaultConnectionRef,
+              kubernetesAuthMountPath:
+                k8sWorkstationSystemContract.secret.vault.kubernetesAuthMountPath,
+              vault: {
+                address:
+                  k8sWorkstationSystemContract.secret.vault.cluster.address,
+                tlsServerName:
+                  k8sWorkstationSystemContract.secret.vault.cluster.tlsServerName,
+                ca: {
+                  namespace:
+                    k8sWorkstationSystemContract.secret.vault.cluster.namespace,
+                  secretName:
+                    k8sWorkstationSystemContract.secret.vault.cluster
+                      .rootCaSecretName,
+                },
+              },
+            },
             directGateway: {
               gatewayPath:
                 k8sWorkstationSystemContract.output.gatewayPaths
@@ -118,6 +153,7 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
             },
             providers: {
               kubernetes: workstationK8sProvider,
+              vault: vaultProvider,
             },
           },
           {

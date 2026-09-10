@@ -34,23 +34,27 @@ export const cloudflareContract = new nexus.classes.Contract(
       },
     );
 
-    const recordsWorkstation =
-      new components.records.RecordsWorkstationComponent('recordsWorkstation', {
-        zoneId: apexCaptainCloudflareZone.id,
-        zoneDomain: apexCaptainCloudflareZone.name,
-        workstationDomain: commonEsc.esc.workstationIptimeDomain,
-        apexCaptainGithubOwner: githubEsc.esc.apexCaptain.owner,
-        providers: {
-          cloudflare: apexCaptainCloudflareProvider,
+    // ayteneve93com
+    const ayteneve93comRecords =
+      new components.ayteneve93com.Ayteneve93comRecordsComponent(
+        'ayteneve93comRecords',
+        {
+          zoneId: apexCaptainCloudflareZone.id,
+          zoneDomain: apexCaptainCloudflareZone.name,
+          workstationDomain: commonEsc.esc.workstationIptimeDomain,
+          apexCaptainGithubOwner: githubEsc.esc.apexCaptain.owner,
+          providers: {
+            cloudflare: apexCaptainCloudflareProvider,
+          },
         },
-      });
+      );
 
     return {
       output: pulumi.output({
         zones: {
           ayteneve93com: {
             domain: apexCaptainCloudflareZone.name,
-            records: recordsWorkstation.output.records,
+            records: ayteneve93comRecords.output.records,
           },
         },
       }),

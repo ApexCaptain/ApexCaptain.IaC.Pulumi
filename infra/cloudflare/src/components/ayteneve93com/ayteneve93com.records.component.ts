@@ -11,11 +11,12 @@
  * | vault    | true    | 공개 Vault API/UI |
  * | jellyfin | false   | 스트리밍·대역폭 — CF proxy 우회 |
  */
+
 import * as utils from '@common/utils/src';
 import * as cloudflare from '@pulumi/cloudflare';
 import * as pulumi from '@pulumi/pulumi';
 
-interface RecordsWorkstationComponentArgsShape {
+interface Ayteneve93comRecordsComponentArgsShape {
   zoneId: string;
   zoneDomain: string;
   workstationDomain: string;
@@ -25,13 +26,13 @@ interface RecordsWorkstationComponentArgsShape {
   };
 }
 
-export type RecordsWorkstationComponentArgs =
-  utils.types.DeepPulumiInput<RecordsWorkstationComponentArgsShape>;
+export type Ayteneve93comRecordsComponentArgs =
+  utils.types.DeepPulumiInput<Ayteneve93comRecordsComponentArgsShape>;
 
-export const RecordsWorkstationComponent = utils.functions.defineComponent(
-  'recordsWorkstation',
+export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
+  'ayteneve93comRecords',
   (
-    args: RecordsWorkstationComponentArgs,
+    args: Ayteneve93comRecordsComponentArgs,
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {

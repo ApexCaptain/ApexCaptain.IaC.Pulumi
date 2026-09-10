@@ -202,3 +202,4 @@ pnpm eslint          # 루트 + posteslint(워크스페이스)
 | 2026-09-06 | 현재 훅·eslint·Husky 설치 경로 조사. lint-staged 루트 도입(옵션 A)으로 이슈 등록 |
 | 2026-09-06 | `.projenrc.ts`에 `lint-staged` 추가, pre-commit을 staged TS eslint `--fix`로 교체. `git add .` / 매 커밋 `pnpm projen` 제거 |
 | 2026-09-06 | 완료. `docs/issues/` → `docs/resolved/` 아카이브 |
+| 2026-09-10 | 루트 cwd eslint가 패키지 `parserOptions.project`를 루트 `test/tsconfig.json`으로 해석. pre-commit 실패 (`none of those tsconfigs include this file`). lint-staged가 `scripts/lint-staged-eslint.script.ts`로 가장 가까운 `.eslintrc.json` cwd에서 상대 경로 eslint |

@@ -9,7 +9,7 @@
  * [사용자] Vault UI → Sign in with OIDC
  *        → Authentik (systemUser+ 만 Application bind)
  *        → callback /ui/vault/auth/oidc/oidc/callback
- *        → Vault token (OIDC role + Authentik groups → identity group policy)
+ *        → Vault token (OIDC role: default + vault-oidc-kv. Authentik bind는 System Manager)
  *
  * [CLI] vault login -method=oidc
  *        → Authentik (동일 MFA)
@@ -22,6 +22,7 @@ import { authentik } from '@common/bridged-provider';
 import * as utils from '@common/utils/src';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
+import dedent from 'dedent';
 
 /** Vault OIDC role client token TTL (3 days) */
 const vaultTokenTtlSeconds = 3 * 24 * 3600;
@@ -32,7 +33,7 @@ interface VaultAuthentikComponentArgsShape {
     authentik: string;
   };
   authentik: {
-    /** systemUserGroup — bind 대상 + descendants(systemManager)만 Vault SSO 시도 가능 */
+    /** systemManagerGroup — Vault SSO + KV browse. System User는 로그인만 되고 키는 못 봄이 아니라 SSO 자체 Manager만 */
     allowedGroupId: string;
     flow: {
       authorizationFlowId: string;
@@ -42,6 +43,9 @@ interface VaultAuthentikComponentArgsShape {
   providers: {
     vault: vault.Provider;
     authentik: authentik.Provider;
+  };
+  vault: {
+    oidcKvPolicyName: string;
   };
 }
 
@@ -95,13 +99,34 @@ export const VaultAuthentikComponent = utils.functions.defineComponent(
       ),
     ]);
 
+    /** Authentik 2026.2+: User.ak_groups deprecated, User.groups 가 SSOT */
+    const vaultOidcGroupsExpression = dedent`
+      u = user if user is not None else request.user
+      gs = getattr(u, "groups", None) or u.ak_groups
+      return {
+        "${vaultOidcGroupsClaim}": sorted({g.name for g in gs.all()}),
+      }
+    `;
+
     const groupsScopeMapping = new authentik.PropertyMappingProviderScope(
       `${resourceName}-groupsScopeMapping`,
       {
         name: 'vault-oidc-groups-scope',
         scopeName: vaultOidcGroupsScopeName,
         description: 'OIDC groups claim for Vault identity group alias',
-        expression: `return {\n  "${vaultOidcGroupsClaim}": sorted({group.name for group in request.user.ak_groups.all()}),\n}`,
+        expression: vaultOidcGroupsExpression,
+      },
+      authentikProviderOpts,
+    );
+
+    const groupsInProfileMapping = new authentik.PropertyMappingProviderScope(
+      `${resourceName}-groupsInProfileMapping`,
+      {
+        name: 'vault-oidc-groups-in-profile',
+        scopeName: 'profile',
+        description:
+          'Same groups claim on profile so id_token always carries it',
+        expression: vaultOidcGroupsExpression,
       },
       authentikProviderOpts,
     );
@@ -138,6 +163,7 @@ export const VaultAuthentikComponent = utils.functions.defineComponent(
           profileScope.id,
           emailScope.id,
           groupsScopeMapping.id,
+          groupsInProfileMapping.id,
         ],
         subMode: 'user_email',
         includeClaimsInIdToken: true,
@@ -145,7 +171,7 @@ export const VaultAuthentikComponent = utils.functions.defineComponent(
       },
       {
         ...authentikProviderOpts,
-        dependsOn: [groupsScopeMapping],
+        dependsOn: [groupsScopeMapping, groupsInProfileMapping],
       },
     );
 
@@ -191,6 +217,50 @@ export const VaultAuthentikComponent = utils.functions.defineComponent(
       },
     );
 
+    /** SecretV1과 동일: Authentik 그룹 이름 = Vault GroupAlias 이름 = JWT groups */
+    const sftpReaderGroupName =
+      'vault-reader-group-sftp-qbittorrent-sftp-adapter';
+    const systemManagerGroup = authentik.getGroupOutput(
+      {
+        name: 'System Manager',
+        includeUsers: true,
+      },
+      authentikProviderOpts,
+    );
+    const sftpReaderAuthentikGroup = new authentik.Group(
+      `${resourceName}-sftpReaderAuthentikGroup`,
+      {
+        name: sftpReaderGroupName,
+        users: systemManagerGroup.users,
+      },
+      authentikProviderOpts,
+    );
+    const sftpReaderVaultGroup = new vault.identity.Group(
+      `${resourceName}-sftpReaderVaultGroup`,
+      {
+        name: sftpReaderGroupName,
+        type: 'external',
+        policies: [args.vault.oidcKvPolicyName],
+      },
+      vaultProviderOpts,
+    );
+    new vault.identity.GroupAlias(
+      `${resourceName}-sftpReaderOidcAlias`,
+      {
+        name: sftpReaderGroupName,
+        mountAccessor: vaultOidcAuthBackend.accessor,
+        canonicalId: sftpReaderVaultGroup.id,
+      },
+      {
+        ...vaultProviderOpts,
+        dependsOn: [
+          sftpReaderVaultGroup,
+          sftpReaderAuthentikGroup,
+          vaultOidcAuthBackend,
+        ],
+      },
+    );
+
     new vault.jwt.AuthBackendRole(
       `${resourceName}-vaultOidcAuthBackendRole`,
       {
@@ -204,8 +274,15 @@ export const VaultAuthentikComponent = utils.functions.defineComponent(
           ...vaultOidcCliCallbackUrls,
         ],
         groupsClaim: vaultOidcGroupsClaim,
-        oidcScopes: [vaultOidcGroupsScopeName],
-        tokenPolicies: ['default'],
+        oidcScopes: [
+          'openid',
+          'profile',
+          'email',
+          vaultOidcGroupsScopeName,
+        ],
+        tokenPolicies: pulumi
+          .output(args.vault.oidcKvPolicyName)
+          .apply(oidcKvPolicyName => ['default', oidcKvPolicyName]),
         tokenTtl: vaultTokenTtlSeconds,
         tokenMaxTtl: vaultTokenTtlSeconds,
       },
