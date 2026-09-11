@@ -5,10 +5,16 @@
 | **등록일** | 2026-09-11 |
 | **영역** | 루트 Projen (`.projenrc.ts`) · `scripts/` · DevContainer sync |
 | **관련 코드** | `.projenrc.ts` (`initPulumiEsc`, Ventoy Handlebars, `rootProject.postSynthesize`) · `.devcontainer/commands/common/synchronizeProject.sh` · `common/nexus/src/esc/` · `ventoy/templates/` |
-| **상태** | **적용** — Tasks 1–5 완료. 수용 기준 충족 (아카이브는 사용자 확인 후) |
+| **상태** | **해결** |
+| **해결일** | 2026-09-11 |
 | **선행** | 없음 |
-| **후속** | [projenrc 모듈화](2026-09-11-projenrc-modularize.md) (이 이슈 머지 후) |
+| **후속** | [projenrc 모듈화](2026-09-11-projenrc-modularize.md) — PR #42에서 완료·동시 아카이브 |
 | **참고** | Gemini 초안 `tmp/gemini/Refactor .projenrc.ts & Decouple Side Effects Plan.md` (모듈화·스크립트명은 본 이슈에서 수정 반영) |
+| **PR** | [#41](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/41) |
+
+## 해결 요약
+
+ESC·Ventoy·bootstrap을 `scripts/`로 분리하고 DevContainer sync에 배선. `pnpm exec projen`은 네트워크 없이 완료. PR #41 머지.
 
 ## 배경
 
@@ -89,3 +95,4 @@
 |---|---|
 | 2026-09-11 | 등록. 설계 승인 (이슈 분리 C, 접근 B). 구현 플랜 작성 |
 | 2026-09-11 | Tasks 1–4 구현 (스크립트 3종·sync 배선·postSynthesize chmod만). Task 5 검증: `pnpm exec projen`·build/test/eslint 전부 exit 0 |
+| 2026-09-11 | PR #41 머지. 사용자 승인으로 `docs/resolved` 아카이브 |
