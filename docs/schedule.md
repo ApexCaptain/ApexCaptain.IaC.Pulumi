@@ -25,6 +25,7 @@
 |---|---|---|---|
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 | 쿠팡 16GB DDR4-2666 1장 입고·장착 | empty 슬롯 장착 후 `dmidecode`로 Part Number·속도·랭크 확인 (~48 GB). 2단계 64GB는 별도 | [workstation-0 메모리](issues/2026-09-01-workstation-0-memory-upgrade-planning.md) | 보류 |
+| [#40](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/40) 머지 | 머지 후 이슈를 `docs/resolved`로 이동·schedule 행 삭제 | [PR CI 검증 파이프라인](issues/2026-09-11-pr-ci-validation-pipeline.md) | 적용 |
 
 ---
 
