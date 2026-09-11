@@ -4,8 +4,8 @@
 |---|---|
 | **등록일** | 2026-09-11 |
 | **영역** | 루트 Projen 엔트리 · `projenrc/` |
-| **관련 코드** | `.projenrc.ts` · `projenrc/tsconfig.json` · (예정) `projenrc/workflows/*` · `projenrc/projects/*` |
-| **상태** | **보류** — [부작용 분리](2026-09-11-projen-decouple-side-effects.md) 머지·수용 기준 충족 후 착수 |
+| **관련 코드** | `.projenrc.ts` · `projenrc/tsconfig.json` · `projenrc/workflows/*` · `projenrc/projects/*` |
+| **상태** | **적용** — 모듈 분리 완료. resolve는 부작용 분리와 일괄 후속 |
 | **선행** | [2026-09-11-projen-decouple-side-effects](2026-09-11-projen-decouple-side-effects.md) |
 | **구현 플랜** | `docs/superpowers/plans/2026-09-11-projenrc-modularize.md` |
 | **참고** | Gemini Phase 3. **200줄 KPI는 채택하지 않음** |
@@ -53,11 +53,11 @@
 
 ## 수용 기준
 
-- [ ] 선행 이슈(부작용 분리)가 `docs/resolved`이거나 수용 기준 충족
-- [ ] 위 네 모듈 파일이 존재하고 `.projenrc.ts`가 이를 import해 호출
-- [ ] `pnpm exec projen` 후 `.projen/` · `.github/workflows/` · 워크스페이스 `package.json` 등 생성물에 **의도치 않은 diff 없음** (`git diff --exit-code`로 검증 가능한 범위)
-- [ ] `pnpm build:workspaces` · `pnpm test:workspaces` · `pnpm eslint` 통과
-- [ ] Turbo/pnpm workspace 패키지 목록·필터 불변
+- [x] 선행 이슈(부작용 분리)가 `docs/resolved`이거나 수용 기준 충족 (PR #41 머지, 적용 상태. resolve는 후속 일괄)
+- [x] 위 네 모듈 파일이 존재하고 `.projenrc.ts`가 이를 import해 호출
+- [x] `pnpm exec projen` 후 `.projen/` · `.github/workflows/` · 워크스페이스 `package.json` 등 생성물에 **의도치 않은 diff 없음** (`git diff --exit-code`로 검증 가능한 범위)
+- [x] `pnpm build:workspaces` · `pnpm test:workspaces` · `pnpm eslint` 통과
+- [x] Turbo/pnpm workspace 패키지 목록·필터 불변
 
 ## 범위 밖
 
@@ -71,3 +71,4 @@
 | 일시 | 내용 |
 |---|---|
 | 2026-09-11 | 등록. 선행=부작용 분리. 설계 승인(B). 착수는 선행 완료 후 |
+| 2026-09-11 | PR #41 머지 후 착수. workflows·projects 모듈 분리. synth/build/test/eslint 통과. resolve 보류 |

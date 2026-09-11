@@ -1,14 +1,10 @@
 import fs from 'fs';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
-import { LocalWorkspace } from '@pulumi/pulumi/automation';
-import CronTime from 'cron-time-generator';
 import dedent from 'dedent';
 import _ from 'lodash';
-import { javascript, JsonFile, TextFile, typescript, YamlFile } from 'projen';
-import { GithubWorkflow } from 'projen/lib/github';
+import { javascript, JsonFile, TextFile, typescript } from 'projen';
 import { GithubCredentials } from 'projen/lib/github/github-credentials';
-import { Job, JobPermission } from 'projen/lib/github/workflows-model';
 import { ArrowParens } from 'projen/lib/javascript';
 import { RequirementsFile } from 'projen/lib/python';
 import {
@@ -16,10 +12,12 @@ import {
   TypeScriptProjectOptions,
 } from 'projen/lib/typescript';
 import { VsCode } from 'projen/lib/vscode';
-import Timezone from 'timezone-enum';
-import { AbstractEsc } from './common/nexus/src/abstract/esc.abstract';
 import * as NexusEsc from './common/nexus/src/esc';
 import * as utils from './common/utils/src';
+import { inflateCommonProject } from './projenrc/projects/common-projects';
+import { inflatePulumiProject } from './projenrc/projects/pulumi-projects';
+import { addPrValidationWorkflow } from './projenrc/workflows/pr-validation';
+import { modifyUpgradeWorkflow } from './projenrc/workflows/upgrade';
 import * as src from './src';
 
 const commonProjectWithBridgedProviderOrder: TypeScriptProject[] = [];
@@ -244,444 +242,79 @@ const rootProject = new typescript.TypeScriptProject(
   ),
 );
 
-const modifyUpgradeWorkflow = async () => {
-  const upgradeWorkflow = rootProject.upgradeWorkflow;
-  if (!upgradeWorkflow) return;
-
-  const upgradeJob = upgradeWorkflow.workflows[0].jobs.upgrade as Job;
-  const upgradeJobSteps = upgradeJob.steps;
-
-  // @Note Workflow Schedule에 강제로 Timezone 설정. 매우 지저분, 눈이 썩을 거 같음.
-  // @ToDo Timezone 설정 나온 지 3개월은 되었는데 Projen 이놈들 이거 언제 업데이트 해주려나? Issue 한 번 올려서 물어봐야 할 듯
-  upgradeWorkflow.workflows[0].on({
-    schedule: [
-      {
-        cron: CronTime.everyWeekAt(1, 1), // 매주 월요일 새벽 1시
-        timezone: Timezone['Asia/Seoul'],
-      } as any,
-    ],
-  });
-
-  // Build Projects Step 추가
-  upgradeJobSteps.splice(
-    upgradeJobSteps.findIndex(
-      eachStep => eachStep.name == 'Install dependencies',
-    ) + 1,
-    0,
-    {
-      name: 'Build Projects',
-      run: 'pnpm build:workspaces',
-    },
-  );
-
-  // Deps Upgrade Step에 Pulumi Access Token 및 기타 환경변수 추가
-  upgradeJobSteps.splice(
-    upgradeJobSteps.findIndex(
-      eachStep => eachStep.name == 'Upgrade dependencies',
-    ),
-    1,
-    {
-      name: 'Upgrade dependencies',
-      run: 'pnpm exec projen upgrade',
-      env: {
-        CI: '0',
-        PULUMI_ACCESS_TOKEN: '${{ secrets.PULUMI_ACCESS_TOKEN }}',
-      },
-    },
-  );
-};
-
-/** PR 정적 검증 — 시크릿 없음. docs/issues/2026-09-11-pr-ci-validation-pipeline.md */
-const addPrValidationWorkflow = () => {
-  const gh = rootProject.github;
-  if (!gh) return;
-
-  const workflow = new GithubWorkflow(gh, 'pr-validation', {
-    limitConcurrency: true,
-    concurrencyOptions: {
-      group:
-        '${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}',
-      cancelInProgress: true,
-    },
-    fileName: 'pr-validation.yml',
-  });
-
-  workflow.on({
-    pullRequest: {
-      branches: [src.constants.branches.main, src.constants.branches.develop],
-    },
-  });
-
-  workflow.addJob('validate', {
-    name: 'Validate',
-    runsOn: ['ubuntu-latest'],
-    permissions: {
-      contents: JobPermission.READ,
-    },
-    steps: [
-      {
-        name: 'Checkout',
-        uses: 'actions/checkout@v4',
-      },
-      {
-        name: 'Setup pnpm',
-        uses: 'pnpm/action-setup@v6.0.10',
-        with: {
-          version: '10.33.0',
-        },
-      },
-      {
-        name: 'Setup Node.js',
-        uses: 'actions/setup-node@v4',
-        with: {
-          'node-version': '24',
-          cache: 'pnpm',
-        },
-      },
-      {
-        name: 'Install dependencies',
-        run: 'pnpm i --frozen-lockfile',
-      },
-      {
-        name: 'Build workspaces',
-        run: 'pnpm build:workspaces',
-      },
-      {
-        name: 'Test workspaces',
-        run: 'pnpm test:workspaces',
-      },
-      {
-        name: 'ESLint',
-        run: 'pnpm eslint',
-      },
-    ],
-  });
-};
-
-const inflateCommonProject = (option: {
-  projectName: string;
-  deps?: string[];
-  commonDeps?: string[];
-  devDeps?: string[];
-  bridgedProviders?: src.classes.BridgedProvider[];
-  jest?: boolean;
-}) => {
-  const outdir = path.join(
-    src.constants.paths.dirs.commonDir,
-    option.projectName,
-  );
-  const name = utils.functions.kebabCase(option.projectName);
-  const project = new typescript.TypeScriptProject(
-    _.mergeWith(
-      {},
-      sharedProjectOption,
-      ((): TypeScriptProjectOptions => ({
-        defaultReleaseBranch: src.constants.branches.main,
-        parent: rootProject,
-        name: `@common/${name}`,
-        outdir,
-        eslintOptions: {
-          dirs: [src.constants.paths.dirs.srcDir],
-          devdirs: option.jest
-            ? [src.constants.paths.dirs.scriptDir, 'test']
-            : [src.constants.paths.dirs.scriptDir],
-          tsconfigPath: './test/tsconfig.json',
-          projectService: false,
-        },
-        ...(option.jest
-          ? {
-              jest: true,
-              jestOptions: {
-                configFilePath: 'jest.config.json',
-                jestConfig: {
-                  testMatch: ['**/test/**/*.test.ts'],
-                  passWithNoTests: true,
-                  // default is cores-1; Pulumi/k8s test files otherwise saturate the box
-                  maxWorkers: 2,
-                } as javascript.JestConfigOptions,
-              },
-            }
-          : { jest: false }),
-        tsconfigDev: {
-          include: [
-            `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
-            `../${src.constants.paths.dirs.scriptDir}/**/*.ts`,
-          ],
-        },
-        deps: [
-          ...(option.deps ?? []),
-
-          ...(option.bridgedProviders ?? []).map(
-            eachBridgedProvider =>
-              `@pulumi/${eachBridgedProvider.name}@file:sdks/${eachBridgedProvider.name}`,
-          ),
-
-          ...(option.commonDeps ?? []).map(
-            eachCommonDep => `${eachCommonDep}@workspace:*`,
-          ),
-        ],
-        devDeps: option.devDeps ?? [],
-      }))(),
-      utils.functions.mergeCustomizer,
-    ),
-  );
-
-  if (option.jest && project.jest) {
-    // testMatch를 덮어쓰지 않으면 Projen이 기본 src/**, test/** 패턴을 붙인다.
-    project.jest.config.testMatch = ['**/test/**/*.test.ts'];
-    project.jest.config.maxWorkers = 2;
-  }
-
-  if (option.bridgedProviders && option.bridgedProviders.length > 0) {
-    commonProjectWithBridgedProviderOrder.push(project);
-    const pulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {
-      obj: {
-        name,
-        runtime: {
-          name: 'nodejs',
-        },
-        packages: option.bridgedProviders
-          ? Object.fromEntries(
-              option.bridgedProviders.map(eachBridgedProvider => [
-                eachBridgedProvider.name,
-                eachBridgedProvider.toJson(),
-              ]),
-            )
-          : undefined,
-      },
-      editGitignore: false,
-    });
-  }
-
-  return { project };
-};
-
-const inflatePulumiProject = (option: {
-  projectName: string;
-  stages: utils.enums.StackStage[];
-  description?: string;
-  commonDeps?: string[];
-  infraDeps?: string[];
-  deps?: string[];
-  devDeps?: string[];
-  esc?: AbstractEsc<any>[];
-  bridgedProviders?: src.classes.BridgedProvider[];
-}) => {
-  if (!option.stages.includes(utils.enums.StackStage.PROD)) {
-    throw new Error(
-      `${option.projectName} must include ${utils.enums.StackStage.PROD} stage`,
-    );
-  }
-
-  if (
-    option.infraDeps &&
-    option.infraDeps.some(each => !each.startsWith('@infra/'))
-  ) {
-    throw new Error(`${option.projectName} infraDeps must start with @infra/`);
-  }
-  if (
-    option.commonDeps &&
-    option.commonDeps.some(each => !each.startsWith('@common/'))
-  ) {
-    throw new Error(
-      `${option.projectName} commonDeps must start with @common/`,
-    );
-  }
-  if (
-    option.deps &&
-    option.deps.some(
-      each => each.startsWith('@common/') || each.startsWith('@infra/'),
-    )
-  ) {
-    throw new Error(
-      `${option.projectName} deps must not start with @common/ or @infra/`,
-    );
-  }
-  if (
-    option.devDeps &&
-    option.devDeps.some(
-      each => each.startsWith('@common/') || each.startsWith('@infra/'),
-    )
-  ) {
-    throw new Error(
-      `${option.projectName} devDeps must not start with @common/ or @infra/`,
-    );
-  }
-
-  const outdir = path.join(
-    src.constants.paths.dirs.infraDir,
-    option.projectName,
-  );
-  const name = utils.functions.kebabCase(option.projectName);
-  const project = new typescript.TypeScriptProject(
-    _.mergeWith(
-      {},
-      sharedProjectOption,
-      ((): TypeScriptProjectOptions => ({
-        defaultReleaseBranch: src.constants.branches.main,
-        parent: rootProject,
-        name: `@infra/${name}`,
-        outdir,
-        deps: [
-          ...(option.deps ?? []),
-
-          ...(option.infraDeps ?? []).map(
-            eachInfraDep => `${eachInfraDep}@workspace:*`,
-          ),
-
-          ...(option.commonDeps ?? []).map(
-            eachCommonDep => `${eachCommonDep}@workspace:*`,
-          ),
-        ],
-        devDeps: option.devDeps ?? [],
-      }))(),
-      utils.functions.mergeCustomizer,
-    ),
-  );
-
-  if (option.bridgedProviders && option.bridgedProviders.length > 0) {
-    pulumiProjectWithBridgedProviderOrder.push(project);
-  }
-
-  const defaultPulumiYamlFile = new YamlFile(project, 'Pulumi.yaml', {
-    obj: {
-      name,
-      description: option.description ?? `${option.projectName} Pulumi project`,
-      runtime: {
-        name: 'nodejs',
-        options: {
-          packagemanager: 'pnpm',
-        },
-      },
-      packages: option.bridgedProviders
-        ? Object.fromEntries(
-            option.bridgedProviders.map(eachBridgedProvider => [
-              eachBridgedProvider.name,
-              eachBridgedProvider.toJson(),
-            ]),
-          )
-        : undefined,
-      main: 'src/index.ts',
-    },
-    editGitignore: false,
-  });
-
-  const stageStacksPulumiYamlFiles = option.stages.map(eachStage => {
-    return new YamlFile(project, `Pulumi.${eachStage}.yaml`, {
-      obj: {
-        environment: option.esc?.map(eachEsc =>
-          eachEsc.getEscNameWithStage(eachStage),
-        ),
-      },
-      editGitignore: false,
-    });
-  });
-
-  project.postSynthesize = async () => {
-    for (const eachStackStage of option.stages) {
-      await LocalWorkspace.createOrSelectStack({
-        stackName: eachStackStage,
-        workDir: outdir,
-      });
-    }
-  };
-
-  // PULUMI_REFRESH=1 설정 시 preview/up에 --refresh 추가 (루트: PULUMI_REFRESH=1 pnpm pulumi:up)
-  project.addScripts({
-    'pulumi:preview': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} \${PULUMI_REFRESH:+--refresh}`,
-    'pulumi:up': `pulumi preview --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} \${PULUMI_REFRESH:+--refresh} --expect-no-changes || pulumi up --stack \${PULUMI_STACK:-${utils.enums.StackStage.PROD}} \${PULUMI_REFRESH:+--refresh}`,
-  });
-
-  if (option.infraDeps && option.infraDeps.length > 0) {
-    new JsonFile(project, 'turbo.json', {
-      obj: {
-        $schema: 'https://turbo.build/schema.json',
-        extends: ['//'],
-        tasks: {
-          'pulumi:preview': {
-            dependsOn: [
-              '^build',
-              'build',
-              ...option.infraDeps.map(
-                eachInfraDep => `${eachInfraDep}#pulumi:preview`,
-              ),
-            ],
-          },
-          'pulumi:up': {
-            dependsOn: [
-              '^build',
-              'build',
-              ...option.infraDeps.map(
-                eachInfraDep => `${eachInfraDep}#pulumi:up`,
-              ),
-            ],
-            interactive: true,
-          },
-        },
-      },
-    });
-  }
-
-  return {
-    project,
-    defaultPulumiYamlFile,
-    stageStacksPulumiYamlFiles,
-  };
-};
-
 void (async () => {
-  await modifyUpgradeWorkflow();
-  addPrValidationWorkflow();
+  await modifyUpgradeWorkflow(rootProject);
+  addPrValidationWorkflow(rootProject);
 
   // Common
   const commonProjects = (() => {
-    const bridgedProviderProject = inflateCommonProject({
-      projectName: 'bridged-provider',
-      bridgedProviders: [
-        src.constants.bridgedProviders.terraform.authentik,
-        src.constants.bridgedProviders.terraform.argocd,
-        src.constants.bridgedProviders.terraform.coderd,
-      ],
-    });
+    const bridgedProviderProject = inflateCommonProject(
+      rootProject,
+      sharedProjectOption,
+      commonProjectWithBridgedProviderOrder,
+      {
+        projectName: 'bridged-provider',
+        bridgedProviders: [
+          src.constants.bridgedProviders.terraform.authentik,
+          src.constants.bridgedProviders.terraform.argocd,
+          src.constants.bridgedProviders.terraform.coderd,
+        ],
+      },
+    );
 
-    const utilsProject = inflateCommonProject({
-      projectName: 'utils',
-      deps: ['zod'],
-      jest: true,
-    });
+    const utilsProject = inflateCommonProject(
+      rootProject,
+      sharedProjectOption,
+      commonProjectWithBridgedProviderOrder,
+      {
+        projectName: 'utils',
+        deps: ['zod'],
+        jest: true,
+      },
+    );
 
-    const customResourcesProject = inflateCommonProject({
-      projectName: 'custom-resources',
-      commonDeps: [
-        utilsProject.project.package.packageName,
-        bridgedProviderProject.project.package.packageName,
-      ],
-      deps: [
-        src.constants.pulumiPackages.kubernetes,
-        src.constants.pulumiPackages.command,
-        src.constants.pulumiPackages.tls,
-        src.constants.pulumiPackages.random,
-        src.constants.pulumiPackages.vault,
-        'axios',
-        'flat',
-        '@kubernetes/client-node',
-      ],
-      devDeps: ['@types/ws'],
-      jest: true,
-    });
+    const customResourcesProject = inflateCommonProject(
+      rootProject,
+      sharedProjectOption,
+      commonProjectWithBridgedProviderOrder,
+      {
+        projectName: 'custom-resources',
+        commonDeps: [
+          utilsProject.project.package.packageName,
+          bridgedProviderProject.project.package.packageName,
+        ],
+        deps: [
+          src.constants.pulumiPackages.kubernetes,
+          src.constants.pulumiPackages.command,
+          src.constants.pulumiPackages.tls,
+          src.constants.pulumiPackages.random,
+          src.constants.pulumiPackages.vault,
+          'axios',
+          'flat',
+          '@kubernetes/client-node',
+        ],
+        devDeps: ['@types/ws'],
+        jest: true,
+      },
+    );
 
-    const nexusProject = inflateCommonProject({
-      projectName: 'nexus',
-      commonDeps: [
-        utilsProject.project.package.packageName,
-        customResourcesProject.project.package.packageName,
-      ],
-      deps: [
-        src.constants.pulumiPackages.escSdk,
-        src.constants.pulumiPackages.std,
-        'zod',
-      ],
-    });
+    const nexusProject = inflateCommonProject(
+      rootProject,
+      sharedProjectOption,
+      commonProjectWithBridgedProviderOrder,
+      {
+        projectName: 'nexus',
+        commonDeps: [
+          utilsProject.project.package.packageName,
+          customResourcesProject.project.package.packageName,
+        ],
+        deps: [
+          src.constants.pulumiPackages.escSdk,
+          src.constants.pulumiPackages.std,
+          'zod',
+        ],
+      },
+    );
 
     return {
       bridgedProviderProject,
@@ -693,86 +326,106 @@ void (async () => {
 
   // Pulumi Projects
   const pulumiProjects = (() => {
-    const cloudflareProject = inflatePulumiProject({
-      projectName: 'cloudflare',
-      stages: [utils.enums.StackStage.PROD],
-      deps: [src.constants.pulumiPackages.cloudflare],
-      commonDeps: [
-        commonProjects.utilsProject.project.package.packageName,
-        commonProjects.nexusProject.project.package.packageName,
-      ],
-      esc: [NexusEsc.commonEsc, NexusEsc.cloudflareEsc, NexusEsc.githubEsc],
-    });
+    const cloudflareProject = inflatePulumiProject(
+      rootProject,
+      sharedProjectOption,
+      pulumiProjectWithBridgedProviderOrder,
+      {
+        projectName: 'cloudflare',
+        stages: [utils.enums.StackStage.PROD],
+        deps: [src.constants.pulumiPackages.cloudflare],
+        commonDeps: [
+          commonProjects.utilsProject.project.package.packageName,
+          commonProjects.nexusProject.project.package.packageName,
+        ],
+        esc: [NexusEsc.commonEsc, NexusEsc.cloudflareEsc, NexusEsc.githubEsc],
+      },
+    );
 
-    const k8sWorkstationSystemProject = inflatePulumiProject({
-      projectName: 'k8s-workstation-system',
-      stages: [utils.enums.StackStage.PROD],
-      deps: [
-        src.constants.pulumiPackages.kubernetes,
-        src.constants.pulumiPackages.oci,
-        src.constants.pulumiPackages.tls,
-        src.constants.pulumiPackages.time,
-        src.constants.pulumiPackages.vault,
-        src.constants.pulumiPackages.github,
-        src.constants.pulumiPackages.random,
-      ],
-      commonDeps: [
-        commonProjects.bridgedProviderProject.project.package.packageName,
-        commonProjects.utilsProject.project.package.packageName,
-        commonProjects.customResourcesProject.project.package.packageName,
-        commonProjects.nexusProject.project.package.packageName,
-      ],
-      infraDeps: [cloudflareProject.project.package.packageName],
-      esc: [
-        NexusEsc.commonEsc,
-        NexusEsc.ociEsc,
-        NexusEsc.k8sWorkstationSystemEsc,
-        NexusEsc.githubEsc,
-      ],
-    });
+    const k8sWorkstationSystemProject = inflatePulumiProject(
+      rootProject,
+      sharedProjectOption,
+      pulumiProjectWithBridgedProviderOrder,
+      {
+        projectName: 'k8s-workstation-system',
+        stages: [utils.enums.StackStage.PROD],
+        deps: [
+          src.constants.pulumiPackages.kubernetes,
+          src.constants.pulumiPackages.oci,
+          src.constants.pulumiPackages.tls,
+          src.constants.pulumiPackages.time,
+          src.constants.pulumiPackages.vault,
+          src.constants.pulumiPackages.github,
+          src.constants.pulumiPackages.random,
+        ],
+        commonDeps: [
+          commonProjects.bridgedProviderProject.project.package.packageName,
+          commonProjects.utilsProject.project.package.packageName,
+          commonProjects.customResourcesProject.project.package.packageName,
+          commonProjects.nexusProject.project.package.packageName,
+        ],
+        infraDeps: [cloudflareProject.project.package.packageName],
+        esc: [
+          NexusEsc.commonEsc,
+          NexusEsc.ociEsc,
+          NexusEsc.k8sWorkstationSystemEsc,
+          NexusEsc.githubEsc,
+        ],
+      },
+    );
 
-    const k8sWorkstationToolsProject = inflatePulumiProject({
-      projectName: 'k8s-workstation-tools',
-      stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
-      deps: [
-        src.constants.pulumiPackages.kubernetes,
-        src.constants.pulumiPackages.vault,
-        src.constants.pulumiPackages.random,
+    const k8sWorkstationToolsProject = inflatePulumiProject(
+      rootProject,
+      sharedProjectOption,
+      pulumiProjectWithBridgedProviderOrder,
+      {
+        projectName: 'k8s-workstation-tools',
+        stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
+        deps: [
+          src.constants.pulumiPackages.kubernetes,
+          src.constants.pulumiPackages.vault,
+          src.constants.pulumiPackages.random,
 
-        'timezone-enum',
-      ],
-      commonDeps: [
-        commonProjects.bridgedProviderProject.project.package.packageName,
-        commonProjects.utilsProject.project.package.packageName,
-        commonProjects.customResourcesProject.project.package.packageName,
-        commonProjects.nexusProject.project.package.packageName,
-      ],
-      infraDeps: [
-        cloudflareProject.project.package.packageName,
-        k8sWorkstationSystemProject.project.package.packageName,
-      ],
-      esc: [NexusEsc.commonEsc, NexusEsc.k8sWorkstationToolsEsc],
-    });
+          'timezone-enum',
+        ],
+        commonDeps: [
+          commonProjects.bridgedProviderProject.project.package.packageName,
+          commonProjects.utilsProject.project.package.packageName,
+          commonProjects.customResourcesProject.project.package.packageName,
+          commonProjects.nexusProject.project.package.packageName,
+        ],
+        infraDeps: [
+          cloudflareProject.project.package.packageName,
+          k8sWorkstationSystemProject.project.package.packageName,
+        ],
+        esc: [NexusEsc.commonEsc, NexusEsc.k8sWorkstationToolsEsc],
+      },
+    );
 
-    const k8sWorkstationAppsProject = inflatePulumiProject({
-      projectName: 'k8s-workstation-apps',
-      stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
-      deps: [
-        src.constants.pulumiPackages.kubernetes,
-        src.constants.pulumiPackages.vault,
-      ],
-      commonDeps: [
-        commonProjects.bridgedProviderProject.project.package.packageName,
-        commonProjects.utilsProject.project.package.packageName,
-        commonProjects.customResourcesProject.project.package.packageName,
-        commonProjects.nexusProject.project.package.packageName,
-      ],
-      infraDeps: [
-        cloudflareProject.project.package.packageName,
-        k8sWorkstationSystemProject.project.package.packageName,
-      ],
-      esc: [NexusEsc.commonEsc, NexusEsc.k8sWorkstationAppsEsc],
-    });
+    const k8sWorkstationAppsProject = inflatePulumiProject(
+      rootProject,
+      sharedProjectOption,
+      pulumiProjectWithBridgedProviderOrder,
+      {
+        projectName: 'k8s-workstation-apps',
+        stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
+        deps: [
+          src.constants.pulumiPackages.kubernetes,
+          src.constants.pulumiPackages.vault,
+        ],
+        commonDeps: [
+          commonProjects.bridgedProviderProject.project.package.packageName,
+          commonProjects.utilsProject.project.package.packageName,
+          commonProjects.customResourcesProject.project.package.packageName,
+          commonProjects.nexusProject.project.package.packageName,
+        ],
+        infraDeps: [
+          cloudflareProject.project.package.packageName,
+          k8sWorkstationSystemProject.project.package.packageName,
+        ],
+        esc: [NexusEsc.commonEsc, NexusEsc.k8sWorkstationAppsEsc],
+      },
+    );
 
     return {
       cloudflareProject,
