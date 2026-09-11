@@ -7,7 +7,7 @@
 | **관련 코드** | `.projenrc.ts`, `.github/workflows/`, `package.json` (`build:workspaces`, `test:workspaces`, `eslint`) |
 | **선행** | [lint-staged pre-commit](../resolved/2026-09-06-lint-staged-pre-commit.md) (해결 — CI ESLint를 후속으로 명시), [Jest 유닛 테스트](../resolved/2026-09-08-jest-unit-test-setup.md) (해결 — GHA test workflow를 범위 밖으로 명시) |
 | **출처** | Gemini 제안 `tmp/gemini/ci-validation-pipeline.plan.md` + 에이전트 리뷰 |
-| **상태** | **적용** — 워크플로 합성·로컬 전량 통과·ruleset 등록됨. 머지·샘플 PR 검증 남음 |
+| **상태** | **적용** — 원격 `Validate` 초록 확인 ([#40](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/40)). 머지 후 `docs/resolved` 이동 |
 
 ## 배경
 
@@ -79,7 +79,7 @@ PR(`main` / `develop` 대상)에서 **시크릿·클라우드 자격 증명 없�
 - [x] PR 이벤트에서 `build:workspaces` / `test:workspaces` / `eslint` 실행. 시크릿 없음 (YAML 확인)
 - [x] 기존 `pull-request-lint`·`upgrade-develop` 동작·설정 유지 (diff 없음)
 - [x] `develop`/`main`에 `Validate` required check ruleset 등록 ([rules/22869611](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/rules/22869611))
-- [ ] 샘플 PR로 초록·실패(의도적 breakage) 한 번씩 확인 (워크플로 파일 머지 후)
+- [x] 샘플 PR로 초록 확인 ([#40](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/40) `Validate` 4m19s pass). 의도적 breakage는 생략
 
 ## 범위 밖
 
@@ -110,3 +110,5 @@ PR(`main` / `develop` 대상)에서 **시크릿·클라우드 자격 증명 없�
 | 2026-09-11 | 등록. Gemini 제안 리뷰. 옵션 A 추천. 사용자 결정 5항 대기 |
 | 2026-09-11 | 결정 5항 확정 (추천안). 상태 진행중. 구현 착수 |
 | 2026-09-11 | `pr-validation.yml` 합성. 로컬 전량 통과. ruleset 22869611 등록. 상태 적용. 샘플 PR 검증·머지 남음 |
+| 2026-09-11 | [#40](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/40) 열어 원격 `Validate` 확인 중 |
+| 2026-09-11 | `#40` `Validate` pass (4m19s). 제목 린트 pass. 머지 후 아카이브 |
