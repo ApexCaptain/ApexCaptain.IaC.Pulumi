@@ -122,6 +122,18 @@ echo "🔄 Initializing Projen"
 pnpm projen
 echo "✅ Initialized Projen"
 
+echo "🔄 Bootstrapping local env (submodules + pip)"
+pnpm script:bootstrapLocalEnv || exit 1
+echo "✅ Local env bootstrapped"
+
+echo "🔄 Syncing Pulumi ESC"
+pnpm script:syncPulumiEsc || exit 1
+echo "✅ Pulumi ESC synced"
+
+echo "🔄 Generating Ventoy user-data"
+pnpm script:generateVentoyUserData || exit 1
+echo "✅ Ventoy user-data generated"
+
 echo "🔄 Installing Husky"
 npx -y husky
 echo "✅ Initialized Husky"
