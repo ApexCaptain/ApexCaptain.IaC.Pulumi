@@ -7,7 +7,12 @@
 | **관련 코드** | `.projenrc.ts`, `.github/workflows/`, `package.json` (`build:workspaces`, `test:workspaces`, `eslint`) |
 | **선행** | [lint-staged pre-commit](../resolved/2026-09-06-lint-staged-pre-commit.md) (해결 — CI ESLint를 후속으로 명시), [Jest 유닛 테스트](../resolved/2026-09-08-jest-unit-test-setup.md) (해결 — GHA test workflow를 범위 밖으로 명시) |
 | **출처** | Gemini 제안 `tmp/gemini/ci-validation-pipeline.plan.md` + 에이전트 리뷰 |
-| **상태** | **적용** — 원격 `Validate` 초록 확인 ([#40](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/40)). 머지 후 `docs/resolved` 이동 |
+| **상태** | **해결** |
+| **해결일** | 2026-09-11 |
+
+## 해결 요약
+
+`pr-validation` 워크플로 + `main`/`develop` ruleset(`Validate` required) 적용. [#40](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/40) 머지.
 
 ## 배경
 
@@ -95,7 +100,7 @@ PR(`main` / `develop` 대상)에서 **시크릿·클라우드 자격 증명 없�
 - 생성물: `.github/workflows/pr-validation.yml` (+ `.projen/files.json` / `.gitattributes` / `.gitignore` linguist·negate)
 - 로컬: `pnpm build:workspaces && pnpm test:workspaces && pnpm eslint` 통과 (2026-09-11)
 - Ruleset: `PR validation required` — `main`/`develop`에 context `Validate` required. `do_not_enforce_on_create: true`, strict false ([rules/22869611](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/rules/22869611))
-- **아직 커밋·머지 전.** default branch에 워크플로가 없으면, 워크플로 없는 기존 PR은 required check 대기에 걸릴 수 있음. 이 변경을 담은 PR은 head에 워크플로가 있어 `Validate`가 돈다.
+- [#40](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/40) 머지됨 (`c39ae21`, 2026-09-11)
 
 ## 참고
 
@@ -112,3 +117,4 @@ PR(`main` / `develop` 대상)에서 **시크릿·클라우드 자격 증명 없�
 | 2026-09-11 | `pr-validation.yml` 합성. 로컬 전량 통과. ruleset 22869611 등록. 상태 적용. 샘플 PR 검증·머지 남음 |
 | 2026-09-11 | [#40](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/40) 열어 원격 `Validate` 확인 중 |
 | 2026-09-11 | `#40` `Validate` pass (4m19s). 제목 린트 pass. 머지 후 아카이브 |
+| 2026-09-11 | `#40` 머지. 상태 해결. `docs/resolved` 아카이브 |

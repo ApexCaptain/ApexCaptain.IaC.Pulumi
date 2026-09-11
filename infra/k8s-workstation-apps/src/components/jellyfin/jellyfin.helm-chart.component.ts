@@ -116,7 +116,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
       },
     );
 
-    const jeyllfinMediaPvc = new kubernetes.core.v1.PersistentVolumeClaim(
+    const jellyfinMediaPvc = new kubernetes.core.v1.PersistentVolumeClaim(
       `${resourceName}-jellyfinMediaPvc`,
       {
         metadata: {
@@ -269,7 +269,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
               existingClaim: jellyfinConfigPvc.metadata.name,
             },
             media: {
-              existingClaim: jeyllfinMediaPvc.metadata.name,
+              existingClaim: jellyfinMediaPvc.metadata.name,
             },
             cache: {
               enabled: true,
