@@ -60,6 +60,7 @@ tmp
 /dist/
 !/.eslintrc.json
 !/projenrc/tsconfig.json
+!/.github/workflows/pr-validation.yml
 !/turbo.json
 !/.vscode/settings.json
 !/.nova-config.json
