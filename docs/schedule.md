@@ -23,8 +23,6 @@
 
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
-| 구현 착수 / PR | ESC·Ventoy·bootstrap을 `scripts/`로 분리하고 `synchronizeProject.sh`에 배선. `pnpm exec projen` 오프라인 완료 확인 | [Projen 부작용 분리](issues/2026-09-11-projen-decouple-side-effects.md) | 적용 |
-| 부작용 분리 이슈 수용 기준 충족·머지 후 | `projenrc/workflows`·`projenrc/projects`로 팩토리 이동. `pnpm exec projen` 후 생성물 의도 diff 없음 | [projenrc 모듈화](issues/2026-09-11-projenrc-modularize.md) | 적용 |
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 | 쿠팡 16GB DDR4-2666 1장 입고·장착 | empty 슬롯 장착 후 `dmidecode`로 Part Number·속도·랭크 확인 (~48 GB). 2단계 64GB는 별도 | [workstation-0 메모리](issues/2026-09-01-workstation-0-memory-upgrade-planning.md) | 보류 |
 
