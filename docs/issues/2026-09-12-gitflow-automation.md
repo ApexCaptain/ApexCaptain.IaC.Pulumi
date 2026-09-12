@@ -5,7 +5,7 @@
 | **등록일** | 2026-09-12 |
 | **영역** | Husky, Projen 훅, `scripts/` PR·브랜치 DX, GitHub ruleset 연계 |
 | **관련 코드** | `.projenrc.ts` (`generateHuskyHooks`), `scripts/open-pull-request.script.ts`, `scripts/promote-develop-to-main.script.ts`, `scripts/prompts/branch-name/` |
-| **상태** | **진행중** — 1~3단계 구현 |
+| **상태** | **진행중** — [#47](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/47) Validate·머지 대기 |
 
 ## 배경
 
@@ -65,3 +65,4 @@ pnpm script:promoteDevelopToMain                       # develop → main PR
 |------|------|
 | 2026-09-12 | 등록. 1~3단계·AI 브랜치명 방향 확정. 구현 착수 |
 | 2026-09-12 | Husky 보호 브랜치 가드, `openPullRequest` / `promoteDevelopToMain`, `git:pr` base=develop 적용 |
+| 2026-09-12 | [#47](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/47) 오픈 (chore/gitflow-automation → develop) |
