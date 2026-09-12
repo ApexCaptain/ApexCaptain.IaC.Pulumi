@@ -24,6 +24,7 @@
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
+| [#47](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/47) Validate 통과·머지 | 수용 기준 재확인 후 `docs/resolved`로 이동. 이어서 `promoteDevelopToMain`으로 main 동기화 | [gitflow 자동화](issues/2026-09-12-gitflow-automation.md) | 진행중 |
 
 ---
 
