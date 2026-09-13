@@ -6,7 +6,6 @@
 | **영역** | GitHub Actions, Projen 워크플로, PR 품질 게이트 |
 | **관련 코드** | `.projenrc.ts`, `.github/workflows/`, `package.json` (`build:workspaces`, `test:workspaces`, `eslint`) |
 | **선행** | [lint-staged pre-commit](../resolved/2026-09-06-lint-staged-pre-commit.md) (해결 — CI ESLint를 후속으로 명시), [Jest 유닛 테스트](../resolved/2026-09-08-jest-unit-test-setup.md) (해결 — GHA test workflow를 범위 밖으로 명시) |
-| **출처** | Gemini 제안 `tmp/gemini/ci-validation-pipeline.plan.md` + 에이전트 리뷰 |
 | **상태** | **해결** |
 | **해결일** | 2026-09-11 |
 
@@ -48,7 +47,7 @@ PR(`main` / `develop` 대상)에서 **시크릿·클라우드 자격 증명 없�
 
 | 옵션 | 요지 | 장점 | 단점 |
 |---|---|---|---|
-| **A. Projen `GithubWorkflow`로 `pr-validation.yml` 신설** | `.projenrc.ts`가 SSOT. `pull_request` → checkout → Node/pnpm → frozen install → build/test/eslint | 기존 upgrade·PR lint와 같은 생성 경로. YAML 손수정 금지 규칙과 일치. Gemini 제안과 동일 뼈대 | 전량 실행이라 PR마다 무거울 수 있음 |
+| **A. Projen `GithubWorkflow`로 `pr-validation.yml` 신설** | `.projenrc.ts`가 SSOT. `pull_request` → checkout → Node/pnpm → frozen install → build/test/eslint | 기존 upgrade·PR lint와 같은 생성 경로. YAML 손수정 금지 규칙과 일치 | 전량 실행이라 PR마다 무거울 수 있음 |
 | B. Projen 기본 `buildWorkflow` 켜기 | 루트 TypeScriptProject 빌드 워크플로 재사용 | 설정 양 적음 | 이 레포는 `buildWorkflow: false` + turbo 모노레포. 루트 build ≠ `build:workspaces`. 맞추려면 결국 커스텀과 비슷해짐 |
 | C. path filter / turbo affected만 | 변경 패키지만 검증 | CI 시간 절약 | 초기에 놓치는 깨짐 가능. 복잡도↑. 1차에는 과함 |
 
@@ -63,7 +62,7 @@ PR(`main` / `develop` 대상)에서 **시크릿·클라우드 자격 증명 없�
 5. `permissions: contents: read`. 시크릿 주입 없음.
 6. `concurrency`로 같은 PR의 이전 런 cancel-in-progress.
 7. 기존 `pull-request-lint.yml`, `upgrade-develop.yml` 설정 파괴·덮어쓰기 금지.
-8. projen 합성 후 **한 커밋** (projenrc + 생성 YAML). Gemini 플랜의 커밋 2개 분리는 불필요.
+8. projen 합성 후 **한 커밋** (projenrc + 생성 YAML). 커밋 2개 분리는 불필요.
 9. 워크플로만으로는 “강제”가 아니다. **branch protection / ruleset에 required check**를 걸어야 우회 방지 목표가 완성된다.
 
 ## 결정 (확정 2026-09-11)
@@ -104,7 +103,6 @@ PR(`main` / `develop` 대상)에서 **시크릿·클라우드 자격 증명 없�
 
 ## 참고
 
-- Gemini 원안: `tmp/gemini/ci-validation-pipeline.plan.md`
 - 현재 PR 제목만: `.github/workflows/pull-request-lint.yml`
 - upgrade가 이미 `pnpm build:workspaces` + frozen install 패턴 사용: `.github/workflows/upgrade-develop.yml`
 
@@ -112,9 +110,10 @@ PR(`main` / `develop` 대상)에서 **시크릿·클라우드 자격 증명 없�
 
 | 일시 | 내용 |
 |---|---|
-| 2026-09-11 | 등록. Gemini 제안 리뷰. 옵션 A 추천. 사용자 결정 5항 대기 |
+| 2026-09-11 | 등록. 옵션 A 추천. 사용자 결정 5항 대기 |
 | 2026-09-11 | 결정 5항 확정 (추천안). 상태 진행중. 구현 착수 |
 | 2026-09-11 | `pr-validation.yml` 합성. 로컬 전량 통과. ruleset 22869611 등록. 상태 적용. 샘플 PR 검증·머지 남음 |
 | 2026-09-11 | [#40](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/40) 열어 원격 `Validate` 확인 중 |
 | 2026-09-11 | `#40` `Validate` pass (4m19s). 제목 린트 pass. 머지 후 아카이브 |
 | 2026-09-11 | `#40` 머지. 상태 해결. `docs/resolved` 아카이브 |
+| 2026-09-13 | 출처 표기 제거 |

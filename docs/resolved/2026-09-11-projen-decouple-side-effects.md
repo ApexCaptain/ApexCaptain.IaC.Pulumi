@@ -9,7 +9,6 @@
 | **해결일** | 2026-09-11 |
 | **선행** | 없음 |
 | **후속** | [projenrc 모듈화](2026-09-11-projenrc-modularize.md) — PR #42에서 완료·동시 아카이브 |
-| **참고** | Gemini 초안 `tmp/gemini/Refactor .projenrc.ts & Decouple Side Effects Plan.md` (모듈화·스크립트명은 본 이슈에서 수정 반영) |
 | **PR** | [#41](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/41) |
 
 ## 해결 요약
@@ -96,3 +95,4 @@ ESC·Ventoy·bootstrap을 `scripts/`로 분리하고 DevContainer sync에 배선
 | 2026-09-11 | 등록. 설계 승인 (이슈 분리 C, 접근 B). 구현 플랜 작성 |
 | 2026-09-11 | Tasks 1–4 구현 (스크립트 3종·sync 배선·postSynthesize chmod만). Task 5 검증: `pnpm exec projen`·build/test/eslint 전부 exit 0 |
 | 2026-09-11 | PR #41 머지. 사용자 승인으로 `docs/resolved` 아카이브 |
+| 2026-09-13 | 출처 표기 제거 |

@@ -7,6 +7,21 @@ const githubEscSchema = z
       .object({
         owner: z.string(),
         token: z.string(),
+        repositories: z
+          .object({
+            iacPulumi: z
+              .object({
+                name: z.string(),
+              })
+              .required(),
+          })
+          .required(),
+        actions: z
+          .object({
+            pulumiAccessToken: z.string(),
+            workflowToken: z.string(),
+          })
+          .required(),
       })
       .required(),
   })

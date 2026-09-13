@@ -7,6 +7,7 @@
 | **영역** | workstation 클러스터 워크로드 requests/limits · Pulumi IaC |
 | **관련 코드** | `infra/k8s-workstation-{system,tools,apps}` Namespace·Helm values의 `resources` |
 | **선행** | [Goldilocks + VPA 배포](../resolved/2026-09-08-goldilocks-vpa-deploy.md) (해결) |
+| **관련 이슈** | [PriorityClass·eviction](2026-09-13-priority-class-resource-protection.md) — 축출 순서. qBit request 축소는 이 VPA 이슈에서 |
 | **상태** | **보류** — 2026-10 초까지 관찰만. 그때 갭 재분석 후 안전한 항목만 IaC 패치 |
 
 ## 배경
@@ -71,3 +72,4 @@
 | 일시 | 내용 |
 |---|---|
 | 2026-09-08 | 등록. Goldilocks 배포 직후 초기 갭 분석 → 히스토리 부족으로 IaC 보류. 재검토 목표 2026-10 초 |
+| 2026-09-13 | 관련: PriorityClass 이슈 등록. qBit 등 request 축소는 계속 이 이슈(10월 초). 축출 클래스·kubelet은 그쪽 |

@@ -14,8 +14,9 @@
 | **2026-10 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
 | **2026-10-25 19:03 KST** | leaf 갱신 (`vault-server-certificate` renewalTime 10:03:36Z). Reloader가 vault-0를 롤했는지, 롤 후 `VaultConnection` Healthy·서비스 DNS TLS 유지되는지. 통과하면 `docs/resolved`로 이동 | [Vault TLS cert reload](issues/2026-09-06-vault-tls-cert-reload.md) | 적용 · 실검증 대기 |
 | **2026-10-31 이후** | qBit·Jellyfin v3 라이브 확인 후 `SftpV1Component`·테스트·export 삭제. 그 전 삭제 없음 | [SftpV1 삭제](issues/2026-09-10-sftp-v1-removal.md) | 보류 |
+| **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 10월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/2026-09-13-priority-class-resource-protection.md) | 보류 |
 
-같은 날 묶음: 10월 초는 VPA + Projen 두 건을 같이 본다. 10-25는 CA도 거의 동시에 돈다. Reloader는 Vault STS만 롤하므로 VSO `vault-ca-secret` 옛 CA 문제는 **범위 밖 후속** (이슈 본문).
+같은 날 묶음: 10월 초는 VPA + Projen 두 건을 같이 본다. 10-25는 CA도 거의 동시에 돈다. Reloader는 Vault STS만 롤하므로 VSO `vault-ca-secret` 옛 CA 문제는 **범위 밖 후속** (이슈 본문). 12월 초 PriorityClass는 10월 VPA 갭 조정이 끝난 뒤에 본다.
 
 ---
 
