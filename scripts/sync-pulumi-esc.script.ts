@@ -19,6 +19,7 @@ async function syncPulumiEsc(): Promise<void> {
   requireEnv('PULUMI_APEX_CAPTAIN_ACCOUNT_NAME');
   requireEnv('WORKSTATION_DOMAIN_IPTIME');
   requireEnv('NORD_VPN_APEX_CAPTAIN_ACCESS_TOKEN');
+  requireEnv('WORKFLOW_TOKEN');
 
   const accountName = process.env.PULUMI_APEX_CAPTAIN_ACCOUNT_NAME!!;
 
@@ -141,6 +142,15 @@ async function syncPulumiEsc(): Promise<void> {
       apexCaptain: {
         owner: process.env.GITHUB_OWNER_APEX_CAPTAIN,
         token: process.env.GH_TOKEN,
+        repositories: {
+          iacPulumi: {
+            name: process.env.GITHUB_APEX_CAPTAIN_IAC_PULUMI_REPOSITORY_NAME,
+          },
+        },
+        actions: {
+          pulumiAccessToken: process.env.PULUMI_ACCESS_TOKEN,
+          workflowToken: process.env.WORKFLOW_TOKEN,
+        },
       },
     },
     {

@@ -9,7 +9,7 @@
 | **해결일** | 2026-09-11 |
 | **선행** | [2026-09-11-projen-decouple-side-effects](2026-09-11-projen-decouple-side-effects.md) |
 | **구현 플랜** | `docs/superpowers/plans/2026-09-11-projenrc-modularize.md` |
-| **참고** | Gemini Phase 3. **200줄 KPI는 채택하지 않음** |
+| **참고** | **200줄 KPI는 채택하지 않음** |
 | **PR** | [#42](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/42) |
 
 ## 해결 요약
@@ -43,7 +43,7 @@
 | 방식 | 요지 | 장단 |
 |---|---|---|
 | **A. 워크플로만** | `workflows/*.ts`만 | 이득 작음 |
-| **B. 워크플로 + 프로젝트 빌더** | Gemini Phase 3 뼈대, 줄 수 KPI 없음 | 가독성↑, 검증 가능 |
+| **B. 워크플로 + 프로젝트 빌더** | 워크플로·프로젝트 팩토리 분리, 줄 수 KPI 없음 | 가독성↑, 검증 가능 |
 | **C. 전면 도메인 쪼개기** | 키 파일·ansible·스크립트 등록까지 전부 모듈 | 과분할. 이번 범위 밖 |
 
 ## 추천
@@ -79,3 +79,4 @@
 | 2026-09-11 | 등록. 선행=부작용 분리. 설계 승인(B). 착수는 선행 완료 후 |
 | 2026-09-11 | PR #41 머지 후 착수. workflows·projects 모듈 분리. synth/build/test/eslint 통과. resolve 보류 |
 | 2026-09-11 | PR #42 머지. 사용자 승인으로 부작용 분리 이슈와 일괄 `docs/resolved` 아카이브 |
+| 2026-09-13 | 출처 표기 제거 |

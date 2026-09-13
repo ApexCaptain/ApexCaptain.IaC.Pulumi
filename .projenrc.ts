@@ -326,6 +326,22 @@ void (async () => {
 
   // Pulumi Projects
   const pulumiProjects = (() => {
+    const githubProject = inflatePulumiProject(
+      rootProject,
+      sharedProjectOption,
+      pulumiProjectWithBridgedProviderOrder,
+      {
+        projectName: 'github',
+        stages: [utils.enums.StackStage.PROD],
+        deps: [src.constants.pulumiPackages.github],
+        commonDeps: [
+          commonProjects.utilsProject.project.package.packageName,
+          commonProjects.nexusProject.project.package.packageName,
+        ],
+        esc: [NexusEsc.commonEsc, NexusEsc.githubEsc],
+      },
+    );
+
     const cloudflareProject = inflatePulumiProject(
       rootProject,
       sharedProjectOption,
@@ -514,7 +530,7 @@ void (async () => {
           exclude: ['**/node_modules/**', '.vscode'],
         },
         workbench: {
-          colorTheme: 'Abyss',
+          colorTheme: 'Monokai Dimmed',
         },
         'material-icon-theme': {
           files: {
