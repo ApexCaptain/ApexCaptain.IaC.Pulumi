@@ -1,1 +1,11 @@
-git push
+branch="$(git rev-parse --abbrev-ref HEAD)"
+case "$branch" in
+  main|develop)
+    echo "post-commit: '$branch'에서는 자동 push 안 함 (ruleset). feature 브랜치에서 커밋하거나 pnpm script:openPullRequest 를 쓰세요."
+    exit 0
+    ;;
+  HEAD)
+    exit 0
+    ;;
+esac
+git push -u origin HEAD

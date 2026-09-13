@@ -35,6 +35,8 @@ alwaysApply: true
 | 짧게/간결히/토큰 줄여/말 줄여 | `caveman` 강도 상향 (기본 full → ultra 등). **활성화 트리거 아님** |
 | 커밋 메시지/commit-message.txt | `pnpm script:generateCommitMessage` 실행 |
 | PR 본문·초안/pull-request | `pnpm script:generatePullRequest` 실행 |
+| feature PR 열기 / 브랜치 이름 | `pnpm script:openPullRequest` (보호 브랜치면 AI 브랜치명) |
+| develop→main 동기화 PR | `pnpm script:promoteDevelopToMain` |
 | README 작성·갱신 (서브모듈) | `generate-readme` |
 | SpecStory 히스토리 정리·삭제·요약 | `cleanup-specstory-history` (**사용자 명시·승인 시만**) |
 | 원인 불명·간헐 실패·왜 안 되는지 먼저 | `investigate-first` |
