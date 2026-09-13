@@ -6,7 +6,6 @@ services:
       dockerfile: Dockerfile.workspace
       args:
         USER_NAME: ${username}
-    # shm_size: '1gb'
     environment:
       # Timezone
       TZ: 'Asia/Seoul'

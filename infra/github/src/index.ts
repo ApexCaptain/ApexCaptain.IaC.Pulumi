@@ -1,4 +1,4 @@
-import { GithubContract } from './contract';
+import { githubContract } from './contract';
 
-export const output = GithubContract.output;
-export const secret = GithubContract.secret;
+export const output = githubContract.output;
+export const secret = githubContract.secret;

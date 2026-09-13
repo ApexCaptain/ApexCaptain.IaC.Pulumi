@@ -43,7 +43,7 @@ scripts/          # Command subprocess (bootstrap/admin token, pod exec)
 | `SftpV3Component` | Vault SSH CA issue + VSO + CronJob 회전. 라이브: Jellyfin, qBittorrent |
 | `SftpV1Component` | tls PrivateKey + ConfigMap. 코드·테스트만 잔존, 스택 호출자 없음 |
 | `SecretV1Component` | Vault KV v2 + identity policy + VSO sync (`shared`/`developer`/`runtime`) |
-| `PrivateKeyV1Component` | TLS 키 페어 |
+| `PrivateKeyV1Component` | TLS 키 페어. `extraKeepers`로 회전 트리거 추가 가능 |
 
 ## 의존성
 

@@ -26,7 +26,7 @@
     "**/node_modules/**",
     ".vscode"
   ],
-  "workbench.colorTheme": "Monokai Dimmed",
+  "workbench.colorTheme": "Monokai",
   "material-icon-theme.files.associations": {
     ".projenrc.ts": "controller",
     "index.ts": "contributing",

@@ -6,6 +6,7 @@
  * ruleset·Actions secret은 Pulumi가 create/delete 한다 (`deleteBeforeReplace`).
  *
  * 워크플로 YAML은 Projen SSOT. 여기 두지 않는다.
+ * Issue 라벨은 `github.IssueLabels`가 레포 전체를 권위 있게 맞춘다.
  * output은 카탈로그 소비자용 `name` / `sshCloneUrl`만.
  */
 import * as utils from '@common/utils';
@@ -26,6 +27,75 @@ interface ApexCaptainIaCPulumiRepositoryComponentArgsShape {
 export type ApexCaptainIaCPulumiRepositoryComponentArgs =
   utils.types.DeepPulumiInput<ApexCaptainIaCPulumiRepositoryComponentArgsShape>;
 
+/** GitHub 기본 9개 + conventional/Dependabot에서 흔히 쓰는 라벨. */
+const IAC_PULUMI_ISSUE_LABELS = [
+  {
+    name: 'bug',
+    color: 'd73a4a',
+    description: "Something isn't working",
+  },
+  {
+    name: 'documentation',
+    color: '0075ca',
+    description: 'Improvements or additions to documentation',
+  },
+  {
+    name: 'duplicate',
+    color: 'cfd3d7',
+    description: 'This issue or pull request already exists',
+  },
+  {
+    name: 'enhancement',
+    color: 'a2eeef',
+    description: 'New feature or request',
+  },
+  {
+    name: 'good first issue',
+    color: '7057ff',
+    description: 'Good for newcomers',
+  },
+  {
+    name: 'help wanted',
+    color: '008672',
+    description: 'Extra attention is needed',
+  },
+  {
+    name: 'invalid',
+    color: 'e4e669',
+    description: "This doesn't seem right",
+  },
+  {
+    name: 'question',
+    color: 'd876e3',
+    description: 'Further information is requested',
+  },
+  {
+    name: 'wontfix',
+    color: 'ffffff',
+    description: 'This will not be worked on',
+  },
+  {
+    name: 'chore',
+    color: 'fef2c0',
+    description: 'Maintenance, tooling, or non-user-facing work',
+  },
+  {
+    name: 'breaking',
+    color: 'b60205',
+    description: 'Breaking change',
+  },
+  {
+    name: 'dependencies',
+    color: '0366d6',
+    description: 'Pull requests that update a dependency file',
+  },
+  {
+    name: 'security',
+    color: 'ee0701',
+    description: 'Security related',
+  },
+] as const;
+
 export const ApexCaptainIaCPulumiRepositoryComponent =
   utils.functions.defineComponent(
     'ApexCaptain.IaC.Pulumi.repository',
@@ -38,14 +108,12 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
         `${resourceName}-repository`,
         {
           name: args.repositoryName,
-          description:
-            'Pulumi TypeScript IaC for ApexCaptain workstation — Kubernetes, Cloudflare, and GitHub.',
+          description: 'Pulumi TypeScript IaC for ApexCaptain',
           topics: [
             'pulumi',
             'typescript',
             'kubernetes',
             'infrastructure-as-code',
-            'homelab',
             'gitops',
           ],
           visibility: 'public',
@@ -125,6 +193,22 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
           ...opts,
           provider: args.providers.github,
           deleteBeforeReplace: true,
+        },
+      );
+
+      new github.IssueLabels(
+        `${resourceName}-issueLabels`,
+        {
+          repository: repository.name,
+          labels: IAC_PULUMI_ISSUE_LABELS.map(label => ({
+            name: label.name,
+            color: label.color,
+            description: label.description,
+          })),
+        },
+        {
+          ...opts,
+          provider: args.providers.github,
         },
       );
 

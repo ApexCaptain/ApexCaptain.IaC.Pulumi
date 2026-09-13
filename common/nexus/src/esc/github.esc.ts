@@ -1,3 +1,7 @@
+/**
+ * GitHub ESC. ApexCaptain 계정·IaC/GitOps 레포 이름·Actions secret 값.
+ * `@infra/github`이 소비하고, system은 token으로 deploy key·webhook만 붙인다.
+ */
 import z from 'zod';
 import { AbstractEsc } from '../abstract';
 
@@ -9,7 +13,12 @@ const githubEscSchema = z
         token: z.string(),
         repositories: z
           .object({
-            iacPulumi: z
+            apexCaptainIacPulumi: z
+              .object({
+                name: z.string(),
+              })
+              .required(),
+            apexCaptainIacGitOps: z
               .object({
                 name: z.string(),
               })

@@ -14,6 +14,14 @@
 - `Summary`와 `Test plan`은 최신 커밋 하나만이 아닌 브랜치 전체의 주요 변경점과 검증 방법을 논리적으로 묶어 작성합니다.
 - 각 bullet은 **완결된 문장**으로 작성합니다. 명사형·단편 나열·채팅용 축약 문체는 사용하지 않습니다.
 
+## Labels
+
+- `labels`는 프롬프트에 주어진 **사용 가능한 GitHub Labels 목록에 있는 이름만** 고릅니다. 새 이름을 만들지 않습니다.
+- 보통 type 라벨 1~2개면 충분합니다. (`bug`, `enhancement`, `documentation`, `chore`, `dependencies`, `security`, `breaking`)
+- `duplicate` / `invalid` / `wontfix` / `good first issue` / `help wanted` / `question`은 해당할 때만 씁니다.
+- 확신이 없으면 `[]`입니다.
+- 접두사 힌트: `feat` → `enhancement`, `fix` → `bug`, `chore`/`dev`/`test` → `chore`. 문서만 바뀌면 `documentation`.
+
 ## 출력 형식
 
 - 아래 JSON 형식으로만 응답합니다. 마크다운 코드블록(```json)으로 감싸지 않습니다.
@@ -21,6 +29,7 @@
 ```json
 {
   "title": "prefix: PR 제목 요약",
-  "body": "## Summary\n\n- 주요 변경 내용\n\n## Test plan\n\n- [ ] 검증 계획\n\n## Checklist\n\n- [x] Self-review 완료..."
+  "body": "## Summary\n\n- 주요 변경 내용\n\n## Test plan\n\n- [ ] 검증 계획\n\n## Checklist\n\n- [x] Self-review 완료...",
+  "labels": ["enhancement"]
 }
 ```
