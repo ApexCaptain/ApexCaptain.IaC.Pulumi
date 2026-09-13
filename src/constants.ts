@@ -64,6 +64,10 @@ export const constants = (() => {
     githubGeneratedDir,
     'pull-request-body.md',
   );
+  const githubGeneratedPullRequestLabelsFile = path.join(
+    githubGeneratedDir,
+    'pull-request-labels.txt',
+  );
   const githubGeneratedBranchNameFile = path.join(
     githubGeneratedDir,
     'branch-name.txt',
@@ -107,6 +111,7 @@ export const constants = (() => {
       githubGeneratedCommitMessageFile,
       githubGeneratedPullRequestTitleFile,
       githubGeneratedPullRequestBodyFile,
+      githubGeneratedPullRequestLabelsFile,
       githubGeneratedBranchNameFile,
       ociConfigFile,
       ociApexCaptainSshPrivateKeyFile,

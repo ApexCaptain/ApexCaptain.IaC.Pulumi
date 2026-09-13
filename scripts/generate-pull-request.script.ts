@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Agent } from '@cursor/sdk';
@@ -37,9 +38,54 @@ function determineBaseBranch(): string {
   return 'develop';
 }
 
+interface GithubLabel {
+  name: string;
+  description?: string;
+}
+
+function listGithubLabels(): GithubLabel[] {
+  try {
+    const raw = execSync('gh label list --json name,description --limit 100', {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    const parsed = JSON.parse(raw) as GithubLabel[];
+    return parsed.filter(
+      label => typeof label?.name === 'string' && label.name,
+    );
+  } catch {
+    console.warn(
+      chalk.yellow(
+        '[알림] GitHub 라벨 목록 조회 실패. labels 없이 진행합니다.',
+      ),
+    );
+    return [];
+  }
+}
+
+function normalizeLabels(raw: unknown, allowed: Set<string>): string[] {
+  const list = Array.isArray(raw)
+    ? raw
+    : typeof raw === 'string'
+      ? raw.split(',')
+      : [];
+  const unique: string[] = [];
+  for (const item of list) {
+    if (typeof item !== 'string') {
+      continue;
+    }
+    const name = item.trim();
+    if (!name || !allowed.has(name) || unique.includes(name)) {
+      continue;
+    }
+    unique.push(name);
+  }
+  return unique;
+}
+
 /**
  * Base 브랜치 대비 현재 브랜치의 전체 변경 사항을 검토하고,
- * scripts/prompts/ 규칙 및 PR 템플릿을 로드하여 Cursor SDK로 PR Title/Body를 생성한 뒤 파일로 저장합니다.
+ * scripts/prompts/ 규칙 및 PR 템플릿을 로드하여 Cursor SDK로 PR Title/Body/Labels를 생성한 뒤 파일로 저장합니다.
  */
 async function generatePullRequest(): Promise<void> {
   const apiKey = process.env.CURSOR_API_KEY;
@@ -89,15 +135,28 @@ async function generatePullRequest(): Promise<void> {
     ? fs.readFileSync(templatePath, 'utf-8')
     : '';
 
+  const availableLabels = listGithubLabels();
+  const availableLabelsText = availableLabels.length
+    ? availableLabels
+        .map(
+          label =>
+            `- ${label.name}${label.description ? `: ${label.description}` : ''}`,
+        )
+        .join('\n')
+    : '(조회 실패 또는 없음. labels는 [])';
+
   // 4. 프롬프트 구성
   const prompt = dedent`
-    당신은 숙련된 소프트웨어 엔지니어로서 아래 전달된 지침 문서와 템플릿에 따라 GitHub PR 제목(Title)과 본문(Body)을 작성해야 합니다.
+    당신은 숙련된 소프트웨어 엔지니어로서 아래 전달된 지침 문서와 템플릿에 따라 GitHub PR 제목(Title)과 본문(Body), Labels를 작성해야 합니다.
 
     [지침 및 규칙]
     ${rulesContent}
 
     [PR 템플릿 참조]
     ${templateContent}
+
+    [사용 가능한 GitHub Labels]
+    ${availableLabelsText}
 
     [브랜치 커밋 목록 (${baseBranch}..HEAD)]
     ${prCommits || '(커밋 없음, 작업 트리 변경사항 참조)'}
@@ -111,7 +170,7 @@ async function generatePullRequest(): Promise<void> {
 
   console.log(
     chalk.blue(
-      `Cursor SDK(${modelId})를 통해 PR Title 및 Body를 생성하는 중...`,
+      `Cursor SDK(${modelId})를 통해 PR Title, Body, Labels를 생성하는 중...`,
     ),
   );
 
@@ -131,7 +190,7 @@ async function generatePullRequest(): Promise<void> {
     const rawOutput = cleanMarkdownCodeFence(result.result, 'json');
 
     // 5. JSON 파싱 및 Fallback 처리
-    let parsed: { title: string; body: string };
+    let parsed: { title: string; body: string; labels?: unknown };
     try {
       parsed = JSON.parse(rawOutput);
     } catch {
@@ -150,11 +209,16 @@ async function generatePullRequest(): Promise<void> {
       }
     }
 
+    const allowedLabelNames = new Set(availableLabels.map(label => label.name));
+    const labels = normalizeLabels(parsed.labels, allowedLabelNames);
+
     // 6. 결과 파일 분리 저장 (.github/generated/pull-request-title.txt & pull-request-body.md)
     const titleFile =
       src.constants.paths.files.githubGeneratedPullRequestTitleFile;
     const bodyFile =
       src.constants.paths.files.githubGeneratedPullRequestBodyFile;
+    const labelsFile =
+      src.constants.paths.files.githubGeneratedPullRequestLabelsFile;
     const outputDir = src.constants.paths.dirs.githubGeneratedDir;
 
     if (!fs.existsSync(outputDir)) {
@@ -163,12 +227,18 @@ async function generatePullRequest(): Promise<void> {
 
     fs.writeFileSync(titleFile, `${parsed.title.trim()}\n`, 'utf-8');
     fs.writeFileSync(bodyFile, `${parsed.body.trim()}\n`, 'utf-8');
+    fs.writeFileSync(
+      labelsFile,
+      labels.length ? `${labels.join('\n')}\n` : '',
+      'utf-8',
+    );
 
     console.log(
-      chalk.green(`\n✓ PR Title 및 Body가 성공적으로 생성되었습니다:`),
+      chalk.green(`\n✓ PR Title, Body, Labels가 성공적으로 생성되었습니다:`),
     );
     console.log(chalk.green(`  - Title: ${titleFile}`));
-    console.log(chalk.green(`  - Body:  ${bodyFile}\n`));
+    console.log(chalk.green(`  - Body:  ${bodyFile}`));
+    console.log(chalk.green(`  - Labels: ${labelsFile}\n`));
 
     console.log(
       chalk.cyan('-------------------- [PR Title] --------------------'),
@@ -178,6 +248,10 @@ async function generatePullRequest(): Promise<void> {
       chalk.cyan('--------------------- [PR Body] --------------------'),
     );
     console.log(parsed.body.trim());
+    console.log(
+      chalk.cyan('-------------------- [PR Labels] -------------------'),
+    );
+    console.log(labels.length ? labels.join(', ') : '(없음)');
     console.log(
       chalk.cyan('----------------------------------------------------\n'),
     );

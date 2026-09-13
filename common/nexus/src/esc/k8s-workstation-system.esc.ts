@@ -63,7 +63,6 @@ const k8sWorkstationSystemEscSchema = z
 
     argoCd: z
       .object({
-        gitOpsRepositoryName: z.string(),
         bootstrapPassword: z.string(),
         bootstrapPasswordBcrypt: z.string(),
       })

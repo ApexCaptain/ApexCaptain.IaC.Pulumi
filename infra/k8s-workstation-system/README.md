@@ -4,7 +4,7 @@ Workstation K8s 클러스터 **시스템 레이어** Pulumi 스택.
 
 ## 역할
 
-클러스터 공통 인프라를 한 스택에서 관리하고, apps/tools 스택이 `k8sWorkstationSystemContract` output을 참조함.
+클러스터 공통 인프라를 한 스택에서 관리하고, apps/tools 스택이 `k8sWorkstationSystemContract` output을 참조함. GitOps 레포 `name`/`sshCloneUrl`은 `githubContract`에서 읽음.
 
 ### 배포 순서 (의존 관계)
 
@@ -45,7 +45,7 @@ Cilium
 | `goldilocks` | VPA 추천 대시보드. opt-in 라벨, Authentik Proxy + ext-authz |
 | `vaultSecretsOperator` | VSO Helm + VaultConnection |
 | `reloader` | Stakater Reloader |
-| `argo` | Rollouts, Argo CD (GitOps repo + Authentik OIDC + mesh) |
+| `argo` | Rollouts, Argo CD. GitOps 레포 정체성은 `@infra/github`. 이 스택은 deploy key·webhook·Argo Repository 연결 |
 | `monitoring` | OTel operator, VictoriaMetrics, Loki, Tempo, Grafana + Authentik OIDC + mesh ingress |
 
 ### Contract export (요약)
@@ -88,7 +88,7 @@ src/
 
 ## 의존성
 
-- `@infra/cloudflare`
+- `@infra/cloudflare`, `@infra/github`
 - `@common/nexus`, `@common/utils`, `@common/custom-resources`, `@common/bridged-provider`
 - `@pulumi/github`, `@pulumi/kubernetes`, `@pulumi/oci`, `@pulumi/vault`
 
@@ -103,5 +103,5 @@ pnpm --filter @infra/k8s-workstation-system pulumi:up
 
 ## upstream / downstream
 
-- **upstream**: `@infra/cloudflare`
+- **upstream**: `@infra/cloudflare`, `@infra/github`
 - **downstream**: `@infra/k8s-workstation-apps`, `@infra/k8s-workstation-tools`

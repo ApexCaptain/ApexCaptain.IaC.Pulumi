@@ -326,6 +326,22 @@ void (async () => {
 
   // Pulumi Projects
   const pulumiProjects = (() => {
+    const githubProject = inflatePulumiProject(
+      rootProject,
+      sharedProjectOption,
+      pulumiProjectWithBridgedProviderOrder,
+      {
+        projectName: 'github',
+        stages: [utils.enums.StackStage.PROD],
+        deps: [src.constants.pulumiPackages.github],
+        commonDeps: [
+          commonProjects.utilsProject.project.package.packageName,
+          commonProjects.nexusProject.project.package.packageName,
+        ],
+        esc: [NexusEsc.commonEsc, NexusEsc.githubEsc],
+      },
+    );
+
     const cloudflareProject = inflatePulumiProject(
       rootProject,
       sharedProjectOption,
@@ -364,7 +380,10 @@ void (async () => {
           commonProjects.customResourcesProject.project.package.packageName,
           commonProjects.nexusProject.project.package.packageName,
         ],
-        infraDeps: [cloudflareProject.project.package.packageName],
+        infraDeps: [
+          cloudflareProject.project.package.packageName,
+          githubProject.project.package.packageName,
+        ],
         esc: [
           NexusEsc.commonEsc,
           NexusEsc.ociEsc,
@@ -514,7 +533,7 @@ void (async () => {
           exclude: ['**/node_modules/**', '.vscode'],
         },
         workbench: {
-          colorTheme: 'Abyss',
+          colorTheme: 'Monokai',
         },
         'material-icon-theme': {
           files: {
@@ -925,17 +944,8 @@ void (async () => {
   // Scripts
   rootProject.addScripts({
     'git:commit': `git commit -F ${src.constants.paths.files.githubGeneratedCommitMessageFile}`,
-    'git:pr': dedent`
-        gh pr create \
-          --base develop \
-          --title "$(cat ${src.constants.paths.files.githubGeneratedPullRequestTitleFile})" \
-          --body-file "${src.constants.paths.files.githubGeneratedPullRequestBodyFile}"`,
-    'git:pr:to-main': dedent`
-        gh pr create \
-          --base main \
-          --head develop \
-          --title "$(cat ${src.constants.paths.files.githubGeneratedPullRequestTitleFile})" \
-          --body-file "${src.constants.paths.files.githubGeneratedPullRequestBodyFile}"`,
+    'git:pr': `ts-node scripts/create-github-pr.script.ts --base develop`,
+    'git:pr:to-main': `ts-node scripts/create-github-pr.script.ts --base main --head develop`,
 
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     posttest: 'pnpm test:workspaces',
