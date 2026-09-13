@@ -653,15 +653,39 @@ void (async () => {
       `,
 
       'pre-push': dedent`
+        protected=0
+        while read -r local_ref local_sha remote_ref remote_sha; do
+          case "$remote_ref" in
+            refs/heads/main|refs/heads/develop)
+              echo "pre-push: '$remote_ref' 직접 push 금지. feature 브랜치 → PR → develop → main 흐름을 쓰세요." >&2
+              protected=1
+              ;;
+          esac
+        done
+        if [ "$protected" -eq 1 ]; then
+          exit 1
+        fi
+
         if ! command -v pnpm >/dev/null 2>&1; then
           exit 0
         fi
 
+        # 로컬 빠른 게이트. 전량 진실은 PR Validate (build/test/eslint).
         pnpm test:workspaces
       `,
 
       'post-commit': dedent`
-        git push
+        branch="$(git rev-parse --abbrev-ref HEAD)"
+        case "$branch" in
+          main|develop)
+            echo "post-commit: '$branch'에서는 자동 push 안 함 (ruleset). feature 브랜치에서 커밋하거나 pnpm script:openPullRequest 를 쓰세요."
+            exit 0
+            ;;
+          HEAD)
+            exit 0
+            ;;
+        esac
+        git push -u origin HEAD
       `,
     },
   });
@@ -903,6 +927,13 @@ void (async () => {
     'git:commit': `git commit -F ${src.constants.paths.files.githubGeneratedCommitMessageFile}`,
     'git:pr': dedent`
         gh pr create \
+          --base develop \
+          --title "$(cat ${src.constants.paths.files.githubGeneratedPullRequestTitleFile})" \
+          --body-file "${src.constants.paths.files.githubGeneratedPullRequestBodyFile}"`,
+    'git:pr:to-main': dedent`
+        gh pr create \
+          --base main \
+          --head develop \
           --title "$(cat ${src.constants.paths.files.githubGeneratedPullRequestTitleFile})" \
           --body-file "${src.constants.paths.files.githubGeneratedPullRequestBodyFile}"`,
 
@@ -921,6 +952,8 @@ void (async () => {
     'script:fetchWorkstationKubeconfig': `ts-node scripts/fetch-workstation-kubeconfig.script.ts`,
     'script:generateCommitMessage': `ts-node scripts/generate-commit-message.script.ts`,
     'script:generatePullRequest': `ts-node scripts/generate-pull-request.script.ts`,
+    'script:openPullRequest': `ts-node scripts/open-pull-request.script.ts`,
+    'script:promoteDevelopToMain': `ts-node scripts/promote-develop-to-main.script.ts`,
     'script:syncPulumiEsc': `ts-node scripts/sync-pulumi-esc.script.ts`,
     'script:generateVentoyUserData': `ts-node scripts/generate-ventoy-user-data.script.ts`,
     'script:bootstrapLocalEnv': `ts-node scripts/bootstrap-local-env.script.ts`,

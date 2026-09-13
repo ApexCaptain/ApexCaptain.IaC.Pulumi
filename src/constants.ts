@@ -64,6 +64,10 @@ export const constants = (() => {
     githubGeneratedDir,
     'pull-request-body.md',
   );
+  const githubGeneratedBranchNameFile = path.join(
+    githubGeneratedDir,
+    'branch-name.txt',
+  );
   const ociConfigFile = path.join(ociConfigDir, 'oci.config');
   const ociApexCaptainSshPrivateKeyFile = path.join(
     keysDir,
@@ -103,6 +107,7 @@ export const constants = (() => {
       githubGeneratedCommitMessageFile,
       githubGeneratedPullRequestTitleFile,
       githubGeneratedPullRequestBodyFile,
+      githubGeneratedBranchNameFile,
       ociConfigFile,
       ociApexCaptainSshPrivateKeyFile,
     },

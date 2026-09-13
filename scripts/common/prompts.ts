@@ -9,6 +9,7 @@ const SHARED_PROMPT_RULES = [
 const GENERATION_PROMPT_RULES = {
   'commit-message': 'scripts/prompts/commit-message/rules.md',
   'pull-request': 'scripts/prompts/pull-request/rules.md',
+  'branch-name': 'scripts/prompts/branch-name/rules.md',
 } as const;
 
 export type GenerationPromptTask = keyof typeof GENERATION_PROMPT_RULES;
