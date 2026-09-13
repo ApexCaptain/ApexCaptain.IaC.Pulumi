@@ -143,8 +143,11 @@ async function syncPulumiEsc(): Promise<void> {
         owner: process.env.GITHUB_OWNER_APEX_CAPTAIN,
         token: process.env.GH_TOKEN,
         repositories: {
-          iacPulumi: {
+          apexCaptainIacPulumi: {
             name: process.env.GITHUB_APEX_CAPTAIN_IAC_PULUMI_REPOSITORY_NAME,
+          },
+          apexCaptainIacGitOps: {
+            name: process.env.GITHUB_APEX_CAPTAIN_IAC_GITOPS_REPOSITORY_NAME,
           },
         },
         actions: {
@@ -221,7 +224,6 @@ async function syncPulumiEsc(): Promise<void> {
         },
       },
       argoCd: {
-        gitOpsRepositoryName: process.env.ARGOCD_GITOPS_REPOSITORY_NAME,
         bootstrapPassword: process.env.ARGOCD_BOOTSTRAP_PASSWORD,
         bootstrapPasswordBcrypt: process.env.ARGOCD_BOOTSTRAP_PASSWORD_BCRYPT,
       },

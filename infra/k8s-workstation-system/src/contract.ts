@@ -3,6 +3,7 @@
  *
  * 네트워킹(Cilium) → 인증서(cert-manager) → Vault → Istio mesh → 스토리지(Longhorn)
  * → IdP(Authentik) 순으로 깔고, apps/tools 스택이 여기 output을 참조한다.
+ * GitOps 레포 정체성은 `githubContract`. 이 스택은 deploy key·webhook만 붙인다.
  *
  * 배포 순서가 꼬이기 쉬운 구간:
  * - Vault는 cert-manager CA에, mesh ingress는 LE wildcard cert에 의존
@@ -13,6 +14,7 @@ import { authentik, argocd } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
 import * as utils from '@common/utils/src';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
+import { githubContract } from '@infra/github/src/contract';
 import * as github from '@pulumi/github';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as oci from '@pulumi/oci';
@@ -803,7 +805,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
 
     // Argo CD
     const argoGitOps = new components.argo.ArgoGitOpsComponent('argoGitOps', {
-      gitOpsRepositoryName: projectEsc.esc.argoCd.gitOpsRepositoryName,
+      gitOpsRepository: {
+        name: githubContract.output.repositories.apexCaptainIacGitOps.name,
+        sshCloneUrl:
+          githubContract.output.repositories.apexCaptainIacGitOps.sshCloneUrl,
+      },
       argoCdHost: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
       providers: {
         github: apexCaptainGithubProvider,
@@ -897,8 +903,8 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         namespace: argoCd.output.namespace,
         gitOpsRepository: {
-          name: argoGitOps.output.dataGitOpsRepository.name,
-          sshCloneUrl: argoGitOps.output.dataGitOpsRepository.sshCloneUrl,
+          name: argoGitOps.output.gitOpsRepository.name,
+          sshCloneUrl: argoGitOps.output.gitOpsRepository.sshCloneUrl,
           deployPrivateKeyPem: argoGitOps.secret.deployPrivateKeyPem,
         },
         gitOpsProjects: {

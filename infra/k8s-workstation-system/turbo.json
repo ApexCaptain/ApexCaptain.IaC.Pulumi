@@ -8,14 +8,16 @@
       "dependsOn": [
         "^build",
         "build",
-        "@infra/cloudflare#pulumi:preview"
+        "@infra/cloudflare#pulumi:preview",
+        "@infra/github#pulumi:preview"
       ]
     },
     "pulumi:up": {
       "dependsOn": [
         "^build",
         "build",
-        "@infra/cloudflare#pulumi:up"
+        "@infra/cloudflare#pulumi:up",
+        "@infra/github#pulumi:up"
       ],
       "interactive": true
     }

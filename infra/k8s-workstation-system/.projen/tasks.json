@@ -171,6 +171,7 @@
             "@common/nexus",
             "@common/utils",
             "@infra/cloudflare",
+            "@infra/github",
             "@pulumi/github",
             "@pulumi/kubernetes",
             "@pulumi/oci",

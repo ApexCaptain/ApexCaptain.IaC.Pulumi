@@ -5,9 +5,16 @@ import * as random from '@pulumi/random';
 import * as tls from '@pulumi/tls';
 import { TextFileV1 } from '../../resources/local/textFile.v1.res';
 
+/**
+ * TLS 키 페어.
+ *
+ * `expirationDateString`과 `extraKeepers`가 RandomUuid7 keepers.
+ * extraKeepers가 바뀌면 키가 교체된다 (GitHub deploy key 지문 충돌 회피 등).
+ */
 interface PrivateKeyV1ArgsShape {
   expirationDateString?: string;
   createKeyFile?: boolean;
+  extraKeepers?: Record<string, string>;
 }
 
 export type PrivateKeyV1Args =
@@ -23,13 +30,12 @@ export const PrivateKeyV1Component = utils.functions.defineComponent(
     const anchor = new random.RandomUuid7(
       `${resourceName}-anchor`,
       {
-        keepers: {
-          expriationDateString: pulumi
-            .output(args.expirationDateString)
-            .apply(resolvedExpirationDateString => {
-              return resolvedExpirationDateString ?? 'NO_EXPIRATION_DATE';
-            }),
-        },
+        keepers: pulumi
+          .all([args.expirationDateString, args.extraKeepers])
+          .apply(([expirationDateString, extraKeepers]) => ({
+            expriationDateString: expirationDateString ?? 'NO_EXPIRATION_DATE',
+            ...(extraKeepers ?? {}),
+          })),
       },
       {
         ...opts,
