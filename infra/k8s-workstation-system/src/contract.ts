@@ -148,7 +148,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             certManager: {
-              version: 'v1.21.1',
+              version: 'v1.21.2',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.jetstack.io'],
             },
@@ -430,7 +430,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: authentikNamespace,
           helm: {
             authentik: {
-              version: '2026.8.1',
+              version: '2026.8.2',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
             },
@@ -852,7 +852,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.8.4',
+            version: '10.9.0',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },
@@ -979,7 +979,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           loki: {
-            version: '18.12.1',
+            version: '18.12.2',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -1082,7 +1082,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
           helm: {
             grafana: {
-              version: '13.2.2',
+              version: '13.2.3',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'grafana-community.github.io/helm-charts'
