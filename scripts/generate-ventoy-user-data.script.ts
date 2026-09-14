@@ -18,15 +18,25 @@ function requireEnv(name: string): string {
 async function generateVentoyUserData(): Promise<void> {
   requireEnv('WORKSTATION_BOOTSTRAP_PASSWORD');
 
+  const ventoyDir = path.join(
+    process.cwd(),
+    src.constants.paths.dirs.ventoyDir,
+  );
+
   const ventoyWorkstationNodeUserDataTemplate = fs.readFileSync(
-    path.join(
-      process.cwd(),
-      src.constants.paths.dirs.ventoyDir,
-      'templates',
-      'workstation-node.yaml.tpl',
-    ),
+    path.join(ventoyDir, 'templates', 'workstation-node.yaml.tpl'),
     'utf-8',
   );
+
+  const slackAutoinstallNotifyScript = fs
+    .readFileSync(
+      path.join(ventoyDir, 'scripts', 'slack-autoinstall-notify.sh'),
+      'utf-8',
+    )
+    .replace(/^\uFEFF?#!.*\n/, '')
+    .split('\n')
+    .map(line => `        ${line}`)
+    .join('\n');
 
   const ventoyUserDataDirPath = path.join(
     process.cwd(),
@@ -66,7 +76,8 @@ async function generateVentoyUserData(): Promise<void> {
           addressCidr: `${process.env.WORKSTATION_BOOTSTRAP_NODE_0_STATIC_IP}/24`,
         },
       ],
-      slackWebhookUrl: process.env.SLACK_WEBHOOK_URL_VENTOY_AUTO_INSTALL,
+      slackWebhookUrl: process.env.SLACK_WEBHOOK_URL_VENTOY_INFRA_INFO,
+      slackAutoinstallNotifyScript,
     }),
   );
 }

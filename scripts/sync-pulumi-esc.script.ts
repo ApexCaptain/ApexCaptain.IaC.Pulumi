@@ -229,7 +229,8 @@ async function syncPulumiEsc(): Promise<void> {
       },
       grafana: {
         adminPassword: process.env.GRAFANA_ADMIN_PASSWORD,
-        slackWebhookUrlInfraAlerts: process.env.SLACK_WEBHOOK_URL_INFRA_ALERTS,
+        slackWebhookUrlInfraWarning:
+          process.env.SLACK_WEBHOOK_URL_GRAFANA_INFRA_WARNING,
       },
     },
     {
@@ -241,7 +242,8 @@ async function syncPulumiEsc(): Promise<void> {
     accountName,
     pulumiEscClient,
     {
-      slackWebhookUrlVaultAlerts: process.env.SLACK_WEBHOOK_URL_VAULT_ALERTS!!,
+      slackWebhookUrlVaultInfraWarning:
+        process.env.SLACK_WEBHOOK_URL_VAULT_INFRA_WARNING!!,
     },
     {
       prod: {},
@@ -265,7 +267,8 @@ async function syncPulumiEsc(): Promise<void> {
           password: process.env.CODER_FIRST_USER_PASSWORD!!,
         },
       },
-      slackWebhookUrlVaultAlerts: process.env.SLACK_WEBHOOK_URL_VAULT_ALERTS!!,
+      slackWebhookUrlVaultInfraWarning:
+        process.env.SLACK_WEBHOOK_URL_VAULT_INFRA_WARNING!!,
     },
     {
       prod: {},

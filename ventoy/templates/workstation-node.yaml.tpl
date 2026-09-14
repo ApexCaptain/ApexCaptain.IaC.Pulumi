@@ -64,9 +64,5 @@ autoinstall:
   user-data:
     runcmd:
       - |
-        SLACK_WEBHOOK_URL='{{ slackWebhookUrl }}'
-        IP=$(hostname -I | awk '{print $1}')
-        curl -sS -X POST "$SLACK_WEBHOOK_URL" \
-          -H 'Content-Type: application/json' \
-          -d "$(printf '{"text":"✅ Autoinstall complete\n• IP: %s"}' "$IP")" \
-          || true
+        export SLACK_WEBHOOK_URL='{{ slackWebhookUrl }}'
+{{slackAutoinstallNotifyScript}}

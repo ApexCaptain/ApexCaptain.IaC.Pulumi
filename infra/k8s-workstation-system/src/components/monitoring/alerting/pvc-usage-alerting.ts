@@ -1,3 +1,8 @@
+import dedent from 'dedent';
+
+/** Grafana provisioning 문자열 — TS 들여쓰기 제거 후 앞뒤 공백 trim. */
+const grafanaTpl = (body: string): string => dedent(body).trim();
+
 /**
  * PVC / 볼륨 사용량 Grafana Unified Alerting 프로비저닝.
  *
@@ -19,6 +24,58 @@ export const PVC_USAGE_RATIO_EXPR =
 export const infraAlertsSlackContactPointName = 'infra-alerts-slack';
 export const infraAlertsSlackReceiverUid = 'infra-alerts-slack';
 
+/**
+ * Grafana Slack: Block Kit 미지원 — mrkdwn·색·한국어 템플릿.
+ * define 이름은 provisioning `name`과 동일 (Grafana 검증).
+ */
+const PVC_SLACK_TITLE_TEMPLATE = 'infra_pvc_slack_title';
+const PVC_SLACK_TEXT_TEMPLATE = 'infra_pvc_slack_text';
+
+export function buildPvcUsageNotificationTemplates() {
+  const pct = Math.round(PVC_USAGE_ALERT_THRESHOLD * 100);
+  return {
+    apiVersion: 1,
+    templates: [
+      {
+        orgId: 1,
+        name: PVC_SLACK_TITLE_TEMPLATE,
+        template: grafanaTpl(`
+          {{ define "${PVC_SLACK_TITLE_TEMPLATE}" }}
+          {{ if eq .Status "firing" }}
+          [인프라] PVC 용량 ${pct}% 초과 ({{ len .Alerts.Firing }}건)
+          {{ else }}
+          [인프라] PVC 용량 경고 해제
+          {{ end }}
+          {{ end }}
+        `),
+      },
+      {
+        orgId: 1,
+        name: PVC_SLACK_TEXT_TEMPLATE,
+        template: grafanaTpl(`
+          {{ define "${PVC_SLACK_TEXT_TEMPLATE}" }}
+          {{ if eq .Status "firing" }}
+          *PVC 용량 경고* (area=storage, 토 01:00-01:30 KST)
+          {{ range .Alerts.Firing }}
+          ---
+          {{ .Annotations.summary }}
+          {{ .Annotations.description }}
+          {{ if .SilenceURL }}<{{ .SilenceURL }}|알림 끄기>{{ end }}
+          {{ end }}
+          _Grafana / PVC kubeletstats_
+          {{ else }}
+          *PVC 용량 정상 복구*
+          {{ range .Alerts.Resolved }}
+          - {{ .Annotations.summary }}
+          {{ end }}
+          {{ end }}
+          {{ end }}
+        `),
+      },
+    ],
+  };
+}
+
 export function buildPvcUsageContactPoints(slackWebhookUrl: string) {
   return {
     apiVersion: 1,
@@ -31,12 +88,13 @@ export function buildPvcUsageContactPoints(slackWebhookUrl: string) {
             uid: infraAlertsSlackReceiverUid,
             type: 'slack',
             disableResolveMessage: false,
+            // App Incoming Webhook: username/icon_emoji 오버라이드 불가
             settings: {
               url: slackWebhookUrl,
-              username: 'grafana-infra-alerts',
-              title:
-                '{{ `{{ template "slack.default.title" . }}` }}',
-              text: '{{ `{{ template "slack.default.text" . }}` }}',
+              color:
+                '{{ if eq .Status "firing" }}#E01E5A{{ else }}#2EB67D{{ end }}',
+              title: `{{ template "${PVC_SLACK_TITLE_TEMPLATE}" . }}`,
+              text: `{{ template "${PVC_SLACK_TEXT_TEMPLATE}" . }}`,
             },
           },
         ],
@@ -106,7 +164,7 @@ export function buildPvcUsageAlertRules() {
         rules: [
           {
             uid: 'pvc-usage-high',
-            title: `PVC usage >= ${pct}%`,
+            title: `PVC 사용률 ${pct}% 이상`,
             condition: 'B',
             data: [
               {
@@ -159,9 +217,13 @@ export function buildPvcUsageAlertRules() {
             execErrState: 'Error',
             for: PVC_USAGE_ALERT_FOR,
             annotations: {
-              summary: `PVC usage is at or above ${pct}% of capacity for ${PVC_USAGE_ALERT_FOR}.`,
-              description:
-                'pvc={{ `{{ $labels.k8s_persistentvolumeclaim_name }}` }} ns={{ `{{ $labels.k8s_namespace_name }}` }} pod={{ `{{ $labels.k8s_pod_name }}` }} value={{ `{{ $values.A }}` }}',
+              // Grafana alert annotation 템플릿에 mul 없음. humanizePercentage(비율) → "75%".
+              summary: grafanaTpl(`
+                {{ \`{{ $labels.k8s_namespace_name }} / {{ $labels.k8s_persistentvolumeclaim_name }} — 사용률 {{ humanizePercentage $values.A.Value }}\` }}
+              `),
+              description: grafanaTpl(`
+                {{ \`Pod {{ $labels.k8s_pod_name }} · 임계 ${pct}% · ${PVC_USAGE_ALERT_FOR} 이상 유지\` }}
+              `),
             },
             labels: {
               severity: 'warning',
