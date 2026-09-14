@@ -71,7 +71,7 @@ const k8sWorkstationSystemEscSchema = z
     grafana: z
       .object({
         adminPassword: z.string(),
-        slackWebhookUrlInfraAlerts: z.string().min(1),
+        slackWebhookUrlInfraWarning: z.string().min(1),
       })
       .required(),
   })

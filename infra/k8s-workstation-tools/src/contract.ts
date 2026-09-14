@@ -416,10 +416,12 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
               commonEsc.esc.workstationIptimeDomain,
               commonEsc.esc.workstationIpV4Address,
             ],
-            userCaMount: k8sWorkstationSystemContract.secret.vault.ssh.userCaMount,
-            hostCaMount: k8sWorkstationSystemContract.secret.vault.ssh.hostCaMount,
+            userCaMount:
+              k8sWorkstationSystemContract.secret.vault.ssh.userCaMount,
+            hostCaMount:
+              k8sWorkstationSystemContract.secret.vault.ssh.hostCaMount,
             kvMount: k8sWorkstationSystemContract.secret.vault.kvMount,
-            slackWebhookUrl: projectEsc.esc.slackWebhookUrlVaultAlerts,
+            slackWebhookUrl: projectEsc.esc.slackWebhookUrlVaultInfraWarning,
             vaultConnectionRef:
               k8sWorkstationSystemContract.output.vaultSecretsOperator
                 .vaultConnectionRef,

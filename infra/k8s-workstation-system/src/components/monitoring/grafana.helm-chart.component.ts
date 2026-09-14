@@ -10,6 +10,7 @@ import {
   buildPvcUsageContactPoints,
   buildPvcUsageMuteTimes,
   buildPvcUsageNotificationPolicies,
+  buildPvcUsageNotificationTemplates,
 } from './alerting/pvc-usage-alerting';
 import {
   k8sNodeResourcesDashboardJson,
@@ -24,7 +25,7 @@ interface GrafanaHelmChartComponentArgsShape {
   host: string;
   adminPassword: string;
   storageClassName: string;
-  slackWebhookUrlInfraAlerts: string;
+  slackWebhookUrlInfraWarning: string;
   oidc: {
     name: string;
     issuerUrl: string;
@@ -86,10 +87,13 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
         },
         stringData: {
           'contactpoints.yaml': pulumi
-            .output(args.slackWebhookUrlInfraAlerts)
+            .output(args.slackWebhookUrlInfraWarning)
             .apply(url =>
               yaml.stringify(buildPvcUsageContactPoints(String(url))),
             ),
+          'templates.yaml': yaml.stringify(
+            buildPvcUsageNotificationTemplates(),
+          ),
         },
       },
       providerOpts,
@@ -203,7 +207,7 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                 ],
               },
             },
-            // rules/policies/muteTimes. Slack webhook은 아래 Secret 마운트.
+            // rules/policies/muteTimes. contactpoints·templates는 Helm tpl 회피용 Secret 마운트.
             'alerting': {
               'mutetimes.yaml': buildPvcUsageMuteTimes(),
               'policies.yaml': buildPvcUsageNotificationPolicies(),
@@ -217,6 +221,15 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                 mountPath:
                   '/etc/grafana/provisioning/alerting/contactpoints.yaml',
                 subPath: 'contactpoints.yaml',
+                readOnly: true,
+              },
+              {
+                name: 'alerting-notification-templates',
+                secretName: grafanaAlertingSlackSecretName,
+                defaultMode: 420,
+                mountPath:
+                  '/etc/grafana/provisioning/alerting/templates.yaml',
+                subPath: 'templates.yaml',
                 readOnly: true,
               },
             ],

@@ -3,7 +3,7 @@ import { AbstractEsc } from '../abstract';
 
 const k8sWorkstationAppsEscSchema = z
   .object({
-    slackWebhookUrlVaultAlerts: z.string().min(1),
+    slackWebhookUrlVaultInfraWarning: z.string().min(1),
   })
   .required();
 

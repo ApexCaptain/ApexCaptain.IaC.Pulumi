@@ -102,17 +102,19 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
               hostCaMount:
                 k8sWorkstationSystemContract.secret.vault.ssh.hostCaMount,
               kvMount: k8sWorkstationSystemContract.secret.vault.kvMount,
-              slackWebhookUrl: projectEsc.esc.slackWebhookUrlVaultAlerts,
+              slackWebhookUrl: projectEsc.esc.slackWebhookUrlVaultInfraWarning,
               vaultConnectionRef:
                 k8sWorkstationSystemContract.output.vaultSecretsOperator
                   .vaultConnectionRef,
               kubernetesAuthMountPath:
-                k8sWorkstationSystemContract.secret.vault.kubernetesAuthMountPath,
+                k8sWorkstationSystemContract.secret.vault
+                  .kubernetesAuthMountPath,
               vault: {
                 address:
                   k8sWorkstationSystemContract.secret.vault.cluster.address,
                 tlsServerName:
-                  k8sWorkstationSystemContract.secret.vault.cluster.tlsServerName,
+                  k8sWorkstationSystemContract.secret.vault.cluster
+                    .tlsServerName,
                 ca: {
                   namespace:
                     k8sWorkstationSystemContract.secret.vault.cluster.namespace,

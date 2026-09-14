@@ -49,6 +49,6 @@ install_istioctl() {
 }
 
 export -f install_oci install_helm install_pnpm install_nova install_pluto install_istioctl
-parallel --jobs 10 ::: install_oci install_helm install_pnpm install_nova install_pluto install_istioctl
+parallel --jobs 3 ::: install_oci install_helm install_pnpm install_nova install_pluto install_istioctl
 
 ./.devcontainer/commands/common/synchronizeProject.sh
