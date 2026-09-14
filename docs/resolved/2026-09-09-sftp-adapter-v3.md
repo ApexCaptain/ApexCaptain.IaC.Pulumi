@@ -1,13 +1,13 @@
 # SFTP Adapter v3
 
-| 항목 | 내용 |
-|---|---|
-| **등록일** | 2026-09-09 |
-| **해결일** | 2026-09-10 |
-| **영역** | `SftpV3Component`, Vault SSH `issue`(키젠), VSO, Reloader, Slack, qBit·Jellyfin |
+| 항목          | 내용                                                                                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **등록일**    | 2026-09-09                                                                                                                                                                                                             |
+| **해결일**    | 2026-09-10                                                                                                                                                                                                             |
+| **영역**      | `SftpV3Component`, Vault SSH `issue`(키젠), VSO, Reloader, Slack, qBit·Jellyfin                                                                                                                                        |
 | **관련 코드** | `common/custom-resources/src/components/adapter/sftp.v3.component.ts`, `infra/k8s-workstation-tools` qBit, `infra/k8s-workstation-apps` Jellyfin, `infra/k8s-workstation-system` Vault SSH CA·identity·`vault-oidc-kv` |
-| **스택** | `ApexCaptain/k8s-workstation-tools/prod`, `ApexCaptain/k8s-workstation-apps/prod`, `ApexCaptain/k8s-workstation-system/prod` |
-| **상태** | **해결** |
+| **스택**      | `ApexCaptain/k8s-workstation-tools/prod`, `ApexCaptain/k8s-workstation-apps/prod`, `ApexCaptain/k8s-workstation-system/prod`                                                                                           |
+| **상태**      | **해결**                                                                                                                                                                                                               |
 
 ## 해결 요약
 
@@ -46,14 +46,14 @@ v3는 키 재료만 Vault에 두고, 와이어는 v1과 같은 생 키로 되돌
 - 호스트키는 배포 1회. 이후 CronJob 없음 (RaiDrive TOFU).
 - 유저키는 분기 1회 회전, 옛 키 7일 겹침. Reloader는 **유저** K8s Secret만.
 - 사람은 Vault OIDC 후 user KV `current_private`. CLI `issue`로 로그인하지 않음.
-- 회전 당일 + 차단 D-1 Slack. webhook은 `SLACK_WEBHOOK_URL_VAULT_ALERTS` (INFRA_ALERTS와 분리).
+- 회전 당일 + 차단 D-1 Slack. webhook은 `SLACK_WEBHOOK_URL_VAULT_INFRA_WARNING` (INFRA_ALERTS와 분리).
 
 ## 라이브
 
-| 호출자 | 스택 | Pulumi `resourceName` | slug | KV |
-|---|---|---|---|---|
-| qBittorrent | tools prod | `sftpAdapter` | `sftp-adapter` | `sftp/qbittorrent/sftp-adapter/{host,user}` |
-| Jellyfin | apps prod | `jellyfinSftpAdapter` | `jellyfin-sftp-adapter` | `sftp/jellyfin/jellyfin-sftp-adapter/{host,user}` |
+| 호출자      | 스택       | Pulumi `resourceName` | slug                    | KV                                                |
+| ----------- | ---------- | --------------------- | ----------------------- | ------------------------------------------------- |
+| qBittorrent | tools prod | `sftpAdapter`         | `sftp-adapter`          | `sftp/qbittorrent/sftp-adapter/{host,user}`       |
+| Jellyfin    | apps prod  | `jellyfinSftpAdapter` | `jellyfin-sftp-adapter` | `sftp/jellyfin/jellyfin-sftp-adapter/{host,user}` |
 
 Vault kubernetes auth role·policy 이름은 클러스터 전역이다. Jellyfin을 `sftpAdapter`로 두면 qBit VSO role을 덮어쓴다. Jellyfin은 반드시 다른 `resourceName`.
 
@@ -85,9 +85,9 @@ Vault SSH issue (ed25519)
 
 ### KV (`kvMount` 아래)
 
-| 경로 | 필드 | 사람 | VSO |
-|---|---|---|---|
-| `sftp/<ns>/<slug>/host` | `private_key`, `public_key` | 없음 | HostKey |
+| 경로                    | 필드                                                                                                         | 사람                                                              | VSO                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `sftp/<ns>/<slug>/host` | `private_key`, `public_key`                                                                                  | 없음                                                              | HostKey                                                                  |
 | `sftp/<ns>/<slug>/user` | `current_private`, `current_public`, `previous_*`, `previous_expires_at`, `slack_d1_sent`, `authorized_keys` | 경로 통째 `read` (겹침 기간 previous 개인키도 보임). host 안 보임 | `authorized_keys` + 공개키. **`current_private`은 K8s Secret에 안 넣음** |
 
 KV v2는 필드 ACL이 없다. host와 user를 경로로 나눈다.
@@ -130,7 +130,7 @@ KV v2는 필드 ACL이 없다. host와 user를 경로로 나눈다.
 
 ### Slack / ESC
 
-로컬 env `SLACK_WEBHOOK_URL_VAULT_ALERTS`. tools·apps ESC. Grafana `SLACK_WEBHOOK_URL_INFRA_ALERTS`와 키를 섞지 않음. URL은 문서·채팅에 적지 않음.
+로컬 env `SLACK_WEBHOOK_URL_VAULT_INFRA_WARNING`. tools·apps ESC. Grafana `SLACK_WEBHOOK_URL_GRAFANA_INFRA_WARNING`와 키를 섞지 않음. URL은 문서·채팅에 적지 않음.
 
 ---
 
@@ -146,16 +146,16 @@ KV v2는 필드 ACL이 없다. host와 user를 경로로 나눈다.
 
 ## 에러·실패 모드
 
-| 상황 | 기대 |
-|---|---|
-| 분기 CronJob 실패 | 직전 current 유지. Slack 없음. 다음 분기 또는 수동 Job |
-| 매일 Job이 만료 previous를 못 지움 | 겹침이 7일을 넘김. 옛 키로 계속 로그인 |
-| Slack 실패, KV 성공 | 키는 바뀜. 알림만 없음. 롤백 없음 |
-| Reloader annotation 누락 | authorized_keys는 갱신돼도 sshd는 옛 파일 |
-| 사람이 host KV를 읽음 | 정책상 deny |
-| VSO가 `current_private`을 Secret에 넣음 | 버그 |
-| OpenSSH가 기본으로 ML-KEM을 앞에 둠 | 정상. RaiDrive는 고전 KEX 폴백 |
-| bootstrap Job 재실행 | 호스트키 변경. TOFU 깨짐. `ignoreChanges`가 막는 이유 |
+| 상황                                    | 기대                                                   |
+| --------------------------------------- | ------------------------------------------------------ |
+| 분기 CronJob 실패                       | 직전 current 유지. Slack 없음. 다음 분기 또는 수동 Job |
+| 매일 Job이 만료 previous를 못 지움      | 겹침이 7일을 넘김. 옛 키로 계속 로그인                 |
+| Slack 실패, KV 성공                     | 키는 바뀜. 알림만 없음. 롤백 없음                      |
+| Reloader annotation 누락                | authorized_keys는 갱신돼도 sshd는 옛 파일              |
+| 사람이 host KV를 읽음                   | 정책상 deny                                            |
+| VSO가 `current_private`을 Secret에 넣음 | 버그                                                   |
+| OpenSSH가 기본으로 ML-KEM을 앞에 둠     | 정상. RaiDrive는 고전 KEX 폴백                         |
+| bootstrap Job 재실행                    | 호스트키 변경. TOFU 깨짐. `ignoreChanges`가 막는 이유  |
 
 ---
 
@@ -186,7 +186,7 @@ KV v2는 필드 ACL이 없다. host와 user를 경로로 나눈다.
 - [x] `SftpV2Component` 및 v2 테스트 삭제
 - [x] 사람 정책은 user KV `read`만
 - [x] 분기/매일 CronJob + 당일/D-1 Slack (본문 없이 경로·NS·이름·7일)
-- [x] ESC/`projenrc`가 `SLACK_WEBHOOK_URL_VAULT_ALERTS` 연결 (tools·apps)
+- [x] ESC/`projenrc`가 `SLACK_WEBHOOK_URL_VAULT_INFRA_WARNING` 연결 (tools·apps)
 - [x] sidecar `authorized_keys` 첫 필드 `ssh-ed25519`
 - [x] RaiDrive `current_private` 로그인 — qBit·Jellyfin 사용자 확인
 - [x] VSO k8s auth role 유지, `disableRemount: true`
@@ -203,20 +203,20 @@ KV v2는 필드 ACL이 없다. host와 user를 경로로 나눈다.
 
 ## 타임라인
 
-| 일시 | 내용 |
-|---|---|
-| 2026-09-09 | v2 설계·구현 (SSH CA cert, 하이브리드 KEX). 플랫폼 CA·identity group 라이브 |
-| 2026-09-09 | RaiDrive 불가 확인. v3 설계 — 생 키, `issue`는 키젠만, 분기 유저 회전, Slack |
-| 2026-09-09 09:13 UTC | qBit v3 라이브. bootstrap Complete. VSO 첫 싱크 성공 |
-| 2026-09-09 12:10 UTC | VSO `invalid role name "sftp-adapter-sftp-vso"` |
-| 2026-09-09 | tools 185–187: VSO role·policy 복구. controller 재시작 |
-| 2026-09-09 13:09 UTC | system 505: `disableRemount: true` |
-| 2026-09-09 13:13 UTC | tools 189. 새 invalid-role 이벤트 없음 |
-| 2026-09-09 13:23 UTC | `authorized_keys`=`null` 확인 |
-| 2026-09-09 13:40 UTC | tools 190. `ssh-keygen -y`. bootstrap 재실행 없음 |
-| 2026-09-09 13:41 UTC | `sftp-repair-public` Complete. KV user v3. VSO user Synced. Reloader qBit |
-| 2026-09-09 23:32 UTC | 수동 `sftp-rotate-test` Complete. KV user v4. Reloader `qbittorrent-54758c7b79` 3/3 |
-| 2026-09-10 | 사용자: qBit RaiDrive 로그인 정상 |
-| 2026-09-10 | Jellyfin `SftpV1` → `SftpV3` (`jellyfinSftpAdapter`). system `vault-oidc-kv`에 Jellyfin user list. apps 138. bootstrap Complete, VSO Synced, `jellyfin-7bb6488d47` 3/3 |
-| 2026-09-10 | 사용자: Jellyfin RaiDrive `current_private` 로그인 정상. 아카이브 |
-| 2026-09-10 | v1 삭제를 `docs/issues/2026-09-10-sftp-v1-removal.md`로 분리. 10월 말까지 v3 관찰 |
+| 일시                 | 내용                                                                                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-09-09           | v2 설계·구현 (SSH CA cert, 하이브리드 KEX). 플랫폼 CA·identity group 라이브                                                                                            |
+| 2026-09-09           | RaiDrive 불가 확인. v3 설계 — 생 키, `issue`는 키젠만, 분기 유저 회전, Slack                                                                                           |
+| 2026-09-09 09:13 UTC | qBit v3 라이브. bootstrap Complete. VSO 첫 싱크 성공                                                                                                                   |
+| 2026-09-09 12:10 UTC | VSO `invalid role name "sftp-adapter-sftp-vso"`                                                                                                                        |
+| 2026-09-09           | tools 185–187: VSO role·policy 복구. controller 재시작                                                                                                                 |
+| 2026-09-09 13:09 UTC | system 505: `disableRemount: true`                                                                                                                                     |
+| 2026-09-09 13:13 UTC | tools 189. 새 invalid-role 이벤트 없음                                                                                                                                 |
+| 2026-09-09 13:23 UTC | `authorized_keys`=`null` 확인                                                                                                                                          |
+| 2026-09-09 13:40 UTC | tools 190. `ssh-keygen -y`. bootstrap 재실행 없음                                                                                                                      |
+| 2026-09-09 13:41 UTC | `sftp-repair-public` Complete. KV user v3. VSO user Synced. Reloader qBit                                                                                              |
+| 2026-09-09 23:32 UTC | 수동 `sftp-rotate-test` Complete. KV user v4. Reloader `qbittorrent-54758c7b79` 3/3                                                                                    |
+| 2026-09-10           | 사용자: qBit RaiDrive 로그인 정상                                                                                                                                      |
+| 2026-09-10           | Jellyfin `SftpV1` → `SftpV3` (`jellyfinSftpAdapter`). system `vault-oidc-kv`에 Jellyfin user list. apps 138. bootstrap Complete, VSO Synced, `jellyfin-7bb6488d47` 3/3 |
+| 2026-09-10           | 사용자: Jellyfin RaiDrive `current_private` 로그인 정상. 아카이브                                                                                                      |
+| 2026-09-10           | v1 삭제를 `docs/issues/2026-09-10-sftp-v1-removal.md`로 분리. 10월 말까지 v3 관찰                                                                                      |

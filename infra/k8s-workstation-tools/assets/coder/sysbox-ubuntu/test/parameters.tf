@@ -21,6 +21,10 @@ data "coder_parameter" "cpu" {
     name  = "8 Cores"
     value = "8"
   }
+  option {
+    name  = "10 Cores"
+    value = "10"
+  }
   order = 1
 }
 

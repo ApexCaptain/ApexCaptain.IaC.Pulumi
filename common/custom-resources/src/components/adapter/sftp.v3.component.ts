@@ -3,6 +3,7 @@ import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
 import dedent from 'dedent';
+import { renderSftpV3IssuerJobScript } from './sftp-v3-issuer-job.template';
 import { VirtualServiceV1 } from '../../resources/k8s/crd/istio/virtual-service.v1.res';
 import { VaultAuthV1 } from '../../resources/k8s/crd/vso/vault-auth.v1.res';
 import { VaultStaticSecretV1 } from '../../resources/k8s/crd/vso/vault-static-secret.v1.res';
@@ -409,125 +410,25 @@ export const SftpV3Component = utils.functions.defineComponent(
           namespaceName,
           adapterName,
         ]) =>
-          dedent`
-            set -eu
-            export VAULT_ADDR=${JSON.stringify(vaultAddress)}
-            export VAULT_CACERT=/vault/ca/ca.crt
-            apk add --no-cache jq curl coreutils openssh-keygen >/dev/null
-            VAULT_TOKEN="$(vault write -field=token "auth/${k8sMount}/login" \
-              role="${k8sRole}" \
-              jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)")"
-            export VAULT_TOKEN
-            USER_KV="${kvMount}/${userPath}"
-            HOST_KV="${kvMount}/${hostPath}"
-            SLACK_URL="$(cat /slack/url)"
-            kv_blank() { [ -z "$1" ] || [ "$1" = "null" ]; }
-            pub_from_priv() {
-              umask 077
-              tmp="$(mktemp)"
-              printf '%s\n' "$1" > "$tmp"
-              ssh-keygen -y -f "$tmp"
-              rm -f "$tmp"
-            }
-            slack_post() {
-              curl -sS -X POST -H 'Content-type: application/json' \
-                --data "$(jq -n --arg text "$1" '{text:$text}')" \
-                "$SLACK_URL" >/dev/null || true
-            }
-            issue_user() {
-              vault write -format=json "${userCaMount}/issue/${userRole}" \
-                valid_principals="${username}" \
-                key_type=ed25519 \
-                ttl="${USER_ISSUE_TTL}"
-            }
-            put_user() {
-              vault kv put "$USER_KV" \
-                current_private="$1" \
-                current_public="$2" \
-                previous_private="$3" \
-                previous_public="$4" \
-                previous_expires_at="$5" \
-                slack_d1_sent="$6" \
-                authorized_keys="$7"
-            }
-            case "$SFTP_JOB_MODE" in
-              bootstrap)
-                HOST_ISSUE="$(vault write -format=json "${hostCaMount}/issue/${hostRole}" \
-                  cert_type=host \
-                  key_type=ed25519 \
-                  valid_principals="${principals}" \
-                  ttl="${HOST_ISSUE_TTL}")"
-                HOST_PRIV="$(echo "$HOST_ISSUE" | jq -r .data.private_key)"
-                vault kv put "$HOST_KV" \
-                  private_key="$HOST_PRIV" \
-                  public_key="$(pub_from_priv "$HOST_PRIV")"
-                USER_ISSUE="$(issue_user)"
-                CUR_PRIV="$(echo "$USER_ISSUE" | jq -r .data.private_key)"
-                CUR_PUB="$(pub_from_priv "$CUR_PRIV")"
-                put_user "$CUR_PRIV" "$CUR_PUB" "" "" "" "true" "$CUR_PUB"
-                ;;
-              rotate)
-                OLD="$(vault kv get -format=json "$USER_KV")"
-                OLD_PRIV="$(echo "$OLD" | jq -r '.data.data.current_private // empty')"
-                OLD_PUB="$(echo "$OLD" | jq -r '.data.data.current_public // empty')"
-                kv_blank "$OLD_PUB" && ! kv_blank "$OLD_PRIV" && OLD_PUB="$(pub_from_priv "$OLD_PRIV")"
-                USER_ISSUE="$(issue_user)"
-                CUR_PRIV="$(echo "$USER_ISSUE" | jq -r .data.private_key)"
-                CUR_PUB="$(pub_from_priv "$CUR_PRIV")"
-                EXPIRES="$(date -u -d '+${USER_KEY_OVERLAP}' +%Y-%m-%dT%H:%M:%SZ)"
-                AUTH="$CUR_PUB"
-                if ! kv_blank "$OLD_PUB"; then
-                  AUTH="$(printf '%s\n%s\n' "$CUR_PUB" "$OLD_PUB")"
-                fi
-                kv_blank "$OLD_PRIV" && OLD_PRIV=""
-                kv_blank "$OLD_PUB" && OLD_PUB=""
-                put_user "$CUR_PRIV" "$CUR_PUB" "$OLD_PRIV" "$OLD_PUB" "$EXPIRES" "false" "$AUTH"
-                slack_post "[sftp-v3] namespace=${namespaceName} adapter=${adapterName}
-            유저 SSH 키(Ed25519)가 교체되었습니다.
-            Vault 경로: ${kvMount}/data/${userPath} 의 current_private
-            RaiDrive에 새 개인키를 넣으세요. 옛 키는 7일 후 차단됩니다."
-                ;;
-              reconcile)
-                DATA="$(vault kv get -format=json "$USER_KV")"
-                EXP="$(echo "$DATA" | jq -r '.data.data.previous_expires_at // empty')"
-                SENT="$(echo "$DATA" | jq -r '.data.data.slack_d1_sent // empty')"
-                CUR_PRIV="$(echo "$DATA" | jq -r '.data.data.current_private // empty')"
-                CUR_PUB="$(echo "$DATA" | jq -r '.data.data.current_public // empty')"
-                PREV_PRIV="$(echo "$DATA" | jq -r '.data.data.previous_private // empty')"
-                PREV_PUB="$(echo "$DATA" | jq -r '.data.data.previous_public // empty')"
-                kv_blank "$SENT" && SENT="true"
-                kv_blank "$EXP" && EXP=""
-                kv_blank "$PREV_PRIV" && PREV_PRIV=""
-                kv_blank "$PREV_PUB" && PREV_PUB=""
-                if kv_blank "$CUR_PUB" && ! kv_blank "$CUR_PRIV"; then
-                  CUR_PUB="$(pub_from_priv "$CUR_PRIV")"
-                  AUTH="$CUR_PUB"
-                  if [ -n "$PREV_PUB" ]; then
-                    AUTH="$(printf '%s\n%s\n' "$CUR_PUB" "$PREV_PUB")"
-                  fi
-                  put_user "$CUR_PRIV" "$CUR_PUB" "$PREV_PRIV" "$PREV_PUB" "$EXP" "$SENT" "$AUTH"
-                fi
-                kv_blank "$EXP" && exit 0
-                NOW_EPOCH="$(date -u +%s)"
-                EXP_EPOCH="$(date -u -d "$EXP" +%s)"
-                if [ "$NOW_EPOCH" -ge "$EXP_EPOCH" ]; then
-                  put_user "$CUR_PRIV" "$CUR_PUB" "" "" "" "true" "$CUR_PUB"
-                  exit 0
-                fi
-                REMAIN="$((EXP_EPOCH - NOW_EPOCH))"
-                if [ "$REMAIN" -le 86400 ] && [ "$SENT" != "true" ]; then
-                  AUTH="$(printf '%s\n%s\n' "$CUR_PUB" "$PREV_PUB")"
-                  put_user "$CUR_PRIV" "$CUR_PUB" "$PREV_PRIV" "$PREV_PUB" "$EXP" "true" "$AUTH"
-                  slack_post "[sftp-v3] namespace=${namespaceName} adapter=${adapterName}
-            옛 유저 SSH 키가 내일 차단됩니다. Vault에서 current_private을 받아 RaiDrive를 갱신하세요."
-                fi
-                ;;
-              *)
-                echo "unknown SFTP_JOB_MODE=$SFTP_JOB_MODE" >&2
-                exit 1
-                ;;
-            esac
-          `,
+          renderSftpV3IssuerJobScript({
+            vaultAddress,
+            k8sMount,
+            k8sRole,
+            userCaMount,
+            hostCaMount,
+            userRole,
+            hostRole,
+            hostPrincipals: principals,
+            username,
+            kvMount,
+            hostKvPath: hostPath,
+            userKvPath: userPath,
+            namespace: namespaceName,
+            adapter: adapterName,
+            userIssueTtl: USER_ISSUE_TTL,
+            hostIssueTtl: HOST_ISSUE_TTL,
+            userKeyOverlap: USER_KEY_OVERLAP,
+          }),
       );
 
     const issuerPodSpec = (

@@ -516,6 +516,7 @@ void (async () => {
           associations: new src.classes.VsCodeObject({
             '.ToDo': 'markdown',
             '*.yaml.tpl': 'helm',
+            '*.sh.tpl': 'shellscript',
           }),
         },
         todohighlight: {
@@ -545,7 +546,7 @@ void (async () => {
               '*.type.ts': 'toml',
               '*.esc.ts': 'key',
               '*.res.ts': 'scheme',
-              '*.data.ts': 'scheme',
+              '*.data.ts': 'schemej',
               '*.diagnosis.md': 'document',
               'contract.ts': 'bbx',
             }),
