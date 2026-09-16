@@ -10,6 +10,7 @@
 
 | 언제 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
+| **2026-09-19** | qBit dr Cron: 01:00 KST 실행·pCloud timestamp 폴더·`keepWithin=2d` prune 확인 | [PVC pCloud 암호화 백업](issues/2026-09-15-pcloud-pvc-encrypted-backup.md) | 진행중 |
 | **2026-10 초** | VPA 추천 재스냅샷 → 갭 재분석. 안전한 항목만 IaC 패치. jellyfin / qbittorrent / coder는 피크 확인 후에만 축소 | [VPA 리소스 재조정](issues/2026-09-08-vpa-resource-rightsizing-followup.md) | 보류 |
 | **2026-10 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
 | **2026-10-25 19:03 KST** | leaf 갱신 (`vault-server-certificate` renewalTime 10:03:36Z). Reloader가 vault-0를 롤했는지, 롤 후 `VaultConnection` Healthy·서비스 DNS TLS 유지되는지. 통과하면 `docs/resolved`로 이동 | [Vault TLS cert reload](issues/2026-09-06-vault-tls-cert-reload.md) | 적용 · 실검증 대기 |
@@ -25,7 +26,6 @@
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
-| qBit 일회 POC 검증 완료 · Job 컴포넌트 삭제됨 | CronJob+Lease 정식 도입, 또는 Vault raft Job | [PVC pCloud 암호화 백업](issues/2026-09-15-pcloud-pvc-encrypted-backup.md) | 진행중 |
 
 ---
 

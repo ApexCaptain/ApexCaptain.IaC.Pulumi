@@ -148,7 +148,7 @@
             "--peer",
             "--no-deprecated",
             "--dep=dev,prod,peer,optional",
-            "--filter=@types/node,eslint-import-resolver-typescript,eslint-plugin-import,typescript,@pulumi/kubernetes,@pulumi/pulumi,@pulumi/random,@pulumi/vault,dedent,lodash,timezone-enum,yaml"
+            "--filter=@types/node,eslint-import-resolver-typescript,eslint-plugin-import,typescript,@pulumi/kubernetes,@pulumi/pulumi,@pulumi/random,@pulumi/vault,cron-time-generator,dedent,lodash,timezone-enum,yaml"
           ]
         },
         {
@@ -176,6 +176,7 @@
             "@pulumi/pulumi",
             "@pulumi/random",
             "@pulumi/vault",
+            "cron-time-generator",
             "dedent",
             "lodash",
             "timezone-enum",

@@ -646,6 +646,9 @@ importers:
       '@pulumi/vault':
         specifier: ^7.10.0
         version: 7.10.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
+      cron-time-generator:
+        specifier: ^2.0.3
+        version: 2.0.3
       dedent:
         specifier: ^1.7.2
         version: 1.7.2

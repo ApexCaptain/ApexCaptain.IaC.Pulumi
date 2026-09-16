@@ -405,6 +405,7 @@ void (async () => {
           src.constants.pulumiPackages.vault,
           src.constants.pulumiPackages.random,
 
+          'cron-time-generator',
           'timezone-enum',
         ],
         commonDeps: [

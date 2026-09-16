@@ -5,7 +5,7 @@
 | **등록일**    | 2026-09-15                                                                                                                                |
 | **영역**      | workstation 클러스터 PVC 오프사이트 백업. `k8s-workstation-system` / `apps` / `tools`, Pulumi ESC                                         |
 | **관련 코드** | `common/nexus/src/esc/` (pCloud 예정), `scripts/sync-pulumi-esc.script.ts`, `infra/k8s-workstation-system` (Credentials·Platform), apps/tools (워크로드별 Backup Job) |
-| **상태**      | **진행중** — qBit config 일회 POC 업로드 검증 완료 후 Job 컴포넌트 **삭제**. Platform·snapshotter 유지. 다음: CronJob 정식 도입 또는 Vault Job |
+| **상태**      | **진행중** — qBit Phase 1 Cron 운영 중 (`config`, 01:00 KST, `keepWithin=2d`, `runOnceOnCreate=false`). ~3일 후 retention·스케줄 확인 |
 
 ## 배경
 
@@ -31,9 +31,9 @@
 
 | 항목                             | 내용                                     |
 | -------------------------------- | ---------------------------------------- |
-| pCloud ESC/Secret                | ESC sync 완료. system `pulumi up`으로 NS `pcloud-backup` / Secret `pcloud-backup-credentials` / Lease `dr`·`media` 생성됨 |
+| pCloud ESC/Secret                | ESC sync 완료. system: NS / Secret / ConfigMap(`clusterName`) / Lease `dr`·`media` / `longhorn-snap` |
 | VolumeSnapshot / CSI snapshotter | 적용됨. NS `snapshot-controller` (Deployment 1/1, v8.6.0). VSC `longhorn-snap` (`driver.longhorn.io`, `type: snap`, Delete) |
-| 백업 CronJob/컴포넌트            | qBit 일회 Job 컴포넌트 삭제됨 (POC만). CronJob·Vault Job 미도입 |
+| 백업 CronJob/컴포넌트            | qBit `QbittorrentBackupComponent` 코드 준비. Phase 1: `config` only · cron 01:00 KST · `keepWithin=2d`. 미배포 → 배포 후 모니터링 |
 | 구성 SSOT                        | 본 이슈 |
 | pCloud 용량 전략                 | POC 통과. Lane B는 유료 플랜 후 |
 
@@ -49,7 +49,7 @@
 | `vikunja/vikunja-postgresql-cluster-1`  | 8 Gi   | longhorn-ssd        | `pg_dump`                            | `k8s-backup/dr/vikunja-pg/`         |                         |
 | `jellyfin/jellyfin-config`              | 5 Gi   | longhorn-ssd-retain | VolumeSnapshot 클론 후 tar           | `k8s-backup/dr/jellyfin-config/`    |                         |
 | `vikunja/vikunja-data`                  | 2 Gi   | longhorn-ssd        | 동일                                 | `k8s-backup/dr/vikunja-data/`       |                         |
-| `qbittorrent/qbittorrent-config`        | 200 Mi | longhorn-ssd        | VolumeSnapshot 클론 후 tar           | `k8s-backup/dr/qbittorrent-config/` | **Phase 1 POC 1순위** (무료 3 GB) |
+| `qbittorrent/qbittorrent-config`        | 200 Mi | longhorn-ssd        | VolumeSnapshot 클론 후 tar           | `k8s-backup/workstation/dr/qbittorrent/qbittorrent-config/{ts}/` | **Phase 1 Cron 1순위** (무료 3 GB) |
 
 ### Lane B — 대용량 파일 (느리게, 큐 분리)
 
@@ -117,10 +117,10 @@ raft / pg_dump /   snapshot·clone 후 rclone
 ### Lane B
 
 - `current/` + `--backup-dir archive/{YYYY-MM-DD_HHmmss}/` 가능.
-- Crypt remote는 PVC leaf당 하나. `remote = pcloud:k8s-backup/{lane}/{name}`. dest와 `--backup-dir`는 같은 crypt remote 이름.
-- **경로 정책 확정 (2026-09-15):** 계층형 C.
-  - pCloud 웹 평문: `k8s-backup/{lane}/{name}/` 까지.
-  - 그 아래(`current`·`archive`·내부 폴더·파일명): `directory_name_encryption=true` + filename encryption. 웹에서는 난독화. Windows mount(키 있음)에서만 평문 트리.
+- Crypt remote는 PVC leaf당 하나. `remote = pcloud:k8s-backup/{cluster}/{lane}/{namespace}/{pvc}`. dest와 `--backup-dir`는 같은 crypt remote 이름.
+- **경로 정책 확정 (2026-09-15, cluster 세그먼트 2026-09-16):** 계층형 C.
+  - pCloud 웹 평문: `k8s-backup/{cluster}/{lane}/{namespace}/{pvc}/{timestamp}/` 까지.
+  - 그 안 파일명·내용: `filename_encryption=standard` + crypt. `directory_name_encryption=false` (timestamp 평문).
 - pCloud mtime 대비 `--modify-window 1s` (필요 시 checksum).
 - Windows `rclone mount`는 Lane B 탐색용. `vfs-cache-mode full`은 2 Ti에서 위험 → `writes`/`minimal`부터.
 - Phase 1 POC에서 `--backup-dir`+동일 crypt remote 동작 검증. 실패 시 이 이슈에서 A로 후퇴 검토.
@@ -143,10 +143,10 @@ Job 없이 플랫폼만:
 |---|---|
 | ESC `pcloudBackup` | `common/nexus/src/esc/k8s-workstation-system.esc.ts` |
 | sync 매핑 | `scripts/sync-pulumi-esc.script.ts` ← `PCLOUD_*` |
-| Platform | `.../pcloud-backup/` — NS `pcloud-backup`, Secret, Lease `pcloud-backup-dr` / `pcloud-backup-media` (구 Lane A/B) |
-| contract output | `pcloudBackup.namespace` / `credentialsSecretName` / `credentialsSecretKeys` / `drLeaseName` / `mediaLeaseName` |
+| Platform | `.../pcloud-backup/` — NS · Secret · ConfigMap(`clusterName`) · Lease `dr`/`media` · `longhorn-snap` |
+| contract output | `namespace` / `configMapName` / `credentialsSecretName` / `drLeaseName` / `mediaLeaseName` / `volumeSnapshotClassName` |
 
-**아직 없음:** VolumeSnapshotClass (CRD 선행), Vault/qBit 등 Backup Job.
+**워크로드 Job:** tools 등 — platform 이름만 StackReference. credentials·clusterName 값 재주입 없음.
 
 Jellyfin 백업 Job은 apps 스택에 둔다.
 
@@ -165,7 +165,7 @@ Jellyfin 백업 Job은 apps 스택에 둔다.
 - [x] Lane C 제외 목록 최종 — **확정 A**: incomplete · modcache · jellyfin-cache · monitoring 전부 제외
 - [x] Coder workspace 백업 범위 — **확정 B**: `home`만 포함. `data`·`docker` 제외
 - [x] Lane B(및 소형 파일) 읽기 — **확정 A**: CSI VolumeSnapshot + 클론. sidecar 미채택
-- [x] Crypt 경로 — **확정 C-1**: leaf(`k8s-backup/{lane}/{name}`)까지 평문. 그 아래 `directory_name_encryption=true`
+- [x] Crypt 경로 — **확정 C-1 수정 (2026-09-16)**: leaf+`{timestamp}`까지 평문. `directory_name_encryption=false`, 파일명만 encrypt
 - [x] 소형 config — **확정 C**: tar/zstd 아카이브 → rclone Crypt copy. restic/kopia 미사용
 - [x] pCloud 계정·용량·OAuth — **확정 D**: 계정 있음, 유료 미결제, 무료 **3 GB**. 결제 전 최소 PVC로 POC. Lane B는 용량 확인·결제 후
 
@@ -176,7 +176,7 @@ Jellyfin 백업 Job은 apps 스택에 둔다.
 | Lane C | incomplete·cache·monitoring·coder data/docker 제외 |
 | Coder ws | `home`만 |
 | RWO 읽기 | CSI VolumeSnapshot + 클론 |
-| Crypt 경로 | C-1 (leaf 평문, 내부 디렉터리명 암호) |
+| Crypt 경로 | leaf+timestamp 평문 (`directory_name_encryption=false`), 파일명·내용 crypt |
 | 소형 config | tar/zstd → Crypt copy |
 | pCloud | 무료 3 GB로 POC → 검증 후 결제·Lane B |
 
@@ -248,7 +248,7 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 - [x] `script:syncPulumiEsc` + system `pulumi up`으로 Platform 적용
 - [x] VolumeSnapshot / external-snapshotter 도입 후 SnapshotClass — Piraeus 5.2.0 + `longhorn-snap` 적용
 - [x] 첫 Backup Job — qBit `qbittorrent-config` 일회 POC 업로드 성공 후 **컴포넌트 삭제** (정식은 CronJob에서)
-- [ ] CronJob 스케줄 + `pcloud-backup-dr` Lease (qBit config 포함)
+- [ ] CronJob 스케줄 + `pcloud-backup-dr` Lease (qBit config: 01:00 Asia/Seoul, keepWithin 2d — 설정 확정, 배포·모니터링 대기)
 - [ ] Vault raft Backup Job
 - [ ] Windows mount 복호화 (선택)
 - [ ] 유료 플랜 결정 트리거: Lane B 전
@@ -321,3 +321,16 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-09-15 | qBit config 일회 Job 통과: VS→클론→`tar.zst` 6.1MiB → Crypt `k8s-backup/dr/qbittorrent-config/`. alpine+worker.sh. CronJob·Lease·tools Pulumi state 정렬 남음 |
 | 2026-09-16 | `QbittorrentConfigBackupComponent` 정리: 스크립트 `assets/qbittorrent-config-backup/`, clone SC/size args, stub 제거 |
 | 2026-09-16 | 오해 정정: 일회 Job 컴포넌트·assets·클러스터 SA/Secret/CM/Job **삭제**. POC 검증만 남김. pCloud 산출물은 수동 삭제 |
+| 2026-09-16 | 경로 확정: `k8s-backup/{cluster}/{lane}/{namespace}/{pvc}/{timestamp}`. retention=`keepWithin`만 (예 14d). qBit `QbittorrentBackupComponent` CronJob 초안 (미배포) |
+| 2026-09-16 | Lane A 공통을 `@common/custom-resources` `PvcSnapshotArchiveV1`로 추출. 스크립트 `templates/pvc-snapshot-archive.v1/`. qBit는 thin wrapper |
+| 2026-09-16 | clusterName·credentials SSOT=platform. tools는 ConfigMap/Secret 이름만. Job이 platform Secret 읽고 worker용 ephemeral Secret 복사 |
+| 2026-09-16 | 점검 후 정리: PLATFORM_NS, DNS-1123 짧은 run token, lease resourceVersion, ephemeral Secret 제거(base64 env), RBAC 축소, credentialsSecretKeys 제거 |
+| 2026-09-16 | qBit Phase 1 설정 확정: target `config`, `CronTime.everyDayAt(1)` Asia/Seoul, `keepWithin=2d`. 배포 후 의도대로 도는지 모니터링 |
+| 2026-09-16 | `runOnceOnCreate` 추가 (기본 false). qBit contract는 Phase 1 확인용 true — 통과 후 false |
+| 2026-09-16 | 사용자 배포 진행 (system ConfigMap 먼저 → tools). once Job·Cron·pCloud 경로 모니터링 |
+| 2026-09-16 | once Job Lease stuck: MicroTime에 `…Z` 불가 → `…000000Z` 필요. run.sh 수정. ConfigMap 재배포 후 once 재실행 |
+| 2026-09-16 | 실패 Job 삭제 → tools refresh/up. script CM replace + once Job 재생성 **성공** (~92s, exit 0) |
+| 2026-09-16 | Crypt: timestamp도 웹 평문 원함 → `directory_name_encryption=false`. 기존 난독 폴더는 수동 삭제 권장 |
+| 2026-09-16 | timestamp 평문 적용 재배포: CM replace + once Job **성공** (~96s). path `…/qbittorrent-config/{ts}/` 웹 확인 |
+| 2026-09-16 | TIMESTAMP·prune를 `Asia/Seoul`로. orch에 `tzdata` 추가 |
+| 2026-09-16 | once 검증 종료 → `runOnceOnCreate=false`. ~3일 후 Cron·keepWithin=2d 확인 예정 |

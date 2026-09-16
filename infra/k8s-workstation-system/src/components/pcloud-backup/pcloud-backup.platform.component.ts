@@ -1,13 +1,12 @@
 /**
- * pCloud 백업 플랫폼 — Namespace · Credentials Secret · 큐 Lease · VolumeSnapshotClass
+ * pCloud 백업 플랫폼 — NS · Credentials Secret · ConfigMap(clusterName) · Lease · VolumeSnapshotClass
  *
- * 큐 이름 = pCloud 경로 prefix와 동일:
- * - `dr`    — raft/pg_dump/소형 tar (k8s-backup/dr/...)
- * - `media` — 대용량 rclone sync (k8s-backup/media/..., coder-ws home)
+ * pCloud 경로: k8s-backup/{clusterName}/{lane}/...
+ * 큐(lane):
+ * - `dr`    — raft/pg_dump/소형 tar
+ * - `media` — 대용량 rclone sync
  *
- * VolumeSnapshotClass는 snapshot-controller CRD 이후에 생성 (caller dependsOn).
- * 백업 CronJob 자체는 워크로드 소유 스택에 둔다.
- * 이름·Secret 키는 export const 없이 literal + output으로만 노출.
+ * clusterName·credentials SSOT는 여기. 워크로드 CronJob은 이름만 받아 Job이 런타임 조회.
  *
  * @see docs/issues/2026-09-15-pcloud-pvc-encrypted-backup.md
  */
@@ -16,6 +15,8 @@ import * as k8s from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
 interface PcloudBackupPlatformComponentArgsShape {
+  /** pCloud 경로 클러스터 구분자 — k8s-backup/{clusterName}/... */
+  clusterName: string;
   credentials: {
     hostname: string;
     token: string;
@@ -72,6 +73,29 @@ export const PcloudBackupPlatformComponent = utils.functions.defineComponent(
           'token': args.credentials.token,
           'crypt-password': args.credentials.cryptPassword,
           'crypt-password2': args.credentials.cryptPassword2,
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [namespace],
+      },
+    );
+
+    // 워크로드 Job이 경로 세그먼트를 여기서 읽음 (스택마다 clusterName 전달 불필요)
+    const configMap = new k8s.core.v1.ConfigMap(
+      `${resourceName}-config`,
+      {
+        metadata: {
+          name: 'pcloud-backup-config',
+          namespace: namespace.metadata.name,
+          labels: {
+            'app.kubernetes.io/name': 'pcloud-backup',
+            'app.kubernetes.io/component': 'config',
+          },
+        },
+        data: {
+          clusterName: args.clusterName,
         },
       },
       {
@@ -156,14 +180,10 @@ export const PcloudBackupPlatformComponent = utils.functions.defineComponent(
 
     return {
       output: pulumi.output({
+        clusterName: args.clusterName,
+        configMapName: configMap.metadata.name,
         namespace: namespace.metadata.name,
         credentialsSecretName: credentialsSecret.metadata.name,
-        credentialsSecretKeys: {
-          hostname: 'hostname',
-          token: 'token',
-          cryptPassword: 'crypt-password',
-          cryptPassword2: 'crypt-password2',
-        },
         drLeaseName: drLease.metadata.name,
         mediaLeaseName: mediaLease.metadata.name,
         volumeSnapshotClassName: volumeSnapshotClass.metadata.name,

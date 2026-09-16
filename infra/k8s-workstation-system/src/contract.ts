@@ -1158,11 +1158,12 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       { dependsOn: [grafanaHelmChart, istioGateway] },
     );
 
-    // pCloud backup platform — Credentials Secret + Lane leases + VolumeSnapshotClass
+    // pCloud backup platform — Secret · ConfigMap(clusterName) · Lease · VolumeSnapshotClass
     const pcloudBackupPlatform =
       new components.pcloudBackup.PcloudBackupPlatformComponent(
         'pcloudBackupPlatform',
         {
+          clusterName: commonEsc.esc.istioNetwork.workstationClusterName,
           credentials: {
             hostname: projectEsc.esc.pcloudBackup.hostname,
             token: projectEsc.esc.pcloudBackup.token,
@@ -1228,11 +1229,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           identityGroupIds: vaultIdentityTiers.output.identityGroupIds,
         },
         pcloudBackup: {
+          clusterName: pcloudBackupPlatform.output.clusterName,
+          configMapName: pcloudBackupPlatform.output.configMapName,
           namespace: pcloudBackupPlatform.output.namespace,
           credentialsSecretName:
             pcloudBackupPlatform.output.credentialsSecretName,
-          credentialsSecretKeys:
-            pcloudBackupPlatform.output.credentialsSecretKeys,
           drLeaseName: pcloudBackupPlatform.output.drLeaseName,
           mediaLeaseName: pcloudBackupPlatform.output.mediaLeaseName,
           volumeSnapshotClassName:
