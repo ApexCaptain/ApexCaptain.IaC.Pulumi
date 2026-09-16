@@ -27,7 +27,7 @@ install_pnpm() {
 install_nova() {
     echo "🔄 Installing Fairwinds Nova"
     asdf plugin-add nova
-    asdf install nova latest
+    asdf install nova ${NOVA_VERSION}
     asdf global nova ${NOVA_VERSION}
     echo "✅ Fairwinds Nova installed"
 }
@@ -35,7 +35,7 @@ install_nova() {
 install_pluto() {
     echo "🔄 Installing Fairwinds Pluto"
     asdf plugin-add pluto
-    asdf install pluto latest
+    asdf install pluto ${PLUTO_VERSION}
     asdf global pluto ${PLUTO_VERSION}
     echo "✅ Fairwinds Pluto installed"
 }

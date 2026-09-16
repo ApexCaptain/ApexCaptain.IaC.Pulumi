@@ -45,6 +45,8 @@ Cilium
 | `goldilocks` | VPA 추천 대시보드. opt-in 라벨, Authentik Proxy + ext-authz |
 | `vaultSecretsOperator` | VSO Helm + VaultConnection |
 | `reloader` | Stakater Reloader |
+| `snapshotController` | Piraeus CSI snapshot-controller + VolumeSnapshot CRD |
+| `pcloudBackup` | pCloud 백업 플랫폼 (Secret·Lease·VolumeSnapshotClass). Job은 워크로드 스택 |
 | `argo` | Rollouts, Argo CD. GitOps 레포 정체성은 `@infra/github`. 이 스택은 deploy key·webhook·Argo Repository 연결 |
 | `monitoring` | OTel operator, VictoriaMetrics, Loki, Tempo, Grafana + Authentik OIDC + mesh ingress |
 

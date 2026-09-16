@@ -24,10 +24,15 @@ export * as vaultSecretsOperator from './vault-secrets-operator';
 
 export * as reloader from './reloader';
 
+export * as snapshotController from './snapshot-controller';
+
 export * as argo from './argo';
+
 
 export * as monitoring from './monitoring';
 
 export * as vpa from './vpa';
 
 export * as goldilocks from './goldilocks';
+
+export * as pcloudBackup from './pcloud-backup';

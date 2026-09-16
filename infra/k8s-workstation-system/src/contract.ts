@@ -786,6 +786,24 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     });
 
+    // CSI snapshot-controller — VolumeSnapshot CRD + 컨트롤러 (Longhorn csi-snapshotter와 별개)
+    const snapshotControllerHelmChart =
+      new components.snapshotController.SnapshotControllerHelmChartComponent(
+        'snapshotControllerHelmChart',
+        {
+          helm: {
+            snapshotController: {
+              version: '5.2.0',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['piraeus.io/helm-charts'],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+      );
+
     // Argo (CD / Rollouts / Workflows …)
     const argoChartRepositoryUrl =
       commonEsc.esc.helmRepositoryUrls['argoproj.github.io/argo-helm'];
@@ -1140,6 +1158,27 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       { dependsOn: [grafanaHelmChart, istioGateway] },
     );
 
+    // pCloud backup platform — Credentials Secret + Lane leases + VolumeSnapshotClass
+    const pcloudBackupPlatform =
+      new components.pcloudBackup.PcloudBackupPlatformComponent(
+        'pcloudBackupPlatform',
+        {
+          credentials: {
+            hostname: projectEsc.esc.pcloudBackup.hostname,
+            token: projectEsc.esc.pcloudBackup.token,
+            cryptPassword: projectEsc.esc.pcloudBackup.cryptPassword,
+            cryptPassword2: projectEsc.esc.pcloudBackup.cryptPassword2,
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          // VolumeSnapshotClass는 snapshot.storage CRD 이후
+          dependsOn: [snapshotControllerHelmChart],
+        },
+      );
+
     return {
       output: pulumi.output({
         namespaces: {
@@ -1187,6 +1226,17 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             roleName: vaultCoderJwt.output.jwt.roleName,
           },
           identityGroupIds: vaultIdentityTiers.output.identityGroupIds,
+        },
+        pcloudBackup: {
+          namespace: pcloudBackupPlatform.output.namespace,
+          credentialsSecretName:
+            pcloudBackupPlatform.output.credentialsSecretName,
+          credentialsSecretKeys:
+            pcloudBackupPlatform.output.credentialsSecretKeys,
+          drLeaseName: pcloudBackupPlatform.output.drLeaseName,
+          mediaLeaseName: pcloudBackupPlatform.output.mediaLeaseName,
+          volumeSnapshotClassName:
+            pcloudBackupPlatform.output.volumeSnapshotClassName,
         },
       }),
       secret: pulumi.secret({

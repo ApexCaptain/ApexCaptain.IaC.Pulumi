@@ -25,6 +25,7 @@
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
+| qBit 일회 POC 검증 완료 · Job 컴포넌트 삭제됨 | CronJob+Lease 정식 도입, 또는 Vault raft Job | [PVC pCloud 암호화 백업](issues/2026-09-15-pcloud-pvc-encrypted-backup.md) | 진행중 |
 
 ---
 
