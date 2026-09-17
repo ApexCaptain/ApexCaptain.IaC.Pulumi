@@ -20,6 +20,7 @@ alwaysApply: true
 |------|------|-----------|-----------|
 | 커밋 메시지 | `pnpm script:generateCommitMessage` | `scripts/prompts/` | `.github/generated/commit-message.txt` |
 | PR Title/Body | `pnpm script:generatePullRequest` | `scripts/prompts/` | `.github/generated/pull-request-title.txt`, `pull-request-body.md` |
+| README 합성 (루트·서브모듈) | `pnpm script:synthProjectReadme` | `scripts/prompts/project-readme/`, `generate-readme` 스킬 | `.github/generated/readme/` |
 
 ## caveman (상시 ON)
 
@@ -37,7 +38,7 @@ alwaysApply: true
 | PR 본문·초안/pull-request | `pnpm script:generatePullRequest` 실행 |
 | feature PR 열기 / 브랜치 이름 | `pnpm script:openPullRequest` (보호 브랜치면 AI 브랜치명) |
 | develop→main 동기화 PR | `pnpm script:promoteDevelopToMain` |
-| README 작성·갱신 (서브모듈) | `generate-readme` |
+| README 작성·갱신 | `pnpm script:synthProjectReadme` (기본 루트; `--all-workspace` / `--package`) 또는 `generate-readme` 스킬 |
 | SpecStory 히스토리 정리·삭제·요약 | `cleanup-specstory-history` (**사용자 명시·승인 시만**) |
 | 원인 불명·간헐 실패·왜 안 되는지 먼저 | `investigate-first` |
 | 작은 버그 수정 | `surgical-patch` |

@@ -373,6 +373,8 @@ void (async () => {
           src.constants.pulumiPackages.vault,
           src.constants.pulumiPackages.github,
           src.constants.pulumiPackages.random,
+          'cron-time-generator',
+          'timezone-enum',
         ],
         commonDeps: [
           commonProjects.bridgedProviderProject.project.package.packageName,
@@ -404,7 +406,7 @@ void (async () => {
           src.constants.pulumiPackages.kubernetes,
           src.constants.pulumiPackages.vault,
           src.constants.pulumiPackages.random,
-
+          'cron-time-generator',
           'timezone-enum',
         ],
         commonDeps: [
@@ -546,7 +548,7 @@ void (async () => {
               '*.type.ts': 'toml',
               '*.esc.ts': 'key',
               '*.res.ts': 'scheme',
-              '*.data.ts': 'schemej',
+              '*.data.ts': 'scheme',
               '*.diagnosis.md': 'document',
               'contract.ts': 'bbx',
             }),
@@ -558,7 +560,7 @@ void (async () => {
               '.kube': 'kubernetes',
               workstation: 'home',
               '.projen': 'project',
-              '.diagnosis': 'resource',
+              diagnosis: 'resource',
               ventoy: 'robot',
             }),
           },
@@ -635,21 +637,21 @@ void (async () => {
     },
   );
 
-  // Readme File
-  const readmeFile = new TextFile(rootProject, 'README.md', {
-    lines: [
-      '# Diagnosis',
-      ...fs
-        .readdirSync(src.constants.paths.dirs.diagnosisDir)
-        .map(eachFileName => {
-          return fs
-            .readFileSync(
-              path.join(src.constants.paths.dirs.diagnosisDir, eachFileName),
-            )
-            .toString();
-        }),
-    ],
-  });
+  // // Readme File
+  // const readmeFile = new TextFile(rootProject, 'README.md', {
+  //   lines: [
+  //     '# Diagnosis',
+  //     ...fs
+  //       .readdirSync(src.constants.paths.dirs.diagnosisDir)
+  //       .map(eachFileName => {
+  //         return fs
+  //           .readFileSync(
+  //             path.join(src.constants.paths.dirs.diagnosisDir, eachFileName),
+  //           )
+  //           .toString();
+  //       }),
+  //   ],
+  // });
 
   // lint-staged — staged TS only. Env must live in the hook: lint-staged does not expand shell env in commands.
   // cwd per nearest .eslintrc.json — root eslint would resolve ./test/tsconfig.json to the repo, not the package.
@@ -968,6 +970,7 @@ void (async () => {
     'script:syncPulumiEsc': `ts-node scripts/sync-pulumi-esc.script.ts`,
     'script:generateVentoyUserData': `ts-node scripts/generate-ventoy-user-data.script.ts`,
     'script:bootstrapLocalEnv': `ts-node scripts/bootstrap-local-env.script.ts`,
+    'script:synthProjectReadme': `ts-node scripts/synth-project-readme.script.ts`,
 
     // Pulumi — refresh는 PULUMI_REFRESH=1 로 선택 (기본 off)
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,

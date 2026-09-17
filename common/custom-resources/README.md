@@ -7,13 +7,13 @@ Pulumi/Terraform provider에 없거나 부족한 리소스·컴포넌트를 직�
 - **CRD 매핑** — Istio, cert-manager, Cilium, Longhorn, CNPG, VSO CustomResource 타입 정의
 - **로컬 리소스** — contract hash 파일(`TextFileV1`)
 - **K8s 헬퍼** — kubeconfig 파일(`KubeConfigFileV1`)
-- **재사용 컴포넌트** — SFTP adapter, TLS, Vault Secret
+- **재사용 컴포넌트** — SFTP adapter, TLS, Vault Secret, **pCloud Lane A 백업**
 
 ## 구조
 
 ```
 src/
-├── components/   # adapter(sftp), secrets, tls, vault
+├── components/   # adapter(sftp), backup, secrets, tls, vault
 ├── data/         # data source (authentik policy expression)
 └── resources/
     ├── k8s/crd/  # istio, cert-manager, cilium, longhorn, cnpg, vso
@@ -21,6 +21,10 @@ src/
     ├── local/    # textFile
     ├── vault/    # bootstrap-token Command
     └── coder/    # admin-api-token Command
+
+templates/        # 백업 Job 스크립트 (ConfigMap으로 마운트)
+├── pvc-snapshot-archive.v1/
+└── vault-raft-archive.v1/
 
 scripts/          # Command subprocess (bootstrap/admin token, pod exec)
 ```
@@ -40,6 +44,8 @@ scripts/          # Command subprocess (bootstrap/admin token, pod exec)
 
 | 컴포넌트 | 내용 |
 |----------|------|
+| `PvcSnapshotArchiveV1Component` | Lane A dr: VolumeSnapshot → clone → `tar.zst` → rclone Crypt CronJob. dest `k8s-backup/{cluster}/{lane}/{ns}/{pvc}/{ts}/` |
+| `VaultRaftArchiveV1Component` | Lane A dr: `vault operator raft snapshot` → Crypt CronJob. PVC/file copy 금지 |
 | `SftpV3Component` | Vault SSH CA issue + VSO + CronJob 회전. 라이브: Jellyfin, qBittorrent |
 | `SftpV1Component` | tls PrivateKey + ConfigMap. 코드·테스트만 잔존, 스택 호출자 없음 |
 | `SecretV1Component` | Vault KV v2 + identity policy + VSO sync (`shared`/`developer`/`runtime`) |

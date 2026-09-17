@@ -20,3 +20,14 @@ export type GenerationPromptTask = keyof typeof GENERATION_PROMPT_RULES;
 export function loadGenerationRules(task: GenerationPromptTask): string {
   return loadSkillRules(...SHARED_PROMPT_RULES, GENERATION_PROMPT_RULES[task]);
 }
+
+/**
+ * README 합성 스크립트용: 공통 스타일 + generate-readme 스킬 + project-readme 규칙.
+ */
+export function loadProjectReadmeRules(): string {
+  return loadSkillRules(
+    ...SHARED_PROMPT_RULES,
+    '.cursor/skills/generate-readme/SKILL.md',
+    'scripts/prompts/project-readme/rules.md',
+  );
+}

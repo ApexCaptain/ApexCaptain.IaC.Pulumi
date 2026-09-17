@@ -74,6 +74,15 @@ const k8sWorkstationSystemEscSchema = z
         slackWebhookUrlInfraWarning: z.string().min(1),
       })
       .required(),
+
+    pcloudBackup: z
+      .object({
+        hostname: z.string().min(1),
+        token: z.string().min(1),
+        cryptPassword: z.string().min(1),
+        cryptPassword2: z.string().min(1),
+      })
+      .required(),
   })
   .required();
 

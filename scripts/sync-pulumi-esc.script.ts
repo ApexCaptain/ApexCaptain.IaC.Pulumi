@@ -232,6 +232,12 @@ async function syncPulumiEsc(): Promise<void> {
         slackWebhookUrlInfraWarning:
           process.env.SLACK_WEBHOOK_URL_GRAFANA_INFRA_WARNING,
       },
+      pcloudBackup: {
+        hostname: requireEnv('PCLOUD_HOSTNAME'),
+        token: requireEnv('PCLOUD_OAUTH_TOKEN'),
+        cryptPassword: requireEnv('PCLOUD_CRYPT_PASSWORD'),
+        cryptPassword2: requireEnv('PCLOUD_CRYPT_PASSWORD2'),
+      },
     },
     {
       prod: {},
@@ -269,6 +275,12 @@ async function syncPulumiEsc(): Promise<void> {
       },
       slackWebhookUrlVaultInfraWarning:
         process.env.SLACK_WEBHOOK_URL_VAULT_INFRA_WARNING!!,
+      pcloudBackup: {
+        hostname: requireEnv('PCLOUD_HOSTNAME'),
+        token: requireEnv('PCLOUD_OAUTH_TOKEN'),
+        cryptPassword: requireEnv('PCLOUD_CRYPT_PASSWORD'),
+        cryptPassword2: requireEnv('PCLOUD_CRYPT_PASSWORD2'),
+      },
     },
     {
       prod: {},

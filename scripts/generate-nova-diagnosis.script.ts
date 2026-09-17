@@ -8,6 +8,7 @@ import _ from 'lodash';
 import semver from 'semver';
 import yaml from 'yaml';
 import { KubeConfig } from '../common/utils/src/interfaces/kubeconfig.interface';
+import * as src from '../src';
 
 /**
  * Fairwinds Nova CLI JSON 출력 결과 타입 정의
@@ -262,7 +263,13 @@ const generateNovaDiagnosis = async (): Promise<void> => {
 
   // 3. 마크다운 파일로 저장
   const result = json2md(markdownDocuments);
-  const resultFilePath = process.env.DIAGNOSIS_NOVA_FILE_PATH!;
+  const resultFilePath =
+    process.env.DIAGNOSIS_NOVA_FILE_PATH ??
+    path.join(
+      process.cwd(),
+      src.constants.paths.dirs.diagnosisDir,
+      'nova.diagnosis.md',
+    );
   const resultDirPath = path.dirname(resultFilePath);
   if (!fs.existsSync(resultDirPath)) {
     fs.mkdirSync(resultDirPath, { recursive: true });

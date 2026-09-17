@@ -643,6 +643,20 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
     return {
       output: pulumi.output({
         namespace: namespace.metadata.name,
+        pvcs: {
+          modCache: {
+            name: qbittorrentModCachePvc.metadata.name,
+          },
+          config: {
+            name: qbittorrentConfigPvc.metadata.name,
+          },
+          completeDownloads: {
+            name: qbittorrentCompleteDownloadsPvc.metadata.name,
+          },
+          incompleteDownloads: {
+            name: qbittorrentIncompleteDownloadsPvc.metadata.name,
+          },
+        },
         services: {
           qbittorrent: {
             name: qbittorrentService.metadata.name,

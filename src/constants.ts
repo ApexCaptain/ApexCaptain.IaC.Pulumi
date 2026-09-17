@@ -26,7 +26,7 @@ export const constants = (() => {
   const pnpmStoreDir = '.pnpm-store';
   const turboDir = '.turbo';
   const tmpDir = 'tmp';
-  const diagnosisDir = process.env.DIAGNOSIS_DIR_NAME || '.diagnosis';
+  const diagnosisDir = process.env.DIAGNOSIS_DIR_NAME || 'docs/diagnosis';
   const cursorDir = '.cursor';
   const ventoyDir = 'ventoy';
   const ventoyUserDataDir = path.join(ventoyDir, 'user-data');
@@ -72,6 +72,11 @@ export const constants = (() => {
     githubGeneratedDir,
     'branch-name.txt',
   );
+  const githubGeneratedReadmeDir = path.join(githubGeneratedDir, 'readme');
+  const githubGeneratedRootReadmeFile = path.join(
+    githubGeneratedReadmeDir,
+    'ROOT.md',
+  );
   const ociConfigFile = path.join(ociConfigDir, 'oci.config');
   const ociApexCaptainSshPrivateKeyFile = path.join(
     keysDir,
@@ -98,6 +103,7 @@ export const constants = (() => {
       venvDir,
       keysDir,
       githubGeneratedDir,
+      githubGeneratedReadmeDir,
       ociConfigDir,
     },
     files: {
@@ -113,6 +119,7 @@ export const constants = (() => {
       githubGeneratedPullRequestBodyFile,
       githubGeneratedPullRequestLabelsFile,
       githubGeneratedBranchNameFile,
+      githubGeneratedRootReadmeFile,
       ociConfigFile,
       ociApexCaptainSshPrivateKeyFile,
     },
@@ -140,7 +147,7 @@ export const constants = (() => {
       coderd: new TerraformBridgedProvider({
         name: 'coderd',
         providerSource: 'coder/coderd',
-        providerVersion: '0.0.25',
+        providerVersion: '0.0.26',
       }),
     },
   };
@@ -199,6 +206,7 @@ export const constants = (() => {
       'https://grafana-community.github.io/helm-charts',
     'helm.ngc.nvidia.com/nvidia': 'https://helm.ngc.nvidia.com/nvidia',
     'charts.fairwinds.com/stable': 'https://charts.fairwinds.com/stable',
+    'piraeus.io/helm-charts': 'https://piraeus.io/helm-charts/',
   };
 
   return {
