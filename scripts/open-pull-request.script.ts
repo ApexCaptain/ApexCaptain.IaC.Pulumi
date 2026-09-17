@@ -44,12 +44,10 @@ async function suggestBranchName(): Promise<string> {
     throw new Error('CURSOR_API_KEY 환경변수가 없습니다.');
   }
 
-  const modelId =
-    process.env.CURSOR_GENERATE_BRANCH_NAME_AI_MODEL ||
-    process.env.CURSOR_GENERATE_PULL_REQUEST_AI_MODEL;
+  const modelId = process.env.CURSOR_GENERATE_BRANCH_NAME_AI_MODEL;
   if (!modelId) {
     throw new Error(
-      'CURSOR_GENERATE_BRANCH_NAME_AI_MODEL 또는 CURSOR_GENERATE_PULL_REQUEST_AI_MODEL 이 필요합니다.',
+      'CURSOR_GENERATE_BRANCH_NAME_AI_MODEL 환경변수가 설정되어 있지 않습니다.',
     );
   }
 

@@ -26,7 +26,7 @@ export const constants = (() => {
   const pnpmStoreDir = '.pnpm-store';
   const turboDir = '.turbo';
   const tmpDir = 'tmp';
-  const diagnosisDir = process.env.DIAGNOSIS_DIR_NAME || '.diagnosis';
+  const diagnosisDir = process.env.DIAGNOSIS_DIR_NAME || 'docs/diagnosis';
   const cursorDir = '.cursor';
   const ventoyDir = 'ventoy';
   const ventoyUserDataDir = path.join(ventoyDir, 'user-data');
@@ -72,6 +72,11 @@ export const constants = (() => {
     githubGeneratedDir,
     'branch-name.txt',
   );
+  const githubGeneratedReadmeDir = path.join(githubGeneratedDir, 'readme');
+  const githubGeneratedRootReadmeFile = path.join(
+    githubGeneratedReadmeDir,
+    'ROOT.md',
+  );
   const ociConfigFile = path.join(ociConfigDir, 'oci.config');
   const ociApexCaptainSshPrivateKeyFile = path.join(
     keysDir,
@@ -98,6 +103,7 @@ export const constants = (() => {
       venvDir,
       keysDir,
       githubGeneratedDir,
+      githubGeneratedReadmeDir,
       ociConfigDir,
     },
     files: {
@@ -113,6 +119,7 @@ export const constants = (() => {
       githubGeneratedPullRequestBodyFile,
       githubGeneratedPullRequestLabelsFile,
       githubGeneratedBranchNameFile,
+      githubGeneratedRootReadmeFile,
       ociConfigFile,
       ociApexCaptainSshPrivateKeyFile,
     },

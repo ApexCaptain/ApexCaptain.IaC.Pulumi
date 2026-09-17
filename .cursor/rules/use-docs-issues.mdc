@@ -93,6 +93,6 @@ alwaysApply: true
 
 ## 하지 않을 것
 
-- `docs/issues` 밖(채팅 전용, `.diagnosis/`, 임의 경로)에 이슈 SSOT를 만들지 않는다
+- `docs/issues` 밖(채팅 전용, `docs/diagnosis/` 등 자동 생성 리포트, 임의 경로)에 이슈 SSOT를 만들지 않는다
 - 해결 파일을 `docs/issues`에 남기거나, 열린 이슈를 `docs/resolved`에 두지 않는다
 - 사용자 요청 없이 기존 이슈를 삭제하지 않는다

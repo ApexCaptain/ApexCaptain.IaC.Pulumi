@@ -36,7 +36,7 @@
     "*.type.ts": "toml",
     "*.esc.ts": "key",
     "*.res.ts": "scheme",
-    "*.data.ts": "schemej",
+    "*.data.ts": "scheme",
     "*.diagnosis.md": "document",
     "contract.ts": "bbx"
   },
@@ -46,7 +46,7 @@
     ".kube": "kubernetes",
     "workstation": "home",
     ".projen": "project",
-    ".diagnosis": "resource",
+    "diagnosis": "resource",
     "ventoy": "robot"
   },
   "specstory.cloudSync.enabled": "never",

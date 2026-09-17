@@ -6,7 +6,7 @@ const DEFAULT_MAX_CHARS_PER_NOISE_FILE = 400;
 
 /** 커밋 메시지 프롬프트에서 본문 대신 stat·파일명만 참고할 저우선 파일 패턴 */
 const NOISE_FILE_PATTERNS = [
-  /^\.diagnosis\//,
+  /(?:^|\/)docs\/diagnosis\//,
   /(?:^|\/)README\.md$/i,
   /(?:^|\/)pnpm-lock\.yaml$/i,
   /(?:^|\/)package-lock\.json$/i,

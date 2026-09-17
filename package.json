@@ -34,6 +34,7 @@
     "script:syncPulumiEsc": "ts-node scripts/sync-pulumi-esc.script.ts",
     "script:generateVentoyUserData": "ts-node scripts/generate-ventoy-user-data.script.ts",
     "script:bootstrapLocalEnv": "ts-node scripts/bootstrap-local-env.script.ts",
+    "script:synthProjectReadme": "ts-node scripts/synth-project-readme.script.ts",
     "pulumi:preview": "turbo run pulumi:preview --filter \"./infra/*\"",
     "pulumi:up": "turbo run pulumi:up --filter \"./infra/*\" --ui=tui",
     "postpulumi:up": "pnpm script:mergeKubeConfig && concurrently --kill-others-on-fail \"pnpm script:generateNovaDiagnosis\" \"pnpm script:generatePlutoDiagnosis\"",

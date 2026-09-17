@@ -65,7 +65,6 @@ tmp
 !/.vscode/settings.json
 !/.nova-config.json
 !/ventoy/ventoy.json
-!/README.md
 !/requirements.txt
 /.keys/workstation.key
 /.keys/oci-apexcaptain.key
