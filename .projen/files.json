@@ -22,7 +22,6 @@
     "ansible/workstation/inventory/inventory.ini",
     "LICENSE",
     "projenrc/tsconfig.json",
-    "README.md",
     "repomix.config.json",
     "requirements.txt",
     "test/tsconfig.json",

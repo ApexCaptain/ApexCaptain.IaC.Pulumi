@@ -7,6 +7,7 @@ import json2md from 'json2md';
 import semver from 'semver';
 import yaml from 'yaml';
 import { KubeConfig } from '../common/utils/src/interfaces/kubeconfig.interface';
+import * as src from '../src';
 
 type PlutoDiagnosisResult = {
   items?: {
@@ -27,7 +28,7 @@ type PlutoDiagnosisResult = {
 };
 
 const getTargetK8sVersion = () => {
-  const rawVersion = process.env.DIAGNOSIS_PLUTO_TARGET_K8S_VERSION ?? '1.35.0';
+  const rawVersion = process.env.DIAGNOSIS_PLUTO_TARGET_K8S_VERSION ?? '1.36.0';
   return rawVersion.startsWith('v') ? rawVersion : `v${rawVersion}`;
 };
 
@@ -192,7 +193,13 @@ const generatePlutoDiagnosis = async () => {
   });
 
   const result = json2md(markdownDocuments);
-  const resultFilePath = process.env.DIAGNOSIS_PLUTO_FILE_PATH!!;
+  const resultFilePath =
+    process.env.DIAGNOSIS_PLUTO_FILE_PATH ??
+    path.join(
+      process.cwd(),
+      src.constants.paths.dirs.diagnosisDir,
+      'pluto.diagnosis.md',
+    );
   const resultDirPath = path.dirname(resultFilePath);
   if (!fs.existsSync(resultDirPath)) {
     fs.mkdirSync(resultDirPath, { recursive: true });
