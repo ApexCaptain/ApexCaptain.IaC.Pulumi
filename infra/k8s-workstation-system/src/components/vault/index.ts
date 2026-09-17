@@ -13,3 +13,5 @@ export * from './vault.kubernetes-auth.component';
 export * from './vault.resources.component';
 
 export * from './vault.identity-tiers.component';
+
+export * from './vault.backup.component';

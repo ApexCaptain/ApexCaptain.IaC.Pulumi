@@ -1,11 +1,11 @@
 /**
  * qBittorrent 백업 허브
  *
- * - dr    → PvcSnapshotArchiveV1
- * - media → 후속 sync 컴포넌트 (여기 자식으로 추가)
+ * - dr → PvcSnapshotArchiveV1 (VolumeSnapshot → tar.zst → Crypt). Phase 1: `config` PVC만
+ * - Lane B(media) → complete 등 대용량 sync는 미구현·유료 플랜 후 (여기 확장 예정)
  *
- * clusterName · credentials는 system pcloud-backup platform SSOT.
- * Job이 ConfigMap/Secret get. worker에는 base64 env로만 전달.
+ * clusterName · credentials는 system `pcloud-backup` platform SSOT.
+ * Job이 platform ConfigMap/Secret get. worker에는 base64 env로만 전달.
  *
  * @see docs/issues/2026-09-15-pcloud-pvc-encrypted-backup.md
  */

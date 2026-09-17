@@ -11,6 +11,7 @@
 | 언제 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
 | **2026-09-19** | qBit dr Cron: 01:00 KST 실행·pCloud timestamp 폴더·`keepWithin=2d` prune 확인 | [PVC pCloud 암호화 백업](issues/2026-09-15-pcloud-pvc-encrypted-backup.md) | 진행중 |
+| **2026-09-19~20** | Vault·qBit `keepWithin=2d` prune 실측 (once·구 ts 폴더 삭제). 사용자 이틀 후 재확인 예정 | [PVC pCloud 암호화 백업](issues/2026-09-15-pcloud-pvc-encrypted-backup.md) | 진행중 |
 | **2026-10 초** | VPA 추천 재스냅샷 → 갭 재분석. 안전한 항목만 IaC 패치. jellyfin / qbittorrent / coder는 피크 확인 후에만 축소 | [VPA 리소스 재조정](issues/2026-09-08-vpa-resource-rightsizing-followup.md) | 보류 |
 | **2026-10 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
 | **2026-10-25 19:03 KST** | leaf 갱신 (`vault-server-certificate` renewalTime 10:03:36Z). Reloader가 vault-0를 롤했는지, 롤 후 `VaultConnection` Healthy·서비스 DNS TLS 유지되는지. 통과하면 `docs/resolved`로 이동 | [Vault TLS cert reload](issues/2026-09-06-vault-tls-cert-reload.md) | 적용 · 실검증 대기 |
