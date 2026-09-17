@@ -140,7 +140,7 @@ export const constants = (() => {
       coderd: new TerraformBridgedProvider({
         name: 'coderd',
         providerSource: 'coder/coderd',
-        providerVersion: '0.0.25',
+        providerVersion: '0.0.26',
       }),
     },
   };
@@ -199,6 +199,7 @@ export const constants = (() => {
       'https://grafana-community.github.io/helm-charts',
     'helm.ngc.nvidia.com/nvidia': 'https://helm.ngc.nvidia.com/nvidia',
     'charts.fairwinds.com/stable': 'https://charts.fairwinds.com/stable',
+    'piraeus.io/helm-charts': 'https://piraeus.io/helm-charts/',
   };
 
   return {

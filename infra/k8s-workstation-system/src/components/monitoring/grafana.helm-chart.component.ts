@@ -15,6 +15,7 @@ import {
 import {
   k8sNodeResourcesDashboardJson,
   k8sPodResourcesDashboardJson,
+  k8sPvcFilesystemDashboardJson,
   nvidiaGpuDcgmDashboardJson,
   lokiPodLogsDashboardJson,
   lokiServiceLogsDashboardJson,
@@ -277,6 +278,9 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
                 },
                 'k8s-pod-resources': {
                   json: k8sPodResourcesDashboardJson,
+                },
+                'k8s-pvc-filesystem': {
+                  json: k8sPvcFilesystemDashboardJson,
                 },
                 'nvidia-gpu-dcgm': {
                   json: nvidiaGpuDcgmDashboardJson,

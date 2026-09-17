@@ -373,6 +373,8 @@ void (async () => {
           src.constants.pulumiPackages.vault,
           src.constants.pulumiPackages.github,
           src.constants.pulumiPackages.random,
+          'cron-time-generator',
+          'timezone-enum',
         ],
         commonDeps: [
           commonProjects.bridgedProviderProject.project.package.packageName,
@@ -404,7 +406,7 @@ void (async () => {
           src.constants.pulumiPackages.kubernetes,
           src.constants.pulumiPackages.vault,
           src.constants.pulumiPackages.random,
-
+          'cron-time-generator',
           'timezone-enum',
         ],
         commonDeps: [

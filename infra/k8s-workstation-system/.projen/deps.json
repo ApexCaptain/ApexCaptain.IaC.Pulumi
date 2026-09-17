@@ -99,11 +99,19 @@
       "type": "runtime"
     },
     {
+      "name": "cron-time-generator",
+      "type": "runtime"
+    },
+    {
       "name": "dedent",
       "type": "runtime"
     },
     {
       "name": "lodash",
+      "type": "runtime"
+    },
+    {
+      "name": "timezone-enum",
       "type": "runtime"
     },
     {

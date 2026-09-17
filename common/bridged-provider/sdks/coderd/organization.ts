@@ -34,6 +34,10 @@ export class Organization extends pulumi.CustomResource {
         return obj['__pulumiType'] === Organization.__pulumiType;
     }
 
+    /**
+     * Built-in organization role names that are unioned into every member's effective roles. Changes propagate to members on their next request. Requires a Coder Deployment running v2.37.0 or later.
+     */
+    declare public readonly defaultOrgMemberRoles: pulumi.Output<string[]>;
     declare public readonly description: pulumi.Output<string>;
     /**
      * Display name of the organization. Defaults to name.
@@ -78,6 +82,7 @@ export class Organization extends pulumi.CustomResource {
         opts = opts || {};
         if (opts.id) {
             const state = argsOrState as OrganizationState | undefined;
+            resourceInputs["defaultOrgMemberRoles"] = state?.defaultOrgMemberRoles;
             resourceInputs["description"] = state?.description;
             resourceInputs["displayName"] = state?.displayName;
             resourceInputs["groupSync"] = state?.groupSync;
@@ -88,6 +93,7 @@ export class Organization extends pulumi.CustomResource {
             resourceInputs["workspaceSharing"] = state?.workspaceSharing;
         } else {
             const args = argsOrState as OrganizationArgs | undefined;
+            resourceInputs["defaultOrgMemberRoles"] = args?.defaultOrgMemberRoles;
             resourceInputs["description"] = args?.description;
             resourceInputs["displayName"] = args?.displayName;
             resourceInputs["groupSync"] = args?.groupSync;
@@ -106,6 +112,10 @@ export class Organization extends pulumi.CustomResource {
  * Input properties used for looking up and filtering Organization resources.
  */
 export interface OrganizationState {
+    /**
+     * Built-in organization role names that are unioned into every member's effective roles. Changes propagate to members on their next request. Requires a Coder Deployment running v2.37.0 or later.
+     */
+    defaultOrgMemberRoles?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     description?: pulumi.Input<string | undefined>;
     /**
      * Display name of the organization. Defaults to name.
@@ -142,6 +152,10 @@ export interface OrganizationState {
  * The set of arguments for constructing a Organization resource.
  */
 export interface OrganizationArgs {
+    /**
+     * Built-in organization role names that are unioned into every member's effective roles. Changes propagate to members on their next request. Requires a Coder Deployment running v2.37.0 or later.
+     */
+    defaultOrgMemberRoles?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     description?: pulumi.Input<string | undefined>;
     /**
      * Display name of the organization. Defaults to name.

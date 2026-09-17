@@ -20,6 +20,8 @@ import * as kubernetes from '@pulumi/kubernetes';
 import * as oci from '@pulumi/oci';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
+import CronTime from 'cron-time-generator';
+import Timezone from 'timezone-enum';
 import * as components from './components';
 
 export const k8sWorkstationSystemContract = new nexus.classes.Contract(
@@ -174,6 +176,46 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
         },
         { dependsOn: [certManagerHelmChart] },
+      );
+
+    // CSI VolumeSnapshot CRD·controller — PVC tar 백업·Platform VSC 선행
+    const snapshotControllerHelmChart =
+      new components.snapshotController.SnapshotControllerHelmChartComponent(
+        'snapshotControllerHelmChart',
+        {
+          helm: {
+            snapshotController: {
+              version: '5.2.0',
+              repositoryUrl:
+                commonEsc.esc.helmRepositoryUrls['piraeus.io/helm-charts'],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+      );
+
+    // pCloud credentials·Lease·VSC. Lane A/B Job은 platform 이름만 참조 (Vault raft Job은 vault k8s auth 이후).
+    const pcloudBackupPlatform =
+      new components.pcloudBackup.PcloudBackupPlatformComponent(
+        'pcloudBackupPlatform',
+        {
+          clusterName: commonEsc.esc.istioNetwork.workstationClusterName,
+          credentials: {
+            hostname: projectEsc.esc.pcloudBackup.hostname,
+            token: projectEsc.esc.pcloudBackup.token,
+            cryptPassword: projectEsc.esc.pcloudBackup.cryptPassword,
+            cryptPassword2: projectEsc.esc.pcloudBackup.cryptPassword2,
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          // VolumeSnapshotClass는 snapshot.storage CRD 이후
+          dependsOn: [snapshotControllerHelmChart],
+        },
       );
 
     // Vault — mesh 밖 Helm, IaC Provider는 ingress mesh 경유 (OIDC는 후속)
@@ -393,6 +435,40 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           dependsOn: [vaultResources, vaultProvider],
         },
       );
+
+    // Vault raft → pCloud Crypt (Lane A). PVC snap 아님.
+    const vaultBackup = new components.vault.VaultBackupComponent(
+      'vaultBackup',
+      {
+        namespace: vaultHelmChart.output.namespace,
+        leafName: 'data-vault-0',
+        runOnceOnCreate: false,
+        schedule: {
+          cron: CronTime.everyDayAt(2),
+          timezone: Timezone['Asia/Seoul'],
+        },
+        keepWithin: '2d',
+        platform: {
+          namespace: pcloudBackupPlatform.output.namespace,
+          configMapName: pcloudBackupPlatform.output.configMapName,
+          credentialsSecretName:
+            pcloudBackupPlatform.output.credentialsSecretName,
+          drLeaseName: pcloudBackupPlatform.output.drLeaseName,
+        },
+        vault: {
+          address: pulumi.interpolate`https://${vaultHelmChart.output.tls.serverName}:${vaultHelmChart.output.services.vault.ports.vault}`,
+          caSecretName: vaultHelmChart.output.tls.rootCaSecretName,
+          kubernetesAuthMountPath: vaultKubernetesAuth.output.mountPath,
+        },
+        providers: {
+          kubernetes: workstationK8sProvider,
+          vault: vaultProvider,
+        },
+      },
+      {
+        dependsOn: [pcloudBackupPlatform, vaultHelmChart, vaultKubernetesAuth],
+      },
+    );
 
     // Longhorn
     const longhornHelmChart =
@@ -1187,6 +1263,22 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             roleName: vaultCoderJwt.output.jwt.roleName,
           },
           identityGroupIds: vaultIdentityTiers.output.identityGroupIds,
+        },
+        pcloudBackup: {
+          clusterName: pcloudBackupPlatform.output.clusterName,
+          configMapName: pcloudBackupPlatform.output.configMapName,
+          namespace: pcloudBackupPlatform.output.namespace,
+          credentialsSecretName:
+            pcloudBackupPlatform.output.credentialsSecretName,
+          drLeaseName: pcloudBackupPlatform.output.drLeaseName,
+          mediaLeaseName: pcloudBackupPlatform.output.mediaLeaseName,
+          volumeSnapshotClassName:
+            pcloudBackupPlatform.output.volumeSnapshotClassName,
+        },
+        vaultBackup: {
+          cronJobName: vaultBackup.output.dr.cronJobName,
+          onceJobNames: vaultBackup.output.dr.onceJobNames,
+          kubernetesAuthRoleName: vaultBackup.output.kubernetesAuthRoleName,
         },
       }),
       secret: pulumi.secret({

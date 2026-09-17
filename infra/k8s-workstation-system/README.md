@@ -12,12 +12,14 @@ Workstation K8s 클러스터 **시스템 레이어** Pulumi 스택.
 Cilium
   → lxcfs / sysbox / generic-device-plugin / gpu-operator
   → cert-manager
+  → snapshot-controller → pCloud backup platform (VSC·Lease·credentials)
   → Vault Helm (KMS unseal, mesh 밖)
   → Istio (ambient + ingress/direct gateway)
   → CNPG operator
   → Vault mesh ingress → Vault resources / k8s auth
+  → Vault raft pCloud backup (platform + k8s auth 이후)
   → Longhorn
-  → Authentik (Helm은 Longhorn SC, UI는 Authentik proxy — 3단계 분리)
+    → Authentik (Helm은 Longhorn SC, UI는 Authentik proxy — 3단계 분리)
   → Vault OIDC / Coder JWT / identity tiers
   → Longhorn UI mesh → Authentik outpost
   → VPA (recommender only) → Goldilocks dashboard
@@ -36,7 +38,9 @@ Cilium
 | `genericDevicePlugin` | 호스트 `/dev` extended resource 노출 |
 | `gpuOperator` | NVIDIA GPU RuntimeClass + Operator |
 | `certManager` | LE wildcard cert, ClusterIssuer |
-| `vault` | Helm + KMS unseal + mesh ingress + Authentik OIDC + Coder JWT |
+| `snapshotController` | Piraeus CSI snapshot-controller + VolumeSnapshot CRD |
+| `pcloudBackup` | pCloud NS·Secret·ConfigMap(`clusterName`)·Lease(`dr`/`media`)·`longhorn-snap` VSC |
+| `vault` | Helm + KMS unseal + mesh ingress + Authentik OIDC + Coder JWT + **`VaultBackupComponent`** (raft snapshot Cron, 02:00 KST) |
 | `istio` | ambient mesh, ingress/direct gateway (SFTP L4 포함) |
 | `postgresqlOperator` | CloudNativePG operator |
 | `longhorn` | 스토리지 + Authentik proxy UI |
@@ -50,7 +54,7 @@ Cilium
 
 ### Contract export (요약)
 
-- `output`: namespaces, gateway paths, storage classes, sysbox/lxcfs/gpu/genericDevicePlugin, authentik group/flow/outpost, vaultSecretsOperator, vault host/coderJwt/identityGroupIds
+- `output`: namespaces, gateway paths, storage classes, sysbox/lxcfs/gpu/genericDevicePlugin, authentik group/flow/outpost, vaultSecretsOperator, vault host/coderJwt/identityGroupIds, **`pcloudBackup`** (platform SSOT), **`vaultBackup`** (CronJob 이름 등)
 - `secret`: authentik/vault provider config, vault OIDC/JWT mount accessor, kv mount, k8s auth mount path, SSH CA mount, cluster TLS
 
 ## Pulumi 프로젝트
@@ -73,7 +77,9 @@ src/
     ├── generic-device-plugin/
     ├── gpu-operator/
     ├── cert-manager/
-    ├── vault/
+    ├── snapshot-controller/
+    ├── pcloud-backup/
+    ├── vault/          # Helm, auth, VaultBackupComponent
     ├── istio/
     ├── postgresql-operator/
     ├── longhorn/

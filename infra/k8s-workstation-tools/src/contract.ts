@@ -12,6 +12,8 @@ import { k8sWorkstationSystemContract } from '@infra/k8s-workstation-system/src/
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
+import CronTime from 'cron-time-generator';
+import Timezone from 'timezone-enum';
 import * as components from './components';
 
 export const k8sWorkstationToolsContract = new nexus.classes.Contract(
@@ -525,6 +527,47 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
             },
           },
         );
+
+      new components.qbittorrent.QbittorrentBackupComponent(
+        'qbittorrentBackup',
+        {
+          namespace: qbittorrentApp.output.namespace,
+          runOnceOnCreate: false,
+          dr: {
+            targets: [
+              {
+                id: 'config',
+                pvcName: qbittorrentApp.output.pvcs.config.name,
+                schedule: {
+                  cron: CronTime.everyDayAt(1),
+                  timezone: Timezone['Asia/Seoul'],
+                },
+                keepWithin: '2d',
+              },
+            ],
+          },
+          platform: {
+            namespace:
+              k8sWorkstationSystemContract.output.pcloudBackup.namespace,
+            configMapName:
+              k8sWorkstationSystemContract.output.pcloudBackup.configMapName,
+            credentialsSecretName:
+              k8sWorkstationSystemContract.output.pcloudBackup
+                .credentialsSecretName,
+            drLeaseName:
+              k8sWorkstationSystemContract.output.pcloudBackup.drLeaseName,
+            volumeSnapshotClassName:
+              k8sWorkstationSystemContract.output.pcloudBackup
+                .volumeSnapshotClassName,
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          dependsOn: [qbittorrentApp],
+        },
+      );
     }
 
     return {

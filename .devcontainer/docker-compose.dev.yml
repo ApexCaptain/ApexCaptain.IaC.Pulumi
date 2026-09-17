@@ -20,11 +20,11 @@ services:
 
       # Nova Version
       # https://github.com/FairwindsOps/nova
-      NOVA_VERSION: 3.12.0
+      NOVA_VERSION: 3.12.1
 
       # Pluto Version
       # https://github.com/FairwindsOps/pluto
-      PLUTO_VERSION: 5.24.3
+      PLUTO_VERSION: 5.24.4
 
       # Istioctl Version
       # https://github.com/istio/istio

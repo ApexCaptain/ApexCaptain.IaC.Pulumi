@@ -83,6 +83,10 @@
       "type": "runtime"
     },
     {
+      "name": "cron-time-generator",
+      "type": "runtime"
+    },
+    {
       "name": "dedent",
       "type": "runtime"
     },
