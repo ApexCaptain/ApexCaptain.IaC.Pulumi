@@ -11,6 +11,7 @@ import {
   buildRootManifest,
   checkSecretLeak,
   cleanMarkdownCodeFence,
+  cursorTextOnlyPromptOptions,
   listWorkspacePackages,
   loadProjectReadmeRules,
   type PackageReadmeManifest,
@@ -282,12 +283,10 @@ async function synthesizeReadme(
     ),
   );
 
-  const result = await Agent.prompt(prompt, {
-    apiKey,
-    model: { id: modelId },
-    tools: [],
-    local: { cwd: process.cwd(), settingSources: [] },
-  });
+  const result = await Agent.prompt(
+    prompt,
+    cursorTextOnlyPromptOptions(apiKey, modelId),
+  );
 
   if (result.status !== 'finished' || !result.result) {
     throw new Error(`README 합성 실패 (상태: ${result.status})`);

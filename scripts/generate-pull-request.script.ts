@@ -8,6 +8,7 @@ import * as src from '../src';
 import {
   checkSecretLeak,
   cleanMarkdownCodeFence,
+  cursorTextOnlyPromptOptions,
   getGitOutput,
   loadGenerationRules,
 } from './common';
@@ -81,6 +82,25 @@ function normalizeLabels(raw: unknown, allowed: Set<string>): string[] {
     unique.push(name);
   }
   return unique;
+}
+
+function extractJsonPayload(raw: string): string {
+  const cleaned = cleanMarkdownCodeFence(raw, 'json').trim();
+  try {
+    JSON.parse(cleaned);
+    return cleaned;
+  } catch {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (!match) {
+      return cleaned;
+    }
+    try {
+      JSON.parse(match[0]);
+      return match[0];
+    } catch {
+      return cleaned;
+    }
+  }
 }
 
 /**
@@ -175,10 +195,10 @@ async function generatePullRequest(): Promise<void> {
   );
 
   try {
-    const result = await Agent.prompt(prompt, {
-      apiKey,
-      model: { id: modelId },
-    });
+    const result = await Agent.prompt(
+      prompt,
+      cursorTextOnlyPromptOptions(apiKey, modelId),
+    );
 
     if (result.status !== 'finished' || !result.result) {
       console.error(
@@ -187,7 +207,7 @@ async function generatePullRequest(): Promise<void> {
       process.exit(1);
     }
 
-    const rawOutput = cleanMarkdownCodeFence(result.result, 'json');
+    const rawOutput = extractJsonPayload(result.result);
 
     // 5. JSON 파싱 및 Fallback 처리
     let parsed: { title: string; body: string; labels?: unknown };

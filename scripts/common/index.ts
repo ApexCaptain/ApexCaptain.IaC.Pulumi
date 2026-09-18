@@ -1,3 +1,4 @@
+export * from './cursor-agent';
 export * from './diff-for-prompt';
 export * from './git';
 export * from './prompts';

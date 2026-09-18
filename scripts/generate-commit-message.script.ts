@@ -7,6 +7,7 @@ import * as src from '../src';
 import {
   checkSecretLeak,
   cleanMarkdownCodeFence,
+  cursorTextOnlyPromptOptions,
   getCombinedDiffStat,
   getGitOutput,
   loadGenerationRules,
@@ -109,10 +110,10 @@ async function generateCommitMessage(): Promise<void> {
   );
 
   try {
-    const result = await Agent.prompt(prompt, {
-      apiKey,
-      model: { id: modelId },
-    });
+    const result = await Agent.prompt(
+      prompt,
+      cursorTextOnlyPromptOptions(apiKey, modelId),
+    );
 
     if (result.status !== 'finished' || !result.result) {
       console.error(
