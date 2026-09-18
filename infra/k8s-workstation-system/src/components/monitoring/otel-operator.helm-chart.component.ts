@@ -69,11 +69,17 @@ export const OtelOperatorHelmChartComponent = utils.functions.defineComponent(
               repository:
                 'ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s',
             },
-            // ambient: sidecar.istio.io/inject 비활성화 어노테이션을 두지 않음
-            podAnnotations: {},
+            // 컨트롤러는 기동 시 apiserver discovery 다수 — ambient ztunnel 경로에서 TLS timeout 재현됨 (VPA/Argo와 동일하게 mesh 밖)
+            podAnnotations: {
+              'istio.io/dataplane-mode': 'none',
+            },
+            featureGatesMap: {
+              'operator.networkpolicy': false,
+              'operand.networkpolicy': false,
+            },
             resources: {
               requests: {
-                cpu: '50m',
+                cpu: '200m',
                 memory: '128Mi',
               },
               limits: {

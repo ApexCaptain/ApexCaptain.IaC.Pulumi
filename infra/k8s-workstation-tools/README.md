@@ -1,75 +1,79 @@
 # @infra/k8s-workstation-tools
 
-Workstation **도구/유틸** Pulumi 스택 — Coder, qBittorrent, Vikunja.
+Workstation 환경에 배포되는 도구(Coder, qBittorrent, Vikunja) 스택.
 
 ## 역할
 
-- system 스택 output 참조 (`pcloudBackup` platform 이름 등)
-- VPN sidecar, Authentik proxy/OIDC, Coder workspace mesh proxy 등 앱 특성에 맞는 패턴 혼합
+- NordLynx VPN sidecar로 트래픽을 터널 밖으로만 내보내는 구조를 적용한 도구(qBittorrent)를 구성한다.
+- Web UI 노출이 필요한 컴포넌트는 Longhorn과 동일한 Authentik Proxy + OutpostProviderAttachment 패턴으로 인증을 붙인다.
+- `PROD` 스택에서만 생성되는 Production 전용 컴포넌트로 구성되어 있다.
 
-### 현재 도구
+## 현재 앱/도구
 
-| 도구 | 스택 | DB | 인증 | mesh |
-|------|------|-----|------|------|
-| **Coder** | prod | CNPG (외부 PG) | Authentik OIDC + GitHub external auth | ambient, ingress SA ALLOW + sysbox workspace SOCKS5 mesh proxy |
-| **Vikunja** | prod | CNPG (외부 PG) | Authentik OIDC (네이티브) | ambient, ingress SA ALLOW |
-| **qBittorrent** | prod | — | Authentik Proxy + Outpost. SFTP는 Vault SSH CA (`SftpV3Component`) | ext-authz. SFTP는 Istio direct gateway TCP. NordLynx sidecar |
+| 컴포넌트    | 인증                                       | 비고                                                                 |
+| ----------- | ------------------------------------------ | -------------------------------------------------------------------- |
+| `coder`     | Authentik OIDC (implicit consent flow)     | PostgreSQL 클러스터(Longhorn SSD PVC) 포함, GitHub External Auth 연동, Istio Service Mesh AuthorizationPolicy로 워크스페이스 네임스페이스만 인그레스 허용 |
+| `qbittorrent` | Authentik Proxy + OutpostProviderAttachment | NordLynx VPN sidecar로 아웃바운드 트래픽 격리, 백업 컴포넌트 별도 존재 |
+| `vikunja`   | Authentik Proxy + OutpostProviderAttachment | Authentik·Helm Chart·Service Mesh 컴포넌트로 구성                     |
 
-### pCloud 백업 (Lane A dr)
+## upstream
 
-system `pcloudBackup` platform을 참조. CronJob은 각 도구 스택에서 선언.
-
-| 도구 | 컴포넌트 | 대상 | 스케줄 |
-|------|----------|------|--------|
-| **qBittorrent** | `QbittorrentBackupComponent` | PVC `qbittorrent-config` only | 01:00 Asia/Seoul, `keepWithin=2d` |
-
-Vault raft 백업은 `@infra/k8s-workstation-system`의 `VaultBackupComponent` (02:00 KST).
-
-## Pulumi 프로젝트
-
-| 항목 | 값 |
-|------|-----|
-| 프로젝트 | `k8s-workstation-tools` |
-| 기본 스택 | `prod` (Coder, Vikunja, qBittorrent) |
-| ESC | `k8sWorkstationToolsEsc`, `commonEsc` |
-
-`dev` 스택은 존재하지만 현재 배포 리소스 없음.
+- `@infra/cloudflare` — `zones.ayteneve93com.records`의 호스트(coder, todo, auth 등)를 참조한다.
+- `@infra/k8s-workstation-system` — Authentik/Vault Provider 설정, Authentik 그룹·플로우, StorageClass, 네임스페이스, ServiceAccount, Gateway Path 등을 참조한다.
 
 ## 구조
 
 ```
 src/
-├── contract.ts
 └── components/
-    ├── coder/       # base(CNPG) → authentik → helm → service-mesh
-    │                # → coderd resources + workspace-mesh-proxy (SOCKS5)
-    ├── vikunja/     # base(CNPG) → authentik → helm → service-mesh
-    └── qbittorrent/ # app → NordLynx/SftpV3 → authentik proxy mesh → backup(dr config)
+└──   coder/
+└──     coder.authentik.component.ts
+└──     coder.base.component.ts
+└──     coder.helm-chart.component.ts
+└──     coder.resources.component.ts
+└──     coder.service-mesh.component.ts
+└──     coder.workspace-mesh-proxy.component.ts
+└──     index.ts
+└──   index.ts
+└──   qbittorrent/
+└──     index.ts
+└──     qbittorrent.app.component.ts
+└──     qbittorrent.backup.component.ts
+└──     qbittorrent.service-mesh.component.ts
+└──   vikunja/
+└──     index.ts
+└──     vikunja.authentik.component.ts
+└──     vikunja.base.component.ts
+└──     vikunja.helm-chart.component.ts
+└──     vikunja.service-mesh.component.ts
+└── contract.ts
+└── index.ts
 ```
 
 ## 의존성
 
-- `@infra/cloudflare`, `@infra/k8s-workstation-system`
-- `@common/nexus`, `@common/utils`, `@common/custom-resources`, `@common/bridged-provider` (authentik, coderd)
-- `@pulumi/random` (Vikunja secret 등), `@pulumi/vault`, `@pulumi/kubernetes`
+- `@common/bridged-provider` (workspace:*)
+- `@common/custom-resources` (workspace:*)
+- `@common/nexus` (workspace:*)
+- `@common/utils` (workspace:*)
+- `@infra/cloudflare` (workspace:*)
+- `@infra/k8s-workstation-system` (workspace:*)
+- `@pulumi/kubernetes` (^4.31.1)
+- `@pulumi/pulumi` (^3.242.0)
+- `@pulumi/random` (^4.21.0)
+- `@pulumi/vault` (^7.10.0)
+- `cron-time-generator` (^2.0.3)
+- `dedent` (^1.7.2)
+- `lodash` (^4.18.1)
+- `timezone-enum` (^1.0.4)
+- `yaml` (^2.8.3)
 
 ## 명령
 
 ```bash
 pnpm --filter @infra/k8s-workstation-tools build
 pnpm --filter @infra/k8s-workstation-tools eslint
+pnpm --filter @infra/k8s-workstation-tools test
 pnpm --filter @infra/k8s-workstation-tools pulumi:preview
 pnpm --filter @infra/k8s-workstation-tools pulumi:up
 ```
-
-## 배포 순서
-
-1. `k8s-workstation-system` (CNPG operator, sysbox, lxcfs, generic-device-plugin, pCloud platform, snapshot-controller 포함)
-2. `k8s-workstation-tools`
-
-Coder/Vikunja는 CNPG Cluster → Helm → ServiceMesh → Authentik OIDC wiring 순.
-
-## upstream
-
-- `@infra/cloudflare`
-- `@infra/k8s-workstation-system`

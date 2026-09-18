@@ -1,46 +1,51 @@
 # @common/nexus
 
-스택 간 계약(Contract)과 Pulumi ESC 설정을 한곳에서 관리하는 코어 프레임워크.
+Pulumi ESC(Environments, Secrets, Configuration) 환경을 스택별로 정의하고 워크스페이스 전역에서 참조할 수 있도록 추상화한 공통 패키지.
 
 ## 역할
 
-- **Contract** — Pulumi 스택의 `output`/`secret` export와 StackReference lazy 로딩
-- **ESC** — 프로젝트별 환경 변수 스키마(zod) 및 typed accessor
-- 스택 해시 파일 생성으로 contract 변경 추적
+- `abstract/esc.abstract.ts`에서 ESC 환경이 공통으로 따라야 할 인터페이스를 정의한다.
+- `esc/` 하위에 `cloudflare`, `github`, `oci`, `k8s-workstation-system`, `k8s-workstation-apps`, `k8s-workstation-tools` 등 스택별 ESC 환경 구현체를 둔다.
+- `classes/contract.ts`가 각 ESC 환경을 하나의 contract로 묶어 다른 workspace 패키지가 import해 사용할 수 있게 노출한다.
 
 ## 구조
 
 ```
 src/
-├── abstract/    # AbstractEsc
-├── classes/     # Contract
-└── esc/         # common, cloudflare, oci, github, k8s-workstation-* ESC
+└── abstract/
+└──   esc.abstract.ts
+└──   index.ts
+└── classes/
+└──   contract.ts
+└──   index.ts
+└── esc/
+└──   cloudflare.esc.ts
+└──   common.esc.ts
+└──   github.esc.ts
+└──   index.ts
+└──   k8s-workstation-apps.esc.ts
+└──   k8s-workstation-system.esc.ts
+└──   k8s-workstation-tools.esc.ts
+└──   oci.esc.ts
+└── index.ts
 ```
-
-## Contract 사용 패턴
-
-```ts
-export const myContract = new nexus.classes.Contract(__filename, async () => ({
-  output: pulumi.output({ /* 공개 값 */ }),
-  secret: pulumi.secret({ /* 민감 값 */ }),
-}));
-```
-
-다른 스택에서 import하면 StackReference로 자동 resolve됨.
-
-## ESC accessor
-
-- `commonEsc`, `cloudflareEsc`, `ociEsc`, `githubEsc`
-- `k8sWorkstationSystemEsc`, `k8sWorkstationAppsEsc`, `k8sWorkstationToolsEsc`
 
 ## 의존성
 
-- `@common/utils`, `@common/custom-resources`
-- `@pulumi/pulumi`, `@pulumi/esc-sdk`, `@pulumi/std`
+- `@common/custom-resources` (workspace:*)
+- `@common/utils` (workspace:*)
+- `@pulumi/esc-sdk` (^0.13.1)
+- `@pulumi/pulumi` (^3.242.0)
+- `@pulumi/std` (^2.3.2)
+- `dedent` (^1.7.2)
+- `lodash` (^4.18.1)
+- `yaml` (^2.8.3)
+- `zod` (^4.4.3)
 
 ## 명령
 
 ```bash
 pnpm --filter @common/nexus build
 pnpm --filter @common/nexus eslint
+pnpm --filter @common/nexus test
 ```

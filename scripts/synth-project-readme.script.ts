@@ -155,6 +155,10 @@ function buildPackagePrompt(
 
     [고정 섹션 — README에 반드시 동일하게 포함]
     ${fixedSectionsPackage(manifest)}
+
+    [출력]
+    README 마크다운 전문만 출력하세요. 첫 줄은 \`# ${manifest.packageName}\` 이어야 합니다.
+    인사말·커밋 prefix·코드펜스 래핑·작업 요약은 금지합니다.
   `;
 }
 
@@ -194,13 +198,54 @@ function buildRootPrompt(
 
     [Docs 컨텍스트]
     ${docsContext}
+
+    [출력]
+    루트 README 마크다운 전문만 출력하세요. 첫 줄은 \`# ${manifest.projectName}\` 이어야 합니다.
+    이 호출은 CLI 합성입니다. 채팅용 루트 제외 규칙은 적용하지 않습니다.
+    인사말·커밋 prefix·코드펜스 래핑·작업 요약은 금지합니다.
   `;
+}
+
+function formatContentPreview(content: string): string {
+  const compact = content.replace(/\s+/g, ' ').trim();
+  if (!compact) {
+    return '(빈 문자열)';
+  }
+  return JSON.stringify(compact.slice(0, 180));
+}
+
+function extractReadmeMarkdown(raw: string): string {
+  const stripped = raw.replace(/^\uFEFF/, '').trim();
+  const cleaned = cleanMarkdownCodeFence(stripped, 'markdown').trim();
+  if (cleaned.startsWith('#')) {
+    return cleaned;
+  }
+
+  const fenceMatch = cleaned.match(/```(?:markdown|md)?\r?\n([\s\S]*?)```/);
+  if (fenceMatch?.[1]) {
+    const inner = cleanMarkdownCodeFence(
+      fenceMatch[1].trim(),
+      'markdown',
+    ).trim();
+    if (inner.startsWith('#')) {
+      return inner;
+    }
+  }
+
+  const headingMatch = cleaned.match(/^# .+$/m);
+  if (headingMatch?.index !== undefined) {
+    return cleaned.slice(headingMatch.index).trim();
+  }
+
+  return cleaned;
 }
 
 function validateReadmeContent(content: string): void {
   const trimmed = content.trim();
   if (!trimmed.startsWith('#')) {
-    throw new Error('README는 # 제목으로 시작해야 합니다.');
+    throw new Error(
+      `README는 # 제목으로 시작해야 합니다. 실제 시작: ${formatContentPreview(trimmed)}`,
+    );
   }
   if (trimmed === '# replace this') {
     throw new Error('placeholder README가 생성되었습니다.');
@@ -240,13 +285,15 @@ async function synthesizeReadme(
   const result = await Agent.prompt(prompt, {
     apiKey,
     model: { id: modelId },
+    tools: [],
+    local: { cwd: process.cwd(), settingSources: [] },
   });
 
   if (result.status !== 'finished' || !result.result) {
     throw new Error(`README 합성 실패 (상태: ${result.status})`);
   }
 
-  const readme = cleanMarkdownCodeFence(result.result, 'markdown').trim();
+  const readme = extractReadmeMarkdown(result.result);
   validateReadmeContent(readme);
   return `${readme}\n`;
 }

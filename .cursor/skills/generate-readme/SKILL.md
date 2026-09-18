@@ -14,26 +14,27 @@ description: >-
 채팅에서 수동 작성 시 **루트 `README.md`는 사용자가 명시하지 않으면 제외**한다 (`docs/diagnosis/` Nova·Pluto 리포트 등 별도 용도).
 
 > **범위:** `pnpm-workspace.yaml`의 `common/*`, `infra/*` 패키지 각각의 `README.md`.  
-> 특정 패키지만 지정했으면 그 패키지만, 전체 요청이면 workspace 전 패키지를 갱신한다.
+> 특정 패키지만 지정했으면 그 패키지만, 전체 요청이면 workspace 전 패키지를 갱신한다.  
+> **CLI** `script:synthProjectReadme`는 루트 `README.md`가 기본 대상이다. 아래 「루트 제외」는 **채팅 수동 작성**에만 해당한다.
 
 ## 1. 대상 패키지 확인
 
 `pnpm-workspace.yaml` 기준 workspace 패키지:
 
-| 경로 | package name (예) |
-|------|-------------------|
-| `common/utils` | `@common/utils` |
-| `common/nexus` | `@common/nexus` |
-| `common/custom-resources` | `@common/custom-resources` |
-| `common/bridged-provider` | `@common/bridged-provider` |
-| `infra/cloudflare` | `@infra/cloudflare` |
+| 경로                           | package name (예)               |
+| ------------------------------ | ------------------------------- |
+| `common/utils`                 | `@common/utils`                 |
+| `common/nexus`                 | `@common/nexus`                 |
+| `common/custom-resources`      | `@common/custom-resources`      |
+| `common/bridged-provider`      | `@common/bridged-provider`      |
+| `infra/cloudflare`             | `@infra/cloudflare`             |
 | `infra/k8s-workstation-system` | `@infra/k8s-workstation-system` |
-| `infra/k8s-workstation-apps` | `@infra/k8s-workstation-apps` |
-| `infra/k8s-workstation-tools` | `@infra/k8s-workstation-tools` |
+| `infra/k8s-workstation-apps`   | `@infra/k8s-workstation-apps`   |
+| `infra/k8s-workstation-tools`  | `@infra/k8s-workstation-tools`  |
 
 **제외:**
 
-- 루트 `/README.md`
+- 루트 `/README.md` — **채팅 수동 작성만.** CLI 합성은 루트가 기본
 - `common/bridged-provider/sdks/**` (Pulumi/Terraform gen 산출물 — 사용자가 명시하지 않는 한 수정하지 않음)
 - `ansible/**`, `scripts/**` 등 workspace 밖 디렉터리
 
@@ -76,7 +77,9 @@ src/
 \`\`\`bash
 pnpm --filter {package name} build
 pnpm --filter {package name} eslint
+
 # infra: pulumi:preview, pulumi:up
+
 \`\`\`
 ```
 
@@ -90,12 +93,12 @@ pnpm --filter {package name} eslint
 
 아래 섹션을 **역할** 다음 또는 **명령** 앞에 넣는다 (해당할 때만).
 
-| 섹션 | 내용 |
-|------|------|
-| **Pulumi 프로젝트** | 기본 스택(`prod` 등), ESC 이름 |
+| 섹션                          | 내용                            |
+| ----------------------------- | ------------------------------- |
+| **Pulumi 프로젝트**           | 기본 스택(`prod` 등), ESC 이름  |
 | **현재 앱/도구** (apps/tools) | 컴포넌트별 DB·인증·mesh 패턴 표 |
-| **배포 순서** | upstream 스택 대비 선행 조건 |
-| **upstream / downstream** | contract 참조 관계 |
+| **배포 순서**                 | upstream 스택 대비 선행 조건    |
+| **upstream / downstream**     | contract 참조 관계              |
 
 infra 스택 배포 순서 참고:
 
@@ -122,7 +125,7 @@ cloudflare → k8s-workstation-system → k8s-workstation-apps
 
 ## 하지 않을 것
 
-- 루트 `README.md` 수정 (사용자가 명시적으로 요청할 때만)
+- 루트 `README.md` 수정 — 채팅에서 사용자가 명시하지 않으면. CLI `script:synthProjectReadme`는 루트가 기본 대상
 - `sdks/authentik/README.md` 등 generated SDK 문서 수정
 - workspace에 없는 디렉터리에 README 신규 생성
 - 코드 변경 없이 README만 stale하게 두기 — 요청 시 반드시 2단계 조사 후 갱신

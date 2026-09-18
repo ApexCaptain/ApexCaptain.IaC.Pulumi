@@ -1,70 +1,54 @@
 # @infra/cloudflare
 
-Workstation 클러스터용 Cloudflare DNS Pulumi 스택.
+Cloudflare에서 `ayteneve93.com` zone의 DNS 레코드를 Pulumi로 관리하는 인프라 스택.
 
 ## 역할
 
-- `ayteneve93.com` zone CNAME 레코드 관리
-- `cloudflareContract.output.zones.ayteneve93com.records.*` — 다른 infra 스택에서 host 참조
-- proxied 여부는 서비스별로 `Ayteneve93comRecordsComponent`에서 설정
+- `ayteneve93.com` zone 조회 및 CNAME 레코드 관리를 담당한다.
+- 서비스별 proxied 여부를 개별 설정한다 (`records.workstation` 컴포넌트 내부 주석 참고).
+- workstation 도메인(`commonEsc.esc.workstationIptimeDomain`)과 GitHub owner 정보(`githubEsc.esc.apexCaptain.owner`)를 조합해 레코드를 구성한다.
 
 ## Pulumi 프로젝트
 
-| 항목 | 값 |
-|------|-----|
-| 프로젝트 | `cloudflare` |
-| 기본 스택 | `prod` (`PULUMI_STACK`) |
-| ESC | `cloudflareEsc`, `commonEsc`, `githubEsc` |
+- ESC: `cloudflareEsc`(API 토큰·이메일·zone ID), `commonEsc`(workstation 도메인), `githubEsc`(GitHub owner)를 참조한다.
+- output으로 zone 도메인과 `ayteneve93com` 레코드 목록을 노출한다.
+- secret으로 Cloudflare API 토큰·이메일을 반환한다.
 
-## 현재 레코드
+## 현재 컴포넌트
 
-공통 타깃: `workstation` CNAME → iptime DDNS (`proxied: false`, LE DNS-01·L4 직접 접속).
-
-| 호스트 | proxied | 용도 |
-|--------|---------|------|
-| `workstation` | false | DDNS apex, cert-manager DNS-01, SFTP L4 |
-| `auth` | true | Authentik UI |
-| `longhorn` | true | Longhorn UI |
-| `torrent` | true | qBittorrent Web UI |
-| `vault` | true | Vault API/UI |
-| `grafana` | true | Grafana |
-| `goldilocks` | true | Goldilocks dashboard |
-| `argo-cd` | true | Argo CD |
-| `test` | true | 테스트 |
-| `jellyfin` | false | 스트리밍·대역폭 — CF proxy 우회 |
-| `todo` | false | Vikunja |
-| `coder` | false | Coder |
-| `blog` | true | GitHub Pages (`{owner}.github.io`) |
+| 컴포넌트                            | 역할                                                   |
+| ------------------------------------ | ------------------------------------------------------ |
+| `Ayteneve93comRecordsComponent`      | `ayteneve93.com` zone에 대한 CNAME 레코드 생성·관리    |
 
 ## 구조
 
 ```
 src/
-├── contract.ts              # cloudflareContract
 └── components/
-    └── ayteneve93com/       # Ayteneve93comRecordsComponent
+└──   ayteneve93com/
+└──     ayteneve93com.records.component.ts
+└──     index.ts
+└──   index.ts
+└── contract.ts
+└── index.ts
 ```
 
 ## 의존성
 
-- `@common/nexus`, `@common/utils`
-- `@pulumi/cloudflare`
+- `@common/nexus` (workspace:*)
+- `@common/utils` (workspace:*)
+- `@pulumi/cloudflare` (^6.17.0)
+- `@pulumi/pulumi` (^3.242.0)
+- `dedent` (^1.7.2)
+- `lodash` (^4.18.1)
+- `yaml` (^2.8.3)
 
 ## 명령
 
 ```bash
 pnpm --filter @infra/cloudflare build
 pnpm --filter @infra/cloudflare eslint
+pnpm --filter @infra/cloudflare test
 pnpm --filter @infra/cloudflare pulumi:preview
 pnpm --filter @infra/cloudflare pulumi:up
 ```
-
-## 배포 순서
-
-DNS는 system/apps/tools보다 **먼저** 올려도 되고, 레코드만 추가할 때는 독립 배포 가능.
-
-## downstream
-
-- `@infra/k8s-workstation-system`
-- `@infra/k8s-workstation-apps`
-- `@infra/k8s-workstation-tools`

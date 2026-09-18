@@ -498,13 +498,13 @@ void (async () => {
         'pulumi:preview': {
           dependsOn: ['^build', 'build'],
           cache: false,
-          passThroughEnv: ['PULUMI_*'],
+          passThroughEnv: ['PULUMI_*', 'KUBECONFIG'],
         },
         'pulumi:up': {
           dependsOn: ['^build', 'build'],
           cache: false,
           interactive: true,
-          passThroughEnv: ['PULUMI_*'],
+          passThroughEnv: ['PULUMI_*', 'KUBECONFIG'],
         },
       },
     },
