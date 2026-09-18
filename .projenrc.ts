@@ -1,4 +1,3 @@
-import fs from 'fs';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import dedent from 'dedent';
@@ -498,13 +497,13 @@ void (async () => {
         'pulumi:preview': {
           dependsOn: ['^build', 'build'],
           cache: false,
-          passThroughEnv: ['PULUMI_*'],
+          passThroughEnv: ['PULUMI_*', 'KUBECONFIG'],
         },
         'pulumi:up': {
           dependsOn: ['^build', 'build'],
           cache: false,
           interactive: true,
-          passThroughEnv: ['PULUMI_*'],
+          passThroughEnv: ['PULUMI_*', 'KUBECONFIG'],
         },
       },
     },

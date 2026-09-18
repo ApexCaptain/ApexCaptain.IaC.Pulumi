@@ -22,11 +22,13 @@ export function loadGenerationRules(task: GenerationPromptTask): string {
 }
 
 /**
- * README 합성 스크립트용: 공통 스타일 + generate-readme 스킬 + project-readme 규칙.
+ * README 합성 스크립트용: 공통 문체 + generate-readme 스킬 + project-readme 규칙.
+ * `prefixes.md`는 커밋·PR 제목(`feat:` 등) 전용 — README 첫 줄 `#` 제목과 충돌하므로 제외.
  */
 export function loadProjectReadmeRules(): string {
   return loadSkillRules(
-    ...SHARED_PROMPT_RULES,
+    'scripts/prompts/shared/language-and-style.md',
+    'scripts/prompts/shared/anti-fluff.md',
     '.cursor/skills/generate-readme/SKILL.md',
     'scripts/prompts/project-readme/rules.md',
   );

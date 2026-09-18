@@ -34,7 +34,8 @@
       ],
       "cache": false,
       "passThroughEnv": [
-        "PULUMI_*"
+        "PULUMI_*",
+        "KUBECONFIG"
       ]
     },
     "pulumi:up": {
@@ -45,7 +46,8 @@
       "cache": false,
       "interactive": true,
       "passThroughEnv": [
-        "PULUMI_*"
+        "PULUMI_*",
+        "KUBECONFIG"
       ]
     }
   },
