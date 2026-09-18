@@ -7,6 +7,7 @@ import * as src from '../src';
 import {
   checkSecretLeak,
   cleanMarkdownCodeFence,
+  cursorTextOnlyPromptOptions,
   getGitOutput,
   loadGenerationRules,
 } from './common';
@@ -19,23 +20,35 @@ function run(command: string): void {
   execSync(command, { stdio: 'inherit' });
 }
 
-function normalizeBranchName(raw: string): string {
-  const line = cleanMarkdownCodeFence(raw)
-    .split('\n')
-    .map(part => part.trim())
-    .find(Boolean);
-  if (!line) {
-    throw new Error('브랜치 이름이 비어 있습니다.');
-  }
-  const cleaned = line
+function stripBranchDecorations(line: string): string {
+  return line
+    .trim()
     .replace(/^[`'"\s]+|[`'"\s]+$/g, '')
     .replace(/^Branch:\s*/i, '');
-  if (!BRANCH_NAME_PATTERN.test(cleaned)) {
-    throw new Error(
-      `브랜치 이름 형식 오류: "${cleaned}" (예: chore/gitflow-automation)`,
-    );
+}
+
+function normalizeBranchName(raw: string): string {
+  const text = cleanMarkdownCodeFence(raw);
+  const candidates = text
+    .split('\n')
+    .map(stripBranchDecorations)
+    .filter(Boolean);
+  const matched = candidates.find(line => BRANCH_NAME_PATTERN.test(line));
+  if (matched) {
+    return matched;
   }
-  return cleaned;
+
+  const inline = text.match(
+    /\b(?:feat|fix|chore|docs|test|dev)\/[a-z0-9]+(?:-[a-z0-9]+)*/,
+  );
+  if (inline && BRANCH_NAME_PATTERN.test(inline[0])) {
+    return inline[0];
+  }
+
+  const preview = candidates[0] ?? '(빈 문자열)';
+  throw new Error(
+    `브랜치 이름 형식 오류: "${preview}" (예: chore/gitflow-automation)`,
+  );
 }
 
 async function suggestBranchName(): Promise<string> {
@@ -75,14 +88,18 @@ async function suggestBranchName(): Promise<string> {
 
     [Diff 요약]
     ${diff.slice(0, 8000) || '(diff 없음)'}
+
+    [출력]
+    한 줄만 출력하세요. 예: fix/otel-operator-crashloop
+    설명·접두 문장·코드펜스 금지.
   `;
 
   console.log(chalk.blue(`Cursor SDK(${modelId})로 브랜치 이름 생성 중...`));
 
-  const result = await Agent.prompt(prompt, {
-    apiKey,
-    model: { id: modelId },
-  });
+  const result = await Agent.prompt(
+    prompt,
+    cursorTextOnlyPromptOptions(apiKey, modelId),
+  );
 
   if (result.status !== 'finished' || !result.result) {
     throw new Error(`브랜치 이름 생성 실패 (상태: ${result.status})`);

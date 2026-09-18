@@ -1,60 +1,88 @@
 # @common/custom-resources
 
-Pulumi/Terraform provider에 없거나 부족한 리소스·컴포넌트를 직접 구현한 레이어.
+Pulumi 컴포넌트·리소스·데이터 소스를 모아둔 커스텀 라이브러리 패키지.
 
 ## 역할
 
-- **CRD 매핑** — Istio, cert-manager, Cilium, Longhorn, CNPG, VSO CustomResource 타입 정의
-- **로컬 리소스** — contract hash 파일(`TextFileV1`)
-- **K8s 헬퍼** — kubeconfig 파일(`KubeConfigFileV1`)
-- **재사용 컴포넌트** — SFTP adapter, TLS, Vault Secret, **pCloud Lane A 백업**
+- `components/adapter`: SFTP 어댑터 컴포넌트(`sftp.v1`, `sftp.v3`)와 v3 issuer job 템플릿을 제공한다.
+- `components/backup`: PVC 스냅샷 아카이브, Vault Raft 아카이브 백업 컴포넌트를 제공한다.
+- `components/tls`: TLS private key 컴포넌트를 제공한다.
+- `components/vault`: Vault Secret 컴포넌트와 KV v2 UI browse 정책을 제공한다.
+- `resources/coder`: Coder admin API token 커스텀 리소스를 제공한다.
+- `resources/k8s`: kube-config-file 리소스와 cert-manager·cilium·cnpg·istio·longhorn·vso CRD 타입을 제공한다.
+- `resources/local`: 로컬 텍스트 파일 리소스를 제공한다.
+- `resources/vault`: Vault bootstrap token 리소스를 제공한다.
+- `data/authentik`: Authentik policy expression 데이터 소스를 제공한다.
+- `index.ts`에서 `components`, `resources`, `data` 세 네임스페이스로 재export한다.
 
 ## 구조
 
 ```
 src/
-├── components/   # adapter(sftp), backup, secrets, tls, vault
-├── data/         # data source (authentik policy expression)
+└── components/
+└──   adapter/
+└──     index.ts
+└──     sftp-v3-issuer-job.template.ts
+└──     sftp.v1.component.ts
+└──     sftp.v3.component.ts
+└──   backup/
+└──     index.ts
+└──     pvc-snapshot-archive.v1.component.ts
+└──     vault-raft-archive.v1.component.ts
+└──   index.ts
+└──   tls/
+└──     index.ts
+└──     private-key.v1.component.ts
+└──   vault/
+└──     index.ts
+└──     kv-v2-ui-browse.policy.ts
+└──     secret.v1.component.ts
+└── data/
+└──   authentik/
+└──     index.ts
+└──     policy-expression.v1.data.ts
+└──   index.ts
+└── index.ts
 └── resources/
-    ├── k8s/crd/  # istio, cert-manager, cilium, longhorn, cnpg, vso
-    ├── k8s/      # kube-config-file
-    ├── local/    # textFile
-    ├── vault/    # bootstrap-token Command
-    └── coder/    # admin-api-token Command
-
-templates/        # 백업 Job 스크립트 (ConfigMap으로 마운트)
-├── pvc-snapshot-archive.v1/
-└── vault-raft-archive.v1/
-
-scripts/          # Command subprocess (bootstrap/admin token, pod exec)
+└──   coder/
+└──     admin-api-token.v1.res.ts
+└──     index.ts
+└──   index.ts
+└──   k8s/
+└──     crd/
+└──       cert-manager/
+└──       cilium/
+└──       cnpg/
+└──       index.ts
+└──       istio/
+└──       longhorn/
+└──       vso/
+└──     index.ts
+└──     kube-config-file.v1.res.ts
+└──   local/
+└──     index.ts
+└──     textFile.v1.res.ts
+└──   vault/
+└──     bootstrap-token.v1.res.ts
+└──     index.ts
 ```
-
-## CRD 네임스페이스
-
-| 패키지 | CRD |
-|--------|-----|
-| `istio` | VirtualService, Gateway, AuthorizationPolicy, PeerAuthentication, DestinationRule, ServiceEntry, EnvoyFilter |
-| `cert-manager` | Certificate, Issuer, ClusterIssuer |
-| `cilium` | LoadBalancerIPPool, L2AnnouncementPolicy |
-| `longhorn` | Node |
-| `cnpg` | Cluster |
-| `vso` | VaultConnection, VaultAuth, VaultStaticSecret |
-
-## 컴포넌트
-
-| 컴포넌트 | 내용 |
-|----------|------|
-| `PvcSnapshotArchiveV1Component` | Lane A dr: VolumeSnapshot → clone → `tar.zst` → rclone Crypt CronJob. dest `k8s-backup/{cluster}/{lane}/{ns}/{pvc}/{ts}/` |
-| `VaultRaftArchiveV1Component` | Lane A dr: `vault operator raft snapshot` → Crypt CronJob. PVC/file copy 금지 |
-| `SftpV3Component` | Vault SSH CA issue + VSO + CronJob 회전. 라이브: Jellyfin, qBittorrent |
-| `SftpV1Component` | tls PrivateKey + ConfigMap. 코드·테스트만 잔존, 스택 호출자 없음 |
-| `SecretV1Component` | Vault KV v2 + identity policy + VSO sync (`shared`/`developer`/`runtime`) |
-| `PrivateKeyV1Component` | TLS 키 페어. `extraKeepers`로 회전 트리거 추가 가능 |
 
 ## 의존성
 
-- `@common/utils`, `@common/bridged-provider`
-- `@pulumi/kubernetes`, `@pulumi/command`, `@pulumi/vault`, `@pulumi/tls`, `@pulumi/random`
+- `@common/bridged-provider` (workspace:*)
+- `@common/utils` (workspace:*)
+- `@kubernetes/client-node` (^1.4.0)
+- `@pulumi/command` (^1.2.1)
+- `@pulumi/kubernetes` (^4.31.1)
+- `@pulumi/pulumi` (^3.242.0)
+- `@pulumi/random` (^4.21.0)
+- `@pulumi/tls` (^5.5.0)
+- `@pulumi/vault` (^7.10.0)
+- `axios` (^1.15.2)
+- `dedent` (^1.7.2)
+- `flat` (^6.0.1)
+- `lodash` (^4.18.1)
+- `yaml` (^2.8.3)
 
 ## 명령
 
@@ -63,7 +91,3 @@ pnpm --filter @common/custom-resources build
 pnpm --filter @common/custom-resources eslint
 pnpm --filter @common/custom-resources test
 ```
-
-## 참조
-
-`@common/nexus`, `@infra/k8s-workstation-system`, `@infra/k8s-workstation-apps`, `@infra/k8s-workstation-tools`

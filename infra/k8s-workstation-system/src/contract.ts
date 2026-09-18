@@ -508,7 +508,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: authentikNamespace,
           helm: {
             authentik: {
-              version: '2026.8.2',
+              version: '2026.8.3',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
             },
@@ -738,7 +738,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           vpa: {
-            version: '5.0.1',
+            version: '5.1.0',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['charts.fairwinds.com/stable'],
           },
@@ -755,7 +755,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             goldilocks: {
-              version: '11.1.0',
+              version: '11.1.1',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.fairwinds.com/stable'],
             },
@@ -870,7 +870,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.argo.ArgoRolloutsComponent('argoRollouts', {
       helm: {
         argoRollouts: {
-          version: '2.43.1',
+          version: '2.43.2',
           repositoryUrl: argoChartRepositoryUrl,
         },
       },
@@ -934,7 +934,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.9.0',
+            version: '10.9.2',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },
@@ -1018,7 +1018,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             opentelemetryOperator: {
-              version: '0.122.0',
+              version: '0.123.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'open-telemetry.github.io/opentelemetry-helm-charts'
@@ -1061,7 +1061,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           loki: {
-            version: '18.12.2',
+            version: '18.13.3',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -1080,7 +1080,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           tempo: {
-            version: '2.3.0',
+            version: '3.0.0',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -1153,7 +1153,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
           helm: {
             grafana: {
-              version: '13.2.3',
+              version: '13.2.5',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'grafana-community.github.io/helm-charts'

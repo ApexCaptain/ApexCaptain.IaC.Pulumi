@@ -77,6 +77,11 @@ export const ArgoServiceMeshComponent = utils.functions.defineComponent(
             ],
           },
         },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+          aliases: [{ parent: pulumi.rootStackResource }],
+        },
       );
 
     const argoCdProviderConfig: argocd.ProviderArgs = {

@@ -1,47 +1,33 @@
 # @common/bridged-provider
 
-Terraform bridged provider SDK를 모노레포 workspace 패키지로 래핑.
+Pulumi 공식 프로바이더가 없는 서비스(Authentik, ArgoCD, Coderd)를 위해 Terraform 프로바이더를 브릿징한 Pulumi SDK를 재노출하는 패키지.
 
 ## 역할
 
-- Authentik, Argo CD, Coder 등 bridged provider를 로컬 `@pulumi/*` SDK로 vendoring
-- `pulumi install` 대상 — 루트 `pnpm pulumi:install`로 SDK 빌드
-- infra/common 패키지에서 `@common/bridged-provider` import로 re-export 사용
+- `sdks/authentik`, `sdks/argocd`, `sdks/coderd`에 생성된 Pulumi 프로바이더 SDK를 `@pulumi/authentik`, `@pulumi/argocd`, `@pulumi/coderd` 이름으로 재노출한다.
+- 각 서비스 리소스를 다른 workspace 패키지(`infra/*`)에서 네임스페이스(`authentik.*`, `argocd.*`, `coderd.*`) 형태로 import해 사용할 수 있게 한다.
 
 ## 구조
 
 ```
 src/
-└── index.ts          # authentik, argocd, coderd re-export
-
-sdks/
-├── authentik/        # pulumi package gen (Terraform provider 기반)
-├── argocd/
-└── coderd/
-```
-
-## SDK 재생성
-
-provider schema 변경 시 해당 `sdks/<provider>` 디렉터리를 갱신한 뒤:
-
-```bash
-pnpm pulumi:install   # 루트 package.json
-pnpm --filter @common/bridged-provider build
+└── index.ts
 ```
 
 ## 의존성
 
-- `@pulumi/authentik` (file:sdks/authentik)
 - `@pulumi/argocd` (file:sdks/argocd)
+- `@pulumi/authentik` (file:sdks/authentik)
 - `@pulumi/coderd` (file:sdks/coderd)
+- `@pulumi/pulumi` (^3.242.0)
+- `dedent` (^1.7.2)
+- `lodash` (^4.18.1)
+- `yaml` (^2.8.3)
 
 ## 명령
 
 ```bash
 pnpm --filter @common/bridged-provider build
 pnpm --filter @common/bridged-provider eslint
+pnpm --filter @common/bridged-provider test
 ```
-
-## 참조
-
-`@common/custom-resources`, `@infra/k8s-workstation-system`, `@infra/k8s-workstation-apps`, `@infra/k8s-workstation-tools`

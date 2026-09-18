@@ -43,6 +43,16 @@ export const TempoHelmChartComponent = utils.functions.defineComponent(
         values: {
           tempo: {
             retention: '72h',
+            resources: {
+              requests: {
+                cpu: '100m',
+                memory: '512Mi',
+              },
+              limits: {
+                cpu: '1000m',
+                memory: '2Gi',
+              },
+            },
             storage: {
               trace: {
                 backend: 'local',
@@ -56,16 +66,6 @@ export const TempoHelmChartComponent = utils.functions.defineComponent(
             enabled: true,
             storageClassName: args.storageClassName,
             size: '10Gi',
-          },
-          resources: {
-            requests: {
-              cpu: '100m',
-              memory: '256Mi',
-            },
-            limits: {
-              cpu: '1000m',
-              memory: '1Gi',
-            },
           },
         },
       },
