@@ -38,6 +38,7 @@
     "*.res.ts": "scheme",
     "*.data.ts": "scheme",
     "*.diagnosis.md": "document",
+    "*.script.ts": "coffee",
     "contract.ts": "bbx"
   },
   "material-icon-theme.folders.associations": {

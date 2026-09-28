@@ -312,6 +312,7 @@ void (async () => {
           src.constants.pulumiPackages.std,
           'zod',
         ],
+        jest: true,
       },
     );
 
@@ -549,6 +550,7 @@ void (async () => {
               '*.res.ts': 'scheme',
               '*.data.ts': 'scheme',
               '*.diagnosis.md': 'document',
+              '*.script.ts': 'coffee',
               'contract.ts': 'bbx',
             }),
           },
