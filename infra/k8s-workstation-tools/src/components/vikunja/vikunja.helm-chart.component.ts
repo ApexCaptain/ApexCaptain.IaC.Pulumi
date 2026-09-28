@@ -279,6 +279,8 @@ export const VikunjaHelmChartComponent = utils.functions.defineComponent(
     const serviceName = vikunjaReleaseName;
     const webServicePort = 3456;
 
+    const vikunjaDataPvcName = `${vikunjaReleaseName}-data`;
+
     return {
       output: pulumi.output({
         services: {
@@ -287,6 +289,11 @@ export const VikunjaHelmChartComponent = utils.functions.defineComponent(
             port: {
               webUi: webServicePort,
             },
+          },
+        },
+        pvcs: {
+          data: {
+            name: vikunjaDataPvcName,
           },
         },
       }),

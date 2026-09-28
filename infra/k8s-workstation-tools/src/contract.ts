@@ -360,6 +360,47 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
         },
       );
 
+      new components.vikunja.VikunjaBackupComponent(
+        'vikunjaBackup',
+        {
+          namespace: vikunjaBase.output.namespace,
+          runOnceOnCreate: false,
+          dr: {
+            targets: [
+              {
+                id: 'data',
+                pvcName: vikunjaHelmChart.output.pvcs.data.name,
+                schedule: {
+                  cron: CronTime.everyDayAt(3),
+                  timezone: Timezone['Asia/Seoul'],
+                },
+                keepWithin: '2d',
+              },
+            ],
+          },
+          platform: {
+            namespace:
+              k8sWorkstationSystemContract.output.pcloudBackup.namespace,
+            configMapName:
+              k8sWorkstationSystemContract.output.pcloudBackup.configMapName,
+            credentialsSecretName:
+              k8sWorkstationSystemContract.output.pcloudBackup
+                .credentialsSecretName,
+            drLeaseName:
+              k8sWorkstationSystemContract.output.pcloudBackup.drLeaseName,
+            volumeSnapshotClassName:
+              k8sWorkstationSystemContract.output.pcloudBackup
+                .volumeSnapshotClassName,
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          dependsOn: [vikunjaHelmChart],
+        },
+      );
+
       const vikunjaServiceMesh =
         new components.vikunja.VikunjaServiceMeshComponent(
           'vikunjaServiceMesh',
@@ -542,7 +583,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                   cron: CronTime.everyDayAt(1),
                   timezone: Timezone['Asia/Seoul'],
                 },
-                keepWithin: '2d',
+                keepWithin: '10d',
               },
             ],
           },

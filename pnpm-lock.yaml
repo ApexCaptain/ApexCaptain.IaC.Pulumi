@@ -296,6 +296,9 @@ importers:
       '@stylistic/eslint-plugin':
         specifier: ^2
         version: 2.13.0(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3)
+      '@types/jest':
+        specifier: ^30.0.0
+        version: 30.0.0
       '@types/node':
         specifier: ^25.9.1
         version: 25.9.5
@@ -314,6 +317,15 @@ importers:
       eslint-plugin-import:
         specifier: ^2.32.0
         version: 2.32.0(@typescript-eslint/parser@8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@6.0.3))(eslint-import-resolver-typescript@4.4.5)(eslint@9.39.4(jiti@2.7.0))
+      jest:
+        specifier: ^30.5.1
+        version: 30.5.1(@types/node@25.9.5)(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))
+      jest-junit:
+        specifier: ^17
+        version: 17.0.0
+      ts-jest:
+        specifier: ^29.4.12
+        version: 29.4.12(@babel/core@7.29.7)(@jest/transform@30.5.1)(@jest/types@30.5.1)(babel-jest@30.5.1(@babel/core@7.29.7))(jest-util@30.5.1)(jest@30.5.1(@types/node@25.9.5)(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3)))(typescript@6.0.3)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
