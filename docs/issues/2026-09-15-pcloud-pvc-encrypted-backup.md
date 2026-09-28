@@ -5,7 +5,7 @@
 | **등록일**    | 2026-09-15                                                                                                                                |
 | **영역**      | workstation 클러스터 PVC 오프사이트 백업. `k8s-workstation-system` / `apps` / `tools`, Pulumi ESC                                         |
 | **관련 코드** | `common/custom-resources` (`PvcSnapshotArchiveV1`, `VaultRaftArchiveV1`), `infra/k8s-workstation-system` (Platform·`VaultBackupComponent`), `infra/k8s-workstation-tools` (`QbittorrentBackupComponent`), ESC |
-| **상태**      | **진행중** — Vault Cron·pCloud 정상. qBit dr Cron **9/18 01:00 KST 1회 실패** (`pcloud-backup-config` RBAC). `tools/prod`로 platform Role/Binding 복구·**9/19 01:00 자동 재검증** 대기. **`keepWithin=2d` prune 실측 전** |
+| **상태**      | **진행중** — **Phase 1 종료** (2026-09-19): Cron·retention·복호화·`backup.tar.zst` 추출까지 검증. **다음:** Phase 2(Lane A 확장)·Lane B는 일정 없이 순차 진행 |
 
 ## 배경
 
@@ -33,7 +33,7 @@
 | -------------------------------- | ---------------------------------------- |
 | pCloud ESC/Secret                | ESC sync 완료. system: NS / Secret / ConfigMap(`clusterName`) / Lease `dr`·`media` / `longhorn-snap` |
 | VolumeSnapshot / CSI snapshotter | 적용됨. NS `snapshot-controller` (Deployment 1/1, v8.6.0). VSC `longhorn-snap` (`driver.longhorn.io`, `type: snap`, Delete) |
-| 백업 CronJob/컴포넌트            | Vault raft Cron 정상 (9/18 02:00 KST Complete ~42s). qBit config Cron 배포됨 — **9/18 01:00 KST Job Forbidden** (SA가 `pcloud-backup/pcloud-backup-config` ConfigMap get 불가; cluster에 `qbittorrent-backup-dr-platform` Role/Binding 없음, Pulumi state·실측 drift). 실패 Job은 TTL 24h·Cron history 유지로 **수동 삭제 안 함**. `keepWithin=2d` prune 대기 |
+| 백업 CronJob/컴포넌트            | Vault raft (`keepWithin=10d`), qBit `qbittorrent-config` (`keepWithin=10d`), Vikunja `vikunja-data` (`keepWithin=2d`, 03:00 KST) dr Cron 운영 중. pCloud 업로드·retention prune·복호화 실측 완료 (2026-09-19) |
 | 구성 SSOT                        | 본 이슈 |
 | pCloud 용량 전략                 | POC 통과. Lane B는 유료 플랜 후 |
 
@@ -249,9 +249,9 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 - [x] VolumeSnapshot / external-snapshotter 도입 후 SnapshotClass — Piraeus 5.2.0 + `longhorn-snap` 적용
 - [x] 첫 Backup Job — qBit `qbittorrent-config` 일회 POC 업로드 성공 후 **컴포넌트 삭제** (정식은 CronJob에서)
 - [x] CronJob 스케줄 + `pcloud-backup-dr` Lease (qBit config: 01:00 Asia/Seoul, keepWithin 2d — 배포됨)
-- [ ] qBit dr Cron **연속 성공** + platform RBAC(`…-platform` Role/Binding in `pcloud-backup`) 클러스터 실측 (9/18 1회 실패 후 `tools/prod` refresh/up·9/19 Cron 자동 검증)
+- [x] qBit dr Cron **연속 성공** + platform RBAC(`…-platform` Role/Binding in `pcloud-backup`) 클러스터 실측. pCloud 업로드·`keepWithin=2d` prune 실측 확인 (2026-09-19)
 - [x] Vault raft Backup Job — once 성공 (114KiB). Cron `0 2 * * *` Asia/Seoul, `keepWithin=2d`, `runOnceOnCreate=false`
-- [ ] Windows mount 복호화 (선택)
+- [x] Windows 복호화 검증 (선택) — rclone crypt `localcrypt` + `copy`로 `backup.tar.zst`·qBit config 추출 확인 (mount/WinFsp 불필요)
 - [ ] 유료 플랜 결정 트리거: Lane B 전
 
 **POC 노트**
@@ -262,9 +262,9 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 ### Phase 2 — Lane A
 
 - [x] ESC + K8s Secret (Platform 적용으로 완료)
-- [x] Vault raft snapshot → pCloud (once 성공 · Cron 운영)
+- [x] Vault raft snapshot → pCloud (once 성공 · Cron 운영, keepWithin=10d 상향)
 - [ ] Postgres dump → pCloud
-- [ ] 소형 config 아카이브
+- [x] 소형 config 아카이브 (qBit config 10d, Vikunja data 2d Cron 운영 중)
 - [ ] 복구 런북 초안
 - [ ] Slack 실패 알림
 
@@ -341,3 +341,6 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-09-17 | Vault Cron 첫 실행 확인: Job `vault-backup-raft-29826300` Complete 39s (`lastScheduleTime` 17:00Z = 02:00 KST). 사용자 pCloud 백업본 확인. **retention prune은 미검증** — 이틀 후 사용자 재확인 예정 |
 | 2026-09-18 | qBit dr Cron 첫 스케줄 실패: Job `qbittorrent-backup-dr-config-29827680` — orchestrator가 `pcloud-backup/pcloud-backup-config` `clusterName` 읽기 전 **403 Forbidden** (`qbittorrent-backup-dr` SA). 동일 NS에 Vault `vault-backup-raft-platform` RBAC만 존재. 원인: Pulumi `tools/prod` state에 `qbittorrentBackup-dr-platformRole*` 있으나 cluster 미존재(drift). `refresh` 후 preview `+3`(platform RBAC + `sftpAdapter-keysBootstrapJob`). 사용자 `tools/prod` up 진행. 실패 Job·Pod **그대로 두고** TTL(24h)·다음 Cron 자동 동작 관찰 |
 | 2026-09-18 | Vault Cron 9/18 02:00 KST: Job `vault-backup-raft-29827740` Complete ~42s. 클러스터 전반 Deployment ready. qBit 앱 Pod 정상 |
+| 2026-09-19 | 사용자 실측: Vault·qBit dr 백업 pCloud 업로드 정상. retention 기간 경과 시 구 ts 폴더 삭제(`keepWithin=2d`) 확인. Phase 1 POC 운영 검증 종료 |
+| 2026-09-19 | 복호화 실증: pCloud 암호화 blob → rclone crypt 복호화 → `backup.tar.zst` 추출·qBittorrent config 87파일 확인. Phase 1 일정 마감 |
+| 2026-09-19 | Retention 상향 (Vault raft 10d, qBit config 10d) 및 Vikunja `vikunja-data` DR 추가 (`keepWithin=2d`, 매일 03:00 KST). once Job 통과 확인 후 `runOnceOnCreate: false` 전환 완료 |

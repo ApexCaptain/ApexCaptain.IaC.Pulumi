@@ -312,6 +312,7 @@ void (async () => {
           src.constants.pulumiPackages.std,
           'zod',
         ],
+        jest: true,
       },
     );
 
@@ -549,6 +550,7 @@ void (async () => {
               '*.res.ts': 'scheme',
               '*.data.ts': 'scheme',
               '*.diagnosis.md': 'document',
+              '*.script.ts': 'coffee',
               'contract.ts': 'bbx',
             }),
           },
@@ -572,6 +574,8 @@ void (async () => {
             enabled: new src.classes.VsCodeObject({
               'Cursor IDE': true,
               'Copilot IDE': false,
+              'Copilot IDE (VS Code Insiders)': false,
+              'Copilot IDE (VSCodium)': false,
               'Claude Code': false,
               'Factory Droid CLI': false,
               'Cursor CLI': false,
@@ -579,6 +583,9 @@ void (async () => {
               'Codex CLI': false,
               'DeepSeek TUI': false,
               'Antigravity CLI': false,
+              'Muse Code': false,
+              Pi: false,
+              'Qwen Code': false,
             }),
           },
         },

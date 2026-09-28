@@ -447,7 +447,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           cron: CronTime.everyDayAt(2),
           timezone: Timezone['Asia/Seoul'],
         },
-        keepWithin: '2d',
+        keepWithin: '10d',
         platform: {
           namespace: pcloudBackupPlatform.output.namespace,
           configMapName: pcloudBackupPlatform.output.configMapName,
