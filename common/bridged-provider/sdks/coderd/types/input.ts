@@ -5,11 +5,26 @@ import * as pulumi from "@pulumi/pulumi";
 import * as inputs from "../types/input";
 import * as outputs from "../types/output";
 
+export interface AgentsModelAcl {
+    /**
+     * IDs of groups that can use the model. Required if <span pulumi-lang-nodejs="`acl`" pulumi-lang-dotnet="`Acl`" pulumi-lang-go="`acl`" pulumi-lang-python="`acl`" pulumi-lang-yaml="`acl`" pulumi-lang-java="`acl`" pulumi-lang-hcl="`acl`">`acl`</span> is set. Each group must belong to the model's organization. To keep access for the `Everyone` group, include the organization ID.
+     */
+    groups?: pulumi.Input<pulumi.Input<string>[] | undefined>;
+    /**
+     * IDs of users that can use the model. Required if <span pulumi-lang-nodejs="`acl`" pulumi-lang-dotnet="`Acl`" pulumi-lang-go="`acl`" pulumi-lang-python="`acl`" pulumi-lang-yaml="`acl`" pulumi-lang-java="`acl`" pulumi-lang-hcl="`acl`">`acl`</span> is set. Each user must be a member of the model's organization.
+     */
+    users?: pulumi.Input<pulumi.Input<string>[] | undefined>;
+}
+
 export interface AiProviderSettings {
     /**
      * AWS Bedrock settings. Valid only for `type = "bedrock"` or `type = "anthropic"`.
      */
     bedrock?: pulumi.Input<inputs.AiProviderSettingsBedrock | undefined>;
+    /**
+     * Claude Platform for AWS settings. Valid only for `type = "anthropic"`. Coder authenticates each request with the first available of: the user's own key when Bring Your Own Key is enabled, the stored <span pulumi-lang-nodejs="`apiKeyWo`" pulumi-lang-dotnet="`ApiKeyWo`" pulumi-lang-go="`apiKeyWo`" pulumi-lang-python="`api_key_wo`" pulumi-lang-yaml="`apiKeyWo`" pulumi-lang-java="`apiKeyWo`" pulumi-lang-hcl="`api_key_wo`">`apiKeyWo`</span> (a Claude Platform for AWS key, not an api.anthropic.com key), or SigV4 signing with the Coder server's ambient AWS credentials. Requires Coder v2.38.0 or later.
+     */
+    claudePlatformAws?: pulumi.Input<inputs.AiProviderSettingsClaudePlatformAws | undefined>;
 }
 
 export interface AiProviderSettingsBedrock {
@@ -51,6 +66,17 @@ export interface AiProviderSettingsBedrock {
      * Small/fast Bedrock model identifier used for background tasks.
      */
     smallFastModel?: pulumi.Input<string | undefined>;
+}
+
+export interface AiProviderSettingsClaudePlatformAws {
+    /**
+     * AWS region for the regional endpoint and SigV4 signing scope. Required even when <span pulumi-lang-nodejs="`baseUrl`" pulumi-lang-dotnet="`BaseUrl`" pulumi-lang-go="`baseUrl`" pulumi-lang-python="`base_url`" pulumi-lang-yaml="`baseUrl`" pulumi-lang-java="`baseUrl`" pulumi-lang-hcl="`base_url`">`baseUrl`</span> points to a proxy.
+     */
+    region: pulumi.Input<string>;
+    /**
+     * Claude Platform workspace ID sent in the `anthropic-workspace-id` header on every request.
+     */
+    workspaceId: pulumi.Input<string>;
 }
 
 export interface OrganizationGroupSync {

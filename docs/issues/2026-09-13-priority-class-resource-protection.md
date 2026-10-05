@@ -78,6 +78,8 @@ PriorityClass는 보조다. 본체는 kubelet이 커널 OOM보다 먼저 움직�
 4. Vault / istiod / ztunnel에 기존 `k8s-cluster-critical` 부여. Longhorn은 차트 기본 `longhorn-critical` 유지
 5. 보호 대상 Guaranteed는 실측 숫자 확인 후. 추측으로 limit을 request에 맞추지 않음
 
+2026-10-05 [VPA 1차 IaC 반영](2026-09-08-vpa-resource-rightsizing-followup.md) 완료. 12월 착수 전 **2026-11 초** VPA 2차 결과를 함께 본다.
+
 Helm values 필드명은 사용 중 차트 버전으로 확인한다. `pilot.cni.enabled` 형태는 현재 Istio ambient 배포(`base → cni → istiod → ztunnel`)와 다르다.
 
 ## 수용 기준

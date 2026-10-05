@@ -25,6 +25,11 @@ export type AgentsSystemPrompt = import("./agentsSystemPrompt").AgentsSystemProm
 export const AgentsSystemPrompt: typeof import("./agentsSystemPrompt").AgentsSystemPrompt = null as any;
 utilities.lazyLoad(exports, ["AgentsSystemPrompt"], () => require("./agentsSystemPrompt"));
 
+export { AiModelPriceArgs, AiModelPriceState } from "./aiModelPrice";
+export type AiModelPrice = import("./aiModelPrice").AiModelPrice;
+export const AiModelPrice: typeof import("./aiModelPrice").AiModelPrice = null as any;
+utilities.lazyLoad(exports, ["AiModelPrice"], () => require("./aiModelPrice"));
+
 export { AiProviderArgs, AiProviderState } from "./aiProvider";
 export type AiProvider = import("./aiProvider").AiProvider;
 export const AiProvider: typeof import("./aiProvider").AiProvider = null as any;
@@ -125,6 +130,8 @@ const _module = {
                 return new AgentsModel(name, <any>undefined, { urn })
             case "coderd:index/agentsSystemPrompt:AgentsSystemPrompt":
                 return new AgentsSystemPrompt(name, <any>undefined, { urn })
+            case "coderd:index/aiModelPrice:AiModelPrice":
+                return new AiModelPrice(name, <any>undefined, { urn })
             case "coderd:index/aiProvider:AiProvider":
                 return new AiProvider(name, <any>undefined, { urn })
             case "coderd:index/group:Group":
@@ -156,6 +163,7 @@ pulumi.runtime.registerResourceModule("coderd", "index/agentsDefaultModel", _mod
 pulumi.runtime.registerResourceModule("coderd", "index/agentsMcpServer", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/agentsModel", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/agentsSystemPrompt", _module)
+pulumi.runtime.registerResourceModule("coderd", "index/aiModelPrice", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/aiProvider", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/group", _module)
 pulumi.runtime.registerResourceModule("coderd", "index/license", _module)

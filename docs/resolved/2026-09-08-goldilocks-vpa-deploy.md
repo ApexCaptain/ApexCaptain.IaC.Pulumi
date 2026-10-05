@@ -7,7 +7,7 @@
 | **관련 코드** | `infra/k8s-workstation-system/src/components/{vpa,goldilocks}`, `infra/k8s-workstation-system/src/contract.ts`, `common/nexus/src/esc/common.esc.ts`, `infra/cloudflare/src/components/records/records.workstation.component.ts` |
 | **상태** | **해결** |
 | **해결일** | 2026-09-08 |
-| **후속** | [VPA 추천 기반 리소스 갭 재분석](../issues/2026-09-08-vpa-resource-rightsizing-followup.md) (2026-10 초) |
+| **후속** | [VPA 추천 기반 리소스 갭 재분석](../issues/2026-09-08-vpa-resource-rightsizing-followup.md) (2026-11 초 주기, 2026-10-05 1차 반영) |
 
 ## 해결 요약
 

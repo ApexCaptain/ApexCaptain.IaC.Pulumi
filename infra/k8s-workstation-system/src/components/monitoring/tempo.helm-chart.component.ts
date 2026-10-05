@@ -46,7 +46,7 @@ export const TempoHelmChartComponent = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '512Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '1000m',

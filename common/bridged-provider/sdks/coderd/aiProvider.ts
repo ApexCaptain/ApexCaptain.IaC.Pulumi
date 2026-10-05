@@ -40,7 +40,7 @@ export class AiProvider extends pulumi.CustomResource {
     declare public /*out*/ readonly apiKeyMasked: pulumi.Output<string>;
     /**
      * **NOTE:** This field is write-only and its value will not be updated in state as part of read operations.
-     * Plaintext API key for the provider. Not valid for <span pulumi-lang-nodejs="`bedrock`" pulumi-lang-dotnet="`Bedrock`" pulumi-lang-go="`bedrock`" pulumi-lang-python="`bedrock`" pulumi-lang-yaml="`bedrock`" pulumi-lang-java="`bedrock`" pulumi-lang-hcl="`bedrock`">`bedrock`</span> or <span pulumi-lang-nodejs="`copilot`" pulumi-lang-dotnet="`Copilot`" pulumi-lang-go="`copilot`" pulumi-lang-python="`copilot`" pulumi-lang-yaml="`copilot`" pulumi-lang-java="`copilot`" pulumi-lang-hcl="`copilot`">`copilot`</span>, or when `settings.bedrock` is set. Bump <span pulumi-lang-nodejs="`apiKeyWoVersion`" pulumi-lang-dotnet="`ApiKeyWoVersion`" pulumi-lang-go="`apiKeyWoVersion`" pulumi-lang-python="`api_key_wo_version`" pulumi-lang-yaml="`apiKeyWoVersion`" pulumi-lang-java="`apiKeyWoVersion`" pulumi-lang-hcl="`api_key_wo_version`">`apiKeyWoVersion`</span> to rotate it.
+     * Plaintext API key for the provider. Not valid for <span pulumi-lang-nodejs="`bedrock`" pulumi-lang-dotnet="`Bedrock`" pulumi-lang-go="`bedrock`" pulumi-lang-python="`bedrock`" pulumi-lang-yaml="`bedrock`" pulumi-lang-java="`bedrock`" pulumi-lang-hcl="`bedrock`">`bedrock`</span> or <span pulumi-lang-nodejs="`copilot`" pulumi-lang-dotnet="`Copilot`" pulumi-lang-go="`copilot`" pulumi-lang-python="`copilot`" pulumi-lang-yaml="`copilot`" pulumi-lang-java="`copilot`" pulumi-lang-hcl="`copilot`">`copilot`</span>, or when `settings.bedrock` is set. Optional with `settings.claude_platform_aws`; see that attribute. Removing it from configuration does not delete a stored key; replace the resource to delete it. Bump <span pulumi-lang-nodejs="`apiKeyWoVersion`" pulumi-lang-dotnet="`ApiKeyWoVersion`" pulumi-lang-go="`apiKeyWoVersion`" pulumi-lang-python="`api_key_wo_version`" pulumi-lang-yaml="`apiKeyWoVersion`" pulumi-lang-java="`apiKeyWoVersion`" pulumi-lang-hcl="`api_key_wo_version`">`apiKeyWoVersion`</span> to rotate it.
      */
     declare public readonly apiKeyWo: pulumi.Output<string | undefined>;
     /**
@@ -68,7 +68,7 @@ export class AiProvider extends pulumi.CustomResource {
      */
     declare public readonly name: pulumi.Output<string>;
     /**
-     * Type-specific provider settings.
+     * Type-specific provider settings. Removing them from an existing provider replaces the provider.
      */
     declare public readonly settings: pulumi.Output<outputs.AiProviderSettings | undefined>;
     /**
@@ -141,7 +141,7 @@ export interface AiProviderState {
     apiKeyMasked?: pulumi.Input<string | undefined>;
     /**
      * **NOTE:** This field is write-only and its value will not be updated in state as part of read operations.
-     * Plaintext API key for the provider. Not valid for <span pulumi-lang-nodejs="`bedrock`" pulumi-lang-dotnet="`Bedrock`" pulumi-lang-go="`bedrock`" pulumi-lang-python="`bedrock`" pulumi-lang-yaml="`bedrock`" pulumi-lang-java="`bedrock`" pulumi-lang-hcl="`bedrock`">`bedrock`</span> or <span pulumi-lang-nodejs="`copilot`" pulumi-lang-dotnet="`Copilot`" pulumi-lang-go="`copilot`" pulumi-lang-python="`copilot`" pulumi-lang-yaml="`copilot`" pulumi-lang-java="`copilot`" pulumi-lang-hcl="`copilot`">`copilot`</span>, or when `settings.bedrock` is set. Bump <span pulumi-lang-nodejs="`apiKeyWoVersion`" pulumi-lang-dotnet="`ApiKeyWoVersion`" pulumi-lang-go="`apiKeyWoVersion`" pulumi-lang-python="`api_key_wo_version`" pulumi-lang-yaml="`apiKeyWoVersion`" pulumi-lang-java="`apiKeyWoVersion`" pulumi-lang-hcl="`api_key_wo_version`">`apiKeyWoVersion`</span> to rotate it.
+     * Plaintext API key for the provider. Not valid for <span pulumi-lang-nodejs="`bedrock`" pulumi-lang-dotnet="`Bedrock`" pulumi-lang-go="`bedrock`" pulumi-lang-python="`bedrock`" pulumi-lang-yaml="`bedrock`" pulumi-lang-java="`bedrock`" pulumi-lang-hcl="`bedrock`">`bedrock`</span> or <span pulumi-lang-nodejs="`copilot`" pulumi-lang-dotnet="`Copilot`" pulumi-lang-go="`copilot`" pulumi-lang-python="`copilot`" pulumi-lang-yaml="`copilot`" pulumi-lang-java="`copilot`" pulumi-lang-hcl="`copilot`">`copilot`</span>, or when `settings.bedrock` is set. Optional with `settings.claude_platform_aws`; see that attribute. Removing it from configuration does not delete a stored key; replace the resource to delete it. Bump <span pulumi-lang-nodejs="`apiKeyWoVersion`" pulumi-lang-dotnet="`ApiKeyWoVersion`" pulumi-lang-go="`apiKeyWoVersion`" pulumi-lang-python="`api_key_wo_version`" pulumi-lang-yaml="`apiKeyWoVersion`" pulumi-lang-java="`apiKeyWoVersion`" pulumi-lang-hcl="`api_key_wo_version`">`apiKeyWoVersion`</span> to rotate it.
      */
     apiKeyWo?: pulumi.Input<string | undefined>;
     /**
@@ -169,7 +169,7 @@ export interface AiProviderState {
      */
     name?: pulumi.Input<string | undefined>;
     /**
-     * Type-specific provider settings.
+     * Type-specific provider settings. Removing them from an existing provider replaces the provider.
      */
     settings?: pulumi.Input<inputs.AiProviderSettings | undefined>;
     /**
@@ -188,7 +188,7 @@ export interface AiProviderState {
 export interface AiProviderArgs {
     /**
      * **NOTE:** This field is write-only and its value will not be updated in state as part of read operations.
-     * Plaintext API key for the provider. Not valid for <span pulumi-lang-nodejs="`bedrock`" pulumi-lang-dotnet="`Bedrock`" pulumi-lang-go="`bedrock`" pulumi-lang-python="`bedrock`" pulumi-lang-yaml="`bedrock`" pulumi-lang-java="`bedrock`" pulumi-lang-hcl="`bedrock`">`bedrock`</span> or <span pulumi-lang-nodejs="`copilot`" pulumi-lang-dotnet="`Copilot`" pulumi-lang-go="`copilot`" pulumi-lang-python="`copilot`" pulumi-lang-yaml="`copilot`" pulumi-lang-java="`copilot`" pulumi-lang-hcl="`copilot`">`copilot`</span>, or when `settings.bedrock` is set. Bump <span pulumi-lang-nodejs="`apiKeyWoVersion`" pulumi-lang-dotnet="`ApiKeyWoVersion`" pulumi-lang-go="`apiKeyWoVersion`" pulumi-lang-python="`api_key_wo_version`" pulumi-lang-yaml="`apiKeyWoVersion`" pulumi-lang-java="`apiKeyWoVersion`" pulumi-lang-hcl="`api_key_wo_version`">`apiKeyWoVersion`</span> to rotate it.
+     * Plaintext API key for the provider. Not valid for <span pulumi-lang-nodejs="`bedrock`" pulumi-lang-dotnet="`Bedrock`" pulumi-lang-go="`bedrock`" pulumi-lang-python="`bedrock`" pulumi-lang-yaml="`bedrock`" pulumi-lang-java="`bedrock`" pulumi-lang-hcl="`bedrock`">`bedrock`</span> or <span pulumi-lang-nodejs="`copilot`" pulumi-lang-dotnet="`Copilot`" pulumi-lang-go="`copilot`" pulumi-lang-python="`copilot`" pulumi-lang-yaml="`copilot`" pulumi-lang-java="`copilot`" pulumi-lang-hcl="`copilot`">`copilot`</span>, or when `settings.bedrock` is set. Optional with `settings.claude_platform_aws`; see that attribute. Removing it from configuration does not delete a stored key; replace the resource to delete it. Bump <span pulumi-lang-nodejs="`apiKeyWoVersion`" pulumi-lang-dotnet="`ApiKeyWoVersion`" pulumi-lang-go="`apiKeyWoVersion`" pulumi-lang-python="`api_key_wo_version`" pulumi-lang-yaml="`apiKeyWoVersion`" pulumi-lang-java="`apiKeyWoVersion`" pulumi-lang-hcl="`api_key_wo_version`">`apiKeyWoVersion`</span> to rotate it.
      */
     apiKeyWo?: pulumi.Input<string | undefined>;
     /**
@@ -212,7 +212,7 @@ export interface AiProviderArgs {
      */
     name?: pulumi.Input<string | undefined>;
     /**
-     * Type-specific provider settings.
+     * Type-specific provider settings. Removing them from an existing provider replaces the provider.
      */
     settings?: pulumi.Input<inputs.AiProviderSettings | undefined>;
     /**

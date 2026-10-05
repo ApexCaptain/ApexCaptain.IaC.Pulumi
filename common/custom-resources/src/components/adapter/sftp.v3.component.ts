@@ -469,7 +469,7 @@ export const SftpV3Component = utils.functions.defineComponent(
             },
           ],
           resources: {
-            requests: { cpu: '10m', memory: '32Mi' },
+            requests: { cpu: '10m', memory: '64Mi' },
             limits: { cpu: '200m', memory: '128Mi' },
           },
         },
@@ -876,7 +876,7 @@ export const SftpV3Component = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '10m',
-                memory: '32Mi',
+                memory: '64Mi',
               },
               limits: {
                 cpu: '100m',

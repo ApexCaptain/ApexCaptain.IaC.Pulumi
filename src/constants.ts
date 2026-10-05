@@ -147,7 +147,7 @@ export const constants = (() => {
       coderd: new TerraformBridgedProvider({
         name: 'coderd',
         providerSource: 'coder/coderd',
-        providerVersion: '0.0.26',
+        providerVersion: '0.0.30',
       }),
     },
   };
