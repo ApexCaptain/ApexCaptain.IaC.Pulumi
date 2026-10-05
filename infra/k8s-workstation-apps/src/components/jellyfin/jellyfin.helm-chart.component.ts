@@ -251,13 +251,11 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
             'secret.reloader.stakater.com/reload':
               sftpAdapter.output.userSecretName,
           },
-          // @Note 나중에 GPU Operator 설치 후 사용
-          // runtimeClassName: 'nvidia',
-          // idle ~570Mi; 트랜스코딩 스파이크용 CPU/RAM headroom
+          // VPA 2026-10: upperBound ~380Mi; 트랜스코딩 스파이크용 limit headroom 유지
           resources: {
             requests: {
               cpu: '200m',
-              memory: '768Mi',
+              memory: '512Mi',
             },
             limits: {
               cpu: '2',

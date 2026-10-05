@@ -89,18 +89,18 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '50m',
-                memory: '64Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '200m',
-                memory: '128Mi',
+                memory: '256Mi',
               },
             },
           },
           resources: {
             requests: {
               cpu: '50m',
-              memory: '64Mi',
+              memory: '128Mi',
             },
             limits: {
               cpu: '200m',
@@ -188,11 +188,11 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
                   resources: {
                     requests: {
                       cpu: '10m',
-                      memory: '32Mi',
+                      memory: '128Mi',
                     },
                     limits: {
                       cpu: '100m',
-                      memory: '64Mi',
+                      memory: '128Mi',
                     },
                   },
                 },

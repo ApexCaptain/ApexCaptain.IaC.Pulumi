@@ -51,7 +51,7 @@ export const VictoriaMetricsHelmChartComponent = utils.functions.defineComponent
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '256Mi',
+                memory: '384Mi',
               },
               limits: {
                 cpu: '1000m',

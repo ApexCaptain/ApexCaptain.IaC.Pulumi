@@ -74,7 +74,7 @@ export const LonghornHelmChartComponent = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '256Mi',
+                memory: '640Mi',
               },
               limits: {
                 cpu: '1',

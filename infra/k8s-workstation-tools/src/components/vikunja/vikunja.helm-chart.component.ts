@@ -235,7 +235,7 @@ export const VikunjaHelmChartComponent = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '50m',
-                memory: '64Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '200m',

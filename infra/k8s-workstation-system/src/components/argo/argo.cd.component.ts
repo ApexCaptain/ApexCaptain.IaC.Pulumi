@@ -244,11 +244,11 @@ export const ArgoCdComponent = utils.functions.defineComponent(
             },
           },
           controller: {
-            // idle ~39Mi; sync burst
+            // VPA 2026-10: target ~156Mi
             resources: {
               requests: {
                 cpu: '50m',
-                memory: '128Mi',
+                memory: '192Mi',
               },
               limits: {
                 cpu: '500m',
@@ -257,24 +257,24 @@ export const ArgoCdComponent = utils.functions.defineComponent(
             },
           },
           server: {
-            // idle ~53Mi
+            // VPA 2026-10: target ~248Mi
             resources: {
               requests: {
                 cpu: '50m',
-                memory: '128Mi',
+                memory: '256Mi',
               },
               limits: {
                 cpu: '500m',
-                memory: '256Mi',
+                memory: '512Mi',
               },
             },
           },
           repoServer: {
-            // idle ~28Mi; git clone spike
+            // VPA 2026-10: target ~115Mi
             resources: {
               requests: {
                 cpu: '50m',
-                memory: '64Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '500m',
@@ -283,11 +283,11 @@ export const ArgoCdComponent = utils.functions.defineComponent(
             },
           },
           redis: {
-            // idle ~6Mi
+            // VPA 2026-10: target ~115Mi
             resources: {
               requests: {
                 cpu: '20m',
-                memory: '32Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '200m',
@@ -296,11 +296,24 @@ export const ArgoCdComponent = utils.functions.defineComponent(
             },
           },
           applicationSet: {
-            // idle ~44Mi
+            // VPA 2026-10: target ~272Mi
             resources: {
               requests: {
                 cpu: '20m',
-                memory: '64Mi',
+                memory: '320Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '384Mi',
+              },
+            },
+          },
+          dex: {
+            // VPA 2026-10: target ~180Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '192Mi',
               },
               limits: {
                 cpu: '200m',
@@ -308,25 +321,12 @@ export const ArgoCdComponent = utils.functions.defineComponent(
               },
             },
           },
-          dex: {
-            // idle ~38Mi
-            resources: {
-              requests: {
-                cpu: '20m',
-                memory: '64Mi',
-              },
-              limits: {
-                cpu: '200m',
-                memory: '128Mi',
-              },
-            },
-          },
           notifications: {
-            // idle ~21Mi
+            // VPA 2026-10: target ~115Mi
             resources: {
               requests: {
                 cpu: '20m',
-                memory: '64Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '200m',

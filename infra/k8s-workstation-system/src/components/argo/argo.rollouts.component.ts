@@ -64,7 +64,7 @@ export const ArgoRolloutsComponent = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '20m',
-                memory: '64Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '200m',

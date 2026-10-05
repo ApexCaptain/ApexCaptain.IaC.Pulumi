@@ -2,6 +2,8 @@
 // *** Do not edit by hand unless you're certain you know what you are doing! ***
 
 import * as pulumi from "@pulumi/pulumi";
+import * as inputs from "./types/input";
+import * as outputs from "./types/output";
 import * as utilities from "./utilities";
 
 export class AgentsModel extends pulumi.CustomResource {
@@ -32,6 +34,10 @@ export class AgentsModel extends pulumi.CustomResource {
         return obj['__pulumiType'] === AgentsModel.__pulumiType;
     }
 
+    /**
+     * Users and groups that can use this model. Owners and organization admins can use every model. Coder gives the organization's `Everyone` group access to new models.
+     */
+    declare public readonly acl: pulumi.Output<outputs.AgentsModelAcl>;
     /**
      * AI provider ID that backs this model. Usually this is `coderd_ai_provider.<name>.id`. Updating it re-derives the read-only <span pulumi-lang-nodejs="`providerType`" pulumi-lang-dotnet="`ProviderType`" pulumi-lang-go="`providerType`" pulumi-lang-python="`provider_type`" pulumi-lang-yaml="`providerType`" pulumi-lang-java="`providerType`" pulumi-lang-hcl="`provider_type`">`providerType`</span> from the referenced provider.
      */
@@ -90,6 +96,7 @@ export class AgentsModel extends pulumi.CustomResource {
         opts = opts || {};
         if (opts.id) {
             const state = argsOrState as AgentsModelState | undefined;
+            resourceInputs["acl"] = state?.acl;
             resourceInputs["aiProviderId"] = state?.aiProviderId;
             resourceInputs["compressionThreshold"] = state?.compressionThreshold;
             resourceInputs["contextLimit"] = state?.contextLimit;
@@ -112,6 +119,7 @@ export class AgentsModel extends pulumi.CustomResource {
             if (args?.model === undefined && !opts.urn) {
                 throw new Error("Missing required property 'model'");
             }
+            resourceInputs["acl"] = args?.acl;
             resourceInputs["aiProviderId"] = args?.aiProviderId;
             resourceInputs["compressionThreshold"] = args?.compressionThreshold;
             resourceInputs["contextLimit"] = args?.contextLimit;
@@ -133,6 +141,10 @@ export class AgentsModel extends pulumi.CustomResource {
  * Input properties used for looking up and filtering AgentsModel resources.
  */
 export interface AgentsModelState {
+    /**
+     * Users and groups that can use this model. Owners and organization admins can use every model. Coder gives the organization's `Everyone` group access to new models.
+     */
+    acl?: pulumi.Input<inputs.AgentsModelAcl | undefined>;
     /**
      * AI provider ID that backs this model. Usually this is `coderd_ai_provider.<name>.id`. Updating it re-derives the read-only <span pulumi-lang-nodejs="`providerType`" pulumi-lang-dotnet="`ProviderType`" pulumi-lang-go="`providerType`" pulumi-lang-python="`provider_type`" pulumi-lang-yaml="`providerType`" pulumi-lang-java="`providerType`" pulumi-lang-hcl="`provider_type`">`providerType`</span> from the referenced provider.
      */
@@ -183,6 +195,10 @@ export interface AgentsModelState {
  * The set of arguments for constructing a AgentsModel resource.
  */
 export interface AgentsModelArgs {
+    /**
+     * Users and groups that can use this model. Owners and organization admins can use every model. Coder gives the organization's `Everyone` group access to new models.
+     */
+    acl?: pulumi.Input<inputs.AgentsModelAcl | undefined>;
     /**
      * AI provider ID that backs this model. Usually this is `coderd_ai_provider.<name>.id`. Updating it re-derives the read-only <span pulumi-lang-nodejs="`providerType`" pulumi-lang-dotnet="`ProviderType`" pulumi-lang-go="`providerType`" pulumi-lang-python="`provider_type`" pulumi-lang-yaml="`providerType`" pulumi-lang-java="`providerType`" pulumi-lang-hcl="`provider_type`">`providerType`</span> from the referenced provider.
      */
