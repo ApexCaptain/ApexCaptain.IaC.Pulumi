@@ -567,6 +567,9 @@ importers:
       '@infra/github':
         specifier: workspace:*
         version: link:../github
+      '@pulumi/command':
+        specifier: ^1.2.1
+        version: 1.2.1(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
       '@pulumi/github':
         specifier: ^6.14.0
         version: 6.14.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)

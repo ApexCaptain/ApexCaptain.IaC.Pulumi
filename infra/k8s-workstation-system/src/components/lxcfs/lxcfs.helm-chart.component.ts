@@ -3,9 +3,10 @@
  *
  * mesh 밖 (`istio.io/dataplane-mode: none`).
  * webhook은 차트 기본 Pod 라벨 selector를 사용.
- * stale FUSE 마운트는 mount-recovery DaemonSet이 주기적으로 lazy unmount.
+ * chart 0.2.8+ agent가 stale FUSE mount self-heal (#122).
  */
 import * as utils from '@common/utils/src';
+import * as command from '@pulumi/command';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import dedent from 'dedent';
@@ -17,6 +18,7 @@ interface LxcfsHelmChartComponentArgsShape {
       repositoryUrl: string;
     };
   };
+  kubeconfig: string;
   providers: {
     kubernetes: kubernetes.Provider;
   };
@@ -25,6 +27,20 @@ interface LxcfsHelmChartComponentArgsShape {
 export type LxcfsHelmChartComponentArgs =
   utils.types.DeepPulumiInput<LxcfsHelmChartComponentArgsShape>;
 
+/** chart 0.2.8 기본 procFiles는 pressure·slabinfo 포함 → runc 1.4.x overmount 실패. */
+const LXCFS_PROC_FILES_RUNC_COMPAT = [
+  'cpuinfo',
+  'diskstats',
+  'meminfo',
+  'stat',
+  'swaps',
+  'uptime',
+  'loadavg',
+];
+
+const LXCFS_MUTATING_WEBHOOK_CONFIGURATION_NAME =
+  'lxcfs-lxcfs-on-kubernetes-mutating-webhook-configuration';
+
 export const LxcfsHelmChartComponent = utils.functions.defineComponent(
   'lxcfsHelmChart',
   (
@@ -32,9 +48,7 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    // 차트 기본 mountPath·recovery interval
     const lxcfsHostMountPath = '/var/lib/lxcfs-on-k8s/lxcfs';
-    const mountRecoveryIntervalSeconds = 60;
 
     const namespace = new kubernetes.core.v1.Namespace(
       `${resourceName}-namespace`,
@@ -65,26 +79,16 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
         namespace: namespace.metadata.name,
         waitForJobs: true,
         values: {
-          image: {
-            /**
-             * v0.2.6+ manager는 runc가 허용하지 않는 `/proc/pressure`를 주입해
-             * 라벨이 붙은 Pod가 StartError로 실패하므로 수정 전 버전으로 고정.
-             * @see https://github.com/cndoit18/lxcfs-on-kubernetes/issues/128
-             */
-            manager: 'ghcr.io/cndoit18/lxcfs-manager:v0.2.5',
-            agent: pulumi.interpolate`ghcr.io/cndoit18/lxcfs-agent:v${args.helm.lxcfs.version}`,
-          },
           lxcfs: {
             useDaemonset: true,
+            procFiles: LXCFS_PROC_FILES_RUNC_COMPAT,
             configMaps: {
               crictlConfig: {
                 // agent가 붙는 CRI 소켓 (workstation containerd)
                 endpoint: '/run/containerd/containerd.sock',
               },
             },
-            // 호스트 LXCFS 마운트 경로 (차트 기본값)
             mountPath: lxcfsHostMountPath,
-            // lxcfs 바이너리 플래그 (차트 기본과 동일)
             args: ['-l', '--enable-cfs', '--enable-pidfd'],
             resources: {
               requests: {
@@ -117,97 +121,39 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
     );
 
     /**
-     * agent 재시작 등으로 FUSE 마운트가 stale(Transport endpoint is not connected)이 되면
-     * 재마운트가 막히므로, 호스트 mount ns에서 주기적으로 감지 후 lazy unmount.
+     * Helm upgrade만으로 MutatingWebhook의 legacy namespaceSelector가 남는 경우가 있어,
+     * chart 0.2.8(objectSelector만)과 맞추기 위해 helm release 이후 idempotent prune.
      */
-    const mountRecoveryLabels = {
-      'app.kubernetes.io/name': 'lxcfs-mount-recovery',
-      'app.kubernetes.io/part-of': 'lxcfs',
-    };
-    new kubernetes.apps.v1.DaemonSet(
-      `${resourceName}-lxcfsMountRecoveryDaemonSet`,
+    const pruneLegacyNamespaceSelector = dedent`
+      set -euo pipefail
+      tmp=$(mktemp)
+      trap 'rm -f "$tmp"' EXIT
+      printf '%s\\n' "$KUBECONFIG_CONTENT" > "$tmp"
+      export KUBECONFIG="$tmp"
+      MWH="${LXCFS_MUTATING_WEBHOOK_CONFIGURATION_NAME}"
+      if ! kubectl get mutatingwebhookconfiguration "$MWH" >/dev/null 2>&1; then
+        exit 0
+      fi
+      if kubectl get mutatingwebhookconfiguration "$MWH" -o jsonpath='{.webhooks[0].namespaceSelector.matchLabels}' 2>/dev/null | grep -q mount-lxcfs; then
+        kubectl patch mutatingwebhookconfiguration "$MWH" --type=json -p='[{"op":"remove","path":"/webhooks/0/namespaceSelector"}]'
+      fi
+    `;
+
+    new command.local.Command(
+      `${resourceName}-pruneLegacyNamespaceSelector`,
       {
-        metadata: {
-          name: 'lxcfs-mount-recovery',
-          namespace: namespace.metadata.name,
-          labels: mountRecoveryLabels,
-        },
-        spec: {
-          selector: {
-            matchLabels: mountRecoveryLabels,
-          },
-          template: {
-            metadata: {
-              labels: mountRecoveryLabels,
-            },
-            spec: {
-              hostPID: true,
-              priorityClassName: 'system-node-critical',
-              tolerations: [
-                {
-                  operator: 'Exists',
-                  effect: 'NoExecute',
-                },
-                {
-                  operator: 'Exists',
-                  effect: 'NoSchedule',
-                },
-              ],
-              containers: [
-                {
-                  name: 'mount-recovery',
-                  image: 'alpine:3.22',
-                  command: ['/bin/sh', '-c'],
-                  args: [
-                    dedent`
-                      set -eu
-                      apk add --no-cache util-linux >/dev/null
-                      while true; do
-                        OUT=$(nsenter -t 1 -m -- stat "$MOUNT_PATH" 2>&1 || true)
-                        if echo "$OUT" | grep -qiE 'transport endpoint|not connected|stale'; then
-                          echo "$(date +%Y-%m-%dT%H:%M:%SZ) broken lxcfs mount at $MOUNT_PATH, lazy unmount" >&2
-                          nsenter -t 1 -m -- umount -l "$MOUNT_PATH" 2>/dev/null || true
-                        fi
-                        sleep "$INTERVAL"
-                      done
-                    `,
-                  ],
-                  securityContext: {
-                    privileged: true,
-                  },
-                  env: [
-                    {
-                      name: 'INTERVAL',
-                      value: String(mountRecoveryIntervalSeconds),
-                    },
-                    {
-                      name: 'MOUNT_PATH',
-                      value: lxcfsHostMountPath,
-                    },
-                  ],
-                  resources: {
-                    requests: {
-                      cpu: '10m',
-                      memory: '128Mi',
-                    },
-                    limits: {
-                      cpu: '100m',
-                      memory: '128Mi',
-                    },
-                  },
-                },
-              ],
-            },
-          },
-          updateStrategy: {
-            type: 'RollingUpdate',
-          },
+        create: pruneLegacyNamespaceSelector,
+        update: pruneLegacyNamespaceSelector,
+        addPreviousOutputInEnv: false,
+        triggers: [lxcfsRelease.id],
+        environment: {
+          KUBECONFIG_CONTENT: pulumi.secret(args.kubeconfig),
         },
       },
       {
         ...opts,
-        provider: args.providers.kubernetes,
-        dependsOn: [namespace, lxcfsRelease],
+        dependsOn: [lxcfsRelease],
+        additionalSecretOutputs: ['stdout', 'stderr'],
       },
     );
 

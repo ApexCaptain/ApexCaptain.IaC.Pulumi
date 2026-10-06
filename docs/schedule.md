@@ -24,6 +24,7 @@
 
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
+| (선택) webhook 라벨 Pod 검증·Nova 재생성 | 핵심 배포 완료. Sysbox는 워크스페이스 재기동 후 hostPath 확인됨 | [LXCFS 0.2.8](issues/2026-10-06-lxcfs-on-kubernetes-0.2.8-upgrade.md) | 적용 |
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 
 ---

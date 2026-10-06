@@ -108,3 +108,4 @@ Helm values 필드명은 사용 중 차트 버전으로 확인한다. `pilot.cni
 | 2026-09-13 | 등록. 추천안 C. IaC 미착수 |
 | 2026-09-13 | 재검토를 2026-12 초로 확정. 그 전 적용 없음. 상태 보류 |
 | 2026-09-13 | 출처 표기 제거. 이 이슈가 SSOT |
+| 2026-10-06 | LXCFS mount-recovery DaemonSet 삭제(0.2.8 self-heal). 이 레포 IaC가 명시하던 `system-node-critical` 사용처가 없음. 설계 변경 아님 |

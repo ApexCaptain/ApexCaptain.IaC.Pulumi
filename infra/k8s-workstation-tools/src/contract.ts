@@ -374,7 +374,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                   cron: CronTime.everyDayAt(3),
                   timezone: Timezone['Asia/Seoul'],
                 },
-                keepWithin: '2d',
+                keepWithin: '10d',
               },
             ],
           },
