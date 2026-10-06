@@ -367,6 +367,7 @@ void (async () => {
         stages: [utils.enums.StackStage.PROD],
         deps: [
           src.constants.pulumiPackages.kubernetes,
+          src.constants.pulumiPackages.command,
           src.constants.pulumiPackages.oci,
           src.constants.pulumiPackages.tls,
           src.constants.pulumiPackages.time,

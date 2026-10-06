@@ -67,6 +67,10 @@
       "type": "runtime"
     },
     {
+      "name": "@pulumi/command",
+      "type": "runtime"
+    },
+    {
       "name": "@pulumi/github",
       "type": "runtime"
     },

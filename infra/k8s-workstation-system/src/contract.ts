@@ -79,13 +79,14 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           lxcfs: {
-            version: '0.2.7',
+            version: '0.2.8',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'cndoit18.github.io/lxcfs-on-kubernetes'
               ],
           },
         },
+        kubeconfig: nexus.esc.commonEsc.esc.workstationKubeconfig,
         providers: {
           kubernetes: workstationK8sProvider,
         },
