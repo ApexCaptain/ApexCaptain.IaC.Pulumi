@@ -10,13 +10,14 @@
 
 | 언제 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
-| **2026-10 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
+| **2026-10-13 (월)** | 주말 하드 백업 완료 확인 후 Longhorn 1.13.0 IaC bump·배포·점검 (`global-manager` 1 replica, 선택 `metricsScrapeSources`). 엔진 업그레이드는 별도 | [Longhorn 1.13.0 업그레이드](issues/2026-10-07-longhorn-1-13-0-upgrade.md) | 보류 |
 | **2026-11 초** | VPA·Goldilocks 재스냅샷 → 갭 재분석. 안전한 항목만 IaC 패치. jellyfin / qbittorrent / coder는 피크·upperBound 교차 확인 | [VPA 리소스 재조정](issues/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-05 1차 반영 완료 |
+| **2026-11 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
 | **2026-10-25 19:03 KST** | leaf 갱신 (`vault-server-certificate` renewalTime 10:03:36Z). Reloader가 vault-0를 롤했는지, 롤 후 `VaultConnection` Healthy·서비스 DNS TLS 유지되는지. 통과하면 `docs/resolved`로 이동 | [Vault TLS cert reload](issues/2026-09-06-vault-tls-cert-reload.md) | 적용 · 실검증 대기 |
 | **2026-10-31 이후** | qBit·Jellyfin v3 라이브 확인 후 `SftpV1Component`·테스트·export 삭제. 그 전 삭제 없음 | [SftpV1 삭제](issues/2026-09-10-sftp-v1-removal.md) | 보류 |
 | **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/2026-09-13-priority-class-resource-protection.md) | 보류 |
 
-10-25는 CA도 거의 동시에 돈다. Reloader는 Vault STS만 롤하므로 VSO `vault-ca-secret` 옛 CA 문제는 **범위 밖 후속** (Vault TLS 이슈 본문). 12월 PriorityClass는 11월 VPA 주기 결과를 함께 본다.
+10-13 Longhorn은 주말 백업(Jellyfin 2Ti 등) 선행. 10-25는 CA도 거의 동시에 돈다. Reloader는 Vault STS만 롤하므로 VSO `vault-ca-secret` 옛 CA 문제는 **범위 밖 후속** (Vault TLS 이슈 본문). 12월 PriorityClass는 11월 VPA 주기 결과를 함께 본다.
 
 ---
 

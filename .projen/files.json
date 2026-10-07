@@ -24,6 +24,7 @@
     "projenrc/tsconfig.json",
     "repomix.config.json",
     "requirements.txt",
+    "scripts/tsconfig.json",
     "test/tsconfig.json",
     "tsconfig.json",
     "turbo.json",

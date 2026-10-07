@@ -476,6 +476,28 @@ void (async () => {
     },
   );
 
+  // scripts/tsconfig.json — IDE picks nearest tsconfig; root include is src/ only.
+  new JsonFile(
+    rootProject,
+    `${src.constants.paths.dirs.scriptDir}/tsconfig.json`,
+    {
+      obj: {
+        extends: '../tsconfig.json',
+        compilerOptions: {
+          noEmit: true,
+          rootDir: '..',
+        },
+        include: [
+          '**/*.ts',
+          `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
+          `../${src.constants.paths.dirs.commonDir}/nexus/src/**/*.ts`,
+          `../${src.constants.paths.dirs.commonDir}/utils/src/**/*.ts`,
+        ],
+        exclude: ['node_modules'],
+      },
+    },
+  );
+
   // Turbo.json file
   new JsonFile(rootProject, 'turbo.json', {
     obj: {
