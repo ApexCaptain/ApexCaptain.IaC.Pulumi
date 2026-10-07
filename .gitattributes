@@ -27,6 +27,7 @@
 /projenrc/tsconfig.json linguist-generated linguist-language=JSON-with-Comments
 /repomix.config.json linguist-generated
 /requirements.txt linguist-generated
+/scripts/tsconfig.json linguist-generated
 /test/tsconfig.json linguist-generated linguist-language=JSON-with-Comments
 /tsconfig.json linguist-generated linguist-language=JSON-with-Comments
 /turbo.json linguist-generated

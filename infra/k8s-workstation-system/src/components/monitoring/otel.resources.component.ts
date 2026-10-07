@@ -238,6 +238,10 @@ export const OtelResourcesComponent = utils.functions.defineComponent(
         },
         spec: {
           mode: 'daemonset',
+          // operand NP는 게이트 off + Istio ambient 등과 충돌 여지 — Operator 자동 생성 비활성
+          networkPolicy: {
+            enabled: false,
+          },
           serviceAccount: collectorServiceAccountName,
           // k8s distro에는 prometheusremotewrite 없음. contrib는 operator 0.156.0과 맞춤.
           image:
