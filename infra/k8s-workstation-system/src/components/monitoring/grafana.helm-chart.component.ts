@@ -295,11 +295,11 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
             'resources': {
               requests: {
                 cpu: '100m',
-                memory: '256Mi',
+                memory: '768Mi',
               },
               limits: {
                 cpu: '500m',
-                memory: '512Mi',
+                memory: '1Gi',
               },
             },
           };

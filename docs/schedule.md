@@ -10,13 +10,14 @@
 
 | 언제 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
-| **2026-10 초** | VPA 추천 재스냅샷 → 갭 재분석. 안전한 항목만 IaC 패치. jellyfin / qbittorrent / coder는 피크 확인 후에만 축소 | [VPA 리소스 재조정](issues/2026-09-08-vpa-resource-rightsizing-followup.md) | 보류 |
-| **2026-10 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
+| **2026-10-13 (월)** | 주말 하드 백업 완료 확인 후 Longhorn 1.13.0 IaC bump·배포·점검 (`global-manager` 1 replica, 선택 `metricsScrapeSources`). 엔진 업그레이드는 별도 | [Longhorn 1.13.0 업그레이드](issues/2026-10-07-longhorn-1-13-0-upgrade.md) | 보류 |
+| **2026-11 초** | VPA·Goldilocks 재스냅샷 → 갭 재분석. 안전한 항목만 IaC 패치. jellyfin / qbittorrent / coder는 피크·upperBound 교차 확인 | [VPA 리소스 재조정](issues/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-05 1차 반영 완료 |
+| **2026-11 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
 | **2026-10-25 19:03 KST** | leaf 갱신 (`vault-server-certificate` renewalTime 10:03:36Z). Reloader가 vault-0를 롤했는지, 롤 후 `VaultConnection` Healthy·서비스 DNS TLS 유지되는지. 통과하면 `docs/resolved`로 이동 | [Vault TLS cert reload](issues/2026-09-06-vault-tls-cert-reload.md) | 적용 · 실검증 대기 |
 | **2026-10-31 이후** | qBit·Jellyfin v3 라이브 확인 후 `SftpV1Component`·테스트·export 삭제. 그 전 삭제 없음 | [SftpV1 삭제](issues/2026-09-10-sftp-v1-removal.md) | 보류 |
-| **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 10월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/2026-09-13-priority-class-resource-protection.md) | 보류 |
+| **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/2026-09-13-priority-class-resource-protection.md) | 보류 |
 
-같은 날 묶음: 10월 초는 VPA + Projen 두 건을 같이 본다. 10-25는 CA도 거의 동시에 돈다. Reloader는 Vault STS만 롤하므로 VSO `vault-ca-secret` 옛 CA 문제는 **범위 밖 후속** (이슈 본문). 12월 초 PriorityClass는 10월 VPA 갭 조정이 끝난 뒤에 본다.
+10-13 Longhorn은 주말 백업(Jellyfin 2Ti 등) 선행. 10-25는 CA도 거의 동시에 돈다. Reloader는 Vault STS만 롤하므로 VSO `vault-ca-secret` 옛 CA 문제는 **범위 밖 후속** (Vault TLS 이슈 본문). 12월 PriorityClass는 11월 VPA 주기 결과를 함께 본다.
 
 ---
 
@@ -24,6 +25,7 @@
 
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
+| (선택) webhook 라벨 Pod 검증·Nova 재생성 | 핵심 배포 완료. Sysbox는 워크스페이스 재기동 후 hostPath 확인됨 | [LXCFS 0.2.8](issues/2026-10-06-lxcfs-on-kubernetes-0.2.8-upgrade.md) | 적용 |
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 
 ---

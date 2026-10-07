@@ -84,7 +84,7 @@ export const LokiHelmChartComponent = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '256Mi',
+                memory: '512Mi',
               },
               limits: {
                 cpu: '1000m',
@@ -99,7 +99,7 @@ export const LokiHelmChartComponent = utils.functions.defineComponent(
             allocatedMemory: 512,
           },
           resultsCache: {
-            allocatedMemory: 128,
+            allocatedMemory: 64,
           },
           gateway: {
             enabled: false,

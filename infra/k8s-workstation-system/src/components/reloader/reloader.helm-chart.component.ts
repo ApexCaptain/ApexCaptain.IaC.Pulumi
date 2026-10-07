@@ -58,11 +58,11 @@ export const ReloaderHelmChartComponent = utils.functions.defineComponent(
               resources: {
                 requests: {
                   cpu: '20m',
-                  memory: '64Mi',
+                  memory: '256Mi',
                 },
                 limits: {
                   cpu: '200m',
-                  memory: '256Mi',
+                  memory: '384Mi',
                 },
               },
             },

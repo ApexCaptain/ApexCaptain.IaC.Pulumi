@@ -553,11 +553,11 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                   resources: {
                     requests: {
                       cpu: '250m',
-                      memory: '4Gi',
+                      memory: '11Gi',
                     },
                     limits: {
                       cpu: '2',
-                      memory: '8Gi',
+                      memory: '12Gi',
                     },
                   },
                   // WebUI 포트만 봄 — VPN 상태는 gluetun readiness가 담당

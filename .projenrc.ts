@@ -367,6 +367,7 @@ void (async () => {
         stages: [utils.enums.StackStage.PROD],
         deps: [
           src.constants.pulumiPackages.kubernetes,
+          src.constants.pulumiPackages.command,
           src.constants.pulumiPackages.oci,
           src.constants.pulumiPackages.tls,
           src.constants.pulumiPackages.time,
@@ -472,6 +473,28 @@ void (async () => {
     },
     {
       exec: 'pnpm i --no-frozen-lockfile',
+    },
+  );
+
+  // scripts/tsconfig.json — IDE picks nearest tsconfig; root include is src/ only.
+  new JsonFile(
+    rootProject,
+    `${src.constants.paths.dirs.scriptDir}/tsconfig.json`,
+    {
+      obj: {
+        extends: '../tsconfig.json',
+        compilerOptions: {
+          noEmit: true,
+          rootDir: '..',
+        },
+        include: [
+          '**/*.ts',
+          `../${src.constants.paths.dirs.srcDir}/**/*.ts`,
+          `../${src.constants.paths.dirs.commonDir}/nexus/src/**/*.ts`,
+          `../${src.constants.paths.dirs.commonDir}/utils/src/**/*.ts`,
+        ],
+        exclude: ['node_modules'],
+      },
     },
   );
 

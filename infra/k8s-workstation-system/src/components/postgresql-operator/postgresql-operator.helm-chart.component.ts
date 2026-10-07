@@ -57,7 +57,7 @@ export const PostgreSQLOperatorHelmChartComponent =
             resources: {
               requests: {
                 cpu: '50m',
-                memory: '64Mi',
+                memory: '160Mi',
               },
               limits: {
                 cpu: '200m',

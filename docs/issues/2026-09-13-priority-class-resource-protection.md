@@ -78,6 +78,8 @@ PriorityClass는 보조다. 본체는 kubelet이 커널 OOM보다 먼저 움직�
 4. Vault / istiod / ztunnel에 기존 `k8s-cluster-critical` 부여. Longhorn은 차트 기본 `longhorn-critical` 유지
 5. 보호 대상 Guaranteed는 실측 숫자 확인 후. 추측으로 limit을 request에 맞추지 않음
 
+2026-10-05 [VPA 1차 IaC 반영](2026-09-08-vpa-resource-rightsizing-followup.md) 완료. 12월 착수 전 **2026-11 초** VPA 2차 결과를 함께 본다.
+
 Helm values 필드명은 사용 중 차트 버전으로 확인한다. `pilot.cni.enabled` 형태는 현재 Istio ambient 배포(`base → cni → istiod → ztunnel`)와 다르다.
 
 ## 수용 기준
@@ -106,3 +108,4 @@ Helm values 필드명은 사용 중 차트 버전으로 확인한다. `pilot.cni
 | 2026-09-13 | 등록. 추천안 C. IaC 미착수 |
 | 2026-09-13 | 재검토를 2026-12 초로 확정. 그 전 적용 없음. 상태 보류 |
 | 2026-09-13 | 출처 표기 제거. 이 이슈가 SSOT |
+| 2026-10-06 | LXCFS mount-recovery DaemonSet 삭제(0.2.8 self-heal). 이 레포 IaC가 명시하던 `system-node-critical` 사용처가 없음. 설계 변경 아님 |

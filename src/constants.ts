@@ -141,13 +141,13 @@ export const constants = (() => {
       argocd: new TerraformBridgedProvider({
         name: 'argocd',
         providerSource: 'argoproj-labs/argocd',
-        providerVersion: '7.17.0',
+        providerVersion: '7.17.1',
       }),
       // https://registry.terraform.io/providers/coder/coderd/latest
       coderd: new TerraformBridgedProvider({
         name: 'coderd',
         providerSource: 'coder/coderd',
-        providerVersion: '0.0.26',
+        providerVersion: '0.0.30',
       }),
     },
   };

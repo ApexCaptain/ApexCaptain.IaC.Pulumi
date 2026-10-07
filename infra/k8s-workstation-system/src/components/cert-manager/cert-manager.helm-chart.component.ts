@@ -66,7 +66,7 @@ export const CertManagerHelmChartComponent = utils.functions.defineComponent(
           resources: {
             requests: {
               cpu: '20m',
-              memory: '64Mi',
+              memory: '128Mi',
             },
             limits: {
               cpu: '200m',
@@ -78,11 +78,11 @@ export const CertManagerHelmChartComponent = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '20m',
-                memory: '64Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '200m',
-                memory: '128Mi',
+                memory: '256Mi',
               },
             },
           },
@@ -91,7 +91,7 @@ export const CertManagerHelmChartComponent = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '20m',
-                memory: '64Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '200m',

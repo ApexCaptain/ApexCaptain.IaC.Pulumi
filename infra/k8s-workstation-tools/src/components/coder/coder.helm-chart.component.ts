@@ -241,7 +241,7 @@ export const CoderHelmChartComponent = utils.functions.defineComponent(
             resources: {
               requests: {
                 cpu: '250m',
-                memory: '512Mi',
+                memory: '1Gi',
               },
               limits: {
                 cpu: '2000m',
