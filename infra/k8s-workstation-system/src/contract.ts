@@ -476,7 +476,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       new components.longhorn.LonghornHelmChartComponent('longhornHelmChart', {
         helm: {
           longhorn: {
-            version: '1.12.1',
+            version: '1.13.0',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['charts.longhorn.io'],
           },

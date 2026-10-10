@@ -5,8 +5,8 @@
 | **등록일** | 2026-10-07 |
 | **영역** | Longhorn (`longhorn` NS), 단일 노드 `workstation-0`, K8s v1.35.4, CNI Cilium |
 | **관련 코드** | `infra/k8s-workstation-system/src/contract.ts` (Longhorn 차트 버전), `.../components/longhorn/longhorn.helm-chart.component.ts` |
-| **예정일** | **2026-10-13 (월)** — 차트 bump·배포·점검 |
-| **상태** | **보류** — **2026-10-11~12 (주말)** 사용자 하드 백업(Jellyfin 2Ti 등). 월요일 전까지 차트 bump·배포 없음 |
+| **예정일** | **2026-10-10** — 백업이 앞당겨 끝나 차트 bump·배포를 당김. 엔진 업그레이드는 별도 |
+| **상태** | **적용** — 차트 1.13.0 배포 완료. 엔진은 2026-10-14부터 매주 수요일 1개 |
 
 ## 배경
 
@@ -34,6 +34,8 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 longhorn 차트 1.12.1 →
 모든 볼륨이 replica 1개이고 Longhorn 백업이 없다. 엔진·IM 문제 시 복구 수단이 없다. 최대 볼륨은 2 TiB / 1 TiB급. 오프사이트 백업 이슈는 [PVC pCloud 암호화 백업](2026-09-15-pcloud-pvc-encrypted-backup.md).
 
 → **사용자가 하드 백업을 직접 수행한 뒤** 진행한다. Jellyfin media(약 2 Ti) 등 대용량 PVC는 주말에 시간이 걸릴 수 있다.
+
+2026-10-10 사용자가 하드 백업 완료를 확인했다. 이 선행 조건은 해소됐다.
 
 ### 2. 릴리스 노트 breaking 대조
 
@@ -76,11 +78,39 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 longhorn 차트 1.12.1 →
 
 ## 수용 기준
 
-- [ ] 하드 백업 완료 확인 (사용자)
-- [ ] Longhorn 차트 1.13.0 반영, global-manager 1 replica
-- [ ] 배포 후 17개 볼륨 attached/healthy 유지, CSI 정상
-- [ ] longhorn-manager 메트릭 스크랩 정상 (또는 NP 허용 규칙 반영)
-- [ ] 엔진 업그레이드는 별도 단계로 결정
+- [x] 하드 백업 완료 확인 (사용자, 2026-10-10)
+- [x] Longhorn 차트 1.13.0 반영, global-manager 1 replica
+- [x] 배포 후 18개 볼륨 attached/healthy 유지, CSI 정상
+- [x] longhorn-manager 메트릭 스크랩 정상 (또는 NP 허용 규칙 반영)
+- [x] 엔진 업그레이드는 별도 단계로 결정 (미실시. 볼륨은 v1.12.0)
+
+## 후속: 엔진 업그레이드 순서
+
+2026-10-10 사용자 결정: 매주 수요일 볼륨 1개. 첫날은 2026-10-14. `concurrent-automatic-engine-upgrade-per-node-limit`는 0으로 둔다. 그날의 볼륨만 엔진 `v1.13.0`으로 올리고, `healthy`와 엔진 이미지 확인 후 끝낸다. 프론트엔드는 전부 `blockdev`라 라이브 업그레이드가 된다. 진행 중 replica가 잠시 2개가 된다. SSD 여유 약 680Gi, HDD 여유 약 5.3Ti.
+
+| 수요일 | 볼륨 | 조건 |
+|---|---|---|
+| 2026-10-14 | qBit modcache 100Mi | |
+| 2026-10-21 | qBit config 200Mi | |
+| 2026-10-28 | Vikunja data 2Gi | |
+| 2026-11-04 | Jellyfin cache 10Gi | |
+| 2026-11-11 | Jellyfin config 5Gi | |
+| 2026-11-18 | Grafana 5Gi | |
+| 2026-11-25 | Tempo 10Gi | |
+| 2026-12-02 | Loki 20Gi | |
+| 2026-12-09 | VictoriaMetrics 20Gi | |
+| 2026-12-16 | Authentik Postgres 8Gi | 그 시간대에 Authentik를 쓰지 않음 |
+| 2026-12-23 | Vikunja Postgres 8Gi | 그 시간대에 Vikunja를 쓰지 않음 |
+| 2026-12-30 | Coder Postgres 10Gi | 그 시간대에 Coder를 쓰지 않음 |
+| 2027-01-06 | Coder home 50Gi | 워크스페이스를 끈 뒤 |
+| 2027-01-13 | Coder data 100Gi | 워크스페이스를 끈 뒤 |
+| 2027-01-20 | Coder docker 100Gi | 워크스페이스를 끈 뒤 |
+| 2027-01-27 | qBit incomplete 300Gi | qBit 일시정지 |
+| 2027-02-03 | qBit complete 1Ti | qBit 일시정지 |
+| 2027-02-10 | Jellyfin media 2Ti | Jellyfin 미시청 |
+| 2027-02-17 | 업그레이드 없음. 옛 IM이 빠졌는지 확인 | 엔진이 전부 `v1.13.0`인데 IM이 남아 있으면, 아직 붙은 볼륨을 detach |
+
+엔진 이미지가 `v1.13.0`이어도 붙어 있는 볼륨의 엔진 프로세스는 옛 IM에 남는다. 옛 IM 1848m은 그 볼륨이 detach된 뒤에 빠진다.
 
 ## 범위 밖
 
@@ -94,3 +124,8 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 longhorn 차트 1.12.1 →
 |---|---|
 | 2026-10-07 | 등록. 릴리스 노트·차트 diff·클러스터 실측 조사. 사용자 하드 백업 선행 후 진행하기로 보류 |
 | 2026-10-07 | 일정 확정: 주말(10-11~12) 하드 백업(사용자), **10-13(월)** Longhorn 1.13.0 업그레이드 진행 |
+| 2026-10-10 | 재실측: 볼륨 18개(엔진·레플리카 각 18, refcount 54). 문서의 17은 같은 refcount와 안 맞음. 사용자 하드 백업 완료. 차트 1.13.0·`longhornGlobalManager.replicas: 1`·`metricsScrapeSources`(monitoring `central-collector`) IaC 반영 |
+| 2026-10-10 | `pulumi preview --target` longhorn Helm 릴리스: version 1.12.1→1.13.0, values에 global-manager replicas 1·metricsScrapeSources만 변경. `pulumi up --target`은 적용 전 `Component:authentikResources::authentikResources` Duplicate resource URN 으로 실패. 타깃 없이 preview하면 변경은 longhorn 2개뿐 |
+| 2026-10-10 | `pulumi up` (CLI 3.267.0, 타깃 없음) 성공. 업데이트 577, 2 updated / 247 unchanged, 2m14s. 차트 v1.13.0, global-manager 1/1, CSI provisioner v6.3.0, 볼륨 18 attached/healthy. 엔진 이미지는 v1.12.0 refcount 54, v1.13.0 refcount 0. IM v1.13.0·v1.12.1 각 cpu 1848m 동시 존재. 노드 CPU request 81% |
+| 2026-10-10 | 엔진 후속은 자동 한도 0 유지, 수동 동시 1. 창 1 작은 볼륨, 창 2 DB 3개, 창 3 Coder 디스크(워크스페이스 중지 후), 창 4 qBit·Jellyfin media. 옛 IM은 볼륨 detach 후에 제거 |
+| 2026-10-10 | 사용자 결정: 매주 수요일 1개. 첫날 2026-10-14 qBit modcache. 마지막 볼륨 2027-02-10 Jellyfin media. 2027-02-17에 옛 IM 잔존 확인 |
