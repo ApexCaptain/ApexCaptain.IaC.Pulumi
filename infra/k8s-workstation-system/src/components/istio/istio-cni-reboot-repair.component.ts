@@ -2,7 +2,7 @@
  * 노드 부팅마다 istio-cni-node를 한 번 재시작해, startup reconcile이
  * netns 생성 전에 포기한 ambient 파드를 다시 등록한다.
  *
- * docs/issues/2026-10-12-ambient-reboot-redirect.md
+ * docs/resolved/2026-10-12-ambient-reboot-redirect.md
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -110,7 +110,8 @@ export const IstioCniRebootRepairComponent = utils.functions.defineComponent(
               containers: [
                 {
                   name: 'repair',
-                  image: 'docker.io/rancher/kubectl:v1.35.4',
+                  // rancher/kubectl 는 distroless라 sh가 없다.
+                  image: 'docker.io/alpine/k8s:1.35.4',
                   imagePullPolicy: 'IfNotPresent',
                   command: ['sh', '/script/repair.sh'],
                   env: [

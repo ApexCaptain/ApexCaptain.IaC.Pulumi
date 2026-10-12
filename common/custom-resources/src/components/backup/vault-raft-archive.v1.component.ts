@@ -308,9 +308,11 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
                 mountPath: '/work',
               },
             ],
+            // VPA 2026-10-12: mem target 392Mi, cpu target 476m.
+            // upperBound는 짧은 잡 스파이크(수십 코어·수십 Gi)라 쓰지 않음
             resources: {
-              requests: { cpu: '50m', memory: '128Mi' },
-              limits: { cpu: '500m', memory: '512Mi' },
+              requests: { cpu: '200m', memory: '448Mi' },
+              limits: { cpu: '1', memory: '768Mi' },
             },
           },
         ],

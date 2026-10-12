@@ -54,15 +54,15 @@ export const ReloaderHelmChartComponent = utils.functions.defineComponent(
         values: {
           reloader: {
             deployment: {
-              // idle ~52Mi
+              // VPA 2026-10-12: target 194Mi / upper 200Mi
               resources: {
                 requests: {
                   cpu: '20m',
-                  memory: '256Mi',
+                  memory: '224Mi',
                 },
                 limits: {
                   cpu: '200m',
-                  memory: '384Mi',
+                  memory: '320Mi',
                 },
               },
             },

@@ -292,14 +292,15 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
               storageClassName,
               size: '5Gi',
             },
+            // VPA 2026-10-12: target 561Mi / upper 581Mi
             'resources': {
               requests: {
                 cpu: '100m',
-                memory: '768Mi',
+                memory: '640Mi',
               },
               limits: {
                 cpu: '500m',
-                memory: '1Gi',
+                memory: '768Mi',
               },
             },
           };

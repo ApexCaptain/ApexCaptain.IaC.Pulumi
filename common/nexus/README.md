@@ -1,12 +1,12 @@
 # @common/nexus
 
-Pulumi ESC(Environments, Secrets, Configuration) 환경을 스택별로 정의하고 워크스페이스 전역에서 참조할 수 있도록 추상화한 공통 패키지.
+Pulumi ESC(Environments, Secrets, and Configuration) 환경을 패키지별로 타입 세이프하게 정의하고 조회하는 공통 모듈.
 
 ## 역할
 
-- `abstract/esc.abstract.ts`에서 ESC 환경이 공통으로 따라야 할 인터페이스를 정의한다.
-- `esc/` 하위에 `cloudflare`, `github`, `oci`, `k8s-workstation-system`, `k8s-workstation-apps`, `k8s-workstation-tools` 등 스택별 ESC 환경 구현체를 둔다.
-- `classes/contract.ts`가 각 ESC 환경을 하나의 contract로 묶어 다른 workspace 패키지가 import해 사용할 수 있게 노출한다.
+- `EscAbstract`를 기반으로 각 Pulumi 프로젝트(`cloudflare`, `github`, `oci`, `k8s-workstation-system`, `k8s-workstation-apps`, `k8s-workstation-tools`, `common`)별 ESC 환경의 org/project/env 이름과 spec 타입을 정의한다.
+- `Contract`가 `@pulumi/esc-sdk`의 `EscClient`를 생성하고, 각 ESC 클래스를 인스턴스화해 `contract.esc.<name>` 형태로 노출한다.
+- 다른 `@common/*`, `@infra/*` 패키지는 이 `Contract`를 통해 Pulumi ESC에 저장된 시크릿·설정 값을 타입 세이프하게 조회한다.
 
 ## 구조
 

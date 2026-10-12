@@ -75,7 +75,7 @@ export const SnapshotControllerHelmChartComponent =
                 },
                 limits: {
                   cpu: '200m',
-                  memory: '256Mi',
+                  memory: '192Mi',
                 },
               },
             },

@@ -70,21 +70,32 @@ export const LonghornHelmChartComponent = utils.functions.defineComponent(
             createStorageClass: false, // Helm이 StorageClass를 생성하지 않음
           },
           longhornManager: {
-            // idle ~224Mi / 38m
+            // VPA 2026-10-12: target 335Mi / upper 345Mi
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '640Mi',
+                memory: '384Mi',
               },
               limits: {
                 cpu: '1',
-                memory: '768Mi',
+                memory: '512Mi',
               },
             },
           },
           // 단일 노드. 기본 3 replica + preferred anti-affinity면 standby 2개가 같은 노드에 붙는다.
           longhornGlobalManager: {
             replicas: 1,
+            // VPA 2026-10-12: target 121Mi / upper 189Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '160Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '256Mi',
+              },
+            },
           },
           // restrictInternalTraffic 기본 true. 9500은 Longhorn 컴포넌트만 열려 있다.
           // 스크랩은 monitoring NS의 central-collector만.

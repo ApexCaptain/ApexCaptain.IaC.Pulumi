@@ -84,7 +84,7 @@ export const OtelOperatorHelmChartComponent = utils.functions.defineComponent(
               },
               limits: {
                 cpu: '500m',
-                memory: '512Mi',
+                memory: '256Mi',
               },
             },
           },

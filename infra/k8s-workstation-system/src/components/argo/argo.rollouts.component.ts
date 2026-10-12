@@ -60,7 +60,7 @@ export const ArgoRolloutsComponent = utils.functions.defineComponent(
             enabled: false,
           },
           controller: {
-            // idle ~21–26Mi
+            // VPA 2026-10-12: target 121Mi / upper 124Mi
             resources: {
               requests: {
                 cpu: '20m',
@@ -68,7 +68,7 @@ export const ArgoRolloutsComponent = utils.functions.defineComponent(
               },
               limits: {
                 cpu: '200m',
-                memory: '256Mi',
+                memory: '192Mi',
               },
             },
           },

@@ -101,7 +101,7 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
         values: {
           profile: 'ambient',
           // Cilium이 05-cilium.conflist를 다시 써도 istio-cni 체인이 남도록
-          // 전용 02-istio-cni.conflist를 쓴다. docs/issues/2026-10-12-ambient-reboot-redirect.md
+          // 전용 02-istio-cni.conflist를 쓴다. docs/resolved/2026-10-12-ambient-reboot-redirect.md
           istioOwnedCNIConfig: true,
           global: {
             meshID: args.meshId,

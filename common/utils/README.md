@@ -1,14 +1,14 @@
 # @common/utils
 
-모노레포 전역에서 공통으로 쓰는 설정값·enum·유틸리티 함수·타입·인터페이스 모음.
+Pulumi 기반 인프라 코드 전반에서 재사용하는 공통 설정·enum·함수·인터페이스·타입을 모아둔 유틸리티 패키지.
 
 ## 역할
 
-- `configs`: 스택/스테이지 판별이 실패했을 때 사용할 fallback 설정값을 제공.
-- `enums`: 스택 스테이지(`StackStageEnum` 등) 값을 정의.
-- `functions`: Argo CD 정책 CSV 생성, OCI 정책 statement 생성, 만료 interval 계산, kebab-case 변환, Cloudflare 레코드 FQDN 변환, 커스텀 머지, 컴포넌트 정의(`defineComponent`) 등 여러 패키지에서 공유하는 순수 함수를 제공.
-- `interfaces`: `Kubeconfig` 등 여러 패키지에서 재사용하는 타입 인터페이스를 정의.
-- `types`: `DeepPartial`, `DeepPulumiInput` 등 Pulumi 리소스 타입 조작에 쓰는 유틸리티 타입을 정의.
+- `configs`: 스택 스테이지(stage) 판별이 실패했을 때 사용할 fallback 설정을 제공한다.
+- `enums`: 스택 스테이지(`StackStage`) 등 공통 enum을 정의한다.
+- `functions`: Argo CD RBAC 정책 CSV 생성, OCI 정책 statement 생성, 만료 기간 계산, Cloudflare 레코드 FQDN 변환, kebab-case 변환, lodash merge customizer, 파일 모드 문자열 검증, Pulumi 컴포넌트 정의(`define-component`), 비동기 대기(`wait-for-ms`) 등 범용 헬퍼 함수를 제공한다.
+- `interfaces`: `kubeconfig` 등 여러 패키지에서 공유하는 타입 인터페이스를 정의한다.
+- `types`: `DeepPartial`, `DeepPulumiInput` 등 Pulumi 리소스 입력 타입을 다루기 위한 유틸리티 타입을 정의한다.
 
 ## 구조
 
