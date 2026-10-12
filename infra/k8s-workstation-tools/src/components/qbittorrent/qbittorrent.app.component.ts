@@ -549,15 +549,15 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                       mountPath: '/incomplete',
                     },
                   ],
-                  // 실측 ~4Gi (시딩/해시); 피크 여유를 limit에
+                  // VPA 2026-10-12: target 11.5Gi / upper 15.0Gi. 이전 limit이 upper보다 낮았음
                   resources: {
                     requests: {
                       cpu: '250m',
-                      memory: '11Gi',
+                      memory: '12Gi',
                     },
                     limits: {
                       cpu: '2',
-                      memory: '12Gi',
+                      memory: '16Gi',
                     },
                   },
                   // WebUI 포트만 봄 — VPN 상태는 gluetun readiness가 담당

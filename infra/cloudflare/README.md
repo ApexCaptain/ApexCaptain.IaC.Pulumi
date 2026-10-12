@@ -1,24 +1,22 @@
 # @infra/cloudflare
 
-Cloudflare에서 `ayteneve93.com` zone의 DNS 레코드를 Pulumi로 관리하는 인프라 스택.
+`ayteneve93.com` zone의 DNS 레코드를 Pulumi로 관리하는 Cloudflare 인프라 패키지.
 
 ## 역할
 
-- `ayteneve93.com` zone 조회 및 CNAME 레코드 관리를 담당한다.
-- 서비스별 proxied 여부를 개별 설정한다 (`records.workstation` 컴포넌트 내부 주석 참고).
-- workstation 도메인(`commonEsc.esc.workstationIptimeDomain`)과 GitHub owner 정보(`githubEsc.esc.apexCaptain.owner`)를 조합해 레코드를 구성한다.
+- `ayteneve93.com` zone의 CNAME 레코드를 선언적으로 관리한다.
+- 레코드별 proxied 여부를 서비스 특성에 맞게 개별 설정한다.
+- workstation 도메인(iptime)과 GitHub owner 정보를 참조해 레코드 값을 구성한다.
 
 ## Pulumi 프로젝트
 
-- ESC: `cloudflareEsc`(API 토큰·이메일·zone ID), `commonEsc`(workstation 도메인), `githubEsc`(GitHub owner)를 참조한다.
-- output으로 zone 도메인과 `ayteneve93com` 레코드 목록을 노출한다.
-- secret으로 Cloudflare API 토큰·이메일을 반환한다.
+- ESC: `cloudflareEsc`(API 토큰·이메일·zone ID), `commonEsc`(workstation 도메인), `githubEsc`(GitHub owner)를 사용한다.
+- 출력: `zones.ayteneve93com`에 zone 도메인과 레코드 목록을 노출한다.
+- 시크릿: Cloudflare API 토큰·이메일을 `secret`으로 export한다.
 
-## 현재 컴포넌트
+## 배포 순서
 
-| 컴포넌트                            | 역할                                                   |
-| ------------------------------------ | ------------------------------------------------------ |
-| `Ayteneve93comRecordsComponent`      | `ayteneve93.com` zone에 대한 CNAME 레코드 생성·관리    |
+- infra 스택 중 최상단에 위치한다. 다른 workstation 스택(`k8s-workstation-system` 등)보다 선행 조건이 없다.
 
 ## 구조
 

@@ -90,6 +90,7 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
             },
             mountPath: lxcfsHostMountPath,
             args: ['-l', '--enable-cfs', '--enable-pidfd'],
+            // VPA 2026-10-12 agent: target 100Mi / upper 100Mi
             resources: {
               requests: {
                 cpu: '50m',
@@ -97,7 +98,7 @@ export const LxcfsHelmChartComponent = utils.functions.defineComponent(
               },
               limits: {
                 cpu: '200m',
-                memory: '256Mi',
+                memory: '192Mi',
               },
             },
           },

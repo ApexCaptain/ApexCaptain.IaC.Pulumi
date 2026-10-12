@@ -244,7 +244,7 @@ export const ArgoCdComponent = utils.functions.defineComponent(
             },
           },
           controller: {
-            // VPA 2026-10: target ~156Mi
+            // VPA 2026-10-12: target 175Mi / upper 181Mi
             resources: {
               requests: {
                 cpu: '50m',
@@ -252,25 +252,25 @@ export const ArgoCdComponent = utils.functions.defineComponent(
               },
               limits: {
                 cpu: '500m',
-                memory: '512Mi',
+                memory: '256Mi',
               },
             },
           },
           server: {
-            // VPA 2026-10: target ~248Mi
+            // VPA 2026-10-12: target 156Mi / upper 181Mi
             resources: {
               requests: {
                 cpu: '50m',
-                memory: '256Mi',
+                memory: '192Mi',
               },
               limits: {
                 cpu: '500m',
-                memory: '512Mi',
+                memory: '256Mi',
               },
             },
           },
           repoServer: {
-            // VPA 2026-10: target ~115Mi
+            // VPA 2026-10-12: target 100Mi / upper 100Mi. git fetch 여유는 limit에만
             resources: {
               requests: {
                 cpu: '50m',
@@ -278,7 +278,7 @@ export const ArgoCdComponent = utils.functions.defineComponent(
               },
               limits: {
                 cpu: '500m',
-                memory: '512Mi',
+                memory: '256Mi',
               },
             },
           },
@@ -309,7 +309,20 @@ export const ArgoCdComponent = utils.functions.defineComponent(
             },
           },
           dex: {
-            // VPA 2026-10: target ~180Mi
+            // VPA 2026-10-12: target 237Mi / upper 245Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '256Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '320Mi',
+              },
+            },
+          },
+          notifications: {
+            // VPA 2026-10-12: target 156Mi / upper 161Mi. 이전 limit이 target보다 낮았음
             resources: {
               requests: {
                 cpu: '20m',
@@ -318,19 +331,6 @@ export const ArgoCdComponent = utils.functions.defineComponent(
               limits: {
                 cpu: '200m',
                 memory: '256Mi',
-              },
-            },
-          },
-          notifications: {
-            // VPA 2026-10: target ~115Mi
-            resources: {
-              requests: {
-                cpu: '20m',
-                memory: '128Mi',
-              },
-              limits: {
-                cpu: '200m',
-                memory: '128Mi',
               },
             },
           },

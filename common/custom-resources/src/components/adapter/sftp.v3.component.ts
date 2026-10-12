@@ -873,13 +873,14 @@ export const SftpV3Component = utils.functions.defineComponent(
             securityContext: {
               capabilities: { add: ['SYS_CHROOT'] },
             },
+            // VPA 2026-10-12 jellyfin: cpu target 126m / upper 134m. limit 100m이면 스로틀
             resources: {
               requests: {
                 cpu: '10m',
                 memory: '64Mi',
               },
               limits: {
-                cpu: '100m',
+                cpu: '200m',
                 memory: '128Mi',
               },
             },

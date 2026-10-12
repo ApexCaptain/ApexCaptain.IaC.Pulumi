@@ -294,15 +294,15 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
                 name: vaultOciCredentialsSecretName,
               },
             ],
-            // idle ~91Mi; seal/unseal·raft 여유
+            // VPA 2026-10-12: target 363Mi / upper 374Mi. 이전 limit이 target과 맞닿아 있었음
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '128Mi',
+                memory: '384Mi',
               },
               limits: {
                 cpu: '500m',
-                memory: '384Mi',
+                memory: '512Mi',
               },
             },
 

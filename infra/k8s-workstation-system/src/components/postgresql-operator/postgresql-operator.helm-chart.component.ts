@@ -53,15 +53,15 @@ export const PostgreSQLOperatorHelmChartComponent =
           },
           waitForJobs: true,
           values: {
-            // idle ~50Mi
+            // VPA 2026-10-12: target 105Mi / upper 108Mi
             resources: {
               requests: {
                 cpu: '50m',
-                memory: '160Mi',
+                memory: '128Mi',
               },
               limits: {
                 cpu: '200m',
-                memory: '256Mi',
+                memory: '192Mi',
               },
             },
           },

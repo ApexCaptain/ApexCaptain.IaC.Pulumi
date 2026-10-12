@@ -5,8 +5,8 @@ cilium_kube_proxy_replacement: true
 cilium_dns_proxy_enable_transparent_mode: false
 
 # agent 실사용 ~365Mi 기준. 기본값(limit 500M / request 64M)은 limit 여유 부족·request 과소
-cilium_memory_limit: 1G
-cilium_memory_requests: 256M
+cilium_memory_limit: 2G
+cilium_memory_requests: 512M
 
 cilium_loadbalancer_ip_pools:
   - name: workstation-lb

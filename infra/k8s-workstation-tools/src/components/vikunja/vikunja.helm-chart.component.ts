@@ -231,7 +231,7 @@ export const VikunjaHelmChartComponent = utils.functions.defineComponent(
                   },
                 },
             })),
-            // idle ~18Mi
+            // VPA 2026-10-12: target 105Mi / upper 108Mi
             resources: {
               requests: {
                 cpu: '50m',
@@ -239,7 +239,7 @@ export const VikunjaHelmChartComponent = utils.functions.defineComponent(
               },
               limits: {
                 cpu: '200m',
-                memory: '256Mi',
+                memory: '192Mi',
               },
             },
             // bjw-s chart: image는 문자열만 (repository/tag 객체 불가)

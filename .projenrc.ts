@@ -599,6 +599,7 @@ void (async () => {
               'Copilot IDE': false,
               'Copilot IDE (VS Code Insiders)': false,
               'Copilot IDE (VSCodium)': false,
+              'Copilot IDE (VSCodium Insiders)': false,
               'Claude Code': false,
               'Factory Droid CLI': false,
               'Cursor CLI': false,
@@ -609,6 +610,8 @@ void (async () => {
               'Muse Code': false,
               Pi: false,
               'Qwen Code': false,
+              'Grok Build': false,
+              OpenCode: false,
             }),
           },
         },
@@ -748,7 +751,7 @@ void (async () => {
     {},
   );
   requirementsFile.addPackages(
-    'ansible==14.3.1',
+    'ansible==12.3.0',
     'cryptography==50.0.0',
     'jmespath==1.1.0',
     'netaddr==1.3.0',

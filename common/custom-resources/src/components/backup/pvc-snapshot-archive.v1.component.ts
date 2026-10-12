@@ -387,9 +387,11 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
                 readOnly: true,
               },
             ],
+            // VPA 2026-10-12: qBit mem target 237Mi / cpu 271m, Vikunja mem 105Mi / cpu 296m.
+            // 공유 잡이라 더 큰 target을 덮음. upperBound 스파이크는 쓰지 않음
             resources: {
-              requests: { cpu: '50m', memory: '128Mi' },
-              limits: { cpu: '500m', memory: '256Mi' },
+              requests: { cpu: '100m', memory: '256Mi' },
+              limits: { cpu: '1', memory: '512Mi' },
             },
           },
         ],
