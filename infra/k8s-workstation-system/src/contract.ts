@@ -328,6 +328,17 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    new components.istio.IstioCniRebootRepairComponent(
+      'istioCniRebootRepair',
+      {
+        namespace: istioHelmChart.output.namespace,
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+      { dependsOn: [istioHelmChart] },
+    );
+
     const istioGateway = new components.istio.IstioGatewayComponent(
       'istioGateway',
       {
