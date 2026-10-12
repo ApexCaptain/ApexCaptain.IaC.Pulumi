@@ -3,10 +3,15 @@
 | 항목 | 내용 |
 |---|---|
 | **등록일** | 2026-10-12 |
+| **해결일** | 2026-10-12 |
 | **영역** | Istio ambient, `istio-cni`, Cilium 체인 |
 | **관련 코드** | `infra/k8s-workstation-system/src/components/istio/` |
 | **계획** | `docs/superpowers/plans/2026-10-12-ambient-reboot-cni-repair.md` |
-| **상태** | **진행중** — 코드·preview 완료. `pulumi up`과 재부팅 실측 전 |
+| **상태** | **해결** — `istioOwnedCNIConfig`와 부팅당 istio-cni 1회 재시작. drain 없는 재부팅에서 `15008`과 Coder 200 확인 |
+
+## 해결 요약
+
+Cilium conflist 덮어쓰기는 `istio-cni` Helm `istioOwnedCNIConfig: true`로 `02-istio-cni.conflist`가 `cilium-cni` 다음 `istio-cni`를 갖게 해서 막았다. 샌드박스가 그대로인 파드는 수리 DaemonSet가 ztunnel Ready 후 60초 뒤에 그 노드의 `istio-cni-node`만 부팅당 한 번 지워서 기존 netns에 규칙을 다시 넣는다. 2026-10-12 drain 없는 재부팅에서 복원된 Coder, goldilocks-dashboard, loki-canary에 `15008` LISTEN이 있고 `https://coder.ayteneve93.com/` 은 200이었다.
 
 ## 배경
 
@@ -58,12 +63,12 @@ Longhorn CSI가 부팅 직후 한 차례 `driver.longhorn.io not found`로 attac
 
 ## 수용 기준
 
-- [ ] `istio-system/istio-cni-config`의 `ISTIO_OWNED_CNI_CONFIG`가 `true`
-- [ ] 노드 `/etc/cni/net.d/02-istio-cni.conflist`에 `cilium-cni`와 `istio-cni`가 둘 다 있다
-- [ ] `AMBIENT_RECONCILE_POD_RULES_ON_STARTUP`은 `true`로 유지
-- [ ] 수리 DaemonSet가 ztunnel Ready 이후 60초 뒤에 `k8s-app=istio-cni-node` 파드를 부팅당 한 번만 삭제한다
-- [ ] 같은 boot id로 수리 파드가 다시 떠도 `istio-cni-node`를 또 지우지 않는다
-- [ ] 앱 파드, Coder, goldilocks, loki-canary를 지우는 권한은 없다
+- [x] `istio-system/istio-cni-config`의 `ISTIO_OWNED_CNI_CONFIG`가 `true`
+- [x] 노드 `/etc/cni/net.d/02-istio-cni.conflist`에 `cilium-cni`와 `istio-cni`가 둘 다 있다
+- [x] `AMBIENT_RECONCILE_POD_RULES_ON_STARTUP`은 `true`로 유지
+- [x] 수리 DaemonSet가 ztunnel Ready 이후 60초 뒤에 `k8s-app=istio-cni-node` 파드를 부팅당 한 번만 삭제한다
+- [x] 같은 boot id로 수리 파드가 다시 떠도 `istio-cni-node`를 또 지우지 않는다
+- [x] 앱 파드, Coder, goldilocks, loki-canary를 지우는 권한은 없다
 
 재부팅 실측은 다음 노드 재부팅 때다. 그 전에 이 이슈를 닫지 않는다. 기대는 ambient 파드 netns에 `15008`이 있거나, 빠진 파드가 수리 재시작 이후 1–2분 안에 규칙을 받는 것이다. `https://coder.ayteneve93.com/` 은 503이 아니다.
 
@@ -82,3 +87,6 @@ Longhorn CSI가 부팅 직후 한 차례 `driver.longhorn.io not found`로 attac
 |---|---|
 | 2026-10-12 | 재부팅 후 Coder 503. rollout restart로 복구. #60882와 대조해 owned CNI config + 부팅당 istio-cni 1회 재시작으로 결정. 이슈 등록 |
 | 2026-10-12 | 코드 작성. tsc, eslint, 셸 테스트 `ok`. preview `prod`: create 6, update 1 (`istio-cni` values). 다른 드리프트 없음. `pulumi up` 안 함. 수리 컨테이너는 `main` 성공 뒤 `sleep infinity`. 바로 종료하면 마커가 있어도 kubelet 재시작만 반복된다 |
+| 2026-10-12 | `pulumi up` 1차: Helm values 반영 (`ISTIO_OWNED_CNI_CONFIG=true`). 수리 파드는 `rancher/kubectl`에 `sh`가 없어 CrashLoop. DaemonSet 초기화 타임아웃으로 update 실패. 그때 `02-istio-cni.conflist`는 없고 `05-cilium.conflist`에 `istio-cni` 체인은 남아 있었다. 이미지를 `alpine/k8s:1.35.4`로 바꾼 2차 up 성공. 수리 로그 `deleted istio-cni-node` 1회. `02-istio-cni.conflist`에 `cilium-cni`와 `istio-cni`. 수리 파드를 다시 띄우면 `already repaired for boot`만. Coder 파드 `coder-fb5f45f79-9srmh`는 그대로 Running. 이미지 수정은 아직 커밋 전 |
+| 2026-10-12 | drain 없는 재부팅 실측. boot id `be38980e-c82c-4102-af24-c947f6c5e339`. 수리 로그는 ztunnel 대기 후 `istio-cni-node-npg6r` 1회 삭제. `02-istio-cni.conflist`는 `cilium-cni` 다음 `istio-cni`. 같은 파드 객체가 복원된 `coder-fb5f45f79-9srmh`, goldilocks-dashboard 2개, `loki-canary-mg652` 모두 `15008` LISTEN. `https://coder.ayteneve93.com/` 은 200 |
+| 2026-10-12 | 사용자 확인으로 해결. `docs/resolved`로 이동 |

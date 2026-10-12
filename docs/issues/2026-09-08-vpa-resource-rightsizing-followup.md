@@ -56,6 +56,16 @@
 - **버스티**: jellyfin request 768→512Mi (upperBound ~380Mi + headroom). qbittorrent 4→11Gi (VPA UNDER, upperBound ~10.6Gi). coder 512Mi→1Gi.
 - **범위 밖**: GPU operator·Longhorn CSI 등 차트 기본/서브컴포넌트-only — IaC values 없으면 미패치.
 
+## 2026-10-12 중간 스냅샷
+
+사용자 요청으로 11월 정기 재검토보다 앞서 반영. 기준은 1차와 같다.
+
+- 메모리 request는 VPA `target` 이상, limit은 `upperBound` 이상. request ≤ limit.
+- CPU는 idle 바닥(~15m)으로 내리지 않음. limit이 target보다 낮은 경우만 올림 (jellyfin SFTP sidecar 100m→200m, 백업 잡).
+- CronJob upperBound(수십 코어·수십 Gi)는 짧은 잡 스파이크. target만 쓰고 limit은 target의 약 2배.
+- jellyfin 메모리 limit 3Gi, coder 1Gi/2Gi는 피크 여유라 유지. qBit은 target 11.5Gi / upper 15Gi라 request 12Gi, limit 16Gi.
+- Longhorn CSI·UI, Istio, Authentik outpost는 차트/CR에 resource values가 없어 미패치.
+
 ## 목표
 
 1. **매월 초** VPA status 재조회 → 동일 기준으로 갭 재분석.
@@ -90,3 +100,4 @@
 | 2026-09-08 | 등록. Goldilocks 배포 직후 초기 갭 분석 → 히스토리 부족으로 IaC 보류. 재검토 목표 2026-10 초 |
 | 2026-09-13 | 관련: PriorityClass 이슈 등록. qBit 등 request 축소는 계속 이 VPA 이슈(10월 초). 축출 클래스·kubelet은 그쪽 |
 | 2026-10-05 | 1차 재스냅(68 컨테이너). 메모리 중심 IaC 패치 — Argo CD, cert-manager, monitoring(Loki/Tempo/Grafana/VM), Longhorn manager, Authentik PG, Reloader, LXCFS, VSO, snapshot-controller, CNPG operator, jellyfin, qbittorrent, coder, vikunja, SFTP v3 sidecar. `k8s-workstation-{system,tools,apps}` prod `pulumi up` 성공. Argo dex request>limit 한 번 실패 → dex limit 256Mi 수정 후 재적용. 다음 주기 **2026-11 초** |
+| 2026-10-12 | 중간 스냅. 메모리 request/limit 재조정. UNDER: Vault, Authentik server/worker, Argo dex/notifications, qBit, VSO manager, Tempo request. OVER limit 축소: Grafana, Loki, VM, Longhorn manager, Tempo limit, OTel, Reloader, CNPG, Argo server/repo/controller. 신규 request: GPU operator(device plugin, DCGM, GFD, validator, NFD), Longhorn global manager, generic-device-plugin, Loki canary/sidecar/exporter. 백업 CronJob은 target만 반영. 11월 정기 재검토는 유지 |

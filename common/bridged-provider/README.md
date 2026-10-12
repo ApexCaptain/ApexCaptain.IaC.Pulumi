@@ -1,11 +1,11 @@
 # @common/bridged-provider
 
-Pulumi 공식 프로바이더가 없는 서비스(Authentik, ArgoCD, Coderd)를 위해 Terraform 프로바이더를 브릿징한 Pulumi SDK를 재노출하는 패키지.
+Pulumi SDK가 없는 외부 Terraform/Helm provider(Authentik, ArgoCD, Coderd)를 `sdks/` 하위에 생성된 Pulumi provider로 감싸 재노출하는 패키지.
 
 ## 역할
 
-- `sdks/authentik`, `sdks/argocd`, `sdks/coderd`에 생성된 Pulumi 프로바이더 SDK를 `@pulumi/authentik`, `@pulumi/argocd`, `@pulumi/coderd` 이름으로 재노출한다.
-- 각 서비스 리소스를 다른 workspace 패키지(`infra/*`)에서 네임스페이스(`authentik.*`, `argocd.*`, `coderd.*`) 형태로 import해 사용할 수 있게 한다.
+- `sdks/authentik`, `sdks/argocd`, `sdks/coderd`에 생성된 Pulumi provider SDK를 `index.ts`에서 각각 `authentik`, `argocd`, `coderd` 네임스페이스로 재노출함.
+- 다른 workspace 패키지가 Terraform bridged provider를 직접 `file:` 경로로 참조하지 않고 `@common/bridged-provider`를 통해서만 의존하도록 함.
 
 ## 구조
 

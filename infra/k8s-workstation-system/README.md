@@ -1,33 +1,35 @@
 # @infra/k8s-workstation-system
 
-Workstation 클러스터에 네트워킹·인증서·시크릿·서비스 메시·스토리지·IdP 등 시스템 레이어를 구성하는 Pulumi 스택.
+Workstation 클러스터의 "시스템" 레이어 — 네트워킹, 인증서, 시크릿, 서비스 메시, 스토리지, IdP를 구성하는 Pulumi 스택.
 
 ## 역할
 
-- Cilium(CNI) → cert-manager(인증서) → Vault(시크릿) → Istio(서비스 메시) → Longhorn(스토리지) → Authentik(IdP) 순으로 클러스터 기반 레이어를 구성한다.
-- Lxcfs, Sysbox, Generic Device Plugin, GPU Operator로 컨테이너 런타임과 호스트 디바이스 노출을 보완한다. 호스트 드라이버·툴킷 설치는 Ansible/Kubespray가 담당하고 이 스택은 RuntimeClass·Operator만 배치한다.
-- Snapshot Controller와 pcloud-backup으로 PVC 스냅샷·tar 백업 파이프라인을 제공한다.
-- postgresql-operator로 클러스터 내 PostgreSQL 인스턴스를, Vault Secrets Operator로 Vault 시크릿의 K8s 동기화를 관리한다.
-- Goldilocks, VPA로 리소스 요청/제한 추천 및 자동 조정을, Reloader로 ConfigMap/Secret 변경 시 워크로드 재시작을 처리한다.
-- Argo(CD, Rollouts, GitOps, service mesh, Authentik 연동)로 GitOps 배포 파이프라인을 구성한다. GitOps 레포 정체성 자체는 `@infra/github`의 `githubContract`가 갖고, 이 스택은 deploy key·webhook만 붙인다.
-- Monitoring 컴포넌트(OTel Operator, Tempo 등)로 관측 스택을 배치하며, apps/tools 스택은 이 스택의 output을 참조해 자신의 리소스를 구성한다.
+- 네트워킹·런타임: Cilium(CNI), Lxcfs, Sysbox RuntimeClass, Generic Device Plugin(호스트 `/dev` extended resource 노출), GPU Operator(RuntimeClass + Operator, 호스트 driver/toolkit은 Ansible)
+- 인증서·시크릿: cert-manager(ClusterIssuer, Cloudflare DNS01), Vault, Vault Secrets Operator
+- 서비스 메시·IdP: Istio(mesh, 재부팅 후 CNI 복구 스크립트 포함), Authentik(IdP, proxy outpost)
+- 스토리지·백업: Longhorn, snapshot-controller(VolumeSnapshot CRD/controller), pcloud-backup
+- GitOps·배포: Argo CD, Argo Rollouts
+- 관측성: monitoring(Grafana, Loki, Tempo, VictoriaMetrics, OTel Operator)
+- 리소스 최적화: Goldilocks, VPA
+- 운영 보조: Reloader, PostgreSQL Operator
+- GitHub 연동은 `githubContract`가 정체성을 갖고, 이 스택은 deploy key·webhook만 붙인다.
 
 ## Pulumi 프로젝트
 
-- ESC: `commonEsc`, `k8sWorkstationSystemEsc`(project), `githubEsc`, `ociEsc`를 참조한다.
-- K8s 대상은 `commonEsc.esc.workstationKubeconfig`로 접근하는 Workstation 클러스터 하나다.
+- ESC: `commonEsc`(workstation kubeconfig 등 공용 값), `k8sWorkstationSystemEsc`(프로젝트 전용 값), `githubEsc`(GitHub 토큰), `ociEsc`(OCI 인증)
+- 주요 Provider: `workstationK8sProvider`(Kubernetes), `apexCaptainGithubProvider`(GitHub), `ociProvider`(OCI)
 
 ## 배포 순서
 
-- workspace 전체 순서: `cloudflare → k8s-workstation-system → k8s-workstation-apps / k8s-workstation-tools`.
-- 스택 내부에서 꼬이기 쉬운 의존 구간:
-  - Vault는 cert-manager가 발급한 CA에 의존하고, mesh ingress는 Let's Encrypt wildcard cert에 의존한다.
-  - Authentik의 PostgreSQL은 Longhorn SSD StorageClass에, Longhorn UI는 Authentik proxy 인증에 의존한다. 이 순환을 끊기 위해 Longhorn↔Authentik 배포가 3단계로 분리되어 있다.
+Cilium → cert-manager → Vault → Istio mesh → Longhorn → Authentik 순으로 적재하고, apps/tools 스택이 이 스택의 output을 참조한다.
+
+- Vault는 cert-manager가 발급한 CA에 의존하고, mesh ingress는 Let's Encrypt wildcard cert에 의존한다.
+- Authentik PostgreSQL은 Longhorn SSD StorageClass에, Longhorn UI는 Authentik proxy에 의존한다. 이 순환을 끊기 위해 Longhorn↔Authentik 배포가 3단계로 분리되어 있다(각 컴포넌트 JSDoc 참고).
 
 ## upstream / downstream
 
-- upstream: `@infra/cloudflare`(cert-manager DNS-01 토큰), `@infra/github`(`githubContract` — GitOps 레포 정체성, deploy key·webhook 대상).
-- downstream: `@infra/k8s-workstation-apps`, `@infra/k8s-workstation-tools`가 이 스택의 output/secret을 참조한다.
+- upstream: `@infra/cloudflare`(cert-manager DNS01용 Cloudflare API 토큰·이메일), `@infra/github`(GitHub provider 토큰, deploy key·webhook 연동)
+- downstream: k8s-workstation-apps, k8s-workstation-tools 스택이 이 스택의 output(kubeconfig, provider, mesh/스토리지/IdP 관련 값)을 참조한다.
 
 ## 구조
 
@@ -68,7 +70,11 @@ src/
 └──     index.ts
 └──   index.ts
 └──   istio/
+└──     assets/
+└──       istio-cni-reboot-repair.sh
+└──       istio-cni-reboot-repair.test.sh
 └──     index.ts
+└──     istio-cni-reboot-repair.component.ts
 └──     istio.gateway.component.ts
 └──     istio.helm-chart.component.ts
 └──   longhorn/
@@ -77,11 +83,6 @@ src/
 └──     longhorn.resources.component.ts
 └──     longhorn.service-mesh.component.ts
 └──   lxcfs/
-└──     index.ts
-└──     lxcfs.helm-chart.component.ts
-└──   monitoring/
-└──     alerting/
-└──     …
 └──   …
 └── …
 ```
@@ -94,6 +95,7 @@ src/
 - `@common/utils` (workspace:*)
 - `@infra/cloudflare` (workspace:*)
 - `@infra/github` (workspace:*)
+- `@pulumi/command` (^1.2.1)
 - `@pulumi/github` (^6.14.0)
 - `@pulumi/kubernetes` (^4.31.1)
 - `@pulumi/oci` (^4.14.0)

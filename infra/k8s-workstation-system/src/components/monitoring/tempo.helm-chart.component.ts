@@ -43,14 +43,15 @@ export const TempoHelmChartComponent = utils.functions.defineComponent(
         values: {
           tempo: {
             retention: '72h',
+            // VPA 2026-10-12: target 138Mi / upper 143Mi
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '128Mi',
+                memory: '160Mi',
               },
               limits: {
                 cpu: '1000m',
-                memory: '2Gi',
+                memory: '512Mi',
               },
             },
             storage: {

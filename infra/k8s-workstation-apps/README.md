@@ -1,29 +1,33 @@
 # @infra/k8s-workstation-apps
 
-Workstation 클러스터에서 사용자에게 노출되는 애플리케이션 스택 — Jellyfin, Price Quest.
+Jellyfin, Price Quest 등 워크스테이션 클러스터의 사용자 서비스를 배포하는 Pulumi 스택.
 
 ## 역할
 
-- `k8s-workstation-system`이 제공하는 mesh gateway, storage class, Authentik 그룹 등을 참조해 사용자 서비스를 배포한다.
-- Jellyfin은 PROD 스택에서만 배포한다. dev/staging 환경은 비용과 노이즈를 줄이기 위해 제외한다.
-
-## 현재 앱
-
-| 앱          | 인증                     | 스토리지                                          | 네트워크                        |
-| ----------- | ------------------------ | -------------------------------------------------- | ------------------------------- |
-| Jellyfin    | Authentik OIDC (그룹 기반 접근 제어) | Longhorn PVC 3종 — config(SSD, 5Gi), media(HDD, 2Ti), cache(SSD, 10Gi) | Direct Gateway를 통한 SFTP 노출, Vault 발급 SSH CA |
-| Price Quest | Vault 연동 base 컴포넌트 | -                                                   | -                                |
+- `k8s-workstation-system` 스택의 output(Istio mesh gateway, Longhorn storage class, Authentik 그룹 등)을 참조해 사용자 대상 애플리케이션을 배포한다.
+- `components/jellyfin`을 통해 Jellyfin을 Authentik OIDC, SFTP, direct gateway, PVC와 함께 구성한다.
+- `components/price-quest`를 통해 Price Quest 애플리케이션과 Vault 연동 설정을 구성한다.
+- `pulumi.getStack()`이 `PROD`일 때만 Jellyfin을 배포한다 — dev/staging은 비용과 노이즈를 줄이기 위해 제외한다.
 
 ## 배포 순서
 
-`cloudflare` → `k8s-workstation-system` → **`k8s-workstation-apps`**
+```
+cloudflare → k8s-workstation-system → k8s-workstation-apps
+```
 
-`k8s-workstation-system`의 mesh gateway, storage class, Authentik 그룹 output이 먼저 존재해야 배포할 수 있다.
+`k8s-workstation-system` 스택이 먼저 배포되어 mesh gateway, storage class, Authentik/Vault provider 설정 등을 output으로 제공해야 이 스택을 배포할 수 있다.
 
-## upstream / downstream
+## 현재 앱/도구
 
-- **upstream:** `@infra/cloudflare` (DNS 레코드), `@infra/k8s-workstation-system` (mesh gateway path, storage class, Authentik/Vault provider config)
-- **downstream:** 없음 — 다른 infra 패키지가 이 스택의 output을 참조하지 않는다.
+| 컴포넌트    | 설명                                                                                                            |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| Jellyfin    | Authentik OIDC 인증, Helm chart 배포, SFTP(사용자 인증서 기반) 업로드, Istio direct gateway, Longhorn PVC(설정/미디어/캐시 분리) 구성. PROD 스택에서만 배포. |
+| Price Quest | 애플리케이션 본체(`price-quest.base.component.ts`)와 Vault 연동(`price-quest.vault.component.ts`) 컴포넌트로 구성.            |
+
+## upstream
+
+- `@infra/cloudflare` — 호스트 레코드(`jellyfin`, `auth` 등) 참조.
+- `@infra/k8s-workstation-system` — mesh gateway, storage class, Authentik 그룹/플로우, Vault provider 설정 등 output 참조.
 
 ## 구조
 

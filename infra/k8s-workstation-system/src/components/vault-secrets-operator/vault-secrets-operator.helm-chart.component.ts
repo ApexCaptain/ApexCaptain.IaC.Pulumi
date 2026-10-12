@@ -56,15 +56,15 @@ export const VaultSecretsOperatorHelmChartComponent =
             values: {
               controller: {
                 manager: {
-                  // idle ~22Mi; chart default limit 128Mi → 명시적 상향
+                  // VPA 2026-10-12: target 89Mi / upper 92Mi
                   resources: {
                     requests: {
                       cpu: '20m',
-                      memory: '64Mi',
+                      memory: '96Mi',
                     },
                     limits: {
                       cpu: '200m',
-                      memory: '256Mi',
+                      memory: '192Mi',
                     },
                   },
                 },

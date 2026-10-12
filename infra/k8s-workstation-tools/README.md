@@ -1,25 +1,31 @@
 # @infra/k8s-workstation-tools
 
-Workstation 환경에 배포되는 도구(Coder, qBittorrent, Vikunja) 스택.
+Coder, qBittorrent, Vikunja 등 워크스테이션 "도구" 앱을 배포하는 Pulumi 스택.
 
 ## 역할
 
-- NordLynx VPN sidecar로 트래픽을 터널 밖으로만 내보내는 구조를 적용한 도구(qBittorrent)를 구성한다.
-- Web UI 노출이 필요한 컴포넌트는 Longhorn과 동일한 Authentik Proxy + OutpostProviderAttachment 패턴으로 인증을 붙인다.
-- `PROD` 스택에서만 생성되는 Production 전용 컴포넌트로 구성되어 있다.
+- `pulumi.getStack() === StackStage.PROD`일 때만 도구 앱들을 생성하는 production 전용 스택이다.
+- qBittorrent는 NordLynx VPN sidecar로 트래픽을 터널 밖으로 내보내지 않도록 구성한다.
+- Web UI는 Longhorn과 동일하게 Authentik Proxy + OutpostProviderAttachment 패턴으로 인증을 처리한다.
+- Coder는 Authentik OIDC와 GitHub External Auth를 연동하고, PostgreSQL을 백엔드로 사용하며 Istio `AuthorizationPolicy`로 ingress gateway와 워크스페이스 네임스페이스 접근을 제한한다.
+
+## Pulumi 프로젝트
+
+- 기본 스택: `prod` (`StackStage.PROD`일 때만 리소스가 생성됨)
+- ESC: `commonEsc`, `k8sWorkstationToolsEsc`
 
 ## 현재 앱/도구
 
-| 컴포넌트    | 인증                                       | 비고                                                                 |
-| ----------- | ------------------------------------------ | -------------------------------------------------------------------- |
-| `coder`     | Authentik OIDC (implicit consent flow)     | PostgreSQL 클러스터(Longhorn SSD PVC) 포함, GitHub External Auth 연동, Istio Service Mesh AuthorizationPolicy로 워크스페이스 네임스페이스만 인그레스 허용 |
-| `qbittorrent` | Authentik Proxy + OutpostProviderAttachment | NordLynx VPN sidecar로 아웃바운드 트래픽 격리, 백업 컴포넌트 별도 존재 |
-| `vikunja`   | Authentik Proxy + OutpostProviderAttachment | Authentik·Helm Chart·Service Mesh 컴포넌트로 구성                     |
+| 컴포넌트 | 인증 | 비고 |
+| --- | --- | --- |
+| `coder` | Authentik OIDC + GitHub External Auth | PostgreSQL(Longhorn SSD PVC) 백엔드, Istio `AuthorizationPolicy`로 ingress gateway·Sysbox Ubuntu 워크스페이스 네임스페이스만 허용 |
+| `qbittorrent` | Authentik Proxy(OutpostProviderAttachment) | NordLynx VPN sidecar로 트래픽을 터널 밖으로만 전달, 백업 컴포넌트 포함 |
+| `vikunja` | Authentik Proxy/OIDC(OutpostProviderAttachment) | 서비스 메시 적용, 백업 컴포넌트 포함 |
 
-## upstream
+## upstream / downstream
 
-- `@infra/cloudflare` — `zones.ayteneve93com.records`의 호스트(coder, todo, auth 등)를 참조한다.
-- `@infra/k8s-workstation-system` — Authentik/Vault Provider 설정, Authentik 그룹·플로우, StorageClass, 네임스페이스, ServiceAccount, Gateway Path 등을 참조한다.
+- upstream: `@infra/cloudflare`(zone 레코드 — coder, todo, auth), `@infra/k8s-workstation-system`(vault, authentik 그룹/flow, storage class, istio 네임스페이스·서비스어카운트·gateway path)
+- downstream: 없음 — 배포 순서상 최종 소비 스택
 
 ## 구조
 
@@ -43,6 +49,7 @@ src/
 └──   vikunja/
 └──     index.ts
 └──     vikunja.authentik.component.ts
+└──     vikunja.backup.component.ts
 └──     vikunja.base.component.ts
 └──     vikunja.helm-chart.component.ts
 └──     vikunja.service-mesh.component.ts

@@ -106,6 +106,17 @@ export const GenericDevicePluginHelmChartComponent =
               enabled: true,
               data: yaml.stringify({ devices: DEVICE_PLUGIN_SETTINGS }),
             },
+            // VPA 2026-10-12: target 100Mi / upper 100Mi
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '128Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '192Mi',
+              },
+            },
             // 차트 기본: privileged DaemonSet + hostPath /dev + kubelet plugin 등록
           },
         },

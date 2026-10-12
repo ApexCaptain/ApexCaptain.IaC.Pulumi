@@ -178,11 +178,11 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
                 mountPath: '/dev/shm',
               },
             ],
-            // idle ~546Mi
+            // VPA 2026-10-12: target 826Mi / upper 856Mi
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '640Mi',
+                memory: '896Mi',
               },
               limits: {
                 cpu: '1',
@@ -206,11 +206,11 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
                 readOnly: true,
               },
             ],
-            // idle ~262Mi; task burst
+            // VPA 2026-10-12: target 523Mi / upper 543Mi
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '320Mi',
+                memory: '576Mi',
               },
               limits: {
                 cpu: '1',

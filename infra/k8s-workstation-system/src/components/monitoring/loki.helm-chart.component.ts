@@ -81,14 +81,15 @@ export const LokiHelmChartComponent = utils.functions.defineComponent(
               storageClass: args.storageClassName,
               size: '20Gi',
             },
+            // VPA 2026-10-12: target 392Mi / upper 406Mi
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '512Mi',
+                memory: '448Mi',
               },
               limits: {
                 cpu: '1000m',
-                memory: '1Gi',
+                memory: '640Mi',
               },
             },
           },
@@ -100,6 +101,45 @@ export const LokiHelmChartComponent = utils.functions.defineComponent(
           },
           resultsCache: {
             allocatedMemory: 64,
+          },
+          // VPA 2026-10-12 exporter: target 50Mi. chunks/results 공용
+          memcachedExporter: {
+            resources: {
+              requests: {
+                cpu: '10m',
+                memory: '64Mi',
+              },
+              limits: {
+                cpu: '100m',
+                memory: '128Mi',
+              },
+            },
+          },
+          // VPA 2026-10-12 canary: target 100Mi / upper 100Mi
+          lokiCanary: {
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '128Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '192Mi',
+              },
+            },
+          },
+          // VPA 2026-10-12 loki-sc-rules: target 121Mi / upper 125Mi
+          sidecar: {
+            resources: {
+              requests: {
+                cpu: '20m',
+                memory: '160Mi',
+              },
+              limits: {
+                cpu: '200m',
+                memory: '192Mi',
+              },
+            },
           },
           gateway: {
             enabled: false,

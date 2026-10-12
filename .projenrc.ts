@@ -751,7 +751,7 @@ void (async () => {
     {},
   );
   requirementsFile.addPackages(
-    'ansible==14.3.1',
+    'ansible==12.3.0',
     'cryptography==50.0.0',
     'jmespath==1.1.0',
     'netaddr==1.3.0',
