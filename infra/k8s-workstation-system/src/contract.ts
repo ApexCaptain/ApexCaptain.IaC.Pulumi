@@ -328,6 +328,17 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       },
     );
 
+    new components.istio.IstioCniRebootRepairComponent(
+      'istioCniRebootRepair',
+      {
+        namespace: istioHelmChart.output.namespace,
+        providers: {
+          kubernetes: workstationK8sProvider,
+        },
+      },
+      { dependsOn: [istioHelmChart] },
+    );
+
     const istioGateway = new components.istio.IstioGatewayComponent(
       'istioGateway',
       {
@@ -476,7 +487,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       new components.longhorn.LonghornHelmChartComponent('longhornHelmChart', {
         helm: {
           longhorn: {
-            version: '1.12.1',
+            version: '1.13.0',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['charts.longhorn.io'],
           },

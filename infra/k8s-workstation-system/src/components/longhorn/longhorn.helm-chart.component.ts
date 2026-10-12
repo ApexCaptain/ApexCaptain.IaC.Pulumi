@@ -82,6 +82,30 @@ export const LonghornHelmChartComponent = utils.functions.defineComponent(
               },
             },
           },
+          // 단일 노드. 기본 3 replica + preferred anti-affinity면 standby 2개가 같은 노드에 붙는다.
+          longhornGlobalManager: {
+            replicas: 1,
+          },
+          // restrictInternalTraffic 기본 true. 9500은 Longhorn 컴포넌트만 열려 있다.
+          // 스크랩은 monitoring NS의 central-collector만.
+          networkPolicies: {
+            metricsScrapeSources: [
+              {
+                namespaceSelector: {
+                  matchLabels: {
+                    'kubernetes.io/metadata.name': 'monitoring',
+                  },
+                },
+                podSelector: {
+                  matchLabels: {
+                    'app.kubernetes.io/name': 'central-collector-collector',
+                    'app.kubernetes.io/component':
+                      'opentelemetry-collector',
+                  },
+                },
+              },
+            ],
+          },
         },
       },
       {
