@@ -33,7 +33,7 @@
 | -------------------------------- | ---------------------------------------- |
 | pCloud ESC/Secret                | ESC sync 완료. system: NS / Secret / ConfigMap(`clusterName`) / Lease `dr`·`media` / `longhorn-snap` |
 | VolumeSnapshot / CSI snapshotter | 적용됨. NS `snapshot-controller` (Deployment 1/1, v8.6.0). VSC `longhorn-snap` (`driver.longhorn.io`, `type: snap`, Delete) |
-| 백업 CronJob/컴포넌트            | Vault raft (`keepWithin=10d`), qBit `qbittorrent-config` (`keepWithin=10d`), Vikunja `vikunja-data` (`keepWithin=2d`, 03:00 KST) dr Cron 운영 중. pCloud 업로드·retention prune·복호화 실측 완료 (2026-09-19) |
+| 백업 CronJob/컴포넌트            | Vault raft·qBit `qbittorrent-config`·Vikunja `vikunja-data` dr Cron — **매일 12:00 KST** (`keepWithin=10d`). pCloud 업로드·retention prune·복호화 실측 완료 (2026-09-19) |
 | 구성 SSOT                        | 본 이슈 |
 | pCloud 용량 전략                 | POC 통과. Lane B는 유료 플랜 후 |
 
@@ -344,3 +344,5 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-09-19 | 사용자 실측: Vault·qBit dr 백업 pCloud 업로드 정상. retention 기간 경과 시 구 ts 폴더 삭제(`keepWithin=2d`) 확인. Phase 1 POC 운영 검증 종료 |
 | 2026-09-19 | 복호화 실증: pCloud 암호화 blob → rclone crypt 복호화 → `backup.tar.zst` 추출·qBittorrent config 87파일 확인. Phase 1 일정 마감 |
 | 2026-09-19 | Retention 상향 (Vault raft 10d, qBit config 10d) 및 Vikunja `vikunja-data` DR 추가 (`keepWithin=2d`, 매일 03:00 KST). once Job 통과 확인 후 `runOnceOnCreate: false` 전환 완료 |
+| 2026-10-13 | DR Cron 3종(qBit·Vault·Vikunja) 스케줄 통일: **매일 12:00 Asia/Seoul** (`CronTime.everyDayAt(12)`). `dr` Lease로 동시 시각이어도 순차 실행 |
+| 2026-10-13 | 동일 시각 대기 여유: orchestrator `LEASE_WAIT_SEC` 기본 **600→3600** (`pvc-snapshot-archive.v1`·`vault-raft-archive.v1` run.sh). script CM replace 후 system·tools `up` 필요 |

@@ -20,7 +20,7 @@ set -euo pipefail
 : "${VAULT_VERSION:?}"
 
 CLUSTER="${CLUSTER:-}"
-LEASE_WAIT_SEC="${LEASE_WAIT_SEC:-600}"
+LEASE_WAIT_SEC="${LEASE_WAIT_SEC:-3600}"
 SNAPSHOT_NAME="vault-raft.snap"
 WORK_DIR="${WORK_DIR:-/work}"
 

@@ -371,7 +371,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                 id: 'data',
                 pvcName: vikunjaHelmChart.output.pvcs.data.name,
                 schedule: {
-                  cron: CronTime.everyDayAt(3),
+                  cron: CronTime.everyDayAt(12),
                   timezone: Timezone['Asia/Seoul'],
                 },
                 keepWithin: '10d',
@@ -580,7 +580,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                 id: 'config',
                 pvcName: qbittorrentApp.output.pvcs.config.name,
                 schedule: {
-                  cron: CronTime.everyDayAt(1),
+                  cron: CronTime.everyDayAt(12),
                   timezone: Timezone['Asia/Seoul'],
                 },
                 keepWithin: '10d',

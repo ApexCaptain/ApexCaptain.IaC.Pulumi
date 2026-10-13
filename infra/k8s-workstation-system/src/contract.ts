@@ -134,7 +134,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             gpuOperator: {
-              version: 'v26.7.1',
+              version: 'v26.7.2',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.ngc.nvidia.com/nvidia'],
             },
@@ -456,7 +456,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         leafName: 'data-vault-0',
         runOnceOnCreate: false,
         schedule: {
-          cron: CronTime.everyDayAt(2),
+          cron: CronTime.everyDayAt(12),
           timezone: Timezone['Asia/Seoul'],
         },
         keepWithin: '10d',
@@ -946,7 +946,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.9.6',
+            version: '10.10.3',
             repositoryUrl: argoChartRepositoryUrl,
           },
         },
@@ -1054,7 +1054,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           storageClassName: monitoringStorageClass,
           helm: {
             victoriaMetrics: {
-              version: '0.48.0',
+              version: '0.49.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'victoriametrics.github.io/helm-charts'
@@ -1073,7 +1073,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           loki: {
-            version: '18.13.8',
+            version: '18.15.1',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -1165,7 +1165,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
           helm: {
             grafana: {
-              version: '13.2.7',
+              version: '13.5.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'grafana-community.github.io/helm-charts'
