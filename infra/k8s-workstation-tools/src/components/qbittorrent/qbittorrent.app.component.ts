@@ -500,7 +500,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
               containers: [
                 {
                   name: 'qbittorrent',
-                  image: 'lscr.io/linuxserver/qbittorrent:amd64-5.1.4-r3-ls451',
+                  image: 'lscr.io/linuxserver/qbittorrent:amd64-5.2.4_v2.0.15-ls480',
                   imagePullPolicy: 'Always',
                   ports: [
                     {
@@ -528,7 +528,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                     {
                       // VueTorrent WebUI 모드
                       name: 'DOCKER_MODS',
-                      value: 'ghcr.io/gabe565/linuxserver-mod-vuetorrent',
+                      value: 'ghcr.io/vuetorrent/vuetorrent-lsio-mod:2.36.1',
                     },
                   ],
                   volumeMounts: [
