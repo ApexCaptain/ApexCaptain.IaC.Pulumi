@@ -45,7 +45,8 @@
 | --------------------------------------- | ------ | ------------------- | ------------------------------------ | ----------------------------------- | ----------------------- |
 | `vault/data-vault-0`                    | 10 Gi  | local-path          | `vault operator raft snapshot`       | `k8s-backup/dr/vault/`              | data dir 파일 복사 금지 |
 | `coder/coder-postgresql-cluster-1`      | 10 Gi  | longhorn-ssd        | `pg_dump` (CNPG)                     | `k8s-backup/dr/coder-pg/`           |                         |
-| `authentik/data-authentik-postgresql-0` | 8 Gi   | longhorn-ssd        | `pg_dump`                            | `k8s-backup/dr/authentik-pg/`       |                         |
+| `authentik/authentik-db-1`              | 8 Gi   | longhorn-ssd        | `pg_dump` (CNPG)                     | `k8s-backup/dr/authentik-pg/`       | 2026-10-13 컷오버 후 라이브 |
+| `authentik/data-authentik-postgresql-0` | 8 Gi   | longhorn-ssd        | `pg_dump`                            | `k8s-backup/dr/authentik-pg/`       | 롤백 보관. 삭제 금지.     |
 | `vikunja/vikunja-postgresql-cluster-1`  | 8 Gi   | longhorn-ssd        | `pg_dump`                            | `k8s-backup/dr/vikunja-pg/`         |                         |
 | `jellyfin/jellyfin-config`              | 5 Gi   | longhorn-ssd-retain | VolumeSnapshot 클론 후 tar           | `k8s-backup/dr/jellyfin-config/`    | 실사용 ~2.1 GiB. **`keepWithin=3d`** (2026-10-13) |
 | `vikunja/vikunja-data`                  | 2 Gi   | longhorn-ssd        | 동일                                 | `k8s-backup/dr/vikunja-data/`       |                         |
@@ -349,3 +350,4 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-10-13 | 동일 시각 대기 여유: orchestrator `LEASE_WAIT_SEC` 기본 **600→3600** (`pvc-snapshot-archive.v1`·`vault-raft-archive.v1` run.sh). script CM replace 후 system·tools `up` 필요 |
 | 2026-10-13 | Jellyfin `jellyfin-config` Lane A dr 대상 확정. PVC 실사용 ~2.1 GiB (`data` 1.4G·`metadata` 747M). retention **`keepWithin=3d`**. `JellyfinBackupComponent` + `apps/prod` wiring |
 | 2026-10-13 | `k8s-workstation-apps/prod` up: CronJob `jellyfinBackup-dr-cron-config` (NS `jellyfin`). once Job 없음. 첫 12:00 KST 실행·pCloud 확인 예정 |
+| 2026-10-13 | Authentik DB CNPG 컷오버: 라이브 PVC `authentik/authentik-db-1`. Bitnami `data-authentik-postgresql-0`는 롤백 보관 |
