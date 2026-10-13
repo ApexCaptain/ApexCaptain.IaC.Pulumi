@@ -3,10 +3,15 @@
 | 항목 | 내용 |
 |---|---|
 | **등록일** | 2026-10-07 |
+| **해결일** | 2026-10-13 |
 | **영역** | Longhorn (`longhorn` NS), 단일 노드 `workstation-0`, K8s v1.35.4, CNI Cilium |
 | **관련 코드** | `infra/k8s-workstation-system/src/contract.ts` (Longhorn 차트 버전), `.../components/longhorn/longhorn.helm-chart.component.ts` |
 | **예정일** | **2026-10-10** — 백업이 앞당겨 끝나 차트 bump·배포를 당김. 엔진 업그레이드는 별도 |
-| **상태** | **적용** — 차트 1.13.0 배포 완료. 엔진은 2026-10-14부터 매주 수요일 1개 |
+| **상태** | **해결** — 차트 1.13.0, 볼륨 엔진 18개 `v1.13.0` |
+
+## 해결 요약
+
+차트 1.12.1 → 1.13.0 배포(2026-10-10)와 볼륨 엔진 live upgrade(2026-10-13)를 마쳤다. Longhorn PVC 18개는 `longhorn-engine:v1.13.0`, attached/healthy, replica 1. Instance Manager는 v1.13.0만 있다. `v1.12.0` engine-image Pod는 refcount 0으로 남아 있으나 볼륨은 붙지 않는다. 백업 타깃·V2 엔진·replica 증설은 범위 밖.
 
 ## 배경
 
@@ -82,7 +87,8 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 longhorn 차트 1.12.1 →
 - [x] Longhorn 차트 1.13.0 반영, global-manager 1 replica
 - [x] 배포 후 18개 볼륨 attached/healthy 유지, CSI 정상
 - [x] longhorn-manager 메트릭 스크랩 정상 (또는 NP 허용 규칙 반영)
-- [x] 엔진 업그레이드는 별도 단계로 결정 (미실시. 볼륨은 v1.12.0)
+- [x] 엔진 업그레이드는 별도 단계로 결정 (당시 미실시. 볼륨은 v1.12.0)
+- [x] 2026-10-13 볼륨 엔진 18개 `v1.13.0`. 수요일 분할 일정은 실행하지 않음
 
 ## 후속: 엔진 업그레이드 순서
 
@@ -112,6 +118,14 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 longhorn 차트 1.12.1 →
 
 엔진 이미지가 `v1.13.0`이어도 붙어 있는 볼륨의 엔진 프로세스는 옛 IM에 남는다. 옛 IM 1848m은 그 볼륨이 detach된 뒤에 빠진다.
 
+## 현재 (2026-10-13)
+
+수요일 분할을 하지 않고, 같은 날 작은 볼륨부터 한 개씩 `spec.image`를 `docker.io/longhornio/longhorn-engine:v1.13.0`으로 패치했다. 각 볼륨은 attached/healthy, replica 1, 워크로드 Pod Ready를 확인한 뒤에 다음으로 넘어갔다.
+
+18개 전부 `v1.13.0`. 노드 Ready, DiskPressure/MemoryPressure 없음. 클러스터 Running Pod 중 not-ready 없음. Jellyfin media 레플리카 디렉터리 합계 1.4T, 데이터 파일 mtime은 업그레이드 전날.
+
+Instance Manager는 `v1.13.0` 하나만 있다. `v1.12.0` 엔진 이미지 refcount는 0이고, engine-image Pod는 아직 Running이다. 옛 IM 1848m은 이 작업 시작 전에 이미 없었다.
+
 ## 범위 밖
 
 - Longhorn 백업 타깃·정기 백업 구성 (pCloud 백업 이슈에서 다룸)
@@ -129,3 +143,5 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 longhorn 차트 1.12.1 →
 | 2026-10-10 | `pulumi up` (CLI 3.267.0, 타깃 없음) 성공. 업데이트 577, 2 updated / 247 unchanged, 2m14s. 차트 v1.13.0, global-manager 1/1, CSI provisioner v6.3.0, 볼륨 18 attached/healthy. 엔진 이미지는 v1.12.0 refcount 54, v1.13.0 refcount 0. IM v1.13.0·v1.12.1 각 cpu 1848m 동시 존재. 노드 CPU request 81% |
 | 2026-10-10 | 엔진 후속은 자동 한도 0 유지, 수동 동시 1. 창 1 작은 볼륨, 창 2 DB 3개, 창 3 Coder 디스크(워크스페이스 중지 후), 창 4 qBit·Jellyfin media. 옛 IM은 볼륨 detach 후에 제거 |
 | 2026-10-10 | 사용자 결정: 매주 수요일 1개. 첫날 2026-10-14 qBit modcache. 마지막 볼륨 2027-02-10 Jellyfin media. 2027-02-17에 옛 IM 잔존 확인 |
+| 2026-10-13 | 사용자 결정으로 분할 일정을 당김. 볼륨 18개 순차 live upgrade 완료. 전부 `v1.13.0`, attached/healthy. v1.12.0 엔진 이미지 refcount 0. IM은 v1.13.0만 존재 |
+| 2026-10-13 | 사용자 확인으로 해결. `docs/resolved`로 이동 |
