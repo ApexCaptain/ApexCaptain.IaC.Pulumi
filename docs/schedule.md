@@ -10,10 +10,10 @@
 
 | 언제 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
-| **2026-10-14** | Longhorn 엔진 1개: qBit modcache 100Mi → `v1.13.0`. 자동 한도 0. `healthy`와 엔진 이미지 확인. 끝나면 이 행을 다음 수요일 볼륨으로 교체 | [Longhorn 1.13.0 업그레이드](issues/2026-10-07-longhorn-1-13-0-upgrade.md) | 적용 |
 | **2026-11 초** | VPA·Goldilocks 재스냅샷 → 갭 재분석. 안전한 항목만 IaC 패치. jellyfin / qbittorrent / coder는 피크·upperBound 교차 확인 | [VPA 리소스 재조정](issues/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-05 1차 반영 완료 |
 | **2026-11 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
 | **2026-10-25 19:03 KST** | leaf 갱신 (`vault-server-certificate` renewalTime 10:03:36Z). Reloader가 vault-0를 롤했는지, 롤 후 `VaultConnection` Healthy·서비스 DNS TLS 유지되는지. 통과하면 `docs/resolved`로 이동 | [Vault TLS cert reload](issues/2026-09-06-vault-tls-cert-reload.md) | 적용 · 실검증 대기 |
+| **2026-10-30** | K8s 1.35.4 → 1.35.9 (Phase 1) 착수. 전에 Phase 0 완료: 하드 백업·etcd 스냅샷·애드온 1.36 호환성 표·drain 정책. Phase 2(1.36.5)는 관찰 후 별도 합의 | [Kubernetes 1.36 업그레이드](issues/2026-10-13-kubernetes-1-36-upgrade.md) | 조사중 |
 | **2026-10-31 이후** | qBit·Jellyfin v3 라이브 확인 후 `SftpV1Component`·테스트·export 삭제. 그 전 삭제 없음 | [SftpV1 삭제](issues/2026-09-10-sftp-v1-removal.md) | 보류 |
 | **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/2026-09-13-priority-class-resource-protection.md) | 보류 |
 

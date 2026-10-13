@@ -25,6 +25,10 @@ data "coder_parameter" "cpu" {
     name  = "10 Cores"
     value = "10"
   }
+  option {
+    name  = "12 Cores"
+    value = "12"
+  }
   order = 1
 }
 
@@ -58,6 +62,18 @@ data "coder_parameter" "memory" {
   option {
     name  = "14 GB"
     value = "14"
+  }
+  option {
+    name  = "16 GB"
+    value = "16"
+  }
+  option {
+    name  = "18 GB"
+    value = "18"
+  }
+  option {
+    name  = "20 GB"
+    value = "20"
   }
   order = 2
 }
