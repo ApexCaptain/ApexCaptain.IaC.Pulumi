@@ -151,30 +151,8 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
                 secret: {
                   name: authentikDatabaseAuthSecret.metadata.name,
                 },
-                import: {
-                  type: 'microservice',
-                  databases: ['authentik'],
-                  source: {
-                    externalCluster: 'authentik-bitnami',
-                  },
-                },
               },
             },
-            externalClusters: [
-              {
-                name: 'authentik-bitnami',
-                connectionParameters: {
-                  host: 'authentik-postgresql.authentik.svc.cluster.local',
-                  port: '5432',
-                  user: 'authentik',
-                  dbname: 'authentik',
-                },
-                password: {
-                  name: authentikPostgresqlPasswordSecret.metadata.name,
-                  key: authentikPostgresqlPasswordSecretKey,
-                },
-              },
-            ],
             storage: {
               size: args.pvc.postgresql.size,
               storageClass: args.pvc.postgresql.storageClass,
@@ -235,6 +213,10 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
           authentik: {
             secret_key: args.secretKey,
             postgresql: {
+              host: 'authentik-db-rw.authentik.svc.cluster.local',
+              port: 5432,
+              name: 'authentik',
+              user: 'authentik',
               password: `file://${authentikPostgresqlCredSecretMountPath}/${authentikPostgresqlPasswordSecretKey}`,
             },
           },
@@ -316,31 +298,7 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
             },
           },
           postgresql: {
-            enabled: true,
-            auth: {
-              existingSecret: authentikPostgresqlPasswordSecret.metadata.name,
-              secretKeys: {
-                userPasswordKey: authentikPostgresqlPasswordSecretKey,
-              },
-            },
-            primary: {
-              persistence: {
-                enabled: true,
-                storageClass: args.pvc.postgresql.storageClass,
-                size: args.pvc.postgresql.size,
-              },
-              // idle ~174Mi
-              resources: {
-                requests: {
-                  cpu: '100m',
-                  memory: '512Mi',
-                },
-                limits: {
-                  cpu: '500m',
-                  memory: '768Mi',
-                },
-              },
-            },
+            enabled: false,
           },
         },
       },
@@ -350,6 +308,7 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
         dependsOn: [
           authentikBootstrapTokenSecret,
           authentikPostgresqlPasswordSecret,
+          authentikDatabaseCluster,
         ],
       },
     );
