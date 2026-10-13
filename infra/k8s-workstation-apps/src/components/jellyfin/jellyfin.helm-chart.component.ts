@@ -288,6 +288,11 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
     return {
       output: pulumi.output({
         namespace: namespace.metadata.name,
+        pvcs: {
+          config: {
+            name: jellyfinConfigPvc.metadata.name,
+          },
+        },
         services: {
           jellyfin: {
             name: serviceName,
