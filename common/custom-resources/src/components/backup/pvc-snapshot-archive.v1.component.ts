@@ -77,6 +77,63 @@ export interface PvcSnapshotArchiveTargetShape {
   };
   /** 예: `14d` */
   keepWithin: string;
+  /**
+   * worker Job (tar.zst → rclone). 생략 시 소형 PVC 기본값.
+   * 대용량 config (예: jellyfin-config)는 memory·/work emptyDir 상향.
+   */
+  worker?: {
+    resources?: {
+      requests?: { cpu?: string; memory?: string };
+      limits?: { cpu?: string; memory?: string };
+    };
+    /** `/work` emptyDir sizeLimit. 예: `8Gi` */
+    workEmptyDirSize?: string;
+    /** worker.sh zstd 인자. 기본 `-T1 -6` */
+    zstdArgs?: string;
+  };
+}
+
+const DEFAULT_WORKER_ENV: Record<string, string> = {
+  WORKER_CPU_REQUEST: '100m',
+  WORKER_MEM_REQUEST: '256Mi',
+  WORKER_CPU_LIMIT: '1',
+  WORKER_MEM_LIMIT: '1Gi',
+  WORK_WORK_SIZE_LIMIT: '',
+  ZSTD_ARGS: '-T1 -6',
+};
+
+function workerEnvForTarget(
+  target: PvcSnapshotArchiveTargetShape,
+): Array<{ name: string; value: string }> {
+  const w = target.worker ?? {};
+  const req = w.resources?.requests ?? {};
+  const lim = w.resources?.limits ?? {};
+  return [
+    {
+      name: 'WORKER_CPU_REQUEST',
+      value: req.cpu ?? DEFAULT_WORKER_ENV.WORKER_CPU_REQUEST,
+    },
+    {
+      name: 'WORKER_MEM_REQUEST',
+      value: req.memory ?? DEFAULT_WORKER_ENV.WORKER_MEM_REQUEST,
+    },
+    {
+      name: 'WORKER_CPU_LIMIT',
+      value: lim.cpu ?? DEFAULT_WORKER_ENV.WORKER_CPU_LIMIT,
+    },
+    {
+      name: 'WORKER_MEM_LIMIT',
+      value: lim.memory ?? DEFAULT_WORKER_ENV.WORKER_MEM_LIMIT,
+    },
+    {
+      name: 'WORK_WORK_SIZE_LIMIT',
+      value: w.workEmptyDirSize ?? DEFAULT_WORKER_ENV.WORK_WORK_SIZE_LIMIT,
+    },
+    {
+      name: 'ZSTD_ARGS',
+      value: w.zstdArgs ?? DEFAULT_WORKER_ENV.ZSTD_ARGS,
+    },
+  ];
 }
 
 interface PvcSnapshotArchiveV1ArgsShape {
@@ -315,6 +372,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
         },
         annotations: {
           'backup.apexcaptain.com/pvc': target.pvcName,
+          'sidecar.istio.io/inject': 'false',
         },
       },
       spec: {
@@ -379,6 +437,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
               },
               { name: 'RESOURCE_PREFIX', value: namePrefix },
               { name: 'ALPINE_IMAGE', value: ALPINE_IMAGE },
+              ...workerEnvForTarget(target),
             ],
             volumeMounts: [
               {

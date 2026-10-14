@@ -213,6 +213,13 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
                   timezone: Timezone['Asia/Seoul'],
                 },
                 keepWithin: '3d',
+                worker: {
+                  resources: {
+                    requests: { cpu: '100m', memory: '512Mi' },
+                    limits: { cpu: '2', memory: '3Gi' },
+                  },
+                  workEmptyDirSize: '8Gi',
+                },
               },
             ],
           },

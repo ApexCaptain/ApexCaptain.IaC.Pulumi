@@ -33,7 +33,7 @@
 | -------------------------------- | ---------------------------------------- |
 | pCloud ESC/Secret                | ESC sync 완료. system: NS / Secret / ConfigMap(`clusterName`) / Lease `dr`·`media` / `longhorn-snap` |
 | VolumeSnapshot / CSI snapshotter | 적용됨. NS `snapshot-controller` (Deployment 1/1, v8.6.0). VSC `longhorn-snap` (`driver.longhorn.io`, `type: snap`, Delete) |
-| 백업 CronJob/컴포넌트            | Vault raft·qBit·Vikunja dr + Jellyfin `jellyfin-config` (**`keepWithin=3d`**) — **매일 12:00 KST** (`dr` Lease). qBit/Vault/Vikunja `keepWithin=10d`. pCloud 업로드·retention·복호화 실측 (2026-09-19). Jellyfin 첫 실행 대기 |
+| 백업 CronJob/컴포넌트            | Vault raft·qBit·Vikunja dr + Jellyfin `jellyfin-config` (**`keepWithin=3d`**) — **매일 12:00 KST** (`dr` Lease). qBit/Vault/Vikunja `keepWithin=10d`. Jellyfin worker: `zstd -T1 -6`, limit 3Gi, `/work` 8Gi (2026-10-14) |
 | 구성 SSOT                        | 본 이슈 |
 | pCloud 용량 전략                 | POC 통과. Lane B는 유료 플랜 후 |
 
@@ -266,14 +266,14 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 - [x] Vault raft snapshot → pCloud (once 성공 · Cron 운영, keepWithin=10d 상향)
 - [ ] Postgres dump → pCloud
 - [x] 소형 config 아카이브 (qBit config 10d, Vikunja data 10d Cron 운영 중)
-- [x] Jellyfin `jellyfin-config` 아카이브 (`keepWithin=3d`, 매일 12:00 KST) — `apps/prod` up 완료 (2026-10-13). 첫 Cron·pCloud 업로드는 스케줄 대기
+- [x] Jellyfin `jellyfin-config` 아카이브 (`keepWithin=3d`, 매일 12:00 KST) — once Job·pCloud 업로드 실증 (2026-10-14, `…/2026-10-14_165206/`, ~1.9GiB `backup.tar.zst`)
 - [ ] 복구 런북 초안
 - [ ] Slack 실패 알림
 
 ### Phase 3 — RWO 읽기
 
 - [x] VolumeSnapshot + 클론 구축 (sidecar 아님) — snapshot-controller + `longhorn-snap` 적용. Job 실증은 다음
-- [ ] jellyfin-config 등으로 실증
+- [x] jellyfin-config VolumeSnapshot→worker 실증 (2026-10-14)
 
 ### Phase 4 — Lane B (유료 플랜 이후)
 
@@ -350,4 +350,5 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-10-13 | 동일 시각 대기 여유: orchestrator `LEASE_WAIT_SEC` 기본 **600→3600** (`pvc-snapshot-archive.v1`·`vault-raft-archive.v1` run.sh). script CM replace 후 system·tools `up` 필요 |
 | 2026-10-13 | Jellyfin `jellyfin-config` Lane A dr 대상 확정. PVC 실사용 ~2.1 GiB (`data` 1.4G·`metadata` 747M). retention **`keepWithin=3d`**. `JellyfinBackupComponent` + `apps/prod` wiring |
 | 2026-10-13 | `k8s-workstation-apps/prod` up: CronJob `jellyfinBackup-dr-cron-config` (NS `jellyfin`). once Job 없음. 첫 12:00 KST 실행·pCloud 확인 예정 |
+| 2026-10-14 | 첫 Cron(12:00 KST) worker `zstd -T0 -19` + limit 1Gi → packing 중 실패(OOM 추정). `PvcSnapshotArchiveV1` target `worker`·기본 `-T1 -6`·Istio inject off. Jellyfin limit 3Gi·`/work` 8Gi. once Job **성공** (~6.5분, pCloud `…/2026-10-14_165206/`) |
 | 2026-10-13 | Authentik DB CNPG 컷오버: 라이브 PVC `authentik/authentik-db-1`. Bitnami `data-authentik-postgresql-0`는 롤백 보관 |
