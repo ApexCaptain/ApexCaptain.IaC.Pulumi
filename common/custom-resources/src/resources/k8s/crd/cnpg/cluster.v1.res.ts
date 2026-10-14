@@ -6,6 +6,32 @@ interface ClusterV1SecretRefShape {
   name: string;
 }
 
+interface ClusterV1ImportSourceShape {
+  externalCluster: string;
+}
+
+interface ClusterV1InitdbImportShape {
+  type: 'microservice' | 'monolith';
+  databases: string[];
+  roles?: string[];
+  source: ClusterV1ImportSourceShape;
+  postImportApplicationSQL?: string[];
+}
+
+interface ClusterV1ExternalClusterShape {
+  name: string;
+  connectionParameters: {
+    host: string;
+    port?: string;
+    user: string;
+    dbname: string;
+  };
+  password: {
+    name: string;
+    key: string;
+  };
+}
+
 interface ClusterV1InitdbBootstrapShape {
   database?: string;
   owner?: string;
@@ -15,6 +41,7 @@ interface ClusterV1InitdbBootstrapShape {
   dataChecksums?: boolean;
   postInitSQL?: string[];
   postInitApplicationSQL?: string[];
+  import?: ClusterV1InitdbImportShape;
 }
 
 interface ClusterV1RecoveryBootstrapShape {
@@ -62,6 +89,7 @@ interface ClusterV1ArgsShape {
       pg_basebackup?: ClusterV1PgBasebackupBootstrapShape;
     };
     storage: ClusterV1StorageShape;
+    externalClusters?: ClusterV1ExternalClusterShape[];
     walStorage?: ClusterV1StorageShape;
     inheritedMetadata?: {
       labels?: Record<string, string>;

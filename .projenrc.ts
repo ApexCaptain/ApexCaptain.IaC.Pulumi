@@ -434,6 +434,8 @@ void (async () => {
         deps: [
           src.constants.pulumiPackages.kubernetes,
           src.constants.pulumiPackages.vault,
+          'cron-time-generator',
+          'timezone-enum',
         ],
         commonDeps: [
           commonProjects.bridgedProviderProject.project.package.packageName,

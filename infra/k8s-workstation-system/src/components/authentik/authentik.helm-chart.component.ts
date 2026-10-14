@@ -4,6 +4,7 @@
  * namespace에 `istio-injection: enabled` (레거시 라벨이지만 ambient와 공존).
  * PostgreSQL PVC는 Longhorn SSD SC — 그래서 longhornResources 이후에 배포한다.
  */
+import * as customResources from '@common/custom-resources';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
@@ -112,6 +113,80 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
     const authentikServerServiceName = 'authentik-server';
     const authentikServerServiceHttpPort = 80;
 
+    const authentikDatabaseAuthSecret = new kubernetes.core.v1.Secret(
+      `${resourceName}-authentikDatabaseAuthSecret`,
+      {
+        metadata: {
+          name: 'authentik-db-auth',
+          namespace: namespace.metadata.name,
+        },
+        type: 'kubernetes.io/basic-auth',
+        stringData: {
+          username: 'authentik',
+          password: args.secrets.postgresqlPassword,
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [namespace],
+      },
+    );
+
+    const authentikDatabaseCluster =
+      new customResources.resources.k8s.crd.cnpg.ClusterV1(
+        `${resourceName}-authentikDatabaseCluster`,
+        {
+          metadata: {
+            name: 'authentik-db',
+            namespace: namespace.metadata.name,
+          },
+          spec: {
+            instances: 1,
+            imageName: 'ghcr.io/cloudnative-pg/postgresql:18.4-system-trixie',
+            bootstrap: {
+              initdb: {
+                database: 'authentik',
+                owner: 'authentik',
+                secret: {
+                  name: authentikDatabaseAuthSecret.metadata.name,
+                },
+              },
+            },
+            storage: {
+              size: args.pvc.postgresql.size,
+              storageClass: args.pvc.postgresql.storageClass,
+            },
+            inheritedMetadata: {
+              labels: {
+                'istio.io/dataplane-mode': 'none',
+              },
+              annotations: {
+                'sidecar.istio.io/inject': 'false',
+              },
+            },
+            resources: {
+              requests: {
+                cpu: '100m',
+                memory: '512Mi',
+              },
+              limits: {
+                cpu: '500m',
+                memory: '768Mi',
+              },
+            },
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+          dependsOn: [
+            authentikDatabaseAuthSecret,
+            authentikPostgresqlPasswordSecret,
+          ],
+        },
+      );
+
     // Helm Chart
     const authentikRelease = new kubernetes.helm.v3.Release(
       `${resourceName}-authentikRelease`,
@@ -138,6 +213,10 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
           authentik: {
             secret_key: args.secretKey,
             postgresql: {
+              host: 'authentik-db-rw.authentik.svc.cluster.local',
+              port: 5432,
+              name: 'authentik',
+              user: 'authentik',
               password: `file://${authentikPostgresqlCredSecretMountPath}/${authentikPostgresqlPasswordSecretKey}`,
             },
           },
@@ -219,31 +298,7 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
             },
           },
           postgresql: {
-            enabled: true,
-            auth: {
-              existingSecret: authentikPostgresqlPasswordSecret.metadata.name,
-              secretKeys: {
-                userPasswordKey: authentikPostgresqlPasswordSecretKey,
-              },
-            },
-            primary: {
-              persistence: {
-                enabled: true,
-                storageClass: args.pvc.postgresql.storageClass,
-                size: args.pvc.postgresql.size,
-              },
-              // idle ~174Mi
-              resources: {
-                requests: {
-                  cpu: '100m',
-                  memory: '512Mi',
-                },
-                limits: {
-                  cpu: '500m',
-                  memory: '768Mi',
-                },
-              },
-            },
+            enabled: false,
           },
         },
       },
@@ -253,6 +308,7 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
         dependsOn: [
           authentikBootstrapTokenSecret,
           authentikPostgresqlPasswordSecret,
+          authentikDatabaseCluster,
         ],
       },
     );
@@ -308,7 +364,11 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
-        dependsOn: [namespace, authentikReleasePropagationDelay],
+        dependsOn: [
+          namespace,
+          authentikReleasePropagationDelay,
+          authentikDatabaseCluster,
+        ],
       },
     );
 

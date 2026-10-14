@@ -546,7 +546,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
         },
         {
-          dependsOn: [longhornHelmChart, longhornResources],
+          dependsOn: [
+            longhornHelmChart,
+            longhornResources,
+            postgresqlOperatorHelmChart,
+          ],
         },
       );
 

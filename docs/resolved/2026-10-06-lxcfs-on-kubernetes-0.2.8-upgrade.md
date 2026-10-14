@@ -3,11 +3,16 @@
 | 항목 | 내용 |
 |---|---|
 | **등록일** | 2026-10-06 |
+| **해결일** | 2026-10-13 |
 | **영역** | workstation · `k8s-workstation-system` `lxcfs` Helm |
 | **관련 코드** | `infra/k8s-workstation-system/src/components/lxcfs/lxcfs.helm-chart.component.ts`, `infra/k8s-workstation-system/src/contract.ts` |
 | **관련** | [upstream #128](https://github.com/cndoit18/lxcfs-on-kubernetes/issues/128), [PR #138](https://github.com/cndoit18/lxcfs-on-kubernetes/pull/138), [agent self-heal #122](https://github.com/cndoit18/lxcfs-on-kubernetes/issues/122) |
 | **계획** | [구현 계획](../superpowers/plans/2026-10-06-lxcfs-on-kubernetes-0.2.8.md) |
-| **상태** | **적용** — prod 배포·핵심 검증 완료. (선택) webhook 라벨 Pod·Nova 재생성은 후속 |
+| **상태** | **해결** — chart 0.2.8, manager·agent `v0.2.8`. webhook 라벨 Pod 스모크 통과 |
+
+## 해결 요약
+
+chart·manager·agent를 0.2.8로 맞추고 runc가 거절하는 `pressure`·`slabinfo`는 `procFiles`에서 뺐다. prod update 569(2026-10-06) 이후 2026-10-13 스모크에서 라벨 Pod가 StartError 없이 `/proc/meminfo`를 읽었다. `MemTotal` 32768 kB는 Pod memory limit 32Mi와 같다. Nova diagnosis 재생성은 범위 밖이다.
 
 ## 배경
 
@@ -64,7 +69,7 @@ MutatingWebhook 이름(release `lxcfs`): `lxcfs-lxcfs-on-kubernetes-mutating-web
 - [x] helm release 이후 legacy webhook `namespaceSelector` prune (`mount-lxcfs` matchLabels가 있을 때만 remove)
 - [x] `pulumi preview`에 chart 0.2.8, values, DaemonSet delete, Command create가 보인다 (prod preview `589b42b1`, +1 ~2 -1)
 - [x] 배포 후 `lxcfs` 네임스페이스 manager·agent `v0.2.8`. Sysbox 워크스페이스 `/proc/meminfo` hostPath 유지 (재기동 Pod에서 확인)
-- [ ] (선택) `platform.glm.ai/mount-lxcfs: enabled` 테스트 Pod가 StartError 없이 `/proc/meminfo`를 본다
+- [x] (선택) `platform.glm.ai/mount-lxcfs: enabled` 테스트 Pod가 StartError 없이 `/proc/meminfo`를 본다
 
 ## 운영·검증 메모
 
@@ -91,3 +96,4 @@ MutatingWebhook 이름(release `lxcfs`): `lxcfs-lxcfs-on-kubernetes-mutating-web
 | 2026-10-06 | Task 1–3 IaC 반영. projen `@pulumi/command`. preview 확인. up 미실행 |
 | 2026-10-06 | `pulumi up` prod (update 569). manager/agent v0.2.8·procFiles·prune Command 적용 |
 | 2026-10-06 | 업그레이드 직후 기존 Primary Pod stale LXCFS hostPath. 검증 중 Pod 삭제 → 워크스페이스 재기동. 신규 Pod에서 meminfo OK |
+| 2026-10-13 | 라벨 Pod `default/lxcfs-smoke-meminfo` 스모크. StartError 없음. proc 7종만 주입. `/proc/meminfo` MemTotal 32768 kB. Pod 삭제 후 해결 |
