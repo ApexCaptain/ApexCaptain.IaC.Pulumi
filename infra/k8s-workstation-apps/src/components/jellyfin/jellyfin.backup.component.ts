@@ -23,6 +23,7 @@ interface JellyfinBackupComponentArgsShape {
     namespace: string;
     configMapName: string;
     credentialsSecretName: string;
+    slackSecretName: string;
     drLeaseName: string;
     volumeSnapshotClassName: string;
   };

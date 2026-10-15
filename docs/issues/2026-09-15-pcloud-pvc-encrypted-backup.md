@@ -268,7 +268,7 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 - [x] 소형 config 아카이브 (qBit config 10d, Vikunja data 10d Cron 운영 중)
 - [x] Jellyfin `jellyfin-config` 아카이브 (`keepWithin=3d`, 매일 12:00 KST) — once Job·pCloud 업로드 실증 (2026-10-14, `…/2026-10-14_165206/`, ~1.9GiB `backup.tar.zst`)
 - [ ] 복구 런북 초안
-- [ ] Slack 실패 알림
+- [x] Slack INFO/ERROR 알림 — platform `pcloud-backup-slack`, DR orchestrator cleanup (2026-10-14)
 
 ### Phase 3 — RWO 읽기
 
@@ -351,4 +351,6 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-10-13 | Jellyfin `jellyfin-config` Lane A dr 대상 확정. PVC 실사용 ~2.1 GiB (`data` 1.4G·`metadata` 747M). retention **`keepWithin=3d`**. `JellyfinBackupComponent` + `apps/prod` wiring |
 | 2026-10-13 | `k8s-workstation-apps/prod` up: CronJob `jellyfinBackup-dr-cron-config` (NS `jellyfin`). once Job 없음. 첫 12:00 KST 실행·pCloud 확인 예정 |
 | 2026-10-14 | 첫 Cron(12:00 KST) worker `zstd -T0 -19` + limit 1Gi → packing 중 실패(OOM 추정). `PvcSnapshotArchiveV1` target `worker`·기본 `-T1 -6`·Istio inject off. Jellyfin limit 3Gi·`/work` 8Gi. once Job **성공** (~6.5분, pCloud `…/2026-10-14_165206/`) |
+| 2026-10-14 | DR Slack: ESC `SLACK_WEBHOOK_URL_BACKUP_INFRA_{INFO,ERROR}` → `pcloud-backup-slack`. 성공 INFO·실패 ERROR. qBit once INFO·probe Job ERROR 실증 |
+| 2026-10-14 | Slack 문안을 SFTP와 같이 한국어 Block Kit (헤더·대상·경로·보관·시각)로 변경 |
 | 2026-10-13 | Authentik DB CNPG 컷오버: 라이브 PVC `authentik/authentik-db-1`. Bitnami `data-authentik-postgresql-0`는 롤백 보관 |

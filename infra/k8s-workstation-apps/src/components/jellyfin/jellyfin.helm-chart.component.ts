@@ -170,49 +170,50 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
     const userId = 1000;
     const groupId = 1000;
 
-    const sftpAdapter = new customResources.components.adapter.SftpV3Component(
-      'jellyfinSftpAdapter',
-      {
-        username: args.sftpUserName,
-        namespace: namespace.metadata.name,
-        targetLabels: {
-          [customPodLabelKey]: customPodLabelValue,
-        },
-        uid: userId,
-        gid: groupId,
-        volumeMounts: [
-          {
-            pvcVolumeName: 'config',
-            homeDirName: 'config',
+    const jellyfinSftpAdapter =
+      new customResources.components.adapter.SftpV3Component(
+        'jellyfinSftpAdapter',
+        {
+          username: args.sftpUserName,
+          namespace: namespace.metadata.name,
+          targetLabels: {
+            [customPodLabelKey]: customPodLabelValue,
           },
-          {
-            pvcVolumeName: 'media',
-            homeDirName: 'media',
+          uid: userId,
+          gid: groupId,
+          volumeMounts: [
+            {
+              pvcVolumeName: 'config',
+              homeDirName: 'config',
+            },
+            {
+              pvcVolumeName: 'media',
+              homeDirName: 'media',
+            },
+          ],
+          directGateway: {
+            gatewayPath: args.directGateway.gatewayPath,
+            port: args.directGateway.jellyfinSftp.port,
           },
-        ],
-        directGateway: {
-          gatewayPath: args.directGateway.gatewayPath,
-          port: args.directGateway.jellyfinSftp.port,
+          hostPrincipals: args.sftp.hostPrincipals,
+          issuerGroupName: args.sftp.issuerGroupName,
+          issuerIdentityGroupId: args.sftp.issuerIdentityGroupId,
+          userCaMount: args.sftp.userCaMount,
+          hostCaMount: args.sftp.hostCaMount,
+          kvMount: args.sftp.kvMount,
+          slackWebhookUrl: args.sftp.slackWebhookUrl,
+          vaultConnectionRef: args.sftp.vaultConnectionRef,
+          kubernetesAuthMountPath: args.sftp.kubernetesAuthMountPath,
+          vault: args.sftp.vault,
+          providers: {
+            kubernetes: args.providers.kubernetes,
+            vault: args.providers.vault,
+          },
         },
-        hostPrincipals: args.sftp.hostPrincipals,
-        issuerGroupName: args.sftp.issuerGroupName,
-        issuerIdentityGroupId: args.sftp.issuerIdentityGroupId,
-        userCaMount: args.sftp.userCaMount,
-        hostCaMount: args.sftp.hostCaMount,
-        kvMount: args.sftp.kvMount,
-        slackWebhookUrl: args.sftp.slackWebhookUrl,
-        vaultConnectionRef: args.sftp.vaultConnectionRef,
-        kubernetesAuthMountPath: args.sftp.kubernetesAuthMountPath,
-        vault: args.sftp.vault,
-        providers: {
-          kubernetes: args.providers.kubernetes,
-          vault: args.providers.vault,
+        {
+          ...opts,
         },
-      },
-      {
-        ...opts,
-      },
-    );
+      );
 
     const jellyfinHelmChartRelease = new kubernetes.helm.v3.Release(
       `${resourceName}-jellyfinHelmChartRelease`,
@@ -249,7 +250,7 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
           },
           deploymentAnnotations: {
             'secret.reloader.stakater.com/reload':
-              sftpAdapter.output.userSecretName,
+              jellyfinSftpAdapter.output.userSecretName,
           },
           // VPA 2026-10: upperBound ~380Mi; 트랜스코딩 스파이크용 limit headroom 유지
           resources: {
@@ -274,13 +275,13 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
               existingClaim: jeyllfinCachePvc.metadata.name,
             },
           },
-          volumes: sftpAdapter.output.spec.volumeSpecs,
-          extraContainers: [sftpAdapter.output.spec.containerSpec],
+          volumes: jellyfinSftpAdapter.output.spec.volumeSpecs,
+          extraContainers: [jellyfinSftpAdapter.output.spec.containerSpec],
         },
       },
       {
         ...opts,
-        dependsOn: [sftpAdapter],
+        dependsOn: [jellyfinSftpAdapter],
         provider: args.providers.kubernetes,
       },
     );

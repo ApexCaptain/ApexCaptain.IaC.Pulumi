@@ -20,7 +20,7 @@ services:
 
       # Nova Version
       # https://github.com/FairwindsOps/nova
-      NOVA_VERSION: 3.12.1
+      NOVA_VERSION: 3.12.2
 
       # Pluto Version
       # https://github.com/FairwindsOps/pluto

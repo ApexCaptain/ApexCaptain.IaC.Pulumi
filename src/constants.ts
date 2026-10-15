@@ -191,6 +191,8 @@ export const constants = (() => {
       'oci://ghcr.io/go-vikunja/helm-chart/vikunja',
     'cloudnative-pg.github.io/charts':
       'https://cloudnative-pg.github.io/charts',
+    'ot-container-kit.github.io/helm-charts':
+      'https://ot-container-kit.github.io/helm-charts',
     'stakater.github.io/stakater-charts':
       'https://stakater.github.io/stakater-charts',
     'argoproj.github.io/argo-helm': 'https://argoproj.github.io/argo-helm',

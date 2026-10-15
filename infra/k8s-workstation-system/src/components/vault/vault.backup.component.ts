@@ -32,6 +32,7 @@ interface VaultBackupComponentArgsShape {
     namespace: string;
     configMapName: string;
     credentialsSecretName: string;
+    slackSecretName: string;
     drLeaseName: string;
   };
   vault: {

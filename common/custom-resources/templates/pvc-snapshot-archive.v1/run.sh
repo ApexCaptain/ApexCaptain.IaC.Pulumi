@@ -3,6 +3,9 @@
 # Env set by CronJob (PvcSnapshotArchiveV1Component).
 set -euo pipefail
 
+# shellcheck disable=SC1091
+source /scripts/backup-slack-notify.v1.sh
+
 : "${NS:?}"
 : "${SRC_PVC:?}"
 : "${SNAP_CLASS:?}"
@@ -52,6 +55,7 @@ cleanup() {
   kubectl delete pvc -n "${NS}" "${CLONE_NAME}" --ignore-not-found=true --wait=false >/dev/null 2>&1
   kubectl delete volumesnapshot -n "${NS}" "${SNAP_NAME}" --ignore-not-found=true --wait=false >/dev/null 2>&1
   release_lease || true
+  backup_slack_on_finish "${code}" || true
   exit "${code}"
 }
 trap cleanup EXIT

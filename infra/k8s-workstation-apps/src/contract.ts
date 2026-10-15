@@ -231,6 +231,8 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
             credentialsSecretName:
               k8sWorkstationSystemContract.output.pcloudBackup
                 .credentialsSecretName,
+            slackSecretName:
+              k8sWorkstationSystemContract.output.pcloudBackup.slackSecretName,
             drLeaseName:
               k8sWorkstationSystemContract.output.pcloudBackup.drLeaseName,
             volumeSnapshotClassName:

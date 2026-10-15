@@ -153,6 +153,7 @@ interface PvcSnapshotArchiveV1ArgsShape {
      * worker에는 base64 env로만 전달 (크로스-NS secretKeyRef 불가).
      */
     credentialsSecretName: string;
+    slackSecretName: string;
     drLeaseName: string;
     volumeSnapshotClassName: string;
   };
@@ -304,6 +305,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             resources: ['secrets'],
             resourceNames: [
               args.platform.credentialsSecretName as pulumi.Input<string>,
+              args.platform.slackSecretName as pulumi.Input<string>,
             ],
             verbs: ['get'],
           },
@@ -356,6 +358,14 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             path.join(ASSETS_DIR, 'worker.sh'),
             'utf8',
           ),
+          'backup-slack-notify.v1.sh': fs.readFileSync(
+            path.join(
+              resolveCustomResourcesPackageRoot(),
+              'templates',
+              'backup-slack-notify.v1.sh',
+            ),
+            'utf8',
+          ),
         },
       },
       k8sOpts,
@@ -387,7 +397,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             args: [
               [
                 'echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories',
-                'apk add --no-cache bash curl kubectl coreutils tzdata',
+                'apk add --no-cache bash curl jq kubectl coreutils tzdata',
                 'exec bash /scripts/run.sh',
               ].join('\n'),
             ],
@@ -409,6 +419,14 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
               {
                 name: 'CRED_SECRET',
                 value: args.platform.credentialsSecretName,
+              },
+              {
+                name: 'SLACK_SECRET_NAME',
+                value: args.platform.slackSecretName,
+              },
+              {
+                name: 'BACKUP_NOTIFY_LABEL',
+                value: pulumi.interpolate`${args.namespace}/${target.pvcName}`,
               },
               {
                 name: 'SA',
