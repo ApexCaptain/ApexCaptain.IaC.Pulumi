@@ -881,11 +881,29 @@ void (async () => {
   // Cursor
   const mcpJsonConfig: src.interfaces.CursorMcpConfig = {
     mcpServers: {
+      // Remote HTTP + ${env:} is resolved on the Cursor host (Windows), not the
+      // Dev Container. Bridge through stdio so secrets come from container env.
       context7: {
-        url: 'https://mcp.context7.com/mcp',
-        headers: {
-          CONTEXT7_API_KEY: '${env:CONTEXT7_API_KEY}',
-        },
+        command: 'bash',
+        args: [
+          `\${workspaceFolder}/scripts/mcp-remote-proxy.sh`,
+          'https://mcp.context7.com/mcp',
+          'CONTEXT7_API_KEY',
+          'CONTEXT7_API_KEY',
+          'raw',
+        ],
+        envFile: `\${workspaceFolder}/.devcontainer/.env`,
+      },
+      'cloudflare-api': {
+        command: 'bash',
+        args: [
+          `\${workspaceFolder}/scripts/mcp-remote-proxy.sh`,
+          'https://mcp.cloudflare.com/mcp',
+          'Authorization',
+          'CLOUDFLARE_MCP_TOKEN',
+          'bearer',
+        ],
+        envFile: `\${workspaceFolder}/.devcontainer/.env`,
       },
       'kubernetes-mcp-server': {
         command: 'npx',
@@ -901,7 +919,20 @@ void (async () => {
         },
       },
       pulumi: {
-        url: 'https://mcp.ai.pulumi.com/mcp',
+        command: 'bash',
+        args: [
+          `\${workspaceFolder}/scripts/mcp-remote-proxy.sh`,
+          'https://mcp.ai.pulumi.com/mcp',
+          '--header',
+          'Authorization',
+          'PULUMI_ACCESS_TOKEN',
+          'bearer',
+          '--header',
+          'X-Pulumi-Org',
+          'PULUMI_APEX_CAPTAIN_ACCOUNT_NAME',
+          'raw',
+        ],
+        envFile: `\${workspaceFolder}/.devcontainer/.env`,
       },
     },
   };

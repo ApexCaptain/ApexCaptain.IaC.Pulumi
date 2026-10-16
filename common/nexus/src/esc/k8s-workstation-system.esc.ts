@@ -65,6 +65,7 @@ const k8sWorkstationSystemEscSchema = z
       .object({
         bootstrapPassword: z.string(),
         bootstrapPasswordBcrypt: z.string(),
+        redisPassword: z.string().min(1),
       })
       .required(),
 
@@ -81,6 +82,8 @@ const k8sWorkstationSystemEscSchema = z
         token: z.string().min(1),
         cryptPassword: z.string().min(1),
         cryptPassword2: z.string().min(1),
+        slackWebhookUrlBackupInfraInfo: z.string().min(1),
+        slackWebhookUrlBackupInfraError: z.string().min(1),
       })
       .required(),
   })

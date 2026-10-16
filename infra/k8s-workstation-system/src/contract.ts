@@ -2,7 +2,8 @@
  * Workstation 클러스터의 "시스템" 스택.
  *
  * 네트워킹(Cilium) → 인증서(cert-manager) → Vault → Istio mesh → 스토리지(Longhorn)
- * → IdP(Authentik) 순으로 깔고, apps/tools 스택이 여기 output을 참조한다.
+ * → DB/캐시 오퍼레이터(CNPG, Redis Operator) → IdP(Authentik) 순으로 깔고,
+ * apps/tools 스택이 여기 output을 참조한다.
  * GitOps 레포 정체성은 `githubContract`. 이 스택은 deploy key·webhook만 붙인다.
  *
  * 배포 순서가 꼬이기 쉬운 구간:
@@ -186,7 +187,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             snapshotController: {
-              version: '5.3.0',
+              version: '5.4.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['piraeus.io/helm-charts'],
             },
@@ -208,6 +209,12 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             token: projectEsc.esc.pcloudBackup.token,
             cryptPassword: projectEsc.esc.pcloudBackup.cryptPassword,
             cryptPassword2: projectEsc.esc.pcloudBackup.cryptPassword2,
+          },
+          slack: {
+            webhookUrlBackupInfraInfo:
+              projectEsc.esc.pcloudBackup.slackWebhookUrlBackupInfraInfo,
+            webhookUrlBackupInfraError:
+              projectEsc.esc.pcloudBackup.slackWebhookUrlBackupInfraError,
           },
           providers: {
             kubernetes: workstationK8sProvider,
@@ -381,6 +388,26 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
       );
 
+    // Redis Operator — Redis CR은 앱/GitOps에서 생성
+    const redisOperatorHelmChart =
+      new components.redisOperator.RedisOperatorHelmChartComponent(
+        'redisOperatorHelmChart',
+        {
+          helm: {
+            redisOperator: {
+              version: '0.27.0',
+              repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls[
+                'ot-container-kit.github.io/helm-charts'
+              ],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+      );
+
     // Vault Service Mesh — 공개 ingress + TLS origination (Authentik OIDC 전 단계)
     const vaultServiceMesh = new components.vault.VaultServiceMeshComponent(
       'vaultServiceMesh',
@@ -465,6 +492,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           configMapName: pcloudBackupPlatform.output.configMapName,
           credentialsSecretName:
             pcloudBackupPlatform.output.credentialsSecretName,
+          slackSecretName: pcloudBackupPlatform.output.slackSecretName,
           drLeaseName: pcloudBackupPlatform.output.drLeaseName,
         },
         vault: {
@@ -520,7 +548,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: authentikNamespace,
           helm: {
             authentik: {
-              version: '2026.8.3',
+              version: '2026.8.4',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
             },
@@ -886,7 +914,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.argo.ArgoRolloutsComponent('argoRollouts', {
       helm: {
         argoRollouts: {
-          version: '2.43.6',
+          version: '2.43.7',
           repositoryUrl: argoChartRepositoryUrl,
         },
       },
@@ -950,16 +978,20 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.10.3',
+            version: '10.10.5',
             repositoryUrl: argoChartRepositoryUrl,
           },
+        },
+        redis: {
+          password: projectEsc.esc.argoCd.redisPassword,
+          storageClass: longhornResources.output.storageClasses.longhornSsd,
         },
         providers: {
           kubernetes: workstationK8sProvider,
         },
       },
       {
-        dependsOn: [argoAuthentik],
+        dependsOn: [argoAuthentik, redisOperatorHelmChart],
       },
     );
 
@@ -1034,7 +1066,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             opentelemetryOperator: {
-              version: '0.124.1',
+              version: '0.126.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'open-telemetry.github.io/opentelemetry-helm-charts'
@@ -1096,7 +1128,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           tempo: {
-            version: '3.1.0',
+            version: '3.2.0',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -1169,7 +1201,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
           helm: {
             grafana: {
-              version: '13.5.0',
+              version: '13.6.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'grafana-community.github.io/helm-charts'
@@ -1286,6 +1318,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: pcloudBackupPlatform.output.namespace,
           credentialsSecretName:
             pcloudBackupPlatform.output.credentialsSecretName,
+          slackSecretName: pcloudBackupPlatform.output.slackSecretName,
           drLeaseName: pcloudBackupPlatform.output.drLeaseName,
           mediaLeaseName: pcloudBackupPlatform.output.mediaLeaseName,
           volumeSnapshotClassName:

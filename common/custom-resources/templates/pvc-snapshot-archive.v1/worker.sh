@@ -24,8 +24,11 @@ RCLONE_CONF="${WORK_DIR}/rclone.conf"
 mkdir -p "${WORK_DIR}"
 ARCHIVE_PATH="${WORK_DIR}/${ARCHIVE_NAME}"
 
-echo "[worker] packing ${DATA_DIR} → ${ARCHIVE_PATH}"
-tar -C "${DATA_DIR}" -cf - . | zstd -T0 -19 -o "${ARCHIVE_PATH}"
+# DR default: single-thread + mid level (large PVC OOM 방지). override via ZSTD_ARGS.
+ZSTD_ARGS="${ZSTD_ARGS:--T1 -6}"
+echo "[worker] packing ${DATA_DIR} → ${ARCHIVE_PATH} (zstd ${ZSTD_ARGS})"
+# shellcheck disable=SC2086
+tar -C "${DATA_DIR}" -cf - . | zstd ${ZSTD_ARGS} -o "${ARCHIVE_PATH}"
 ls -lh "${ARCHIVE_PATH}"
 
 OBSCURED_PW="$(rclone obscure "${CRYPT_PASSWORD}")"

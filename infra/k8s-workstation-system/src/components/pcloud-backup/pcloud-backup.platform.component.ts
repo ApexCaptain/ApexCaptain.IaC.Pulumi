@@ -23,6 +23,10 @@ interface PcloudBackupPlatformComponentArgsShape {
     cryptPassword: string;
     cryptPassword2: string;
   };
+  slack: {
+    webhookUrlBackupInfraInfo: string;
+    webhookUrlBackupInfraError: string;
+  };
   providers: {
     kubernetes: k8s.Provider;
   };
@@ -83,6 +87,29 @@ export const PcloudBackupPlatformComponent = utils.functions.defineComponent(
     );
 
     // 워크로드 Job이 경로 세그먼트를 여기서 읽음 (스택마다 clusterName 전달 불필요)
+    const slackSecret = new k8s.core.v1.Secret(
+      `${resourceName}-slack`,
+      {
+        metadata: {
+          name: 'pcloud-backup-slack',
+          namespace: namespace.metadata.name,
+          labels: {
+            'app.kubernetes.io/name': 'pcloud-backup',
+            'app.kubernetes.io/component': 'slack',
+          },
+        },
+        stringData: {
+          'info-url': args.slack.webhookUrlBackupInfraInfo,
+          'error-url': args.slack.webhookUrlBackupInfraError,
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        dependsOn: [namespace],
+      },
+    );
+
     const configMap = new k8s.core.v1.ConfigMap(
       `${resourceName}-config`,
       {
@@ -184,6 +211,7 @@ export const PcloudBackupPlatformComponent = utils.functions.defineComponent(
         configMapName: configMap.metadata.name,
         namespace: namespace.metadata.name,
         credentialsSecretName: credentialsSecret.metadata.name,
+        slackSecretName: slackSecret.metadata.name,
         drLeaseName: drLease.metadata.name,
         mediaLeaseName: mediaLease.metadata.name,
         volumeSnapshotClassName: volumeSnapshotClass.metadata.name,

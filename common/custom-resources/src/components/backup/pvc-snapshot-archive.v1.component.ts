@@ -77,6 +77,63 @@ export interface PvcSnapshotArchiveTargetShape {
   };
   /** 예: `14d` */
   keepWithin: string;
+  /**
+   * worker Job (tar.zst → rclone). 생략 시 소형 PVC 기본값.
+   * 대용량 config (예: jellyfin-config)는 memory·/work emptyDir 상향.
+   */
+  worker?: {
+    resources?: {
+      requests?: { cpu?: string; memory?: string };
+      limits?: { cpu?: string; memory?: string };
+    };
+    /** `/work` emptyDir sizeLimit. 예: `8Gi` */
+    workEmptyDirSize?: string;
+    /** worker.sh zstd 인자. 기본 `-T1 -6` */
+    zstdArgs?: string;
+  };
+}
+
+const DEFAULT_WORKER_ENV: Record<string, string> = {
+  WORKER_CPU_REQUEST: '100m',
+  WORKER_MEM_REQUEST: '256Mi',
+  WORKER_CPU_LIMIT: '1',
+  WORKER_MEM_LIMIT: '1Gi',
+  WORK_WORK_SIZE_LIMIT: '',
+  ZSTD_ARGS: '-T1 -6',
+};
+
+function workerEnvForTarget(
+  target: PvcSnapshotArchiveTargetShape,
+): Array<{ name: string; value: string }> {
+  const w = target.worker ?? {};
+  const req = w.resources?.requests ?? {};
+  const lim = w.resources?.limits ?? {};
+  return [
+    {
+      name: 'WORKER_CPU_REQUEST',
+      value: req.cpu ?? DEFAULT_WORKER_ENV.WORKER_CPU_REQUEST,
+    },
+    {
+      name: 'WORKER_MEM_REQUEST',
+      value: req.memory ?? DEFAULT_WORKER_ENV.WORKER_MEM_REQUEST,
+    },
+    {
+      name: 'WORKER_CPU_LIMIT',
+      value: lim.cpu ?? DEFAULT_WORKER_ENV.WORKER_CPU_LIMIT,
+    },
+    {
+      name: 'WORKER_MEM_LIMIT',
+      value: lim.memory ?? DEFAULT_WORKER_ENV.WORKER_MEM_LIMIT,
+    },
+    {
+      name: 'WORK_WORK_SIZE_LIMIT',
+      value: w.workEmptyDirSize ?? DEFAULT_WORKER_ENV.WORK_WORK_SIZE_LIMIT,
+    },
+    {
+      name: 'ZSTD_ARGS',
+      value: w.zstdArgs ?? DEFAULT_WORKER_ENV.ZSTD_ARGS,
+    },
+  ];
 }
 
 interface PvcSnapshotArchiveV1ArgsShape {
@@ -96,6 +153,7 @@ interface PvcSnapshotArchiveV1ArgsShape {
      * worker에는 base64 env로만 전달 (크로스-NS secretKeyRef 불가).
      */
     credentialsSecretName: string;
+    slackSecretName: string;
     drLeaseName: string;
     volumeSnapshotClassName: string;
   };
@@ -247,6 +305,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             resources: ['secrets'],
             resourceNames: [
               args.platform.credentialsSecretName as pulumi.Input<string>,
+              args.platform.slackSecretName as pulumi.Input<string>,
             ],
             verbs: ['get'],
           },
@@ -299,6 +358,14 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             path.join(ASSETS_DIR, 'worker.sh'),
             'utf8',
           ),
+          'backup-slack-notify.v1.sh': fs.readFileSync(
+            path.join(
+              resolveCustomResourcesPackageRoot(),
+              'templates',
+              'backup-slack-notify.v1.sh',
+            ),
+            'utf8',
+          ),
         },
       },
       k8sOpts,
@@ -315,6 +382,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
         },
         annotations: {
           'backup.apexcaptain.com/pvc': target.pvcName,
+          'sidecar.istio.io/inject': 'false',
         },
       },
       spec: {
@@ -329,7 +397,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             args: [
               [
                 'echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories',
-                'apk add --no-cache bash curl kubectl coreutils tzdata',
+                'apk add --no-cache bash curl jq kubectl coreutils tzdata',
                 'exec bash /scripts/run.sh',
               ].join('\n'),
             ],
@@ -351,6 +419,14 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
               {
                 name: 'CRED_SECRET',
                 value: args.platform.credentialsSecretName,
+              },
+              {
+                name: 'SLACK_SECRET_NAME',
+                value: args.platform.slackSecretName,
+              },
+              {
+                name: 'BACKUP_NOTIFY_LABEL',
+                value: pulumi.interpolate`${args.namespace}/${target.pvcName}`,
               },
               {
                 name: 'SA',
@@ -379,6 +455,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
               },
               { name: 'RESOURCE_PREFIX', value: namePrefix },
               { name: 'ALPINE_IMAGE', value: ALPINE_IMAGE },
+              ...workerEnvForTarget(target),
             ],
             volumeMounts: [
               {

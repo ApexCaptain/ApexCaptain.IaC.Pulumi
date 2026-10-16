@@ -3,6 +3,9 @@
 # Env set by CronJob (PvcSnapshotArchiveV1Component).
 set -euo pipefail
 
+# shellcheck disable=SC1091
+source /scripts/backup-slack-notify.v1.sh
+
 : "${NS:?}"
 : "${SRC_PVC:?}"
 : "${SNAP_CLASS:?}"
@@ -24,6 +27,12 @@ CLONE_STORAGE_CLASS="${CLONE_STORAGE_CLASS:-}"
 CLONE_SIZE="${CLONE_SIZE:-}"
 
 ALPINE_IMAGE="${ALPINE_IMAGE:-alpine:3.21}"
+WORKER_CPU_REQUEST="${WORKER_CPU_REQUEST:-100m}"
+WORKER_MEM_REQUEST="${WORKER_MEM_REQUEST:-256Mi}"
+WORKER_CPU_LIMIT="${WORKER_CPU_LIMIT:-1}"
+WORKER_MEM_LIMIT="${WORKER_MEM_LIMIT:-1Gi}"
+WORK_WORK_SIZE_LIMIT="${WORK_WORK_SIZE_LIMIT:-}"
+ZSTD_ARGS="${ZSTD_ARGS:--T1 -6}"
 LEASE_WAIT_SEC="${LEASE_WAIT_SEC:-3600}"
 SNAP_WAIT_SEC="${SNAP_WAIT_SEC:-600}"
 CLONE_WAIT_SEC="${CLONE_WAIT_SEC:-600}"
@@ -46,6 +55,7 @@ cleanup() {
   kubectl delete pvc -n "${NS}" "${CLONE_NAME}" --ignore-not-found=true --wait=false >/dev/null 2>&1
   kubectl delete volumesnapshot -n "${NS}" "${SNAP_NAME}" --ignore-not-found=true --wait=false >/dev/null 2>&1
   release_lease || true
+  backup_slack_on_finish "${code}" || true
   exit "${code}"
 }
 trap cleanup EXIT
@@ -258,7 +268,8 @@ wait_job_complete() {
       return 0
     fi
     if [[ -n "${failed}" && "${failed}" != "0" ]]; then
-      kubectl logs -n "${NS}" "job/${job}" --tail=200 || true
+      kubectl logs -n "${NS}" "job/${job}" -c worker --tail=200 2>/dev/null \
+        || kubectl logs -n "${NS}" "job/${job}" --tail=200 || true
       echo "worker job failed ${job}" >&2
       return 1
     fi
@@ -369,6 +380,12 @@ HN_B64="$(b64 "${CRED_HOSTNAME}")"
 TK_B64="$(b64 "${CRED_TOKEN}")"
 PW_B64="$(b64 "${CRED_PW}")"
 PW2_B64="$(b64 "${CRED_PW2}")"
+if [[ -n "${WORK_WORK_SIZE_LIMIT}" ]]; then
+  WORK_VOLUME_YAML="          emptyDir:
+            sizeLimit: ${WORK_WORK_SIZE_LIMIT}"
+else
+  WORK_VOLUME_YAML="          emptyDir: {}"
+fi
 kubectl apply -f - <<EOF
 apiVersion: batch/v1
 kind: Job
@@ -387,6 +404,8 @@ spec:
       labels:
         app.kubernetes.io/name: ${RESOURCE_PREFIX}
         backup.apexcaptain.com/role: worker
+      annotations:
+        sidecar.istio.io/inject: "false"
     spec:
       restartPolicy: Never
       serviceAccountName: ${SA}
@@ -413,6 +432,8 @@ spec:
               value: "${PW_B64}"
             - name: CRYPT_PASSWORD2_B64
               value: "${PW2_B64}"
+            - name: ZSTD_ARGS
+              value: "${ZSTD_ARGS}"
           volumeMounts:
             - name: data
               mountPath: /data
@@ -424,11 +445,11 @@ spec:
               mountPath: /work
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: ${WORKER_CPU_REQUEST}
+              memory: ${WORKER_MEM_REQUEST}
             limits:
-              cpu: "1"
-              memory: 1Gi
+              cpu: "${WORKER_CPU_LIMIT}"
+              memory: ${WORKER_MEM_LIMIT}
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -438,7 +459,7 @@ spec:
             name: ${SCRIPT_CM}
             defaultMode: 0755
         - name: work
-          emptyDir: {}
+${WORK_VOLUME_YAML}
 EOF
 
 wait_job_complete "${WORKER_JOB}"

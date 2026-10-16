@@ -15,7 +15,7 @@
 
 Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 apiserver·controller-manager·scheduler 이미지의 최신 패치가 v1.35.9로 나온다. Pluto 진단(`docs/diagnosis/pluto.diagnosis.md`)은 target v1.36.0 기준 deprecated·removed API 없음으로 나왔다 (2026-10-13 03:51Z).
 
-## 현재 상태 (2026-10-13 실측)
+## 현재 상태 (2026-10-15 갱신)
 
 | 항목 | 값 |
 |---|---|
@@ -26,7 +26,7 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 apiserver·controller-mana
 | 컨트롤 플레인 | kube-apiserver / controller-manager / scheduler static Pod, kube-vip(ARP) VIP |
 | 컨트롤 플레인 재시작 | apiserver 14회, controller-manager 116회, scheduler 124회 (리더 선출 노이즈로 추정, 미확인) |
 | Sysbox | 호스트 설치(Ansible), RuntimeClass `sysbox-runc`만 Pulumi. `sysbox-deploy-k8s` DaemonSet 미사용. upstream 지원 상한은 K8s 1.35 |
-| Longhorn | 1.13.0 차트, 볼륨 전부 `replicas=1`. 엔진 업그레이드가 2026-10-14부터 매주 수요일 진행 중 |
+| Longhorn | 1.13.0 차트, 운영 PVC 18개 `replicas=1`, 엔진 `v1.13.0` 일괄 완료 ([해결 기록](../resolved/2026-10-07-longhorn-1-13-0-upgrade.md)). Jellyfin 백업용 clone VolumeSnapshot PVC는 [pCloud 백업](2026-09-15-pcloud-pvc-encrypted-backup.md) 이슈 |
 | Istio | ambient 1.30.x, 2026-10-12에 재부팅 후 리다이렉트 유실 이슈 해결 ([해결 기록](../resolved/2026-10-12-ambient-reboot-redirect.md)) |
 
 ## 문제와 위험
@@ -36,7 +36,7 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 apiserver·controller-mana
 | 위험 | 내용 | 대응 방향 |
 |---|---|---|
 | drain 중단 | Kubespray `upgrade-cluster`는 기본 `drain_nodes: true`. 단일 노드 drain은 전 워크로드 evict. PDB·Longhorn attach 때문에 timeout(360s) 가능 | 아래 "drain 정책" |
-| replica 1 볼륨 | Longhorn 볼륨 전부 replica 1. kubelet·containerd 재시작 시 attach 끊김 가능 | 하드 백업 선행, 엔진 업그레이드와 겹치지 않게 |
+| replica 1 볼륨 | Longhorn 운영 볼륨 전부 replica 1. kubelet·containerd 재시작 시 attach 끊김 가능 | 하드 백업 선행, 쓰기 큰 워크로드 scale 0 검토 |
 | 재부팅·CNI | 재시작 후 Cilium → istio-cni 체인과 ambient 리다이렉트 복구 확인 필요 | 2026-10-12 이슈의 검증 절차 재사용 |
 | Sysbox | 공식 지원은 v1.32~v1.35. v1.36은 지원 목록 밖이라 Phase 2 착수 금지. 호스트 설치라 DaemonSet 버전 게이트는 안 타도 upstream이 1.36을 넣기 전에는 올리지 않음 | 2027-01-15에 재확인. 미지원이면 런타임 교체. 지원이 생기면 Coder Sysbox 워크스페이스 기동을 Phase 2 검증에 포함 |
 | 애드온 호환 | Cilium 1.20.2, Longhorn 1.13.0, Istio 1.30.x, metrics-server 0.9.0, VSO 등의 K8s 1.36 지원 여부 | Phase 0에서 각 릴리스 노트 확인 |
@@ -91,7 +91,6 @@ Kubernetes 1.35 일정 ([릴리스 페이지](https://kubernetes.io/releases/1.3
 - [ ] 1.36 deprecation·removal 항목 대조 (feature gate, kubelet 플래그, `kubeadm` 설정 API). Pluto 통과는 API 버전만 본다
 - [ ] kube-vip·containerd·cgroup(v2)·swap 설정이 Kubespray 1.36 기본값과 충돌하는지 확인 (`kubelet_fail_cgroup_v1`, `kubelet_fail_swap_on`)
 - [ ] 현재 이미지·버전 기록 (`kubectl get pods -A -o wide`, 노드 describe)
-- [ ] Longhorn 엔진 업그레이드(수요일 주기)와 겹치지 않는 주를 고른다. 업그레이드 당일은 엔진 작업 없음
 - [ ] 시간대 선택: 사용 적은 시간. Jellyfin 스트리밍·qBit·Coder 사용자에게 사전 공지
 - [ ] drain 정책 결정 (아래)
 
@@ -165,5 +164,6 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 | 일시 | 내용 |
 |---|---|
 | 2026-10-13 | 등록. 현황 실측(노드·Kubespray 지원 버전·CNI) 후 2단계(1.35.9 → 1.36.5) 계획 작성 |
-| 2026-10-13 | Phase 1 착수일을 2026-10-30으로 확정. 그 전에 Phase 0(백업·etcd 스냅샷·호환성 표·drain 정책) 완료. Longhorn 수요일 엔진 작업은 10-28까지 진행되므로 당일과 겹치지 않음 |
+| 2026-10-13 | Phase 1 착수일을 2026-10-30으로 확정. 그 전에 Phase 0(백업·etcd 스냅샷·호환성 표·drain 정책) 완료 |
 | 2026-10-13 | Sysbox 공식 지원은 K8s 1.32~1.35뿐 ([install-k8s.md](https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-k8s.md)). 1.36 요청 [#1036](https://github.com/nestybox/sysbox/issues/1036)은 open. Phase 2 착수 금지. K8s 1.35는 2026-12-28 maintenance, EOL 2027-02-28. 2027-01-15까지 1.36 지원이 없으면 Sysbox를 버리고 다른 런타임으로 이전 |
+| 2026-10-15 | Longhorn 볼륨 엔진 `v1.13.0`은 10-13 일괄 완료로 종료. 수요일 분할 일정·Phase 1 겹침 회피 문구 제거. Jellyfin VolumeSnapshot clone PVC는 pCloud 백업 이슈와 분리 |

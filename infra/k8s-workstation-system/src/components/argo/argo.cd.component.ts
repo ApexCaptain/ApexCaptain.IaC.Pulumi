@@ -2,6 +2,7 @@ import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import yaml from 'yaml';
+import { createArgoCdRedisResources } from './argo.cd.redis';
 
 interface ArgoCdComponentArgsShape {
   host: string;
@@ -20,6 +21,10 @@ interface ArgoCdComponentArgsShape {
       version: string;
       repositoryUrl: string;
     };
+  };
+  redis: {
+    password: string;
+    storageClass: string;
   };
   providers: {
     kubernetes: kubernetes.Provider;
@@ -68,6 +73,20 @@ export const ArgoCdComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+      },
+    );
+
+    const argoCdRedis = createArgoCdRedisResources(
+      `${resourceName}-redis`,
+      {
+        namespace: namespace.metadata.name,
+        password: args.redis.password,
+        storageClass: args.redis.storageClass,
+        provider: args.providers.kubernetes,
+      },
+      {
+        ...opts,
+        dependsOn: [namespace],
       },
     );
 
@@ -283,17 +302,15 @@ export const ArgoCdComponent = utils.functions.defineComponent(
             },
           },
           redis: {
-            // VPA 2026-10: target ~115Mi
-            resources: {
-              requests: {
-                cpu: '20m',
-                memory: '128Mi',
-              },
-              limits: {
-                cpu: '200m',
-                memory: '128Mi',
-              },
-            },
+            enabled: false,
+          },
+          redisSecretInit: {
+            enabled: false,
+          },
+          externalRedis: {
+            host: argoCdRedis.masterHost,
+            port: argoCdRedis.port,
+            existingSecret: argoCdRedis.authSecretName,
           },
           applicationSet: {
             // VPA 2026-10: target ~272Mi
@@ -338,7 +355,7 @@ export const ArgoCdComponent = utils.functions.defineComponent(
       },
       {
         ...opts,
-        dependsOn: [namespace],
+        dependsOn: [namespace, ...argoCdRedis.dependsOn],
         provider: args.providers.kubernetes,
       },
     );

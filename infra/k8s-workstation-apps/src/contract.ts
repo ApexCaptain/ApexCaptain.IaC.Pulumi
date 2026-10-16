@@ -155,6 +155,10 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
                 size: '10Gi',
               },
             },
+            gpu: {
+              runtimeClassName:
+                k8sWorkstationSystemContract.output.gpu.runtimeClassName,
+            },
             providers: {
               kubernetes: workstationK8sProvider,
               vault: vaultProvider,
@@ -213,6 +217,13 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
                   timezone: Timezone['Asia/Seoul'],
                 },
                 keepWithin: '3d',
+                worker: {
+                  resources: {
+                    requests: { cpu: '100m', memory: '512Mi' },
+                    limits: { cpu: '2', memory: '3Gi' },
+                  },
+                  workEmptyDirSize: '8Gi',
+                },
               },
             ],
           },
@@ -224,6 +235,8 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
             credentialsSecretName:
               k8sWorkstationSystemContract.output.pcloudBackup
                 .credentialsSecretName,
+            slackSecretName:
+              k8sWorkstationSystemContract.output.pcloudBackup.slackSecretName,
             drLeaseName:
               k8sWorkstationSystemContract.output.pcloudBackup.drLeaseName,
             volumeSnapshotClassName:

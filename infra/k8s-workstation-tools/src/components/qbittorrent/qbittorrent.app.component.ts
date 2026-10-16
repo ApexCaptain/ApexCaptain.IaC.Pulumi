@@ -262,51 +262,52 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
     );
 
     // SFTP 사이드카 — Vault issue 키젠. 웹 SSO는 Tools Manager, KV read는 System Manager
-    const sftpAdapter = new customResources.components.adapter.SftpV3Component(
-      'sftpAdapter',
-      {
-        username: args.sftpUserName,
-        namespace: namespace.metadata.name,
-        targetLabels: qbittorrentLabel,
-        uid: qbittorrentUid,
-        gid: 0,
-        volumeMounts: [
-          {
-            pvcVolumeName: qbittorrentConfigVolumeName,
-            homeDirName: 'config',
+    const qbittorrentSftpAdapter =
+      new customResources.components.adapter.SftpV3Component(
+        'qbittorrentSftpAdapter',
+        {
+          username: args.sftpUserName,
+          namespace: namespace.metadata.name,
+          targetLabels: qbittorrentLabel,
+          uid: qbittorrentUid,
+          gid: 0,
+          volumeMounts: [
+            {
+              pvcVolumeName: qbittorrentConfigVolumeName,
+              homeDirName: 'config',
+            },
+            {
+              pvcVolumeName: qbittorrentCompleteDownloadsVolumeName,
+              homeDirName: 'downloads',
+            },
+            {
+              pvcVolumeName: qbittorrentIncompleteDownloadsVolumeName,
+              homeDirName: 'incomplete',
+            },
+          ],
+          directGateway: {
+            gatewayPath: args.directGateway.gatewayPath,
+            port: args.directGateway.qbitorrentSftp.port,
           },
-          {
-            pvcVolumeName: qbittorrentCompleteDownloadsVolumeName,
-            homeDirName: 'downloads',
+          hostPrincipals: args.sftp.hostPrincipals,
+          issuerGroupName: args.sftp.issuerGroupName,
+          issuerIdentityGroupId: args.sftp.issuerIdentityGroupId,
+          userCaMount: args.sftp.userCaMount,
+          hostCaMount: args.sftp.hostCaMount,
+          kvMount: args.sftp.kvMount,
+          slackWebhookUrl: args.sftp.slackWebhookUrl,
+          vaultConnectionRef: args.sftp.vaultConnectionRef,
+          kubernetesAuthMountPath: args.sftp.kubernetesAuthMountPath,
+          vault: args.sftp.vault,
+          providers: {
+            kubernetes: args.providers.kubernetes,
+            vault: args.providers.vault,
           },
-          {
-            pvcVolumeName: qbittorrentIncompleteDownloadsVolumeName,
-            homeDirName: 'incomplete',
-          },
-        ],
-        directGateway: {
-          gatewayPath: args.directGateway.gatewayPath,
-          port: args.directGateway.qbitorrentSftp.port,
         },
-        hostPrincipals: args.sftp.hostPrincipals,
-        issuerGroupName: args.sftp.issuerGroupName,
-        issuerIdentityGroupId: args.sftp.issuerIdentityGroupId,
-        userCaMount: args.sftp.userCaMount,
-        hostCaMount: args.sftp.hostCaMount,
-        kvMount: args.sftp.kvMount,
-        slackWebhookUrl: args.sftp.slackWebhookUrl,
-        vaultConnectionRef: args.sftp.vaultConnectionRef,
-        kubernetesAuthMountPath: args.sftp.kubernetesAuthMountPath,
-        vault: args.sftp.vault,
-        providers: {
-          kubernetes: args.providers.kubernetes,
-          vault: args.providers.vault,
+        {
+          ...opts,
         },
-      },
-      {
-        ...opts,
-      },
-    );
+      );
 
     // Deployment — gluetun(VPN) + qbittorrent + sftp 한 Pod에 묶음
     // Recreate: PVC ReadWriteOnce라 RollingUpdate 불가
@@ -318,7 +319,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
           namespace: namespace.metadata.name,
           annotations: {
             'secret.reloader.stakater.com/reload':
-              sftpAdapter.output.userSecretName,
+              qbittorrentSftpAdapter.output.userSecretName,
           },
         },
         spec: {
@@ -500,7 +501,8 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
               containers: [
                 {
                   name: 'qbittorrent',
-                  image: 'lscr.io/linuxserver/qbittorrent:amd64-5.2.4_v2.0.15-ls480',
+                  image:
+                    'lscr.io/linuxserver/qbittorrent:amd64-5.2.4_v2.0.15-ls480',
                   imagePullPolicy: 'Always',
                   ports: [
                     {
@@ -578,11 +580,11 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                   },
                 },
 
-                sftpAdapter.output.spec.containerSpec,
+                qbittorrentSftpAdapter.output.spec.containerSpec,
               ],
               volumes: pulumi
-                .output(sftpAdapter.output.spec.volumeSpecs)
-                .apply(sftpVolumeSpecs => [
+                .output(qbittorrentSftpAdapter.output.spec.volumeSpecs)
+                .apply(qbittorrentSftpVolumeSpecs => [
                   {
                     // 호스트 /dev/net/tun — WireGuard용
                     name: tunDeviceVolumeName,
@@ -610,8 +612,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                   {
                     name: qbittorrentCompleteDownloadsVolumeName,
                     persistentVolumeClaim: {
-                      claimName:
-                        qbittorrentCompleteDownloadsPvc.metadata.name,
+                      claimName: qbittorrentCompleteDownloadsPvc.metadata.name,
                     },
                   },
                   {
@@ -621,7 +622,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                         qbittorrentIncompleteDownloadsPvc.metadata.name,
                     },
                   },
-                  ...sftpVolumeSpecs,
+                  ...qbittorrentSftpVolumeSpecs,
                 ]),
             },
           },
@@ -635,7 +636,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
           qbittorrentConfigPvc,
           qbittorrentCompleteDownloadsPvc,
           qbittorrentIncompleteDownloadsPvc,
-          sftpAdapter,
+          qbittorrentSftpAdapter,
         ],
       },
     );

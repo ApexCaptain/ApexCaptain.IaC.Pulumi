@@ -226,6 +226,7 @@ async function syncPulumiEsc(): Promise<void> {
       argoCd: {
         bootstrapPassword: process.env.ARGOCD_BOOTSTRAP_PASSWORD,
         bootstrapPasswordBcrypt: process.env.ARGOCD_BOOTSTRAP_PASSWORD_BCRYPT,
+        redisPassword: requireEnv('ARGOCD_REDIS_PASSWORD'),
       },
       grafana: {
         adminPassword: process.env.GRAFANA_ADMIN_PASSWORD,
@@ -237,6 +238,12 @@ async function syncPulumiEsc(): Promise<void> {
         token: requireEnv('PCLOUD_OAUTH_TOKEN'),
         cryptPassword: requireEnv('PCLOUD_CRYPT_PASSWORD'),
         cryptPassword2: requireEnv('PCLOUD_CRYPT_PASSWORD2'),
+        slackWebhookUrlBackupInfraInfo: requireEnv(
+          'SLACK_WEBHOOK_URL_BACKUP_INFRA_INFO',
+        ),
+        slackWebhookUrlBackupInfraError: requireEnv(
+          'SLACK_WEBHOOK_URL_BACKUP_INFRA_ERROR',
+        ),
       },
     },
     {

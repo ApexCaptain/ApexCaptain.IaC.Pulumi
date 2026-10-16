@@ -51,6 +51,7 @@ const commonEscSchema = z
         'charts.longhorn.io': z.string(),
         'go-vikunja/helm-chart/vikunja': z.string(),
         'cloudnative-pg.github.io/charts': z.string(),
+        'ot-container-kit.github.io/helm-charts': z.string(),
         'stakater.github.io/stakater-charts': z.string(),
         'argoproj.github.io/argo-helm': z.string(),
         'cndoit18.github.io/lxcfs-on-kubernetes': z.string(),
