@@ -1,17 +1,3 @@
-/**
- * Workstation DNS 레코드
- *
- * 공통: `workstation` CNAME → iptime DDNS (proxied **false**, LE DNS-01·직접 접속용)
- *
- * | 호스트   | proxied | 이유 |
- * |----------|---------|------|
- * | auth     | true    | Authentik UI — CF WAF·캐시 앞단 |
- * | longhorn | true    | UI 보호 + 동일 |
- * | torrent  | true    | qBittorrent Web UI |
- * | vault    | true    | 공개 Vault API/UI |
- * | jellyfin | false   | 스트리밍·대역폭 — CF proxy 우회 |
- */
-
 import * as utils from '@common/utils/src';
 import * as cloudflare from '@pulumi/cloudflare';
 import * as pulumi from '@pulumi/pulumi';
@@ -113,7 +99,7 @@ export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Torrent Service',
       },
       {
@@ -130,7 +116,7 @@ export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Test Service',
       },
       {
@@ -255,7 +241,7 @@ export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Goldilocks Service',
       },
       {

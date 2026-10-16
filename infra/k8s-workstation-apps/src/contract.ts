@@ -155,6 +155,10 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
                 size: '10Gi',
               },
             },
+            gpu: {
+              runtimeClassName:
+                k8sWorkstationSystemContract.output.gpu.runtimeClassName,
+            },
             providers: {
               kubernetes: workstationK8sProvider,
               vault: vaultProvider,

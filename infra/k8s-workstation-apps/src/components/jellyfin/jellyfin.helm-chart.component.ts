@@ -59,6 +59,10 @@ interface JellyfinHelmChartComponentArgsShape {
       size: string;
     };
   };
+  /** 노드 RTX 2080 1장 배타 점유. RuntimeClass는 system 스택 GPU 핸들러 */
+  gpu: {
+    runtimeClassName: string;
+  };
   providers: {
     kubernetes: kubernetes.Provider;
     vault: vault.Provider;
@@ -252,15 +256,19 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
             'secret.reloader.stakater.com/reload':
               jellyfinSftpAdapter.output.userSecretName,
           },
+          runtimeClassName: args.gpu.runtimeClassName,
           // VPA 2026-10: upperBound ~380Mi; 트랜스코딩 스파이크용 limit headroom 유지
+          // nvidia.com/gpu 1 = RTX 2080 전체. device plugin sharing 없음. SFTP sidecar에는 안 붙음
           resources: {
             requests: {
-              cpu: '200m',
-              memory: '512Mi',
+              'cpu': '200m',
+              'memory': '512Mi',
+              'nvidia.com/gpu': '1',
             },
             limits: {
-              cpu: '2',
-              memory: '3Gi',
+              'cpu': '2',
+              'memory': '3Gi',
+              'nvidia.com/gpu': '1',
             },
           },
           persistence: {
