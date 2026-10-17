@@ -57,7 +57,7 @@
     "Copilot IDE (VS Code Insiders)": false,
     "Copilot IDE (VSCodium)": false,
     "Copilot IDE (VSCodium Insiders)": false,
-    "Claude Code": false,
+    "Claude Code": true,
     "Factory Droid CLI": false,
     "Cursor CLI": false,
     "Gemini CLI": false,

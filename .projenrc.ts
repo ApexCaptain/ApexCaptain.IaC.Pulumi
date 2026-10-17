@@ -519,6 +519,8 @@ void (async () => {
   new JsonFile(rootProject, 'turbo.json', {
     obj: {
       $schema: 'https://turbo.build/schema.json',
+      // AGENTS.md 자동 삽입 끔. 같은 안내는 .rulesync/rules/use-installed-turbo-docs.md
+      agentGuidance: false,
       tasks: {
         build: {
           dependsOn: ['^build'],
@@ -617,7 +619,7 @@ void (async () => {
               'Copilot IDE (VS Code Insiders)': false,
               'Copilot IDE (VSCodium)': false,
               'Copilot IDE (VSCodium Insiders)': false,
-              'Claude Code': false,
+              'Claude Code': true,
               'Factory Droid CLI': false,
               'Cursor CLI': false,
               'Gemini CLI': false,
