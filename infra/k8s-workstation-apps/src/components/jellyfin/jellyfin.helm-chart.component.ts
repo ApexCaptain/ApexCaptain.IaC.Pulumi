@@ -255,6 +255,14 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
             'proxy.istio.io/config':
               '{"holdApplicationUntilProxyStarts": true}',
           },
+          // GPU 1대를 기존 Pod가 쥐고 있어 surge Pod는 Pending으로 멈춘다. 먼저 내리고 올린다
+          deploymentStrategy: {
+            type: 'RollingUpdate',
+            rollingUpdate: {
+              maxSurge: 0,
+              maxUnavailable: 1,
+            },
+          },
           deploymentAnnotations: {
             'secret.reloader.stakater.com/reload':
               jellyfinSftpAdapter.output.userSecretName,

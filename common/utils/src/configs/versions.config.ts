@@ -3,7 +3,7 @@
  *
  * 같은 소프트웨어 버전은 여기 상수 하나만 참조한다. 값을 바꾸면 이 상수를 쓰는 모든 스택을 preview한다.
  * floating 태그(busybox, gluetun:v3 등)는 아직 여기로 옮기지 않았다.
- * @see docs/issues/2026-10-17-version-pin-ssot.md
+ * @see docs/resolved/2026-10-17-version-pin-ssot.md
  */
 
 /** Vault 서버·CLI 공통. provider `vaultVersionOverride`, Helm `server.image.tag`, Job 이미지가 모두 이 값을 쓴다. */
