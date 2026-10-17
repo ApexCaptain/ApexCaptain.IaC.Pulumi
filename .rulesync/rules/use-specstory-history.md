@@ -1,8 +1,14 @@
 ---
+root: false
+targets:
+  - '*'
 description: SpecStory 히스토리 맥락 참조. 정리는 cleanup-specstory-history skill
-alwaysApply: true
+globs: []
+cursor:
+  alwaysApply: true
+  description: SpecStory 히스토리 맥락 참조. 정리는 cleanup-specstory-history skill
+  globs: []
 ---
-
 # SpecStory 히스토리
 
 SpecStory가 `.specstory/history/`에 저장한 AI 대화를 활용한다.  

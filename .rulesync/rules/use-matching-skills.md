@@ -1,15 +1,21 @@
 ---
+root: false
+targets:
+  - '*'
 description: 사용자 의도·대화 패턴으로 프로젝트 스킬을 자동 선택·적용. 슬래시 호출을 기다리지 않음
-alwaysApply: true
+globs: []
+cursor:
+  alwaysApply: true
+  description: 사용자 의도·대화 패턴으로 프로젝트 스킬을 자동 선택·적용. 슬래시 호출을 기다리지 않음
+  globs: []
 ---
-
 # 스킬 자동 선택
 
-`.agents/skills/`·`.cursor/skills/` 스킬은 `/스킬이름`을 기다리지 않는다. 사용자가 그 이름을 말하지 않아도, 요청 의도·표현이 `SKILL.md` description과 맞으면 **행동 전에 해당 파일을 읽고 따른다.**
+프로젝트 스킬(`.rulesync/skills/`가 SSOT, 에이전트별 skill 디렉토리로 생성)은 `/스킬이름`을 기다리지 않는다. 사용자가 그 이름을 말하지 않아도, 요청 의도·표현이 `SKILL.md` description과 맞으면 **행동 전에 해당 파일을 읽고 따른다.**
 
 - 매칭은 영어 트리거 문구만이 아니다. 한국어 의역·구어(“짧게”, “왜 안 돼”, “커밋 메시지 써줘”)도 동일하게 본다.
 - 후보가 보이면 추측으로 진행하지 말고 `SKILL.md`를 읽는다. 목록에 있다고 본문을 매 턴 전부 로드하지는 않는다.
-- 동시에 여러 스킬이 맞으면 모두 적용하되, **레포 전용(`.cursor/skills`)이 범용(`.agents/skills`)보다 우선**한다.
+- 동시에 여러 스킬이 맞으면 모두 적용하되, **레포 전용이 범용보다 우선**한다 (구분은 아래 "스킬 위치 참고").
 - `disable-model-invocation: true`이거나, 스킬/기존 룰이 “사용자가 명시할 때만”이라고 한 것은 자동 적용하지 않는다. 현재: `pulumi-neo-handoff`, `cleanup-specstory-history`.
 
 ## 스크립트 vs 스킬
@@ -58,5 +64,5 @@ alwaysApply: true
 
 ## 스킬 위치 참고
 
-- **레포 전용:** `.cursor/skills/` — `coder-templates`, `cleanup-specstory-history`, `generate-readme`
-- **범용:** `.agents/skills/` — Pulumi·디버깅·리팩터·caveman 등
+- **레포 전용:** `.rulesync/skills/`의 실제 디렉토리 — `coder-templates`, `cleanup-specstory-history`, `generate-readme`
+- **범용:** `.agents/skills/` (`skills-lock.json` 관리) — Pulumi·디버깅·리팩터·caveman 등. `.rulesync/skills/`에 symlink로 연결되어 함께 생성된다

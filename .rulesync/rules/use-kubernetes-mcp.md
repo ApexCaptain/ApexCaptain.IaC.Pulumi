@@ -1,7 +1,12 @@
 ---
-alwaysApply: true
+root: false
+targets:
+  - '*'
+globs: []
+cursor:
+  alwaysApply: true
+  globs: []
 ---
-
 Kubernetes 클러스터의 실제 상태 확인, Pod/Service/Deployment 디버깅, CIDR·리소스 검증, 배포 결과 확인 등 K8s 관련 작업이 필요할 때는 `kubernetes-mcp-server` MCP를 우선 사용하세요. 사용자가 명시적으로 요청하지 않아도 적용합니다.
 
 - 코드·설정·env 파일만으로 답할 수 없거나, live cluster와 대조·검증이 필요할 때 특히 사용

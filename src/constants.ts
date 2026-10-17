@@ -28,6 +28,7 @@ export const constants = (() => {
   const tmpDir = 'tmp';
   const diagnosisDir = process.env.DIAGNOSIS_DIR_NAME || 'docs/diagnosis';
   const cursorDir = '.cursor';
+  const rulesyncDir = '.rulesync';
   const ventoyDir = 'ventoy';
   const ventoyUserDataDir = path.join(ventoyDir, 'user-data');
   const ansibleDir = 'ansible';
@@ -42,7 +43,8 @@ export const constants = (() => {
   const repomixConfigJsonFile = 'repomix.config.json';
   const novaConfigFile =
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
-  const cursorMcpJsonFile = path.join(cursorDir, 'mcp.json');
+  const rulesyncConfigFile = 'rulesync.jsonc';
+  const rulesyncMcpFile = path.join(rulesyncDir, 'mcp.jsonc');
   const cursorSettingsJsonFile = path.join(cursorDir, 'settings.json');
   const workstationSshPrivateKeyFile = path.join(
     keysDir,
@@ -96,6 +98,7 @@ export const constants = (() => {
       tmpDir,
       diagnosisDir,
       cursorDir,
+      rulesyncDir,
       ventoyDir,
       ventoyUserDataDir,
       ansibleDir,
@@ -110,7 +113,8 @@ export const constants = (() => {
       repomixOutputXmlFile,
       repomixConfigJsonFile,
       novaConfigFile,
-      cursorMcpJsonFile,
+      rulesyncConfigFile,
+      rulesyncMcpFile,
       cursorSettingsJsonFile,
       workstationSshPrivateKeyFile,
       ansibleWorkstationInventoryFile,

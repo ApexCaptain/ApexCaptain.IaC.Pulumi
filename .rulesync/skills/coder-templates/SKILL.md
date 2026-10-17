@@ -1,8 +1,9 @@
 ---
 name: coder-templates
 description: Creates and updates Coder workspace templates (coder_agent, coder_script, coder_parameter, registry module consumption). Use when editing templates under infra/**/assets/coder, sysbox-ubuntu, or when the user mentions Coder templates, workspace templates, coder_script, or coder_parameter. Do not use for publishing templates to the public Coder Registry.
+targets:
+  - '*'
 ---
-
 # Coder Templates
 
 Coder workspace templates are Terraform that define a workspace: agent, parameters, scripts, and the Kubernetes (or other) resources it runs on.

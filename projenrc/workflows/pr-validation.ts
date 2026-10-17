@@ -57,6 +57,10 @@ export function addPrValidationWorkflow(
         run: 'pnpm i --frozen-lockfile',
       },
       {
+        name: 'Validate AI agent config',
+        run: 'pnpm ai:doctor',
+      },
+      {
         name: 'Build workspaces',
         run: 'pnpm build:workspaces',
       },
