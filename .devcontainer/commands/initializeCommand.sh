@@ -10,6 +10,9 @@ username=$5
 MERGED_ENV_FILE_PATH=.devcontainer/.env
 
 # System Arguments (depend on workstation settings)
+HOST_CLAUDE_DIR_PATH=$HOME/.claude
+HOST_CLAUDE_JSON_FILE_PATH=$HOME/.claude.json
+
 SECRETS_DIR_PATH=$HOME/google-drive 
 SECRETS_ENV_DIR_PATH=$SECRETS_DIR_PATH/.pulumi/.env
 KUBE_CONFIG_DIR_NAME=.kube
@@ -96,7 +99,10 @@ PULUMI_CONTRACT_KEYS_DIR_PATH=$containerWorkspaceFolder/${SECRETS_DIR_NAME}/.pul
 PULUMI_GENERATED_KUBECONFIG_DIR_PATH=$KUBE_CONFIG_DIR_PATH
 
 # Claude Arguments
+HOST_CLAUDE_DIR_PATH=$HOST_CLAUDE_DIR_PATH
 CONTAINER_CLAUDE_DIR_PATH=/home/$username/.claude
+HOST_CLAUDE_JSON_FILE_PATH=$HOST_CLAUDE_JSON_FILE_PATH
+CONTAINER_CLAUDE_JSON_FILE_PATH=/home/$username/.claude.json
 
 # OCI Arguments
 OCI_CONFIG_FILE=${containerWorkspaceFolder}/${OCI_CONFIG_DIR_NAME}/oci.config
@@ -126,3 +132,8 @@ done
 
 # Make all derived sh files executable
 chmod +x ./.devcontainer/commands/common/*.sh
+
+# Initialize Claude JSON File
+if [ ! -f "$HOST_CLAUDE_JSON_FILE_PATH" ]; then
+    echo "{}" > "$HOST_CLAUDE_JSON_FILE_PATH"
+fi
