@@ -31,7 +31,7 @@
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 | 대상 Windows PC 준비 (원격 데스크톱·NLA·방화벽·내부 IP, 클러스터→`:3389` 도달) | 구현 플랜 Task 1부터 착수 (`docs/superpowers/plans/2026-10-16-warpgate-authentik-rdp.md`) | [Warpgate Authentik RDP](issues/2026-10-16-warpgate-authentik-rdp.md) | 보류 |
 | **트리거 충족** ([protect](resolved/2026-10-17-stateful-resource-protect.md) 해결 2026-10-17) — 클러스터 도달 방식 결정 대기 (우선순위 2) | 클러스터 도달·자격 증명 결정(사용자) → 일일 drift 감지 → PR preview | [CI preview·drift](issues/2026-10-17-ci-pulumi-preview-drift.md) | 조사중 |
-| **트리거 충족** — [버전 SSOT](resolved/2026-10-17-version-pin-ssot.md) 해결 2026-10-17 (우선순위 5) | ESC 409 처리·env 검증·action SHA 고정 | [nexus 오류 처리](issues/2026-10-17-nexus-error-handling-hardening.md) | 조사중 |
+| **트리거 충족** — [버전 SSOT](resolved/2026-10-17-version-pin-ssot.md) 해결 2026-10-17 (우선순위 5) | 조치 완료. 커밋·머지 후 PR CI(`pr-validation`) 통과 확인되면 닫기 | [nexus 오류 처리](issues/2026-10-17-nexus-error-handling-hardening.md) | 적용 — 코드·테스트 반영, 커밋·머지 대기 |
 | K8s 1.36 업그레이드 완료 | system contract phase 모듈 분해 (URN 불변) | [contract 분해](issues/2026-10-17-system-contract-split.md) | 보류 |
 | 컴포넌트 단위 **트리거 충족** (protect 해결 2026-10-17) / contract 단위는 contract 분해 후 | Pulumi mocks 컴포넌트 테스트 3개+ | [infra 테스트](issues/2026-10-17-infra-component-tests.md) | 보류 |
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/2026-10-17-dr-rebuild-runbook.md) | 보류 |

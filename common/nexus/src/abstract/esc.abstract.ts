@@ -54,7 +54,14 @@ export abstract class AbstractEsc<
 
       try {
         await escClient.createEnvironment(orgName, this.escName, stage);
-      } catch (error) {}
+      } catch (error) {
+        // 이미 존재(409)만 무시. esc-sdk는 2xx 외 응답에서 AxiosError를 던진다.
+        const status = (error as { response?: { status?: number } })?.response
+          ?.status;
+        if (status !== 409) {
+          throw error;
+        }
+      }
       await escClient.updateEnvironment(orgName, this.escName, stage, {
         values: {
           pulumiConfig: {
