@@ -95,6 +95,9 @@ PULUMI_CONTRACT_HASH_DIR_PATH=$containerWorkspaceFolder/${SECRETS_DIR_NAME}/.pul
 PULUMI_CONTRACT_KEYS_DIR_PATH=$containerWorkspaceFolder/${SECRETS_DIR_NAME}/.pulumi/.keys
 PULUMI_GENERATED_KUBECONFIG_DIR_PATH=$KUBE_CONFIG_DIR_PATH
 
+# Claude Arguments
+CONTAINER_CLAUDE_DIR_PATH=/home/$username/.claude
+
 # OCI Arguments
 OCI_CONFIG_FILE=${containerWorkspaceFolder}/${OCI_CONFIG_DIR_NAME}/oci.config
 

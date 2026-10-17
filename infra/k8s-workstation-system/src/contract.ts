@@ -309,7 +309,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           istio: {
-            version: '1.30.5',
+            version: '1.30.6',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'istio-release.storage.googleapis.com/charts'
@@ -1109,7 +1109,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           loki: {
-            version: '18.15.1',
+            version: '18.16.1',
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -1201,7 +1201,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
           helm: {
             grafana: {
-              version: '13.6.0',
+              version: '14.0.0',
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'grafana-community.github.io/helm-charts'

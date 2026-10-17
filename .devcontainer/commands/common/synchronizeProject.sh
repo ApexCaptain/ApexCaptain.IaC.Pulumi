@@ -110,6 +110,11 @@ sed -i \
 } >> "$BASHRC_FILE"
 echo "✅ Setup python3 venv"
 
+echo "🔄 Installing Global Packages"
+npm install -g \
+    @anthropic-ai/claude-code
+echo "✅ Installed Global Packages"
+
 echo "🔄 Installing dependencies"
 pnpm i --no-frozen-lockfile
 echo "✅ Installed dependencies"

@@ -28,6 +28,7 @@
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
+| 대상 Windows PC 준비 (원격 데스크톱·NLA·방화벽·내부 IP, 클러스터→`:3389` 도달) | 구현 플랜 Task 1부터 착수 (`docs/superpowers/plans/2026-10-16-warpgate-authentik-rdp.md`) | [Warpgate Authentik RDP](issues/2026-10-16-warpgate-authentik-rdp.md) | 보류 |
 ---
 
 ## 갱신
