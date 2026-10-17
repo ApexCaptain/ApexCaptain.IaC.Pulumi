@@ -74,6 +74,7 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+        ...utils.configs.statefulResourceOptions,
       },
     );
 
@@ -372,6 +373,7 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
           vaultOciCredentialsSecret,
           vaultServerCertificate,
         ],
+        ...utils.configs.statefulResourceOptions,
       },
     );
 

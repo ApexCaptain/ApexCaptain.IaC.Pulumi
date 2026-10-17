@@ -49,6 +49,7 @@ export const VikunjaBaseComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+        ...utils.configs.statefulResourceOptions,
       },
     );
 
@@ -132,6 +133,7 @@ export const VikunjaBaseComponent = utils.functions.defineComponent(
           ...opts,
           provider: args.providers.kubernetes,
           dependsOn: [posgresqlAuthSecret],
+          ...utils.configs.statefulResourceOptions,
         },
       );
 

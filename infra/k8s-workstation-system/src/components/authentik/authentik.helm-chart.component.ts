@@ -63,6 +63,7 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+        ...utils.configs.statefulResourceOptions,
       },
     );
 
@@ -184,6 +185,7 @@ export const AuthentikHelmChartComponent = utils.functions.defineComponent(
             authentikDatabaseAuthSecret,
             authentikPostgresqlPasswordSecret,
           ],
+          ...utils.configs.statefulResourceOptions,
         },
       );
 
