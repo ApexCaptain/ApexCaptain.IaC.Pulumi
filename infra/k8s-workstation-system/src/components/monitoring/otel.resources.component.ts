@@ -245,7 +245,7 @@ export const OtelResourcesComponent = utils.functions.defineComponent(
           serviceAccount: collectorServiceAccountName,
           // k8s distro에는 prometheusremotewrite 없음. contrib는 operator 0.156.0과 맞춤.
           image:
-            'ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.156.0',
+            utils.configs.containerImages.otelCollectorContrib,
           // ambient: sidecar inject 비활성화 어노테이션 금지 — ztunnel이 L4 mTLS 처리
           podAnnotations: {},
           env: [

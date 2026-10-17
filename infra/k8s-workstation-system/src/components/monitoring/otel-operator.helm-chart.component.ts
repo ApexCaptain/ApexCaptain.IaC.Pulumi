@@ -44,6 +44,7 @@ export const OtelOperatorHelmChartComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+        ...utils.configs.statefulResourceOptions,
       },
     );
 

@@ -15,9 +15,6 @@ import * as utils from '@common/utils/src';
 import * as k8s from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
-const ALPINE_IMAGE = 'alpine:3.21';
-/** 클러스터 vault-0 이미지와 맞춤 (hashicorp/vault:2.0.4) */
-const VAULT_CLI_VERSION = '2.0.4';
 const CUSTOM_RESOURCES_PACKAGE_NAME = '@common/custom-resources';
 const TEMPLATE_DIR = 'vault-raft-archive.v1';
 
@@ -259,7 +256,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
         containers: [
           {
             name: 'orchestrator',
-            image: ALPINE_IMAGE,
+            image: utils.configs.containerImages.alpine,
             imagePullPolicy: 'IfNotPresent' as const,
             command: ['/bin/sh', '-ec'],
             args: [
@@ -309,7 +306,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
                 name: 'VAULT_K8S_AUTH_ROLE',
                 value: args.vault.kubernetesAuthRoleName,
               },
-              { name: 'VAULT_VERSION', value: VAULT_CLI_VERSION },
+              { name: 'VAULT_VERSION', value: utils.configs.vaultVersion },
             ],
             volumeMounts: [
               {

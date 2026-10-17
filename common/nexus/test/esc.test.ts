@@ -97,6 +97,53 @@ describe('AbstractEsc.upsertEsc', () => {
     expect(client.updateEnvironment).not.toHaveBeenCalled();
   });
 
+  test('ignores 409 from createEnvironment and still updates ESC', async () => {
+    const esc = new TestEsc();
+    const client = makeEscClientMock();
+    client.createEnvironment.mockRejectedValueOnce(
+      Object.assign(new Error('Request failed with status code 409'), {
+        response: { status: 409 },
+      }),
+    );
+
+    await esc.upsertEsc(
+      'test-org',
+      client as never,
+      { name: 'base', tags: [], nested: { enabled: true } },
+      { [StackStage.DEV]: {} },
+    );
+
+    expect(client.updateEnvironment).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    [
+      '401',
+      Object.assign(new Error('Request failed with status code 401'), {
+        response: { status: 401 },
+      }),
+    ],
+    ['network error', new Error('getaddrinfo ENOTFOUND api.pulumi.com')],
+  ])(
+    'rethrows %s from createEnvironment without updating ESC',
+    async (_label, error) => {
+      const esc = new TestEsc();
+      const client = makeEscClientMock();
+      client.createEnvironment.mockRejectedValueOnce(error);
+
+      await expect(
+        esc.upsertEsc(
+          'test-org',
+          client as never,
+          { name: 'base', tags: [], nested: { enabled: true } },
+          { [StackStage.DEV]: {} },
+        ),
+      ).rejects.toBe(error);
+
+      expect(client.updateEnvironment).not.toHaveBeenCalled();
+    },
+  );
+
   test('getEscNameWithStage formats name/stage', () => {
     const esc = new TestEsc();
     expect(esc.getEscNameWithStage(StackStage.PROD)).toBe(

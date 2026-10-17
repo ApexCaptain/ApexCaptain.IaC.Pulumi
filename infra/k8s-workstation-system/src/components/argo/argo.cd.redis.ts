@@ -11,7 +11,6 @@ import { buildRedisDefaultAclUserLine } from './argo.redis-acl';
 export const ARGO_CD_REDIS_REPLICATION_NAME = 'argo-cd-redis';
 export const ARGO_CD_REDIS_AUTH_SECRET_NAME = 'argo-cd-redis-auth';
 export const ARGO_CD_REDIS_ACL_SECRET_NAME = 'argo-cd-redis-acl';
-export const ARGO_CD_REDIS_IMAGE = 'quay.io/opstree/redis:v7.0.15';
 const ARGO_CD_REDIS_PORT = 6379;
 
 interface ArgoCdRedisResourcesArgsShape {
@@ -98,7 +97,7 @@ export function createArgoCdRedisResources(
             fsGroup: 1000,
           },
           kubernetesConfig: {
-            image: ARGO_CD_REDIS_IMAGE,
+            image: utils.configs.containerImages.argoCdRedis,
             imagePullPolicy: 'IfNotPresent',
             redisSecret: {
               name: ARGO_CD_REDIS_AUTH_SECRET_NAME,

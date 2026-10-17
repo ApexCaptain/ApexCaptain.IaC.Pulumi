@@ -153,6 +153,10 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
                 name: 'vault_jwt_role',
                 value: args.templateVariables.sysboxUbuntu.vault.jwtRole,
               },
+              {
+                name: 'vault_cli_version',
+                value: utils.configs.vaultVersion,
+              },
             ],
           },
         ],
@@ -257,6 +261,10 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
               {
                 name: 'vault_jwt_role',
                 value: args.templateVariables.sysboxUbuntuTest.vault.jwtRole,
+              },
+              {
+                name: 'vault_cli_version',
+                value: utils.configs.vaultVersion,
               },
             ],
           },

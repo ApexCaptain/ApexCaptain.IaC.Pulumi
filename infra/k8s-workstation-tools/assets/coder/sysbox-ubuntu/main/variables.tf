@@ -89,3 +89,8 @@ variable "vault_jwt_role" {
   type        = string
   description = "Vault JWT auth role for Coder workspace login"
 }
+
+variable "vault_cli_version" {
+  type        = string
+  description = "Vault CLI version installed in workspaces (matches the Vault server, from versions.config.ts)"
+}

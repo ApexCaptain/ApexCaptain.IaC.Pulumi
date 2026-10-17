@@ -54,8 +54,14 @@ export class Contract<Output_Type extends Object, Secret_Type extends Object> {
           `${pulumi.getOrganization()}/${this.projectName}/${referencedStackStage}`,
         );
 
+        const contractHashRootPath = process.env.PULUMI_CONTRACT_HASH_DIR_PATH;
+        if (!contractHashRootPath) {
+          throw new Error(
+            'PULUMI_CONTRACT_HASH_DIR_PATH is not set (defined in .devcontainer/commands/initializeCommand.sh)',
+          );
+        }
         this.contractHashDirPath = path.join(
-          process.env.PULUMI_CONTRACT_HASH_DIR_PATH!!,
+          contractHashRootPath,
           this.projectName,
         );
         break;
