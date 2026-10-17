@@ -1,8 +1,14 @@
 ---
-description: 열린 이슈의 재검토·확인 일정을 docs/schedule.md에 유지. 이슈 변경 시 동기화, 기한 도래 시 알림
-alwaysApply: true
+root: false
+targets:
+  - '*'
+description: '열린 이슈의 재검토·확인 일정을 docs/schedule.md에 유지. 이슈 변경 시 동기화, 기한 도래 시 알림'
+globs: []
+cursor:
+  alwaysApply: true
+  description: '열린 이슈의 재검토·확인 일정을 docs/schedule.md에 유지. 이슈 변경 시 동기화, 기한 도래 시 알림'
+  globs: []
 ---
-
 # 이슈 일정 (`docs/schedule.md`)
 
 `docs/issues/`가 SSOT. `docs/schedule.md`는 열린 이슈 중 **아직 할 일·추후 확인이 남은 것**의 인덱스다. 날짜·수용 기준·재현은 이슈 본문에만 적는다.

@@ -1,8 +1,14 @@
 ---
+root: false
+targets:
+  - '*'
 description: DevContainer에서 형제 레포는 /workspace-hub 읽기 전용 마운트로 참조. 이 레포 워크스페이스와 섞지 말 것
-alwaysApply: true
+globs: []
+cursor:
+  alwaysApply: true
+  description: DevContainer에서 형제 레포는 /workspace-hub 읽기 전용 마운트로 참조. 이 레포 워크스페이스와 섞지 말 것
+  globs: []
 ---
-
 # 형제 레포 참조 (`/workspace-hub`)
 
 DevContainer 안 에이전트가 **다른 레포 코드를 읽을 때**는 이 레포 `workspaceFolder`가 아니라 컨테이너 루트의 `/workspace-hub`를 쓴다. 사용자가 형제 레포·IaC 비교·기존 구현 참조를 말하면 여기부터 본다.

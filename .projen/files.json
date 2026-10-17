@@ -1,6 +1,5 @@
 {
   "files": [
-    ".cursor/mcp.json",
     ".cursor/settings.json",
     ".eslintrc.json",
     ".gitattributes",
@@ -18,12 +17,14 @@
     ".projen/deps.json",
     ".projen/files.json",
     ".projen/tasks.json",
+    ".rulesync/mcp.jsonc",
     ".vscode/settings.json",
     "ansible/workstation/inventory/inventory.ini",
     "LICENSE",
     "projenrc/tsconfig.json",
     "repomix.config.json",
     "requirements.txt",
+    "rulesync.jsonc",
     "scripts/tsconfig.json",
     "test/tsconfig.json",
     "tsconfig.json",

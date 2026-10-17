@@ -1,8 +1,14 @@
 ---
-description: 열린 이슈는 docs/issues, 해결되면 docs/resolved로 아카이브. 이슈 문서 작성·갱신 규칙
-alwaysApply: true
+root: false
+targets:
+  - '*'
+description: '열린 이슈는 docs/issues, 해결되면 docs/resolved로 아카이브. 이슈 문서 작성·갱신 규칙'
+globs: []
+cursor:
+  alwaysApply: true
+  description: '열린 이슈는 docs/issues, 해결되면 docs/resolved로 아카이브. 이슈 문서 작성·갱신 규칙'
+  globs: []
 ---
-
 # 이슈 문서 (`docs/issues` → `docs/resolved`)
 
 이 레포의 이슈 SSOT는 GitHub Issue가 아니라 마크다운이다.

@@ -1,10 +1,9 @@
 ---
 name: cleanup-specstory-history
-description: >-
-  SpecStory 히스토리 정리(삭제·요약) 요청 시 후보를 사전 보고하고 승인 후에만 실행한다.
-  Use when the user asks to clean up, summarize, or delete SpecStory history.
+description: SpecStory 히스토리 정리(삭제·요약) 요청 시 후보를 사전 보고하고 승인 후에만 실행한다. Use when the user asks to clean up, summarize, or delete SpecStory history.
+targets:
+  - '*'
 ---
-
 # SpecStory 히스토리 정리 (삭제·요약)
 
 **사용자가 정리를 명시적으로 요청한 경우에만** 삭제·요약을 검토한다.  
