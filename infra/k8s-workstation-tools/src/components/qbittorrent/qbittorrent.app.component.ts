@@ -533,7 +533,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                     {
                       // VueTorrent WebUI 모드
                       name: 'DOCKER_MODS',
-                      value: 'ghcr.io/vuetorrent/vuetorrent-lsio-mod:2.36.1',
+                      value: utils.configs.containerImages.vuetorrentMod,
                     },
                   ],
                   volumeMounts: [

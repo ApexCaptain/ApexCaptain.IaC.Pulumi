@@ -14,7 +14,6 @@ import * as utils from '@common/utils/src';
 import * as k8s from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
-const ALPINE_IMAGE = 'alpine:3.21';
 const CUSTOM_RESOURCES_PACKAGE_NAME = '@common/custom-resources';
 const TEMPLATE_DIR = 'pvc-snapshot-archive.v1';
 
@@ -391,7 +390,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
         containers: [
           {
             name: 'orchestrator',
-            image: ALPINE_IMAGE,
+            image: utils.configs.containerImages.alpine,
             imagePullPolicy: 'IfNotPresent' as const,
             command: ['/bin/sh', '-ec'],
             args: [
@@ -454,7 +453,10 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
                 value: scriptConfigMap.metadata.name,
               },
               { name: 'RESOURCE_PREFIX', value: namePrefix },
-              { name: 'ALPINE_IMAGE', value: ALPINE_IMAGE },
+              {
+                name: 'ALPINE_IMAGE',
+                value: utils.configs.containerImages.alpine,
+              },
               ...workerEnvForTarget(target),
             ],
             volumeMounts: [

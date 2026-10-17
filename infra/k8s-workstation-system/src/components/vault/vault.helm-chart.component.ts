@@ -264,6 +264,9 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
             tlsDisable: false,
           },
           server: {
+            image: {
+              tag: utils.configs.vaultVersion,
+            },
             dataStorage: {
               enabled: true,
               size: args.pvc.server.size,

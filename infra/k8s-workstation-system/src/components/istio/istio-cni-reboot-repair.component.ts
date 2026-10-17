@@ -111,7 +111,7 @@ export const IstioCniRebootRepairComponent = utils.functions.defineComponent(
                 {
                   name: 'repair',
                   // rancher/kubectl 는 distroless라 sh가 없다.
-                  image: 'docker.io/alpine/k8s:1.35.4',
+                  image: utils.configs.containerImages.alpineK8s,
                   imagePullPolicy: 'IfNotPresent',
                   command: ['sh', '/script/repair.sh'],
                   env: [

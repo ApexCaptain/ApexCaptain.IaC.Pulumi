@@ -119,7 +119,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
           },
           helm: {
             coder: {
-              version: '2.38.0',
+              version: utils.configs.helmChartVersions.coder,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.coder.com/v2'],
             },
@@ -334,7 +334,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
           },
           helm: {
             vikunja: {
-              version: '0.16.0',
+              version: utils.configs.helmChartVersions.vikunja,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'go-vikunja/helm-chart/vikunja'

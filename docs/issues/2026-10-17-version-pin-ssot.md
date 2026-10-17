@@ -6,7 +6,8 @@
 | **우선순위** | 중간 |
 | **영역** | `infra/*/src/contract.ts`, `common/custom-resources`, `.github/workflows/upgrade-develop.yml` |
 | **관련 코드** | `infra/k8s-workstation-system/src/contract.ts:432`, `common/custom-resources/src/components/adapter/sftp.v3.component.ts:22`, `common/custom-resources/src/components/backup/vault-raft-archive.v1.component.ts:19` |
-| **상태** | **조사중** |
+| **상태** | **진행중** — 1단계 적용 완료, Renovate(2단계) 대기 |
+| **플랜** | [`docs/superpowers/plans/2026-10-17-version-pin-ssot.md`](../superpowers/plans/2026-10-17-version-pin-ssot.md) |
 
 ## 배경
 
@@ -43,12 +44,39 @@ Helm 차트 `version: '...'` 25개가 각 `contract.ts` 안에 인라인으로 �
 
 A. 1단계로 SSOT 파일 도입 + 불일치 3건(Vault) 정리, 2단계로 Renovate 연결.
 
+## 결정 (2026-10-17 사용자 확정)
+
+| # | 결정 |
+|---|---|
+| D1 | CI preview·drift 이슈를 선행으로 두지 않는다. schedule 트리거 해제 |
+| D2 | SSOT는 `common/utils/src/configs/versions.config.ts` 한 파일 |
+| D3 | Renovate는 이번 단계에서 뺀다 (2단계, 별도 착수) |
+| D4 | Istio sidecar 재시작은 실행 에이전트(Composer)가 수행 |
+
+## 현재 (1단계 적용)
+
+**SSOT:** `common/utils/src/configs/versions.config.ts` — `vaultVersion`, `istioVersion`, `helmChartVersions`, `containerImages`. contract·컴포넌트는 `utils.configs.*` 참조만.
+
+**버전 올리기:** SSOT 값 수정 → `k8s-workstation-system` / `apps` / `tools` 각각 `pulumi preview --stack prod` → `pulumi up --stack prod`. `istioVersion`을 올렸으면 Task 4(플랜)처럼 sidecar 워크로드 재시작.
+
+**아직 SSOT로 안 옮긴 floating 태그:** `busybox`, `qmcgaw/gluetun:v3`, `postgres:18-alpine`, `serjs/go-socks5-proxy:latest`, SftpV1 `atmoz/sftp:alpine` 등 (태그 고정은 범위 밖).
+
+**Task 4에서 재시작 안 한 Pod (Job/CronJob):**
+
+| namespace | pod | proxy 이미지 | owner |
+|---|---|---|---|
+| jellyfin | `jellyfin-sftp-adapter-sftp-user-rotate-29846520-5r6kn` | `proxyv2:1.30.4-distroless` | Job (완료 Job, 자연 종료 대기) |
+
+운영 Deployment 4개 재시작: `authentik` outpost·server·worker, `jellyfin`. jellyfin은 GPU 1대라 `rollout restart` 중 Pending → 클러스터에서 `maxSurge: 0` 임시 패치 후 Pod 재생성.
+
+**prod 배포 (2026-10-17):** system/apps/tools `pulumi up` 완료. Vault provider·Helm `server.image.tag`·SFTP CronJob 이미지 `2.0.4`. system `secretHashFile` Command도 함께 update (허용 표 밖, 사용자 승인).
+
 ## 수용 기준
 
-- [ ] Vault 버전이 한 상수에서 나오고 provider override·Job·archive가 모두 그 값을 쓴다
-- [ ] 모든 Helm 차트 버전이 SSOT 파일에 있고 contract는 참조만 한다
+- [x] Vault 버전이 한 상수에서 나오고 provider override·Job·archive가 모두 그 값을 쓴다
+- [x] 모든 Helm 차트 버전이 SSOT 파일에 있고 contract는 참조만 한다
 - [ ] Renovate가 develop 대상으로 Helm·이미지 PR을 연다 (dry-run 로그 또는 첫 PR로 확인)
-- [ ] 라이브 Istio sidecar가 control plane과 같은 버전 (재시작 후 확인)
+- [x] 라이브 Istio sidecar가 control plane과 같은 버전 (재시작 후 확인; 위 Job 1개만 구버전 sidecar 잔존)
 
 ## 범위 밖
 
@@ -60,3 +88,5 @@ A. 1단계로 SSOT 파일 도입 + 불일치 3건(Vault) 정리, 2단계로 Reno
 | 일시 | 내용 |
 |------|------|
 | 2026-10-17 | 등록. Nova 리포트·live pod 이미지 대조로 Vault 버전 3중 불일치 확인 |
+| 2026-10-17 | 결정 D1–D4. CI preview 선행 해제, 1단계 플랜 작성 (Composer 2.5 실행용) |
+| 2026-10-17 | 1단계 적용. 버전 SSOT 도입, Vault 2.0.4 정렬, Istio sidecar 4개 워크로드 재시작 |
