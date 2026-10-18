@@ -664,6 +664,9 @@ importers:
       '@infra/k8s-workstation-system':
         specifier: workspace:*
         version: link:../k8s-workstation-system
+      '@pulumi/cloudflare':
+        specifier: ^6.17.0
+        version: 6.17.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
       '@pulumi/kubernetes':
         specifier: ^4.31.1
         version: 4.31.1(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)

@@ -17,7 +17,7 @@ Fairwinds VPA(recommender only) + Goldilocks를 workstation 클러스터에 배�
 
 ## 배경
 
-`k8s-workstation-system`/`tools`/`apps` 3개 스택에 Vault, Istio, Longhorn, Authentik, ArgoCD, 모니터링 스택(VictoriaMetrics/Loki/Tempo/Grafana), GPU Operator 등 워크로드가 다수 배포되어 있는데, 리소스 requests/limits 대부분 수동 추정값이다. 단일 노드(`workstation-0`) 클러스터라 실사용량 기반 재조정 필요성이 있다 ([workstation-0 메모리 업그레이드 검토](../issues/2026-09-01-workstation-0-memory-upgrade-planning.md) 참고).
+`k8s-workstation-system`/`tools`/`apps` 3개 스택에 Vault, Istio, Longhorn, Authentik, ArgoCD, 모니터링 스택(VictoriaMetrics/Loki/Tempo/Grafana), GPU Operator 등 워크로드가 다수 배포되어 있는데, 리소스 requests/limits 대부분 수동 추정값이다. 단일 노드(`workstation-0`) 클러스터라 실사용량 기반 재조정 필요성이 있다 ([workstation-0 메모리 업그레이드 검토](2026-09-01-workstation-0-memory-upgrade-planning.md) 참고).
 
 [Goldilocks](https://artifacthub.io/packages/helm/fairwinds-stable/goldilocks) + [VPA](https://artifacthub.io/packages/helm/fairwinds-stable/vpa) (둘 다 Fairwinds `fairwinds-stable` 차트)로 워크로드별 CPU/메모리 추천값을 대시보드로 확인하고자 한다.
 

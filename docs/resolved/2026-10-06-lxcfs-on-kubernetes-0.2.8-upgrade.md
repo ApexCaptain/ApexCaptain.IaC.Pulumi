@@ -86,7 +86,7 @@ MutatingWebhook 이름(release `lxcfs`): `lxcfs-lxcfs-on-kubernetes-mutating-web
 - runc에 `/proc/pressure` overmount를 넣는 upstream 요청
 - mount-recovery를 통째로 주석 블록으로 보관 (한 줄 주석으로 #122만 가리킨다)
 - Nova diagnosis 파일 수동 편집. 재생성 스크립트가 돌 때 갱신
-- [PriorityClass 이슈](2026-09-13-priority-class-resource-protection.md) 설계 변경. DS 삭제 시 그 이슈 타임라인에 “mount-recovery가 쓰던 `system-node-critical` 명시가 사라짐” 한 줄만 추가
+- [PriorityClass 이슈](../issues/2026-09-13-priority-class-resource-protection.md) 설계 변경. DS 삭제 시 그 이슈 타임라인에 “mount-recovery가 쓰던 `system-node-critical` 명시가 사라짐” 한 줄만 추가
 
 ## 타임라인
 

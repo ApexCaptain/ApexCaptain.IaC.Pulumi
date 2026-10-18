@@ -9,6 +9,7 @@ import * as nexus from '@common/nexus';
 import * as utils from '@common/utils';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
 import { k8sWorkstationSystemContract } from '@infra/k8s-workstation-system/src/contract';
+import * as cloudflare from '@pulumi/cloudflare';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
@@ -22,6 +23,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
     // ESC
     const commonEsc = nexus.esc.commonEsc;
     const projectEsc = nexus.esc.k8sWorkstationToolsEsc;
+    const cloudflareEsc = nexus.esc.cloudflareEsc;
 
     // K8s Provider
     const workstationK8sProvider = new kubernetes.Provider(
@@ -611,6 +613,129 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
         },
         {
           dependsOn: [qbittorrentApp],
+        },
+      );
+
+      // Cloudflare Zero Trust — WARP + Authentik MFA로 LAN 대상(RDP) 접근, 공인 inbound 포트 없음
+      // @see docs/superpowers/specs/2026-10-18-cloudflare-zero-trust-rdp-design.md
+      const cloudflareProvider = new cloudflare.Provider('cloudflareProvider', {
+        apiToken: cloudflareEsc.esc.apiToken,
+      });
+      const zeroTrustTeamName = 'apex-captain';
+      const cloudflareAccountId = cloudflare.getZoneOutput(
+        { zoneId: cloudflareEsc.esc.zones.ayteneve93com.id },
+        { provider: cloudflareProvider },
+      ).account.id;
+      const workstationMainPcIp = commonEsc.esc.workstationMainPcIp;
+      const windowsRdpFqdn = pulumi.interpolate`windows.${cloudflareContract.output.zones.ayteneve93com.domain}`;
+
+      const zeroTrustAuthentik =
+        new components.zeroTrust.ZeroTrustAuthentikComponent(
+          'zeroTrustAuthentik',
+          {
+            hosts: {
+              authentik: authentikHost,
+            },
+            teamName: zeroTrustTeamName,
+            authentik: {
+              allowedGroupId:
+                k8sWorkstationSystemContract.output.authentik.groupIds
+                  .toolsManagerGroup,
+              flow: {
+                authorizationFlowId:
+                  k8sWorkstationSystemContract.output.authentik.flow
+                    .defaultProviderAuthorizationImplicitConsentId,
+                invalidationFlowId:
+                  k8sWorkstationSystemContract.output.authentik.flow
+                    .defaultInvalidationFlowId,
+              },
+            },
+            providers: {
+              authentik: authentikProvider,
+            },
+          },
+        );
+
+      new components.zeroTrust.ZeroTrustAccessComponent(
+        'zeroTrustAccess',
+        {
+          accountId: cloudflareAccountId,
+          teamName: zeroTrustTeamName,
+          warpAuthSessionDuration: '24h',
+          identityProvider: {
+            clientId: zeroTrustAuthentik.secret.oidc.clientId,
+            clientSecret: zeroTrustAuthentik.secret.oidc.clientSecret,
+            authUrl: zeroTrustAuthentik.output.oidc.authUrl,
+            tokenUrl: zeroTrustAuthentik.output.oidc.tokenUrl,
+            certsUrl: zeroTrustAuthentik.output.oidc.certsUrl,
+          },
+          allowedEmails: cloudflareEsc.esc.zeroTrust.allowedEmails,
+          splitTunnelIncludes: [
+            {
+              address: pulumi.interpolate`${workstationMainPcIp}/32`,
+              description: 'Workstation main PC (RDP)',
+            },
+            {
+              host: `${zeroTrustTeamName}.cloudflareaccess.com`,
+              description: 'Zero Trust team domain',
+            },
+          ],
+          providers: {
+            cloudflare: cloudflareProvider,
+          },
+        },
+        {
+          dependsOn: [zeroTrustAuthentik],
+        },
+      );
+
+      const zeroTrustTunnel = new components.zeroTrust.ZeroTrustTunnelComponent(
+        'zeroTrustTunnel',
+        {
+          accountId: cloudflareAccountId,
+          tunnelName: 'workstation',
+          privateRoutes: [
+            {
+              id: 'workstationMainPc',
+              network: pulumi.interpolate`${workstationMainPcIp}/32`,
+              comment: 'Workstation main PC (RDP)',
+            },
+          ],
+          providers: {
+            cloudflare: cloudflareProvider,
+          },
+        },
+      );
+
+      new components.zeroTrust.ZeroTrustGatewayComponent('zeroTrustGateway', {
+        accountId: cloudflareAccountId,
+        allowedEmails: cloudflareEsc.esc.zeroTrust.allowedEmails,
+        basePrecedence: 2000,
+        targets: [
+          {
+            id: 'workstationMainPcRdp',
+            fqdn: windowsRdpFqdn,
+            ip: workstationMainPcIp,
+            port: 3389,
+          },
+        ],
+        providers: {
+          cloudflare: cloudflareProvider,
+        },
+      });
+
+      new components.zeroTrust.ZeroTrustConnectorComponent(
+        'zeroTrustConnector',
+        {
+          tunnelToken: zeroTrustTunnel.secret.tunnelToken,
+          image: utils.configs.containerImages.cloudflared,
+          replicas: 2,
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          dependsOn: [zeroTrustTunnel],
         },
       );
     }

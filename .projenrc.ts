@@ -421,6 +421,7 @@ void (async () => {
         projectName: 'k8s-workstation-tools',
         stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
         deps: [
+          src.constants.pulumiPackages.cloudflare,
           src.constants.pulumiPackages.kubernetes,
           src.constants.pulumiPackages.vault,
           src.constants.pulumiPackages.random,
@@ -437,7 +438,11 @@ void (async () => {
           cloudflareProject.project.package.packageName,
           k8sWorkstationSystemProject.project.package.packageName,
         ],
-        esc: [NexusEsc.commonEsc, NexusEsc.k8sWorkstationToolsEsc],
+        esc: [
+          NexusEsc.commonEsc,
+          NexusEsc.cloudflareEsc,
+          NexusEsc.k8sWorkstationToolsEsc,
+        ],
       },
     );
 

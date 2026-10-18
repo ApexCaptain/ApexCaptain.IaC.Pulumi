@@ -79,7 +79,7 @@ Longhorn CSI가 부팅 직후 한 차례 `driver.longhorn.io not found`로 attac
 - Coder만의 예외
 - Istio 마이너 업그레이드
 - 인그레스 `URX,UF` 알림. 감지는 후속이고 이 수정의 예방이 아니다
-- Jellyfin Direct Play 시크 ([2026-08-17](2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md)). HBONE 스트림 누수이고 이번 재부팅 미등록과 다르다
+- Jellyfin Direct Play 시크 ([2026-08-17](../issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md)). HBONE 스트림 누수이고 이번 재부팅 미등록과 다르다
 
 ## 타임라인
 

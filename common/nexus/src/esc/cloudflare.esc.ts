@@ -19,6 +19,11 @@ const cloudflareEscSchema = z
           .required(),
       })
       .required(),
+    zeroTrust: z
+      .object({
+        allowedEmails: z.array(z.email()).min(1),
+      })
+      .required(),
   })
   .required();
 
