@@ -133,6 +133,7 @@ async function syncPulumiEsc(): Promise<void> {
         },
       },
       zeroTrust: {
+        teamName: process.env.CLOUDFLARE_ZERO_TRUST_TEAM_NAME,
         allowedEmails: process.env
           .WORKSTATION_ADMINISTRATOR_EMAIL!!.split(',')
           .map(email => email.trim())

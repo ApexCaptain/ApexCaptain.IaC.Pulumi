@@ -1,12 +1,12 @@
 # @common/nexus
 
-Pulumi ESC(Environments, Secrets, and Configuration) 환경을 패키지별로 타입 세이프하게 정의하고 조회하는 공통 모듈.
+Pulumi ESC 환경과 스택 간 contract를 타입·모듈로 묶어 infra 패키지가 공통으로 쓰는 설정 허브.
 
 ## 역할
 
-- `EscAbstract`를 기반으로 각 Pulumi 프로젝트(`cloudflare`, `github`, `oci`, `k8s-workstation-system`, `k8s-workstation-apps`, `k8s-workstation-tools`, `common`)별 ESC 환경의 org/project/env 이름과 spec 타입을 정의한다.
-- `Contract`가 `@pulumi/esc-sdk`의 `EscClient`를 생성하고, 각 ESC 클래스를 인스턴스화해 `contract.esc.<name>` 형태로 노출한다.
-- 다른 `@common/*`, `@infra/*` 패키지는 이 `Contract`를 통해 Pulumi ESC에 저장된 시크릿·설정 값을 타입 세이프하게 조회한다.
+- Pulumi ESC SDK를 감싸 스택별 ESC 정의(`cloudflare`, `k8s-workstation-*`, `oci`, `github`, `common`)를 한 패키지에서 관리함.
+- `abstract`·`classes`로 ESC 접근 패턴과 contract 클래스를 제공해 infra 코드의 env·시크릿 검증을 일관되게 함.
+- `@common/utils`, `@common/custom-resources`와 함께 모노레포 IaC 레이어의 설정·리소스 추상화를 담당함.
 
 ## 구조
 
@@ -49,3 +49,8 @@ pnpm --filter @common/nexus build
 pnpm --filter @common/nexus eslint
 pnpm --filter @common/nexus test
 ```
+
+## 참조
+
+- `src/esc/`에 정의된 ESC 모듈은 동명 `@infra/*` 스택 및 Cloudflare·OCI·GitHub 연동 설정과 대응함.
+- 운영·품질 관련 문서: [Jest 유닛 테스트 도입](../../docs/resolved/2026-09-21-nexus-jest-unit-tests.md), [오류 처리·env 검증 강화](../../docs/resolved/2026-10-17-nexus-error-handling-hardening.md).

@@ -1,19 +1,13 @@
 # @common/custom-resources
 
-Pulumi 컴포넌트·리소스·데이터 소스를 모아둔 커스텀 라이브러리 패키지.
+Pulumi 기반으로 Kubernetes·Vault·Coder 등에 걸친 재사용 컴포넌트, 커스텀 리소스, 데이터 소스를 한곳에 모은 공통 라이브러리.
 
 ## 역할
 
-- `components/adapter`: SFTP 어댑터 컴포넌트(`sftp.v1`, `sftp.v3`)와 v3 issuer job 템플릿을 제공한다.
-- `components/backup`: PVC 스냅샷 아카이브, Vault Raft 아카이브 백업 컴포넌트를 제공한다.
-- `components/tls`: TLS private key 컴포넌트를 제공한다.
-- `components/vault`: Vault Secret 컴포넌트와 KV v2 UI browse 정책을 제공한다.
-- `resources/coder`: Coder admin API token 커스텀 리소스를 제공한다.
-- `resources/k8s`: kube-config-file 리소스와 cert-manager·cilium·cnpg·istio·longhorn·vso CRD 타입을 제공한다.
-- `resources/local`: 로컬 텍스트 파일 리소스를 제공한다.
-- `resources/vault`: Vault bootstrap token 리소스를 제공한다.
-- `data/authentik`: Authentik policy expression 데이터 소스를 제공한다.
-- `index.ts`에서 `components`, `resources`, `data` 세 네임스페이스로 재export한다.
+- **components**: SFTP 어댑터, PVC/Vault Raft 백업 아카이브, TLS 개인키, Vault 시크릿·KV 정책 등 인프라 패턴을 컴포넌트로 캡슐화함.
+- **resources**: Coder 관리 API 토큰, kubeconfig 파일, 로컬 텍스트 파일, Vault 부트스트랩 토큰, cert-manager·Cilium·CloudNativePG·Istio·Longhorn·Redis Operator·VSO 등 CRD 정의를 Pulumi 리소스로 제공함.
+- **data**: Authentik 정책 표현식 등 외부 API·설정을 Pulumi data 소스로 조회함.
+- `@common/bridged-provider`·`@common/utils`와 함께 `@infra/*` 및 기타 workspace 패키지에서 IaC 조합의 빌딩 블록으로 사용함.
 
 ## 구조
 
@@ -56,6 +50,7 @@ src/
 └──       index.ts
 └──       istio/
 └──       longhorn/
+└──       redis-operator/
 └──       vso/
 └──     index.ts
 └──     kube-config-file.v1.res.ts

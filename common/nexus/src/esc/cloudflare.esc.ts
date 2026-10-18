@@ -21,6 +21,8 @@ const cloudflareEscSchema = z
       .required(),
     zeroTrust: z
       .object({
+        /** `<teamName>.cloudflareaccess.com` */
+        teamName: z.string(),
         allowedEmails: z.array(z.email()).min(1),
       })
       .required(),

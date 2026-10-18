@@ -3,7 +3,7 @@
  *
  * ```
  * WARP DNS  : <fqdn> → override → <ip>   (공개 DNS 레코드 없음)
- * WARP L4   : <ip>:<port> + identity.email ∈ allowedEmails → allow
+ * WARP L4   : <ip>:<ports> + identity.email ∈ allowedEmails → allow
  *             <ip> (그 외 전부)                              → block
  * ```
  *
@@ -20,7 +20,7 @@ interface ZeroTrustGatewayTargetShape {
   id: string;
   fqdn: string;
   ip: string;
-  port: number;
+  ports: number[];
 }
 
 interface ZeroTrustGatewayComponentArgsShape {
@@ -84,11 +84,13 @@ export const ZeroTrustGatewayComponent = utils.functions.defineComponent(
         {
           accountId: args.accountId,
           name: `${target.id}: allow`,
-          description: 'Allow listed identities to the private target port',
+          description: 'Allow listed identities to the private target ports',
           enabled: true,
           action: 'allow',
           filters: ['l4'],
-          traffic: pulumi.interpolate`net.dst.ip == ${target.ip} and net.dst.port == ${target.port}`,
+          traffic: pulumi.interpolate`net.dst.ip == ${target.ip} and net.dst.port in {${pulumi
+            .output(target.ports)
+            .apply(ports => ports.join(' '))}}`,
           identity: allowedEmailsExpression,
           precedence: precedence.apply(value => value + 1),
         },

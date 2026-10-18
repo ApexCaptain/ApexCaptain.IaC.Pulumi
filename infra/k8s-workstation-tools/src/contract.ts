@@ -621,7 +621,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
       const cloudflareProvider = new cloudflare.Provider('cloudflareProvider', {
         apiToken: cloudflareEsc.esc.apiToken,
       });
-      const zeroTrustTeamName = 'apex-captain';
+      const zeroTrustTeamName = cloudflareEsc.esc.zeroTrust.teamName;
       const cloudflareAccountId = cloudflare.getZoneOutput(
         { zoneId: cloudflareEsc.esc.zones.ayteneve93com.id },
         { provider: cloudflareProvider },
@@ -673,10 +673,10 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
           splitTunnelIncludes: [
             {
               address: pulumi.interpolate`${workstationMainPcIp}/32`,
-              description: 'Workstation main PC (RDP)',
+              description: 'Workstation main PC (RDP, SSH)',
             },
             {
-              host: `${zeroTrustTeamName}.cloudflareaccess.com`,
+              host: pulumi.interpolate`${zeroTrustTeamName}.cloudflareaccess.com`,
               description: 'Zero Trust team domain',
             },
           ],
@@ -698,7 +698,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
             {
               id: 'workstationMainPc',
               network: pulumi.interpolate`${workstationMainPcIp}/32`,
-              comment: 'Workstation main PC (RDP)',
+              comment: 'Workstation main PC (RDP, SSH)',
             },
           ],
           providers: {
@@ -716,7 +716,8 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
             id: 'workstationMainPcRdp',
             fqdn: windowsRdpFqdn,
             ip: workstationMainPcIp,
-            port: 3389,
+            // 3389: RDP, 8022: WSL sshd (mirrored)
+            ports: [3389, 8022],
           },
         ],
         providers: {
