@@ -1,35 +1,71 @@
 # @infra/k8s-workstation-system
 
-Workstation 클러스터의 "시스템" 레이어 — 네트워킹, 인증서, 시크릿, 서비스 메시, 스토리지, IdP를 구성하는 Pulumi 스택.
+Workstation Kubernetes 클러스터에 플랫폼·GitOps·IdP·스토리지·DB/캐시 오퍼레이터를 올리는 Pulumi 시스템 스택이다.
 
 ## 역할
 
-- 네트워킹·런타임: Cilium(CNI), Lxcfs, Sysbox RuntimeClass, Generic Device Plugin(호스트 `/dev` extended resource 노출), GPU Operator(RuntimeClass + Operator, 호스트 driver/toolkit은 Ansible)
-- 인증서·시크릿: cert-manager(ClusterIssuer, Cloudflare DNS01), Vault, Vault Secrets Operator
-- 서비스 메시·IdP: Istio(mesh, 재부팅 후 CNI 복구 스크립트 포함), Authentik(IdP, proxy outpost)
-- 스토리지·백업: Longhorn, snapshot-controller(VolumeSnapshot CRD/controller), pcloud-backup
-- GitOps·배포: Argo CD, Argo Rollouts
-- 관측성: monitoring(Grafana, Loki, Tempo, VictoriaMetrics, OTel Operator)
-- 리소스 최적화: Goldilocks, VPA
-- 운영 보조: Reloader, PostgreSQL Operator
-- GitHub 연동은 `githubContract`가 정체성을 갖고, 이 스택은 deploy key·webhook만 붙인다.
+- Cilium, cert-manager, Vault, Istio, Longhorn, CNPG·Redis Operator, Authentik, Argo CD 등 클러스터 공통 인프라를 한 스택에서 정의한다.
+- `@infra/cloudflare`의 DNS/API 자격 증명으로 cert-manager Issuer를 구성하고, `@infra/github`의 GitOps 레포 정체성에 deploy key·webhook만 연결한다.
+- `output`·`secret`을 `@infra/k8s-workstation-apps`, `@infra/k8s-workstation-tools`가 참조한다.
 
 ## Pulumi 프로젝트
 
-- ESC: `commonEsc`(workstation kubeconfig 등 공용 값), `k8sWorkstationSystemEsc`(프로젝트 전용 값), `githubEsc`(GitHub 토큰), `ociEsc`(OCI 인증)
-- 주요 Provider: `workstationK8sProvider`(Kubernetes), `apexCaptainGithubProvider`(GitHub), `ociProvider`(OCI)
+- 패키지 루트의 Pulumi 프로젝트 설정을 따른다. ESC는 `commonEsc`, `k8sWorkstationSystemEsc`, `githubEsc`, `ociEsc` 등 nexus ESC 바인딩을 사용한다.
+- Workstation 클러스터에는 `workstationKubeconfig`(common ESC)로 Kubernetes Provider를 붙인다.
 
 ## 배포 순서
 
-Cilium → cert-manager → Vault → Istio mesh → Longhorn → Authentik 순으로 적재하고, apps/tools 스택이 이 스택의 output을 참조한다.
+모노레포 infra 스택 순서:
 
-- Vault는 cert-manager가 발급한 CA에 의존하고, mesh ingress는 Let's Encrypt wildcard cert에 의존한다.
-- Authentik PostgreSQL은 Longhorn SSD StorageClass에, Longhorn UI는 Authentik proxy에 의존한다. 이 순환을 끊기 위해 Longhorn↔Authentik 배포가 3단계로 분리되어 있다(각 컴포넌트 JSDoc 참고).
+```
+cloudflare → k8s-workstation-system → k8s-workstation-apps
+                                   → k8s-workstation-tools
+```
+
+이 스택 내부에서 의존이 얽히기 쉬운 구간:
+
+1. **Cilium** → **cert-manager**(Helm + Cloudflare Issuer/CA 리소스)
+2. **cert-manager CA** → **Vault**; **Let's Encrypt wildcard** → **Istio ingress gateway**
+3. **snapshot-controller** → Longhorn·Platform VolumeSnapshotClass 등 스냅샷 선행
+4. **Longhorn**(SSD StorageClass 등) → **Authentik** PostgreSQL; **Authentik proxy outpost** → Longhorn UI 등 mesh·프록시 보호 대상
+5. **Vault**·**vault-secrets-operator** → 앱 시크릿 패턴; **postgresql-operator**·**redis-operator** → Argo·Authentik 등 데이터 계층
+6. **Authentik**·**Istio** → Argo·Goldilocks·Monitoring 등 service-mesh·Authentik 연동 컴포넌트
+
+호스트 측 **Sysbox**·**GPU driver/toolkit** 설치는 Ansible/Kubespray; 이 스택은 RuntimeClass·Operator·Helm 위주다.
 
 ## upstream / downstream
 
-- upstream: `@infra/cloudflare`(cert-manager DNS01용 Cloudflare API 토큰·이메일), `@infra/github`(GitHub provider 토큰, deploy key·webhook 연동)
-- downstream: k8s-workstation-apps, k8s-workstation-tools 스택이 이 스택의 output(kubeconfig, provider, mesh/스토리지/IdP 관련 값)을 참조한다.
+| 방향 | 패키지 | 참조 내용 |
+|------|--------|-----------|
+| upstream | `@infra/cloudflare` | Cloudflare API token·email(cert-manager DNS-01 등) |
+| upstream | `@infra/github` | GitOps 레포·조직 정체성 |
+| downstream | `@infra/k8s-workstation-apps` | 시스템 스택 `output`·`secret` |
+| downstream | `@infra/k8s-workstation-tools` | 시스템 스택 `output`·`secret` |
+
+## 시스템 컴포넌트
+
+| 디렉터리 | 담당 |
+|----------|------|
+| `cilium` | CNI·클러스터 네트워킹 리소스 |
+| `lxcfs` | lxcfs Helm(컨테이너 리소스 뷰) |
+| `sysbox` | Sysbox RuntimeClass |
+| `generic-device-plugin` | 호스트 `/dev` extended resource |
+| `gpu-operator` | GPU RuntimeClass·NVIDIA GPU Operator |
+| `cert-manager` | cert-manager Helm·Issuer/CA·wildcard 등 |
+| `snapshot-controller` | VolumeSnapshot CRD·controller |
+| `vault` | Vault 클러스터·정책 등 |
+| `vault-secrets-operator` | Vault Secrets Operator |
+| `istio` | Istio Helm·gateway·CNI reboot repair |
+| `longhorn` | Longhorn Helm·StorageClass·UI·리소스 |
+| `postgresql-operator` | CloudNative PG Operator |
+| `redis-operator` | Redis Operator |
+| `authentik` | Authentik Helm·outpost·mesh 연동 |
+| `argo` | Argo CD·Rollouts·GitOps·Redis·Authentik·mesh |
+| `monitoring` | 모니터링 스택 |
+| `goldilocks` | Goldilocks·mesh |
+| `vpa` | Vertical Pod Autoscaler |
+| `reloader` | Stakater Reloader |
+| `pcloud-backup` | pCloud 백업 연동 |
 
 ## 구조
 
@@ -39,7 +75,9 @@ src/
 └──   argo/
 └──     argo.authentik.component.ts
 └──     argo.cd.component.ts
+└──     argo.cd.redis.ts
 └──     argo.git-ops.component.ts
+└──     argo.redis-acl.ts
 └──     argo.resources.component.ts
 └──     argo.rollouts.component.ts
 └──     argo.service-mesh.component.ts
@@ -81,8 +119,7 @@ src/
 └──     index.ts
 └──     longhorn.helm-chart.component.ts
 └──     longhorn.resources.component.ts
-└──     longhorn.service-mesh.component.ts
-└──   lxcfs/
+└──     …
 └──   …
 └── …
 ```

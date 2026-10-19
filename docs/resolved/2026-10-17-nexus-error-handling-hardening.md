@@ -6,7 +6,8 @@
 | **우선순위** | 낮음 (수정 쉬움) |
 | **영역** | `common/nexus`, `projenrc/workflows` |
 | **관련 코드** | `common/nexus/src/abstract/esc.abstract.ts:57`, `common/nexus/src/classes/contract.ts:58`, `projenrc/workflows/pr-validation.ts` |
-| **상태** | **적용** — 코드·테스트 반영, 커밋·머지 대기 |
+| **상태** | **해결** |
+| **해결일** | 2026-10-17 |
 
 ## 증상
 
@@ -48,3 +49,4 @@
 |------|------|
 | 2026-10-17 | 등록. 프로젝트 평가에서 도출 |
 | 2026-10-17 | ESC 409/401 실측, 3건 조치. nexus 테스트 8 → 12, `pnpm test:workspaces`·`pnpm eslint` 통과. 상태 적용 |
+| 2026-10-17 | PR #83 머지(`8b56830`), PR CI `Validate`·`Validate PR title` 통과(SHA 고정 action). nexus 테스트 12 통과·`pnpm projen` 무변경 재확인. 해결 |

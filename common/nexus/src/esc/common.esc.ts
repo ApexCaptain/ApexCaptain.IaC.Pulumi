@@ -6,6 +6,7 @@ const commonEscSchema = z
     workstationKubeconfig: z.string(),
     workstationIptimeDomain: z.string(),
     workstationIpV4Address: z.string(),
+    workstationMainPcIp: z.ipv4(),
     workstationPodsSubnetCidrBlock: z.string(),
     workstationServicesSubnetCidrBlock: z.string(),
     workstationLocalPathStorageClassName: z.string(),

@@ -1,19 +1,36 @@
 # @infra/github
 
-ApexCaptain 계정의 GitHub 레포 카탈로그를 한 스택에서 관리하는 Pulumi 프로젝트.
+ApexCaptain GitHub 계정의 IaC·GitOps 레포지토리 정체성을 Pulumi 한 스택에서 관리한다.
 
 ## 역할
 
-- `ApexCaptain.IaC.Pulumi`, `ApexCaptain.IaC.GitOps` 두 레포의 정체성을 코드로 관리한다.
-- IaC(Pulumi) 레포는 이미 존재하는 레포이므로 `retainOnDelete`로 관리해 destroy 시에도 GitHub에서 삭제하지 않는다.
-- GitOps 레포는 이 스택이 직접 생성하며 `protect`를 적용해 Pulumi가 실수로 삭제하지 못하게 한다.
-- `apexCaptainGithubProvider` 하나를 두 레포 컴포넌트가 공유하며, 인증 정보는 `nexus.esc.githubEsc`에서 가져온다.
-- GitOps 레포의 `name`/`sshCloneUrl`은 `@infra/k8s-workstation-system`이 참조하며, deploy key·webhook 연결은 해당 스택 쪽에서 수행한다.
+- `ApexCaptain.IaC.Pulumi` 레포는 이미 존재하는 리소스로 등록하며, 스택 destroy 시 GitHub에서 삭제되지 않도록 `retainOnDelete`를 적용한다.
+- `ApexCaptain.IaC.GitOps` 레포는 이 스택이 생성하며 `protect`로 Pulumi가 GitHub에서 삭제하지 않도록 한다.
+- Actions용 시크릿(예: Pulumi access token, workflow token)은 IaC Pulumi 레포 컴포넌트에서 ESC 값을 참조해 설정한다.
+- 스택 출력으로 각 레포의 메타데이터(`name`, clone URL 등)를 노출하며, GitOps 쪽 deploy key·webhook은 `@infra/k8s-workstation-system`에서 붙인다.
+
+## Pulumi 프로젝트
+
+- GitHub Provider·레포 이름·토큰 등은 `@common/nexus`의 GitHub ESC(`githubEsc`)에서 읽는다.
+- 스택 출력: `repositories.apexCaptainIacPulumi`, `repositories.apexCaptainIacGitOps`.
+
+## 현재 레포
+
+| 컴포넌트 | 대상 | 패턴 |
+| -------- | ---- | ---- |
+| `ApexCaptain.IaC.Pulumi` | IaC Pulumi 레포 | `retainOnDelete`, Actions secrets |
+| `ApexCaptain.IaC.GitOps` | GitOps 레포 | 스택 생성, `protect` |
+
+## 배포 순서
+
+- `@infra/k8s-workstation-system`이 GitOps 레포 `name`·`sshCloneUrl`을 참조하므로, 해당 스택보다 **먼저** 배포한다.
+- Cloudflare·K8s 워크스테이션 스택과 직렬 의존은 없으나, GitOps 연동을 위해 워크스테이션 system 스택 전에 적용하는 것이 안전하다.
 
 ## upstream / downstream
 
-- upstream 의존 스택 없음 — 독립적으로 배포 가능하다.
-- downstream: `@infra/k8s-workstation-system`이 이 스택의 `output.repositories.apexCaptainIacGitOps`(`name`, `sshCloneUrl`)를 참조한다.
+| 방향 | 패키지 | 내용 |
+| ---- | ------ | ---- |
+| downstream | `@infra/k8s-workstation-system` | GitOps 레포 출력(`name`, `sshCloneUrl` 등) 참조, deploy key·webhook 설정 |
 
 ## 구조
 

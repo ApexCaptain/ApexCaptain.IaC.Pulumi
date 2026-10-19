@@ -136,7 +136,7 @@ done
 # Make all derived sh files executable
 chmod +x ./.devcontainer/commands/common/*.sh
 
-# Initialize Claude JSON File
+# Initialize Claude JSON File If Not Exists
 if [ ! -f "$HOST_CLAUDE_JSON_FILE_PATH" ]; then
     echo "{}" > "$HOST_CLAUDE_JSON_FILE_PATH"
 fi

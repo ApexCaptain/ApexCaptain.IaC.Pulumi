@@ -20,6 +20,8 @@ async function syncPulumiEsc(): Promise<void> {
   requireEnv('WORKSTATION_DOMAIN_IPTIME');
   requireEnv('NORD_VPN_APEX_CAPTAIN_ACCESS_TOKEN');
   requireEnv('WORKFLOW_TOKEN');
+  requireEnv('WORKSTATION_MAIN_PC_IP');
+  requireEnv('WORKSTATION_ADMINISTRATOR_EMAIL');
 
   const accountName = process.env.PULUMI_APEX_CAPTAIN_ACCOUNT_NAME!!;
 
@@ -40,6 +42,7 @@ async function syncPulumiEsc(): Promise<void> {
       workstationKubeconfig: process.env.KUBE_CONFIG_WORKSTATION_FILE_PATH,
       workstationIptimeDomain: process.env.WORKSTATION_DOMAIN_IPTIME,
       workstationIpV4Address,
+      workstationMainPcIp: process.env.WORKSTATION_MAIN_PC_IP,
       workstationPodsSubnetCidrBlock:
         process.env.WORKSTATION_BOOTSTRAP_KUBE_PODS_SUBNET_CIDR_BLOCK,
       workstationServicesSubnetCidrBlock:
@@ -129,9 +132,25 @@ async function syncPulumiEsc(): Promise<void> {
           id: process.env.CLOUDFLARE_APEX_CAPTAIN_ITEMGUESSER_COM_ZONE_ID,
         },
       },
+      zeroTrust: {
+        teamName: process.env.CLOUDFLARE_ZERO_TRUST_TEAM_NAME,
+        allowedEmails: process.env
+          .WORKSTATION_ADMINISTRATOR_EMAIL!!.split(',')
+          .map(email => email.trim())
+          .filter(email => email.length > 0),
+        localDomainFallbacks: (
+          process.env.CLOUDFLARE_ZERO_TRUST_LOCAL_DOMAIN_FALLBACKS ?? ''
+        )
+          .split(',')
+          .map(suffix => suffix.trim())
+          .filter(suffix => suffix.length > 0)
+          .map(suffix => ({ suffix })),
+      },
     },
     {
       prod: {},
+      // k8s-workstation-tools dev 스택이 cloudflare/dev를 import한다
+      dev: {},
     },
   );
 
