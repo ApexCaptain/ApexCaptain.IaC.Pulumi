@@ -2,7 +2,8 @@
  * Workstation 클러스터의 "시스템" 스택.
  *
  * 네트워킹(Cilium) → 인증서(cert-manager) → Vault → Istio mesh → 스토리지(Longhorn)
- * → IdP(Authentik) 순으로 깔고, apps/tools 스택이 여기 output을 참조한다.
+ * → DB/캐시 오퍼레이터(CNPG, Redis Operator) → IdP(Authentik) 순으로 깔고,
+ * apps/tools 스택이 여기 output을 참조한다.
  * GitOps 레포 정체성은 `githubContract`. 이 스택은 deploy key·webhook만 붙인다.
  *
  * 배포 순서가 꼬이기 쉬운 구간:
@@ -79,7 +80,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           lxcfs: {
-            version: '0.2.8',
+            version: utils.configs.helmChartVersions.lxcfs,
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'cndoit18.github.io/lxcfs-on-kubernetes'
@@ -107,7 +108,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             genericDevicePlugin: {
-              version: '0.1.3',
+              version: utils.configs.helmChartVersions.genericDevicePlugin,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.gabe565.com'],
             },
@@ -134,7 +135,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             gpuOperator: {
-              version: 'v26.7.1',
+              version: utils.configs.helmChartVersions.gpuOperator,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.ngc.nvidia.com/nvidia'],
             },
@@ -153,7 +154,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             certManager: {
-              version: 'v1.21.2',
+              version: utils.configs.helmChartVersions.certManager,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.jetstack.io'],
             },
@@ -186,7 +187,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             snapshotController: {
-              version: '5.3.0',
+              version: utils.configs.helmChartVersions.snapshotController,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['piraeus.io/helm-charts'],
             },
@@ -208,6 +209,12 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             token: projectEsc.esc.pcloudBackup.token,
             cryptPassword: projectEsc.esc.pcloudBackup.cryptPassword,
             cryptPassword2: projectEsc.esc.pcloudBackup.cryptPassword2,
+          },
+          slack: {
+            webhookUrlBackupInfraInfo:
+              projectEsc.esc.pcloudBackup.slackWebhookUrlBackupInfraInfo,
+            webhookUrlBackupInfraError:
+              projectEsc.esc.pcloudBackup.slackWebhookUrlBackupInfraError,
           },
           providers: {
             kubernetes: workstationK8sProvider,
@@ -233,7 +240,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           vault: {
-            version: '0.34.1',
+            version: utils.configs.helmChartVersions.vault,
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
           },
@@ -302,7 +309,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           istio: {
-            version: '1.30.5',
+            version: utils.configs.helmChartVersions.istio,
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'istio-release.storage.googleapis.com/charts'
@@ -368,11 +375,31 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             postgresqlOperator: {
-              version: '0.29.1',
+              version: utils.configs.helmChartVersions.postgresqlOperator,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'cloudnative-pg.github.io/charts'
                 ],
+            },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+      );
+
+    // Redis Operator — Redis CR은 앱/GitOps에서 생성
+    const redisOperatorHelmChart =
+      new components.redisOperator.RedisOperatorHelmChartComponent(
+        'redisOperatorHelmChart',
+        {
+          helm: {
+            redisOperator: {
+              version: utils.configs.helmChartVersions.redisOperator,
+              repositoryUrl:
+              commonEsc.esc.helmRepositoryUrls[
+                'ot-container-kit.github.io/helm-charts'
+              ],
             },
           },
           providers: {
@@ -402,7 +429,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             secret => secret.bootstrapToken.token,
           ),
           rootCaSecretName: vaultHelmChart.output.tls.rootCaSecretName,
-          serverVersion: '2.0.3',
+          serverVersion: utils.configs.vaultVersion,
         },
         providers: {
           kubernetes: workstationK8sProvider,
@@ -456,7 +483,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         leafName: 'data-vault-0',
         runOnceOnCreate: false,
         schedule: {
-          cron: CronTime.everyDayAt(2),
+          cron: CronTime.everyDayAt(12),
           timezone: Timezone['Asia/Seoul'],
         },
         keepWithin: '10d',
@@ -465,6 +492,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           configMapName: pcloudBackupPlatform.output.configMapName,
           credentialsSecretName:
             pcloudBackupPlatform.output.credentialsSecretName,
+          slackSecretName: pcloudBackupPlatform.output.slackSecretName,
           drLeaseName: pcloudBackupPlatform.output.drLeaseName,
         },
         vault: {
@@ -487,7 +515,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       new components.longhorn.LonghornHelmChartComponent('longhornHelmChart', {
         helm: {
           longhorn: {
-            version: '1.13.0',
+            version: utils.configs.helmChartVersions.longhorn,
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['charts.longhorn.io'],
           },
@@ -520,7 +548,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: authentikNamespace,
           helm: {
             authentik: {
-              version: '2026.8.3',
+              version: utils.configs.helmChartVersions.authentik,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
             },
@@ -546,7 +574,11 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
         },
         {
-          dependsOn: [longhornHelmChart, longhornResources],
+          dependsOn: [
+            longhornHelmChart,
+            longhornResources,
+            postgresqlOperatorHelmChart,
+          ],
         },
       );
 
@@ -750,7 +782,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
       {
         helm: {
           vpa: {
-            version: '5.1.0',
+            version: utils.configs.helmChartVersions.vpa,
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls['charts.fairwinds.com/stable'],
           },
@@ -767,7 +799,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             goldilocks: {
-              version: '11.2.0',
+              version: utils.configs.helmChartVersions.goldilocks,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['charts.fairwinds.com/stable'],
             },
@@ -824,7 +856,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             vaultSecretOperator: {
-              version: '1.6.0',
+              version: utils.configs.helmChartVersions.vaultSecretOperator,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
             },
@@ -862,7 +894,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.reloader.ReloaderHelmChartComponent('reloaderHelmChart', {
       helm: {
         reloader: {
-          version: '2.2.18',
+          version: utils.configs.helmChartVersions.reloader,
           repositoryUrl:
             commonEsc.esc.helmRepositoryUrls[
               'stakater.github.io/stakater-charts'
@@ -882,7 +914,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     new components.argo.ArgoRolloutsComponent('argoRollouts', {
       helm: {
         argoRollouts: {
-          version: '2.43.6',
+          version: utils.configs.helmChartVersions.argoRollouts,
           repositoryUrl: argoChartRepositoryUrl,
         },
       },
@@ -946,16 +978,20 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         helm: {
           argoCd: {
-            version: '10.9.6',
+            version: utils.configs.helmChartVersions.argoCd,
             repositoryUrl: argoChartRepositoryUrl,
           },
+        },
+        redis: {
+          password: projectEsc.esc.argoCd.redisPassword,
+          storageClass: longhornResources.output.storageClasses.longhornSsd,
         },
         providers: {
           kubernetes: workstationK8sProvider,
         },
       },
       {
-        dependsOn: [argoAuthentik],
+        dependsOn: [argoAuthentik, redisOperatorHelmChart],
       },
     );
 
@@ -1030,7 +1066,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         {
           helm: {
             opentelemetryOperator: {
-              version: '0.124.1',
+              version: utils.configs.helmChartVersions.opentelemetryOperator,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'open-telemetry.github.io/opentelemetry-helm-charts'
@@ -1054,7 +1090,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           storageClassName: monitoringStorageClass,
           helm: {
             victoriaMetrics: {
-              version: '0.48.0',
+              version: utils.configs.helmChartVersions.victoriaMetrics,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'victoriametrics.github.io/helm-charts'
@@ -1073,7 +1109,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           loki: {
-            version: '18.13.8',
+            version: utils.configs.helmChartVersions.loki,
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -1092,7 +1128,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         storageClassName: monitoringStorageClass,
         helm: {
           tempo: {
-            version: '3.1.0',
+            version: utils.configs.helmChartVersions.tempo,
             repositoryUrl:
               commonEsc.esc.helmRepositoryUrls[
                 'grafana-community.github.io/helm-charts'
@@ -1165,7 +1201,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           },
           helm: {
             grafana: {
-              version: '13.2.7',
+              version: utils.configs.helmChartVersions.grafana,
               repositoryUrl:
                 commonEsc.esc.helmRepositoryUrls[
                   'grafana-community.github.io/helm-charts'
@@ -1282,6 +1318,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           namespace: pcloudBackupPlatform.output.namespace,
           credentialsSecretName:
             pcloudBackupPlatform.output.credentialsSecretName,
+          slackSecretName: pcloudBackupPlatform.output.slackSecretName,
           drLeaseName: pcloudBackupPlatform.output.drLeaseName,
           mediaLeaseName: pcloudBackupPlatform.output.mediaLeaseName,
           volumeSnapshotClassName:

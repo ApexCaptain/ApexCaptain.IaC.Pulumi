@@ -1,5 +1,5 @@
 import { typescript } from 'projen';
-import { GithubWorkflow } from 'projen/lib/github';
+import { ActionRefs, GithubWorkflow } from 'projen/lib/github';
 import { JobPermission } from 'projen/lib/github/workflows-model';
 import * as src from '../../src';
 
@@ -35,18 +35,18 @@ export function addPrValidationWorkflow(
     steps: [
       {
         name: 'Checkout',
-        uses: 'actions/checkout@v4',
+        uses: ActionRefs.ACTIONS_CHECKOUT,
       },
       {
         name: 'Setup pnpm',
-        uses: 'pnpm/action-setup@v6.0.10',
+        uses: ActionRefs.PNPM_ACTION_SETUP,
         with: {
           version: '10.33.0',
         },
       },
       {
         name: 'Setup Node.js',
-        uses: 'actions/setup-node@v4',
+        uses: ActionRefs.ACTIONS_SETUP_NODE,
         with: {
           'node-version': '24',
           cache: 'pnpm',
@@ -55,6 +55,10 @@ export function addPrValidationWorkflow(
       {
         name: 'Install dependencies',
         run: 'pnpm i --frozen-lockfile',
+      },
+      {
+        name: 'Validate AI agent config',
+        run: 'pnpm ai:doctor',
       },
       {
         name: 'Build workspaces',

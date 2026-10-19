@@ -101,6 +101,11 @@
       "type": "build"
     },
     {
+      "name": "rulesync",
+      "version": "26.0.0",
+      "type": "build"
+    },
+    {
       "name": "sha512-crypt-ts",
       "type": "build"
     },

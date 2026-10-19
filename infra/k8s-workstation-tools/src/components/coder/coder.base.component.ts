@@ -42,6 +42,7 @@ export const CoderBaseComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+        ...utils.configs.statefulResourceOptions,
       },
     );
 
@@ -58,6 +59,7 @@ export const CoderBaseComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+        ...utils.configs.statefulResourceOptions,
       },
     );
 
@@ -189,6 +191,7 @@ export const CoderBaseComponent = utils.functions.defineComponent(
           ...opts,
           provider: args.providers.kubernetes,
           dependsOn: [posgresqlAuthSecret],
+          ...utils.configs.statefulResourceOptions,
         },
       );
     const postgresqlReadWriteFqdn = pulumi.interpolate`${postgresqlClusterName}-rw.${namespace.metadata.name}.svc.cluster.local`;

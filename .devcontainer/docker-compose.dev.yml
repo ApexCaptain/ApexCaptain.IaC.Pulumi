@@ -20,7 +20,7 @@ services:
 
       # Nova Version
       # https://github.com/FairwindsOps/nova
-      NOVA_VERSION: 3.12.1
+      NOVA_VERSION: 3.12.2
 
       # Pluto Version
       # https://github.com/FairwindsOps/pluto
@@ -28,7 +28,7 @@ services:
 
       # Istioctl Version
       # https://github.com/istio/istio
-      ISTIOCTL_VERSION: 1.30.5
+      ISTIOCTL_VERSION: 1.30.6
 
       # Node Options
       NODE_OPTIONS: --max-old-space-size=6144
@@ -54,6 +54,9 @@ services:
       - ./data/workspace/docker-daemon.json:/etc/docker/daemon.json
       ## Secrets
       - ${HOST_SECRETS_DIR_PATH}:${CONTAINER_SECRETS_DIR_PATH}
+      ## Claude
+      - ${HOST_CLAUDE_JSON_FILE_PATH}:${CONTAINER_CLAUDE_JSON_FILE_PATH}
+      - ${HOST_CLAUDE_DIR_PATH}:${CONTAINER_CLAUDE_DIR_PATH}
 
       # Shared Volume
       ## Pnpm Store

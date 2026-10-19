@@ -15,9 +15,6 @@ import * as utils from '@common/utils/src';
 import * as k8s from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
-const ALPINE_IMAGE = 'alpine:3.21';
-/** 클러스터 vault-0 이미지와 맞춤 (hashicorp/vault:2.0.4) */
-const VAULT_CLI_VERSION = '2.0.4';
 const CUSTOM_RESOURCES_PACKAGE_NAME = '@common/custom-resources';
 const TEMPLATE_DIR = 'vault-raft-archive.v1';
 
@@ -73,6 +70,7 @@ interface VaultRaftArchiveV1ArgsShape {
     namespace: string;
     configMapName: string;
     credentialsSecretName: string;
+    slackSecretName: string;
     drLeaseName: string;
   };
   vault: {
@@ -176,6 +174,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
             resources: ['secrets'],
             resourceNames: [
               args.platform.credentialsSecretName as pulumi.Input<string>,
+              args.platform.slackSecretName as pulumi.Input<string>,
             ],
             verbs: ['get'],
           },
@@ -224,6 +223,14 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
         },
         data: {
           'run.sh': fs.readFileSync(path.join(ASSETS_DIR, 'run.sh'), 'utf8'),
+          'backup-slack-notify.v1.sh': fs.readFileSync(
+            path.join(
+              resolveCustomResourcesPackageRoot(),
+              'templates',
+              'backup-slack-notify.v1.sh',
+            ),
+            'utf8',
+          ),
         },
       },
       k8sOpts,
@@ -240,6 +247,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
         },
         annotations: {
           'backup.apexcaptain.com/leaf': leafName,
+          'sidecar.istio.io/inject': 'false',
         },
       },
       spec: {
@@ -248,13 +256,13 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
         containers: [
           {
             name: 'orchestrator',
-            image: ALPINE_IMAGE,
+            image: utils.configs.containerImages.alpine,
             imagePullPolicy: 'IfNotPresent' as const,
             command: ['/bin/sh', '-ec'],
             args: [
               [
                 'echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories',
-                'apk add --no-cache bash curl kubectl rclone coreutils tzdata unzip',
+                'apk add --no-cache bash curl jq kubectl rclone coreutils tzdata unzip',
                 'exec bash /scripts/run.sh',
               ].join('\n'),
             ],
@@ -264,6 +272,14 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
               {
                 name: 'CRED_SECRET',
                 value: args.platform.credentialsSecretName,
+              },
+              {
+                name: 'SLACK_SECRET_NAME',
+                value: args.platform.slackSecretName,
+              },
+              {
+                name: 'BACKUP_NOTIFY_LABEL',
+                value: pulumi.interpolate`${args.namespace}/${leafName}`,
               },
               { name: 'LANE', value: 'dr' },
               { name: 'KEEP_WITHIN', value: args.keepWithin },
@@ -290,7 +306,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
                 name: 'VAULT_K8S_AUTH_ROLE',
                 value: args.vault.kubernetesAuthRoleName,
               },
-              { name: 'VAULT_VERSION', value: VAULT_CLI_VERSION },
+              { name: 'VAULT_VERSION', value: utils.configs.vaultVersion },
             ],
             volumeMounts: [
               {

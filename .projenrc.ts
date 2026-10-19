@@ -15,6 +15,7 @@ import * as NexusEsc from './common/nexus/src/esc';
 import * as utils from './common/utils/src';
 import { inflateCommonProject } from './projenrc/projects/common-projects';
 import { inflatePulumiProject } from './projenrc/projects/pulumi-projects';
+import { pinWorkflowActions } from './projenrc/workflows/action-pins';
 import { addPrValidationWorkflow } from './projenrc/workflows/pr-validation';
 import { modifyUpgradeWorkflow } from './projenrc/workflows/upgrade';
 import * as src from './src';
@@ -127,6 +128,8 @@ const rootProject = new typescript.TypeScriptProject(
         },
         pullRequestTitle: 'Upgrade Node Deps',
         workflow: true,
+        // rulesync는 메이저가 매일 바뀐다. 업그레이드는 docs/issues/2026-10-17-ai-agent-config-rulesync.md 후속으로 수동 진행.
+        exclude: ['rulesync'],
       },
       prettier: true,
       // Node Package Options
@@ -191,6 +194,17 @@ const rootProject = new typescript.TypeScriptProject(
         '.superpowers',
         'docs/superpowers',
 
+        // AI agent outputs — rulesync generate (SSOT: .rulesync/, .projenrc.ts)
+        '/.cursor/rules/',
+        '/.cursor/skills/',
+        '/.cursor/mcp.json',
+        '/.claude/rules/',
+        '/.claude/skills/',
+        '/.claude/settings.local.json',
+        '/.mcp.json',
+        '/.rulesync.local/',
+        '/rulesync.local.jsonc',
+
         src.constants.paths.dirs.turboDir,
         src.constants.paths.dirs.tmpDir,
         `/${src.constants.paths.files.repomixOutputXmlFile}`,
@@ -232,6 +246,8 @@ const rootProject = new typescript.TypeScriptProject(
 
         '@cursor/sdk',
 
+        'rulesync@26.0.0',
+
         'concurrently',
 
         'lint-staged',
@@ -244,6 +260,7 @@ const rootProject = new typescript.TypeScriptProject(
 void (async () => {
   await modifyUpgradeWorkflow(rootProject);
   addPrValidationWorkflow(rootProject);
+  pinWorkflowActions(rootProject);
 
   // Common
   const commonProjects = (() => {
@@ -404,6 +421,7 @@ void (async () => {
         projectName: 'k8s-workstation-tools',
         stages: [utils.enums.StackStage.PROD, utils.enums.StackStage.DEV],
         deps: [
+          src.constants.pulumiPackages.cloudflare,
           src.constants.pulumiPackages.kubernetes,
           src.constants.pulumiPackages.vault,
           src.constants.pulumiPackages.random,
@@ -420,7 +438,11 @@ void (async () => {
           cloudflareProject.project.package.packageName,
           k8sWorkstationSystemProject.project.package.packageName,
         ],
-        esc: [NexusEsc.commonEsc, NexusEsc.k8sWorkstationToolsEsc],
+        esc: [
+          NexusEsc.commonEsc,
+          NexusEsc.cloudflareEsc,
+          NexusEsc.k8sWorkstationToolsEsc,
+        ],
       },
     );
 
@@ -434,6 +456,8 @@ void (async () => {
         deps: [
           src.constants.pulumiPackages.kubernetes,
           src.constants.pulumiPackages.vault,
+          'cron-time-generator',
+          'timezone-enum',
         ],
         commonDeps: [
           commonProjects.bridgedProviderProject.project.package.packageName,
@@ -502,6 +526,8 @@ void (async () => {
   new JsonFile(rootProject, 'turbo.json', {
     obj: {
       $schema: 'https://turbo.build/schema.json',
+      // AGENTS.md 자동 삽입 끔. 같은 안내는 .rulesync/rules/use-installed-turbo-docs.md
+      agentGuidance: false,
       tasks: {
         build: {
           dependsOn: ['^build'],
@@ -600,7 +626,7 @@ void (async () => {
               'Copilot IDE (VS Code Insiders)': false,
               'Copilot IDE (VSCodium)': false,
               'Copilot IDE (VSCodium Insiders)': false,
-              'Claude Code': false,
+              'Claude Code': true,
               'Factory Droid CLI': false,
               'Cursor CLI': false,
               'Gemini CLI': false,
@@ -876,41 +902,101 @@ void (async () => {
     },
   );
 
-  // Cursor
-  const mcpJsonConfig: src.interfaces.CursorMcpConfig = {
+  // AI Agents (rulesync) — rules·skills SSOT는 .rulesync/, MCP는 여기서 생성
+  // Cursor: 서버는 컨테이너에서 돌지만 ${workspaceFolder}·env는 Windows 호스트에서 풀린다 → envFile로 컨테이너 env 전달
+  // Claude Code: 컨테이너 안에서 실행, env 이미 존재, ${workspaceFolder} 모름 → 레포 루트 상대경로
+  type AiAgentTarget = src.interfaces.RulesyncTarget;
+  const toRepoPath = (target: AiAgentTarget, relativePath: string) =>
+    target === 'cursor' ? `\${workspaceFolder}/${relativePath}` : relativePath;
+  const remoteMcpProxyServer = (
+    target: AiAgentTarget,
+    url: string,
+    proxyArgs: string[],
+  ): src.interfaces.RulesyncStdioMcpServer => ({
+    type: 'stdio',
+    command: 'bash',
+    args: [
+      toRepoPath(
+        target,
+        `${src.constants.paths.dirs.scriptDir}/mcp-remote-proxy.sh`,
+      ),
+      url,
+      ...proxyArgs,
+    ],
+    ...(target === 'cursor'
+      ? { envFile: toRepoPath(target, '.devcontainer/.env') }
+      : {}),
+  });
+  const targetMcpServers = (
+    target: AiAgentTarget,
+  ): src.interfaces.RulesyncMcpServers => ({
+    context7: remoteMcpProxyServer(target, 'https://mcp.context7.com/mcp', [
+      'CONTEXT7_API_KEY',
+      'CONTEXT7_API_KEY',
+      'raw',
+    ]),
+    'cloudflare-api': remoteMcpProxyServer(
+      target,
+      'https://mcp.cloudflare.com/mcp',
+      ['Authorization', 'CLOUDFLARE_MCP_TOKEN', 'bearer'],
+    ),
+    // rulesync는 Cursor env 값의 ${workspaceFolder}를 ${env:workspaceFolder}로 바꾼다 → 래퍼 인자로 넘긴다
+    'oracle-oci-cloud-mcp-server': {
+      type: 'stdio',
+      command: 'bash',
+      args: [
+        toRepoPath(target, `${src.constants.paths.dirs.scriptDir}/mcp-oci.sh`),
+        ociConfigFile.path,
+        apexCaptainOciProfile,
+      ],
+    },
+    pulumi: remoteMcpProxyServer(target, 'https://mcp.ai.pulumi.com/mcp', [
+      '--header',
+      'Authorization',
+      'PULUMI_ACCESS_TOKEN',
+      'bearer',
+      '--header',
+      'X-Pulumi-Org',
+      'PULUMI_APEX_CAPTAIN_ACCOUNT_NAME',
+      'raw',
+    ]),
+  });
+  const rulesyncMcpConfig: src.interfaces.RulesyncMcpConfig = {
     mcpServers: {
-      context7: {
-        url: 'https://mcp.context7.com/mcp',
-        headers: {
-          CONTEXT7_API_KEY: '${env:CONTEXT7_API_KEY}',
-        },
-      },
       'kubernetes-mcp-server': {
+        type: 'stdio',
         command: 'npx',
         args: ['-y', 'kubernetes-mcp-server@latest'],
       },
-      'oracle-oci-cloud-mcp-server': {
-        command: 'uvx',
-        args: ['oracle.oci-cloud-mcp-server@latest'],
-        env: {
-          FASTMCP_LOG_LEVEL: 'ERROR',
-          OCI_CONFIG_FILE: `\${workspaceFolder}/${ociConfigFile.path}`,
-          OCI_CONFIG_PROFILE: apexCaptainOciProfile,
-        },
-      },
-      pulumi: {
-        url: 'https://mcp.ai.pulumi.com/mcp',
-      },
     },
+    cursor: { mcpServers: targetMcpServers('cursor') },
+    claudecode: { mcpServers: targetMcpServers('claudecode') },
   };
-  const mcpJsonFile = new JsonFile(
+  const rulesyncMcpFile = new JsonFile(
     rootProject,
-    src.constants.paths.files.cursorMcpJsonFile,
+    src.constants.paths.files.rulesyncMcpFile,
     {
-      obj: mcpJsonConfig,
+      obj: rulesyncMcpConfig,
     },
   );
 
+  const rulesyncConfig: src.interfaces.RulesyncConfig = {
+    targets: {
+      cursor: ['rules', 'mcp', 'skills'],
+      claudecode: ['rules', 'mcp', 'skills'],
+    },
+    outputRoots: ['.'],
+    delete: true,
+  };
+  const rulesyncConfigFile = new JsonFile(
+    rootProject,
+    src.constants.paths.files.rulesyncConfigFile,
+    {
+      obj: rulesyncConfig,
+    },
+  );
+
+  // Cursor (plugins — 이식 불가, Cursor 전용 override)
   const cursorSettingsConfig: src.interfaces.CursorSettings = {
     plugins: {
       superpowers: {
@@ -1023,8 +1109,13 @@ void (async () => {
       )
       .join(' && '),
 
+    // AI Agents (rulesync)
+    'ai:generate': 'rulesync generate',
+    'ai:check': 'rulesync generate --check',
+    'ai:doctor': 'rulesync doctor',
+
     // Projen
-    postprojen: 'pnpm build',
+    postprojen: 'pnpm ai:generate && pnpm build',
     postbuild: `turbo run build --filter ${workspacePackageFilters}`,
     postupgrade: `turbo run upgrade --filter ${workspacePackageFilters} --concurrency=1`,
 

@@ -4,7 +4,7 @@
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **등록일**    | 2026-09-15                                                                                                                                |
 | **영역**      | workstation 클러스터 PVC 오프사이트 백업. `k8s-workstation-system` / `apps` / `tools`, Pulumi ESC                                         |
-| **관련 코드** | `common/custom-resources` (`PvcSnapshotArchiveV1`, `VaultRaftArchiveV1`), `infra/k8s-workstation-system` (Platform·`VaultBackupComponent`), `infra/k8s-workstation-tools` (`QbittorrentBackupComponent`), ESC |
+| **관련 코드** | `common/custom-resources` (`PvcSnapshotArchiveV1`, `VaultRaftArchiveV1`), `infra/k8s-workstation-system` (Platform·`VaultBackupComponent`), `infra/k8s-workstation-tools` (`QbittorrentBackupComponent`·`VikunjaBackupComponent`), `infra/k8s-workstation-apps` (`JellyfinBackupComponent`), ESC |
 | **상태**      | **진행중** — **Phase 1 종료** (2026-09-19): Cron·retention·복호화·`backup.tar.zst` 추출까지 검증. **다음:** Phase 2(Lane A 확장)·Lane B는 일정 없이 순차 진행 |
 
 ## 배경
@@ -33,7 +33,7 @@
 | -------------------------------- | ---------------------------------------- |
 | pCloud ESC/Secret                | ESC sync 완료. system: NS / Secret / ConfigMap(`clusterName`) / Lease `dr`·`media` / `longhorn-snap` |
 | VolumeSnapshot / CSI snapshotter | 적용됨. NS `snapshot-controller` (Deployment 1/1, v8.6.0). VSC `longhorn-snap` (`driver.longhorn.io`, `type: snap`, Delete) |
-| 백업 CronJob/컴포넌트            | Vault raft (`keepWithin=10d`), qBit `qbittorrent-config` (`keepWithin=10d`), Vikunja `vikunja-data` (`keepWithin=2d`, 03:00 KST) dr Cron 운영 중. pCloud 업로드·retention prune·복호화 실측 완료 (2026-09-19) |
+| 백업 CronJob/컴포넌트            | Vault raft·qBit·Vikunja dr + Jellyfin `jellyfin-config` (**`keepWithin=3d`**) — **매일 12:00 KST** (`dr` Lease). qBit/Vault/Vikunja `keepWithin=10d`. Jellyfin worker: `zstd -T1 -6`, limit 3Gi, `/work` 8Gi (2026-10-14) |
 | 구성 SSOT                        | 본 이슈 |
 | pCloud 용량 전략                 | POC 통과. Lane B는 유료 플랜 후 |
 
@@ -45,9 +45,9 @@
 | --------------------------------------- | ------ | ------------------- | ------------------------------------ | ----------------------------------- | ----------------------- |
 | `vault/data-vault-0`                    | 10 Gi  | local-path          | `vault operator raft snapshot`       | `k8s-backup/dr/vault/`              | data dir 파일 복사 금지 |
 | `coder/coder-postgresql-cluster-1`      | 10 Gi  | longhorn-ssd        | `pg_dump` (CNPG)                     | `k8s-backup/dr/coder-pg/`           |                         |
-| `authentik/data-authentik-postgresql-0` | 8 Gi   | longhorn-ssd        | `pg_dump`                            | `k8s-backup/dr/authentik-pg/`       |                         |
+| `authentik/authentik-db-1`              | 8 Gi   | longhorn-ssd        | `pg_dump` (CNPG)                     | `k8s-backup/dr/authentik-pg/`       | 2026-10-13 컷오버 후 라이브 |
 | `vikunja/vikunja-postgresql-cluster-1`  | 8 Gi   | longhorn-ssd        | `pg_dump`                            | `k8s-backup/dr/vikunja-pg/`         |                         |
-| `jellyfin/jellyfin-config`              | 5 Gi   | longhorn-ssd-retain | VolumeSnapshot 클론 후 tar           | `k8s-backup/dr/jellyfin-config/`    |                         |
+| `jellyfin/jellyfin-config`              | 5 Gi   | longhorn-ssd-retain | VolumeSnapshot 클론 후 tar           | `k8s-backup/dr/jellyfin-config/`    | 실사용 ~2.1 GiB. **`keepWithin=3d`** (2026-10-13) |
 | `vikunja/vikunja-data`                  | 2 Gi   | longhorn-ssd        | 동일                                 | `k8s-backup/dr/vikunja-data/`       |                         |
 | `qbittorrent/qbittorrent-config`        | 200 Mi | longhorn-ssd        | VolumeSnapshot 클론 후 tar           | `k8s-backup/workstation/dr/qbittorrent/qbittorrent-config/{ts}/` | **Phase 1 Cron 1순위** (무료 3 GB) |
 
@@ -264,14 +264,15 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 - [x] ESC + K8s Secret (Platform 적용으로 완료)
 - [x] Vault raft snapshot → pCloud (once 성공 · Cron 운영, keepWithin=10d 상향)
 - [ ] Postgres dump → pCloud
-- [x] 소형 config 아카이브 (qBit config 10d, Vikunja data 2d Cron 운영 중)
+- [x] 소형 config 아카이브 (qBit config 10d, Vikunja data 10d Cron 운영 중)
+- [x] Jellyfin `jellyfin-config` 아카이브 (`keepWithin=3d`, 매일 12:00 KST) — once Job·pCloud 업로드 실증 (2026-10-14, `…/2026-10-14_165206/`, ~1.9GiB `backup.tar.zst`)
 - [ ] 복구 런북 초안
-- [ ] Slack 실패 알림
+- [x] Slack INFO/ERROR 알림 — platform `pcloud-backup-slack`, DR orchestrator cleanup (2026-10-14)
 
 ### Phase 3 — RWO 읽기
 
 - [x] VolumeSnapshot + 클론 구축 (sidecar 아님) — snapshot-controller + `longhorn-snap` 적용. Job 실증은 다음
-- [ ] jellyfin-config 등으로 실증
+- [x] jellyfin-config VolumeSnapshot→worker 실증 (2026-10-14)
 
 ### Phase 4 — Lane B (유료 플랜 이후)
 
@@ -344,3 +345,12 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-09-19 | 사용자 실측: Vault·qBit dr 백업 pCloud 업로드 정상. retention 기간 경과 시 구 ts 폴더 삭제(`keepWithin=2d`) 확인. Phase 1 POC 운영 검증 종료 |
 | 2026-09-19 | 복호화 실증: pCloud 암호화 blob → rclone crypt 복호화 → `backup.tar.zst` 추출·qBittorrent config 87파일 확인. Phase 1 일정 마감 |
 | 2026-09-19 | Retention 상향 (Vault raft 10d, qBit config 10d) 및 Vikunja `vikunja-data` DR 추가 (`keepWithin=2d`, 매일 03:00 KST). once Job 통과 확인 후 `runOnceOnCreate: false` 전환 완료 |
+| 2026-10-13 | DR Cron 3종(qBit·Vault·Vikunja) 스케줄 통일: **매일 12:00 Asia/Seoul** (`CronTime.everyDayAt(12)`). `dr` Lease로 동시 시각이어도 순차 실행 |
+| 2026-10-13 | 동일 시각 대기 여유: orchestrator `LEASE_WAIT_SEC` 기본 **600→3600** (`pvc-snapshot-archive.v1`·`vault-raft-archive.v1` run.sh). script CM replace 후 system·tools `up` 필요 |
+| 2026-10-13 | Jellyfin `jellyfin-config` Lane A dr 대상 확정. PVC 실사용 ~2.1 GiB (`data` 1.4G·`metadata` 747M). retention **`keepWithin=3d`**. `JellyfinBackupComponent` + `apps/prod` wiring |
+| 2026-10-13 | `k8s-workstation-apps/prod` up: CronJob `jellyfinBackup-dr-cron-config` (NS `jellyfin`). once Job 없음. 첫 12:00 KST 실행·pCloud 확인 예정 |
+| 2026-10-14 | 첫 Cron(12:00 KST) worker `zstd -T0 -19` + limit 1Gi → packing 중 실패(OOM 추정). `PvcSnapshotArchiveV1` target `worker`·기본 `-T1 -6`·Istio inject off. Jellyfin limit 3Gi·`/work` 8Gi. once Job **성공** (~6.5분, pCloud `…/2026-10-14_165206/`) |
+| 2026-10-14 | DR Slack: ESC `SLACK_WEBHOOK_URL_BACKUP_INFRA_{INFO,ERROR}` → `pcloud-backup-slack`. 성공 INFO·실패 ERROR. qBit once INFO·probe Job ERROR 실증 |
+| 2026-10-14 | Slack 문안을 SFTP와 같이 한국어 Block Kit (헤더·대상·경로·보관·시각)로 변경 |
+| 2026-10-13 | Authentik DB CNPG 컷오버: 라이브 PVC `authentik/authentik-db-1`. Bitnami `data-authentik-postgresql-0`는 롤백 보관 |
+| 2026-10-19 | Bitnami `authentik/data-authentik-postgresql-0` 삭제 (PV reclaim `Delete`로 볼륨도 제거). Lane A 행 제거 |

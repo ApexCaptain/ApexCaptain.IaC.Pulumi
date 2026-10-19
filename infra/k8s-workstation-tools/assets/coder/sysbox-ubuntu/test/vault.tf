@@ -17,5 +17,6 @@ resource "coder_script" "vault_login" {
     oidc_access_token   = data.coder_workspace_owner.me.oidc_access_token
     vault_jwt_auth_path = var.vault_jwt_auth_path
     vault_jwt_role      = var.vault_jwt_role
+    vault_cli_version   = var.vault_cli_version
   })
 }

@@ -2,7 +2,6 @@
 
 * text=auto eol=lf
 *.snap linguist-generated
-/.cursor/mcp.json linguist-generated
 /.cursor/settings.json linguist-generated
 /.eslintrc.json linguist-generated linguist-language=JSON-with-Comments
 /.gitattributes linguist-generated
@@ -19,6 +18,7 @@
 /.projen/deps.json linguist-generated
 /.projen/files.json linguist-generated
 /.projen/tasks.json linguist-generated
+/.rulesync/mcp.jsonc linguist-generated linguist-language=JSON-with-Comments
 /.vscode/settings.json linguist-generated
 /LICENSE linguist-generated
 /package.json linguist-generated
@@ -27,6 +27,7 @@
 /projenrc/tsconfig.json linguist-generated linguist-language=JSON-with-Comments
 /repomix.config.json linguist-generated
 /requirements.txt linguist-generated
+/rulesync.jsonc linguist-generated linguist-language=JSON-with-Comments
 /scripts/tsconfig.json linguist-generated
 /test/tsconfig.json linguist-generated linguist-language=JSON-with-Comments
 /tsconfig.json linguist-generated linguist-language=JSON-with-Comments

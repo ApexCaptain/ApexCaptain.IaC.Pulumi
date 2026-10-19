@@ -105,6 +105,24 @@ describe('Contract', () => {
     ).toThrow(/Pulumi.yaml "name" field not found/);
   });
 
+  test('throws clear error when PULUMI_CONTRACT_HASH_DIR_PATH is missing', async () => {
+    const { root, srcFile } = makeFixture({ projectName: CALLER_PROJECT });
+    fixtures.push(root);
+    delete process.env.PULUMI_CONTRACT_HASH_DIR_PATH;
+
+    const { Contract } = await import('../src/classes/contract');
+
+    expect(
+      () =>
+        new Contract(srcFile, () => ({
+          output: pulumi.output({}),
+          secret: pulumi.output({}),
+        })),
+    ).toThrow(
+      /PULUMI_CONTRACT_HASH_DIR_PATH is not set .*initializeCommand\.sh/,
+    );
+  });
+
   test('same-stack mode inflates output/secret and creates hash TextFile resources', async () => {
     const { root, srcFile } = makeFixture({ projectName: CALLER_PROJECT });
     fixtures.push(root);

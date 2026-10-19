@@ -28,6 +28,7 @@ export const constants = (() => {
   const tmpDir = 'tmp';
   const diagnosisDir = process.env.DIAGNOSIS_DIR_NAME || 'docs/diagnosis';
   const cursorDir = '.cursor';
+  const rulesyncDir = '.rulesync';
   const ventoyDir = 'ventoy';
   const ventoyUserDataDir = path.join(ventoyDir, 'user-data');
   const ansibleDir = 'ansible';
@@ -42,7 +43,8 @@ export const constants = (() => {
   const repomixConfigJsonFile = 'repomix.config.json';
   const novaConfigFile =
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
-  const cursorMcpJsonFile = path.join(cursorDir, 'mcp.json');
+  const rulesyncConfigFile = 'rulesync.jsonc';
+  const rulesyncMcpFile = path.join(rulesyncDir, 'mcp.jsonc');
   const cursorSettingsJsonFile = path.join(cursorDir, 'settings.json');
   const workstationSshPrivateKeyFile = path.join(
     keysDir,
@@ -96,6 +98,7 @@ export const constants = (() => {
       tmpDir,
       diagnosisDir,
       cursorDir,
+      rulesyncDir,
       ventoyDir,
       ventoyUserDataDir,
       ansibleDir,
@@ -110,7 +113,8 @@ export const constants = (() => {
       repomixOutputXmlFile,
       repomixConfigJsonFile,
       novaConfigFile,
-      cursorMcpJsonFile,
+      rulesyncConfigFile,
+      rulesyncMcpFile,
       cursorSettingsJsonFile,
       workstationSshPrivateKeyFile,
       ansibleWorkstationInventoryFile,
@@ -141,7 +145,7 @@ export const constants = (() => {
       argocd: new TerraformBridgedProvider({
         name: 'argocd',
         providerSource: 'argoproj-labs/argocd',
-        providerVersion: '7.17.1',
+        providerVersion: '7.17.2',
       }),
       // https://registry.terraform.io/providers/coder/coderd/latest
       coderd: new TerraformBridgedProvider({
@@ -191,6 +195,8 @@ export const constants = (() => {
       'oci://ghcr.io/go-vikunja/helm-chart/vikunja',
     'cloudnative-pg.github.io/charts':
       'https://cloudnative-pg.github.io/charts',
+    'ot-container-kit.github.io/helm-charts':
+      'https://ot-container-kit.github.io/helm-charts',
     'stakater.github.io/stakater-charts':
       'https://stakater.github.io/stakater-charts',
     'argoproj.github.io/argo-helm': 'https://argoproj.github.io/argo-helm',

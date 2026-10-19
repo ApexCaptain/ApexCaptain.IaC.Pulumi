@@ -1,14 +1,13 @@
 # @common/utils
 
-Pulumi 기반 인프라 코드 전반에서 재사용하는 공통 설정·enum·함수·인터페이스·타입을 모아둔 유틸리티 패키지.
+Pulumi 기반 IaC 모노레포에서 공통으로 쓰는 설정, 타입, 유틸 함수를 모아 둔 패키지다.
 
 ## 역할
 
-- `configs`: 스택 스테이지(stage) 판별이 실패했을 때 사용할 fallback 설정을 제공한다.
-- `enums`: 스택 스테이지(`StackStage`) 등 공통 enum을 정의한다.
-- `functions`: Argo CD RBAC 정책 CSV 생성, OCI 정책 statement 생성, 만료 기간 계산, Cloudflare 레코드 FQDN 변환, kebab-case 변환, lodash merge customizer, 파일 모드 문자열 검증, Pulumi 컴포넌트 정의(`define-component`), 비동기 대기(`wait-for-ms`) 등 범용 헬퍼 함수를 제공한다.
-- `interfaces`: `kubeconfig` 등 여러 패키지에서 공유하는 타입 인터페이스를 정의한다.
-- `types`: `DeepPartial`, `DeepPulumiInput` 등 Pulumi 리소스 입력 타입을 다루기 위한 유틸리티 타입을 정의한다.
+- 스택 단계(`StackStage`)·버전·stateful 리소스 보호 옵션(`statefulResourceOptions`) 등 **공통 설정**을 `configs`와 `enums`로 제공한다.
+- Pulumi 컴포넌트 정의(`defineComponent`), lodash 병합 커스터마이저, kebab-case 변환 등 **컴포넌트·리소스 작성 보조** 함수를 제공한다.
+- Cloudflare DNS FQDN, OCI 정책 문구, Argo CD 정책 CSV, 만료 간격 생성 등 **인프라 연동용 헬퍼**를 제공한다.
+- `DeepPartial`, `DeepPulumiInput`, `Kubeconfig` 등 **타입·인터페이스**로 스택 코드의 입력 모델을 맞춘다.
 
 ## 구조
 
@@ -17,6 +16,8 @@ src/
 └── configs/
 └──   index.ts
 └──   stack-stage-fallback.config.ts
+└──   stateful-resource-options.config.ts
+└──   versions.config.ts
 └── enums/
 └──   index.ts
 └──   stack-stage.enum.ts

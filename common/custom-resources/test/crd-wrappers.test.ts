@@ -184,6 +184,23 @@ const cases: CrdCase[] = [
     },
   },
   {
+    className: 'RedisReplicationV1Beta2',
+    modulePath:
+      '../src/resources/k8s/crd/redis-operator/redis-replication.v1beta2.res',
+    pulumiName: 'unit-redis-replication',
+    apiVersion: 'redis.redis.opstreelabs.in/v1beta2',
+    kind: 'RedisReplication',
+    args: {
+      metadata: { name: 'unit-redis', namespace: 'redis-operator' },
+      spec: {
+        clusterSize: 1,
+        kubernetesConfig: {
+          image: 'quay.io/opstree/redis:v7.0.15',
+        },
+      },
+    },
+  },
+  {
     className: 'VaultConnectionV1',
     modulePath: '../src/resources/k8s/crd/vso/vault-connection.v1.res',
     pulumiName: 'unit-vault-connection',

@@ -45,7 +45,7 @@ PVC 사용률을 OTel kubeletstats volume 메트릭으로 수집하고, Grafana 
 | PVC                | 다수 Bound (`longhorn-ssd` / `longhorn-hdd` / `local-path` 등)                                                         |
 | volume 메트릭      | **수집 중** — `k8s_volume_*` + `k8s_volume_type=persistentVolumeClaim`                                                 |
 | kube-state-metrics | **없음** — volume capacity로 한도(C1) 사용 중                                                                          |
-| 알림 엔진          | Grafana Unified Alerting — rule `pvc-usage-high`, contact `infra-alerts-slack`, repeat 72h                             |
+| 알림 엔진          | Grafana Unified Alerting — rule `pvc-usage-high`, contact `infra-alerts-slack`, repeat 168h                            |
 | Slack              | Secret `grafana-alerting-slack` 마운트. ConfigMap에 webhook **없음**(수정 후). ESC upsert는 후속(env fallback 동작 중) |
 
 ---
@@ -140,7 +140,7 @@ Bound + 정상 프로비저닝이면 C1 ≈ C2.
 - [x] VictoriaMetrics에 PVC/볼륨 usage·capacity(또는 동등) 시리즈가 주기적으로 적재됨
 - [x] **마운트된 PVC**만 알림 대상 (전 NS, `k8s_volume_type=persistentVolumeClaim`)
 - [x] Slack 지정 채널에 알림 도착 확인 (사용자, rotate·rebuild·재배포 후)
-- [x] 재알림 간격 **약 72h** / resolve 설정 프로비저닝됨
+- [x] 재알림 간격 **168h** / resolve 설정 프로비저닝됨
 - [x] webhook이 git에 커밋되지 않음 (Secret 마운트; ConfigMap 평문 제거)
 - [x] 임계치 상향 반영 (**70%**)
 - [x] 주간 토 01:00–01:30 KST 발송 창 반영 (`sat-0100-kst`)

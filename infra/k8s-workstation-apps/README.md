@@ -1,33 +1,42 @@
 # @infra/k8s-workstation-apps
 
-Jellyfin, Price Quest 등 워크스테이션 클러스터의 사용자 서비스를 배포하는 Pulumi 스택.
+워크스테이션 Kubernetes 클러스터에 Jellyfin 등 사용자-facing 앱을 Pulumi로 배포하는 infra 스택이다.
 
 ## 역할
 
-- `k8s-workstation-system` 스택의 output(Istio mesh gateway, Longhorn storage class, Authentik 그룹 등)을 참조해 사용자 대상 애플리케이션을 배포한다.
-- `components/jellyfin`을 통해 Jellyfin을 Authentik OIDC, SFTP, direct gateway, PVC와 함께 구성한다.
-- `components/price-quest`를 통해 Price Quest 애플리케이션과 Vault 연동 설정을 구성한다.
-- `pulumi.getStack()`이 `PROD`일 때만 Jellyfin을 배포한다 — dev/staging은 비용과 노이즈를 줄이기 위해 제외한다.
+- `@infra/k8s-workstation-system`이 제공하는 mesh gateway, StorageClass, Authentik 그룹·플로, Vault 연동 정보를 소비한다.
+- `@infra/cloudflare` DNS 레코드를 참조해 공개 호스트명을 앱에 연결한다.
+- **Jellyfin**은 `prod` 스택에서만 배포한다. dev/staging에서는 비용과 운영 노이즈를 줄인다.
+- `src/components` 아래 앱별 컴포넌트(Helm, Authentik, 서비스 메시, 백업, Vault 등)로 리소스를 조립한다.
+
+## Pulumi 프로젝트
+
+- kubeconfig는 ESC `commonEsc`의 `workstationKubeconfig`를 사용한다.
+- 프로젝트 전용 설정은 ESC `k8sWorkstationAppsEsc`(예: Vault/인프라 알림용 Slack webhook)를 참조한다.
+- Authentik·Vault Provider 설정은 `k8s-workstation-system` contract의 `secret.providerConfigs`를 재사용한다.
 
 ## 배포 순서
 
-```
-cloudflare → k8s-workstation-system → k8s-workstation-apps
-```
+1. `@infra/cloudflare`
+2. `@infra/k8s-workstation-system`
+3. `@infra/k8s-workstation-apps` (본 패키지)
 
-`k8s-workstation-system` 스택이 먼저 배포되어 mesh gateway, storage class, Authentik/Vault provider 설정 등을 output으로 제공해야 이 스택을 배포할 수 있다.
+`k8s-workstation-system` 스택이 gateway 경로, StorageClass, Authentik/Vault 출력을 만든 뒤에 preview/up을 실행한다.
+
+## upstream / downstream
+
+| 방향 | 패키지 | 용도 |
+|------|--------|------|
+| upstream | `@infra/cloudflare` | Jellyfin·Authentik 등 공개 호스트 DNS |
+| upstream | `@infra/k8s-workstation-system` | Istio gateway, Longhorn StorageClass, Authentik 그룹/플로, Vault·VSO, GPU runtime |
+| downstream | — | 다른 infra 스택이 본 contract를 필수 참조하지 않음 |
 
 ## 현재 앱/도구
 
-| 컴포넌트    | 설명                                                                                                            |
-| ----------- | ----------------------------------------------------------------------------------------------------------------- |
-| Jellyfin    | Authentik OIDC 인증, Helm chart 배포, SFTP(사용자 인증서 기반) 업로드, Istio direct gateway, Longhorn PVC(설정/미디어/캐시 분리) 구성. PROD 스택에서만 배포. |
-| Price Quest | 애플리케이션 본체(`price-quest.base.component.ts`)와 Vault 연동(`price-quest.vault.component.ts`) 컴포넌트로 구성.            |
-
-## upstream
-
-- `@infra/cloudflare` — 호스트 레코드(`jellyfin`, `auth` 등) 참조.
-- `@infra/k8s-workstation-system` — mesh gateway, storage class, Authentik 그룹/플로우, Vault provider 설정 등 output 참조.
+| 앱 | 스택 | 인증 | 스토리지 / 기타 |
+|----|------|------|-----------------|
+| **jellyfin** | `prod` | Authentik OIDC(`applicationUserGroup`, 기본 authorization/invalidation flow) | config `longhornSsdRetain` 5Gi, media `longhornHddRetain` 2Ti, cache `longhornSsd` 10Gi; Helm 공식 chart; GPU `runtimeClassName`; Istio direct gateway + SFTP(Vault SSH CA, System Manager 발급); 백업·서비스 메시 컴포넌트 |
+| **price-quest** | 모든 스택 (PROD 분기 밖) | Vault 연동(`price-quest.vault`) | namespace 등 base 리소스(`price-quest.base`) |
 
 ## 구조
 
@@ -38,6 +47,7 @@ src/
 └──   jellyfin/
 └──     index.ts
 └──     jellyfin.authentik.component.ts
+└──     jellyfin.backup.component.ts
 └──     jellyfin.helm-chart.component.ts
 └──     jellyfin.service-mesh.component.ts
 └──   price-quest/
@@ -59,8 +69,10 @@ src/
 - `@pulumi/kubernetes` (^4.31.1)
 - `@pulumi/pulumi` (^3.242.0)
 - `@pulumi/vault` (^7.10.0)
+- `cron-time-generator` (^2.0.3)
 - `dedent` (^1.7.2)
 - `lodash` (^4.18.1)
+- `timezone-enum` (^1.0.4)
 - `yaml` (^2.8.3)
 
 ## 명령

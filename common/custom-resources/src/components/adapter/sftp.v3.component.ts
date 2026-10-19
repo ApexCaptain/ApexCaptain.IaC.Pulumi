@@ -9,9 +9,6 @@ import { VaultAuthV1 } from '../../resources/k8s/crd/vso/vault-auth.v1.res';
 import { VaultStaticSecretV1 } from '../../resources/k8s/crd/vso/vault-static-secret.v1.res';
 import { kvV2UiBrowsePolicy } from '../vault/kv-v2-ui-browse.policy';
 
-const ATMOZ_SFTP_IMAGE =
-  'atmoz/sftp:alpine@sha256:a6cb3eb29202ca7f57e73bb7e527286e66e0e822fff65609207c7e0ef2d135a3';
-
 const USER_ISSUE_TTL = '24h';
 const HOST_ISSUE_TTL = '240h';
 const USER_ISSUE_TTL_SECONDS = '86400';
@@ -19,7 +16,6 @@ const HOST_ISSUE_TTL_SECONDS = '864000';
 const USER_ROTATE_CRON = '0 3 1 1,4,7,10 *';
 const RECONCILE_CRON = '0 3 * * *';
 const CRON_TIMEZONE = 'Asia/Seoul';
-const VAULT_JOB_IMAGE = 'hashicorp/vault:2.0.3';
 const USER_KEY_OVERLAP = '7 days';
 
 export const SFTP_ISSUER_GROUP_NAMES = [
@@ -442,7 +438,7 @@ export const SftpV3Component = utils.functions.defineComponent(
       containers: [
         {
           name: 'sftp-keys',
-          image: VAULT_JOB_IMAGE,
+          image: utils.configs.containerImages.vault,
           imagePullPolicy: 'IfNotPresent',
           command: ['/bin/sh', '-c'],
           args: [jobScript],
@@ -849,7 +845,7 @@ export const SftpV3Component = utils.functions.defineComponent(
 
           const containerSpec: kubernetes.types.input.core.v1.Container = {
             name: 'sftp-sidecar',
-            image: ATMOZ_SFTP_IMAGE,
+            image: utils.configs.containerImages.atmozSftp,
             restartPolicy: 'Always',
             command: ['/bin/sh', '-c'],
             args: [

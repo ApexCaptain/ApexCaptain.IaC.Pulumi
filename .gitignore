@@ -37,6 +37,15 @@ inventory.ini
 .specstory
 .superpowers
 docs/superpowers
+/.cursor/rules/
+/.cursor/skills/
+/.cursor/mcp.json
+/.claude/rules/
+/.claude/skills/
+/.claude/settings.local.json
+/.mcp.json
+/.rulesync.local/
+/rulesync.local.jsonc
 .turbo
 tmp
 /apexcaptain-iac-repomix-output.xml
@@ -70,7 +79,8 @@ tmp
 /.keys/workstation.key
 /.keys/oci-apexcaptain.key
 !/repomix.config.json
-!/.cursor/mcp.json
+!/.rulesync/mcp.jsonc
+!/rulesync.jsonc
 !/.cursor/settings.json
 /ansible/workstation/inventory/inventory.ini
 !/.projenrc.ts

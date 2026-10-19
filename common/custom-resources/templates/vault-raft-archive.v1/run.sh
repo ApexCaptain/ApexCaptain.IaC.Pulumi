@@ -4,6 +4,9 @@
 # PVC/file copy 금지. local-path CSI snap 아님.
 set -euo pipefail
 
+# shellcheck disable=SC1091
+source /scripts/backup-slack-notify.v1.sh
+
 : "${NS:?}"
 : "${LEAF_NAME:?}"
 : "${CRED_SECRET:?}"
@@ -20,7 +23,7 @@ set -euo pipefail
 : "${VAULT_VERSION:?}"
 
 CLUSTER="${CLUSTER:-}"
-LEASE_WAIT_SEC="${LEASE_WAIT_SEC:-600}"
+LEASE_WAIT_SEC="${LEASE_WAIT_SEC:-3600}"
 SNAPSHOT_NAME="vault-raft.snap"
 WORK_DIR="${WORK_DIR:-/work}"
 
@@ -34,6 +37,7 @@ cleanup() {
   set +e
   echo "[orch] cleanup (exit=${code})"
   release_lease || true
+  backup_slack_on_finish "${code}" || true
   exit "${code}"
 }
 trap cleanup EXIT

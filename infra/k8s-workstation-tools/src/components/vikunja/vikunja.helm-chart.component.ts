@@ -273,6 +273,7 @@ export const VikunjaHelmChartComponent = utils.functions.defineComponent(
         ...opts,
         provider: args.providers.kubernetes,
         dependsOn: [vikunjaServiceSecret, vikunjaOidcSecret],
+        ...utils.configs.statefulResourceOptions,
       },
     );
 

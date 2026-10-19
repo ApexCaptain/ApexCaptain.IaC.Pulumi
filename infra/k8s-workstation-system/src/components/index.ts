@@ -20,6 +20,8 @@ export * as vault from './vault';
 
 export * as postgresqlOperator from './postgresql-operator';
 
+export * as redisOperator from './redis-operator';
+
 export * as vaultSecretsOperator from './vault-secrets-operator';
 
 export * as reloader from './reloader';

@@ -12,6 +12,8 @@ import { k8sWorkstationSystemContract } from '@infra/k8s-workstation-system/src/
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
+import CronTime from 'cron-time-generator';
+import Timezone from 'timezone-enum';
 import * as components from './components';
 
 export const k8sWorkstationAppsContract = new nexus.classes.Contract(
@@ -79,7 +81,7 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
           {
             helm: {
               jellyfin: {
-                version: '3.2.0',
+                version: utils.configs.helmChartVersions.jellyfin,
                 repositoryUrl:
                   commonEsc.esc.helmRepositoryUrls[
                     'jellyfin.github.io/jellyfin-helm'
@@ -153,6 +155,10 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
                 size: '10Gi',
               },
             },
+            gpu: {
+              runtimeClassName:
+                k8sWorkstationSystemContract.output.gpu.runtimeClassName,
+            },
             providers: {
               kubernetes: workstationK8sProvider,
               vault: vaultProvider,
@@ -186,6 +192,62 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
                   .ingressGatewayPath,
               port: jellyfinHelmChart.output.services.jellyfin.port.webUi,
             },
+          },
+          providers: {
+            kubernetes: workstationK8sProvider,
+          },
+        },
+        {
+          dependsOn: [jellyfinHelmChart],
+        },
+      );
+
+      new components.jellyfin.JellyfinBackupComponent(
+        'jellyfinBackup',
+        {
+          namespace: jellyfinHelmChart.output.namespace,
+          runOnceOnCreate: false,
+          dr: {
+            targets: [
+              {
+                id: 'config',
+                pvcName: jellyfinHelmChart.output.pvcs.config.name,
+                // 원본이 longhorn-ssd-retain — 상속하면 clone PV가 Released로 남는다
+                clone: {
+                  storageClassName:
+                    k8sWorkstationSystemContract.output.storageClasses
+                      .longhornSsd,
+                },
+                schedule: {
+                  cron: CronTime.everyDayAt(12),
+                  timezone: Timezone['Asia/Seoul'],
+                },
+                keepWithin: '3d',
+                worker: {
+                  resources: {
+                    requests: { cpu: '100m', memory: '512Mi' },
+                    limits: { cpu: '2', memory: '3Gi' },
+                  },
+                  workEmptyDirSize: '8Gi',
+                },
+              },
+            ],
+          },
+          platform: {
+            namespace:
+              k8sWorkstationSystemContract.output.pcloudBackup.namespace,
+            configMapName:
+              k8sWorkstationSystemContract.output.pcloudBackup.configMapName,
+            credentialsSecretName:
+              k8sWorkstationSystemContract.output.pcloudBackup
+                .credentialsSecretName,
+            slackSecretName:
+              k8sWorkstationSystemContract.output.pcloudBackup.slackSecretName,
+            drLeaseName:
+              k8sWorkstationSystemContract.output.pcloudBackup.drLeaseName,
+            volumeSnapshotClassName:
+              k8sWorkstationSystemContract.output.pcloudBackup
+                .volumeSnapshotClassName,
           },
           providers: {
             kubernetes: workstationK8sProvider,
