@@ -680,6 +680,8 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
               description: 'Zero Trust team domain',
             },
           ],
+          localDomainFallbacks:
+            cloudflareEsc.esc.zeroTrust.localDomainFallbacks,
           providers: {
             cloudflare: cloudflareProvider,
           },

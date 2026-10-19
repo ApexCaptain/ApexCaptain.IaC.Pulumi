@@ -4,12 +4,32 @@
  * - Organization·기본 디바이스 프로필은 계정 싱글턴. provider Create가 Update/Edit API라 import 없이 갱신한다.
  * - Split Tunnel은 Include 모드 — 지정한 대상만 WARP로, 일반 인터넷은 그대로.
  * - Gateway proxy(TCP/UDP)는 계정 기본값으로 이미 켜져 있어 여기서 관리하지 않는다.
+ * - Local Domain Fallback은 목록 전체 교체라 Cloudflare 기본 suffix를 함께 넣는다.
  *
  * @see docs/superpowers/specs/2026-10-18-cloudflare-zero-trust-rdp-design.md
  */
 import * as utils from '@common/utils/src';
 import * as cloudflare from '@pulumi/cloudflare';
 import * as pulumi from '@pulumi/pulumi';
+import _ from 'lodash';
+
+/** Cloudflare 기본 Local Domain Fallback (2026-10-19 계정 조회값) */
+const DEFAULT_LOCAL_DOMAIN_FALLBACK_SUFFIXES = [
+  'home.arpa',
+  'intranet',
+  'internal',
+  'private',
+  'localdomain',
+  'domain',
+  'lan',
+  'home',
+  'host',
+  'corp',
+  'local',
+  'localhost',
+  'invalid',
+  'test',
+];
 
 interface ZeroTrustAccessComponentArgsShape {
   accountId: string;
@@ -28,6 +48,12 @@ interface ZeroTrustAccessComponentArgsShape {
     address?: string;
     host?: string;
     description: string;
+  }[];
+  /** 기본 목록에 추가할 suffix — WARP 리졸버 대신 기기 원래 DNS(또는 dnsServers)로 보낸다 */
+  localDomainFallbacks: {
+    suffix: string;
+    description?: string;
+    dnsServers?: string[];
   }[];
   providers: {
     cloudflare: cloudflare.Provider;
@@ -114,6 +140,25 @@ export const ZeroTrustAccessComponent = utils.functions.defineComponent(
       {
         accountId: args.accountId,
         includes: args.splitTunnelIncludes,
+      },
+      providerOpts,
+    );
+
+    new cloudflare.ZeroTrustDeviceDefaultProfileLocalDomainFallback(
+      `${resourceName}-localDomainFallback`,
+      {
+        accountId: args.accountId,
+        domains: pulumi.output(args.localDomainFallbacks).apply(extras =>
+          _.uniqBy(
+            [
+              ...DEFAULT_LOCAL_DOMAIN_FALLBACK_SUFFIXES.map(suffix => ({
+                suffix,
+              })),
+              ...extras,
+            ],
+            domain => domain.suffix,
+          ),
+        ),
       },
       providerOpts,
     );

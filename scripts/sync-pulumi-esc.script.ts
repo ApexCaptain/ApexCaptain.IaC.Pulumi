@@ -138,6 +138,13 @@ async function syncPulumiEsc(): Promise<void> {
           .WORKSTATION_ADMINISTRATOR_EMAIL!!.split(',')
           .map(email => email.trim())
           .filter(email => email.length > 0),
+        localDomainFallbacks: (
+          process.env.CLOUDFLARE_ZERO_TRUST_LOCAL_DOMAIN_FALLBACKS ?? ''
+        )
+          .split(',')
+          .map(suffix => suffix.trim())
+          .filter(suffix => suffix.length > 0)
+          .map(suffix => ({ suffix })),
       },
     },
     {

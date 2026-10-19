@@ -65,6 +65,7 @@ export interface PvcSnapshotArchiveTargetShape {
   pvcName: string;
   /**
    * 클론 PVC override. 생략 시 원본 PVC의 storageClass·capacity(없으면 requests)를 따름.
+   * 원본이 Retain StorageClass면 Delete 클래스를 지정한다. 상속하면 cleanup 후에도 clone PV·볼륨이 남는다.
    */
   clone?: {
     storageClassName?: string;

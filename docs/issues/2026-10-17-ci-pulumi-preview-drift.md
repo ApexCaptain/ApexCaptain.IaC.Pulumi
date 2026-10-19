@@ -7,7 +7,7 @@
 | **영역** | `.github/workflows/`, `projenrc/workflows/`, Pulumi ESC, workstation 클러스터 |
 | **관련 코드** | `projenrc/workflows/pr-validation.ts`, `.github/workflows/pr-validation.yml`, `infra/*/package.json` (`pulumi:preview`) |
 | **선행** | [PR CI 검증 파이프라인](../resolved/2026-09-11-pr-ci-validation-pipeline.md) — `pulumi preview`·OIDC를 범위 밖으로 명시 |
-| **상태** | **조사중** — 클러스터 도달 경로·자격 증명 방식 결정 전 |
+| **상태** | **보류** — 2026-10-19 사용자 결정. 재개 시 클러스터 도달 경로·자격 증명 방식부터 결정 |
 
 ## 배경
 
@@ -56,3 +56,4 @@
 | 일시 | 내용 |
 |------|------|
 | 2026-10-17 | 등록. 프로젝트 평가에서 도출 |
+| 2026-10-19 | 보류. 재개 시 후보 추가 검토: Cloudflare Zero Trust Tunnel(`f087b2a`, `k8s-workstation-tools`)로 K8s API 도달 가능 여부 (미확인) |

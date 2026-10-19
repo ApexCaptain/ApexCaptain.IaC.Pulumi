@@ -212,6 +212,12 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
               {
                 id: 'config',
                 pvcName: jellyfinHelmChart.output.pvcs.config.name,
+                // 원본이 longhorn-ssd-retain — 상속하면 clone PV가 Released로 남는다
+                clone: {
+                  storageClassName:
+                    k8sWorkstationSystemContract.output.storageClasses
+                      .longhornSsd,
+                },
                 schedule: {
                   cron: CronTime.everyDayAt(12),
                   timezone: Timezone['Asia/Seoul'],
