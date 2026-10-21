@@ -128,7 +128,7 @@ const rootProject = new typescript.TypeScriptProject(
         },
         pullRequestTitle: 'Upgrade Node Deps',
         workflow: true,
-        // rulesync는 메이저가 매일 바뀐다. 업그레이드는 docs/issues/2026-10-17-ai-agent-config-rulesync.md 후속으로 수동 진행.
+        // rulesync는 메이저가 매일 바뀐다. 업그레이드는 docs/resolved/2026-10-17-ai-agent-config-rulesync.md 후속으로 수동 진행.
         exclude: ['rulesync'],
       },
       prettier: true,

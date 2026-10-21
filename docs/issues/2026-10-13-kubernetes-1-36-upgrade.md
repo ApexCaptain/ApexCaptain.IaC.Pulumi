@@ -84,17 +84,91 @@ Kubernetes 1.35 일정 ([릴리스 페이지](https://kubernetes.io/releases/1.3
 
 ### Phase 0 — 사전 점검 (클러스터 변경 없음)
 
-- [ ] 하드 백업 최신 여부 확인. Longhorn 이슈와 마찬가지로 replica 1 + Longhorn 백업 없음 상태이므로 사용자가 직접 수행
-- [ ] etcd 스냅샷 수동 생성 후 호스트 밖 보관 (경로·복원 절차 확인)
-- [ ] 호환성 확인 (릴리스 노트 대조, 결과를 이 문서에 표로 추가):
-  Cilium 1.20.2, Longhorn 1.13.0, Istio 1.30.x, metrics-server 0.9.0, Vault Secrets Operator, nvidia gpu-operator, Argo Rollouts, VPA, cert-manager, Coder
-- [ ] 1.36 deprecation·removal 항목 대조 (feature gate, kubelet 플래그, `kubeadm` 설정 API). Pluto 통과는 API 버전만 본다
-- [ ] kube-vip·containerd·cgroup(v2)·swap 설정이 Kubespray 1.36 기본값과 충돌하는지 확인 (`kubelet_fail_cgroup_v1`, `kubelet_fail_swap_on`)
-- [ ] 현재 이미지·버전 기록 (`kubectl get pods -A -o wide`, 노드 describe)
-- [ ] 시간대 선택: 사용 적은 시간. Jellyfin 스트리밍·qBit·Coder 사용자에게 사전 공지
-- [ ] drain 정책 결정 (아래)
+- [x] 하드 백업 최신 여부 확인. Longhorn 이슈와 마찬가지로 replica 1 + Longhorn 백업 없음 상태이므로 사용자가 직접 수행 — 2026-10-20 사용자가 주요 데이터 백업 완료
+- [x] etcd 스냅샷 수동 생성 — 2026-10-20 17:56 KST. 아래 "etcd 스냅샷"
+- [x] 스냅샷을 호스트 밖으로 복사 (다른 PC·pCloud 등, 사용자 수행) — 2026-10-20 사용자 완료. devcontainer가 `workstation-0` 위에서 돌아서 `./tmp`는 같은 디스크다
+- [ ] Phase 1 당일 착수 직전에 스냅샷을 다시 뜬다 (10-20 스냅샷은 그때 10일 지난 상태)
+- [x] 호환성 확인 (릴리스 노트 대조, 결과를 이 문서에 표로 추가) — 아래 "호환성 표"
+- [x] 1.36 deprecation·removal 항목 대조 (feature gate, kubelet 플래그, `kubeadm` 설정 API). Pluto 통과는 API 버전만 본다 — 아래 "1.36 deprecation·removal 대조"
+- [x] kube-vip·containerd·cgroup(v2)·swap 설정이 Kubespray 1.36 기본값과 충돌하는지 확인 (`kubelet_fail_cgroup_v1`, `kubelet_fail_swap_on`) — 아래 "노드·Kubespray 설정 대조"
+- [x] 현재 이미지·버전 기록 (`kubectl get pods -A -o wide`, 노드 describe) — 스냅샷과 같은 디렉터리. 기록 시점에 Running·Completed가 아닌 Pod 없음
+- [x] 시간대 선택: 사용 적은 시간. 사용자 1인 클러스터라 사전 공지 불필요 (2026-10-20 결정) — 해당 없음. 당일 사용자가 편한 시간에 진행
+- [x] drain 정책 결정 (아래) — 2026-10-20 확정
+- [x] 실행 위치 결정 — 2026-10-20 메인 PC로 확정 (아래 "실행 위치")
+- [ ] 메인 PC 실행 환경 준비 (아래 "실행 위치"의 준비 항목)
 
-### drain 정책 (결정 필요)
+### etcd 스냅샷
+
+| 항목 | 값 |
+|---|---|
+| 위치 | `tmp/etcd-snapshot/pre-1.35.9-20261020-175649/` (gitignore. Secret이 평문으로 들어 있으니 커밋·공유 금지) |
+| 파일 | `etcd.db`, `SNAPSHOT.txt`(sha256·리비전), `cluster-state.txt`, `images.txt`, `node-describe.txt` |
+| 검증 | 노드의 `etcdutl snapshot status`: revision 82072356, keys 2804, 170 MB. 노드 원본과 sha256 일치 |
+| etcd | 3.6.15, Kubespray `etcd_deployment_type: host` (systemd `etcd.service`, 설정은 `/etc/etcd.env`) |
+
+생성 방법 (노드에서, sudo 비밀번호 불필요):
+
+```bash
+sudo /usr/local/bin/etcdctl.sh snapshot save /tmp/etcd-<ts>.db   # Kubespray 래퍼, 인증서 경로 포함
+/usr/local/bin/etcdutl snapshot status /tmp/etcd-<ts>.db -w table
+```
+
+devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_0_EXTERNAL_SSH_PORT`를 쓴다 (22번은 열려 있지 않다).
+
+복원 절차(단일 노드, 큰 줄기만): `etcd.service`와 kubelet 중지 → 기존 data dir(`/etc/etcd.env`의 `ETCD_DATA_DIR`) 이동 → `etcdutl snapshot restore etcd.db --data-dir <ETCD_DATA_DIR> --name <etcd_member_name> --initial-cluster <name>=https://<ip>:2380 --initial-advertise-peer-urls https://<ip>:2380` → 소유권 맞춤 → etcd, kubelet 기동. 실제 복원은 아직 리허설하지 않았다. Phase 2 전에 한 번 문서로 다시 확인한다 (위 "롤백").
+
+### 호환성 표 (2026-10-20 확인)
+
+버전은 클러스터에서 실제 실행 중인 이미지 기준이다 (차트 버전은 `common/utils/src/configs/versions.config.ts`). Phase 1(1.35.9)은 모든 항목의 지원 범위 안이다. 아래 판정은 Phase 2(1.36) 기준이다.
+
+| 컴포넌트 | 실행 버전 | 1.36 | 근거 |
+|---|---|---|---|
+| Cilium | v1.20.2 (Kubespray) | ✅ | [v1.20 compatibility](https://docs.cilium.io/en/v1.20/network/kubernetes/compatibility/): 1.33–1.36 e2e 테스트 |
+| Longhorn | v1.13.0 | ✅ | [1.13.0 best practices](https://longhorn.io/docs/1.13.0/best-practices/): 1.33–1.36 테스트. 최소 버전은 1.34 (CSI provisioner v6.3.0) |
+| Istio | 1.30.6 | ✅ | [supported releases](https://istio.io/latest/docs/releases/supported-releases/): 1.32–1.36 지원. 1.30 EOL은 2026-12 예상 |
+| metrics-server | v0.9.0 (Kubespray) | ✅ | [README 호환표](https://github.com/kubernetes-sigs/metrics-server): 0.9.x는 1.34 이상 |
+| Vault Secrets Operator | 1.6.0 | ✅ | [CHANGELOG 1.6.0](https://github.com/hashicorp/vault-secrets-operator/blob/main/CHANGELOG.md): 1.33–1.37 테스트 |
+| NVIDIA GPU Operator | v26.7.2 | ✅ | [platform support](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html): Ubuntu 26.04 베어메탈에서 1.33–1.37 |
+| Argo Rollouts | v1.10.1 | ⚠️ | v1.10.1 태그의 e2e 매트릭스(`.github/workflows/testing.yaml`)는 1.32–1.35. main은 1.34–1.37을 테스트한다. Phase 2 전에 1.36을 테스트한 릴리스가 나왔는지 다시 보고 있으면 먼저 올린다 |
+| VPA | recommender 1.7.1 | ✅ | [installation.md](https://github.com/kubernetes/autoscaler/blob/master/vertical-pod-autoscaler/docs/installation.md): 1.7.x는 1.35–1.37 |
+| cert-manager | v1.21.2 | ✅ | [supported releases](https://cert-manager.io/docs/releases/): 1.33–1.36 지원·테스트 |
+| CloudNativePG | 1.30.1 | ✅ | [supported releases](https://cloudnative-pg.io/docs/devel/supported_releases): 1.30.x는 1.34–1.36 |
+| Coder | v2.38.0 | ✅ | [K8s 설치 문서](https://coder.com/docs/install/kubernetes): 1.19 이상, 상한 없음. 실제 제약은 Sysbox |
+| Sysbox | 호스트 설치 | ❌ | 1.32–1.35만 지원 (위 "Sysbox로 인한 1.36 제동") |
+| kube-vip | v1.0.3 (Kubespray static Pod) | ⚠️ | 공식 K8s 호환표 없음. Kubespray `release-2.32`가 1.36.5까지 이 버전을 기본값으로 쓴다. Phase 2 직후 VIP 응답을 확인한다 |
+| CoreDNS | Kubespray 관리 | ✅ | Kubespray `coredns_supported_versions`가 1.36에서 1.14.2로 자동 전환 |
+| 기타 (Reloader v1.4.22, redis-operator v0.27.0, OTel operator 0.161.0, snapshot-controller v8.7.0, Authentik, 모니터링 차트 등) | — | ➖ | 공식 호환표는 확인하지 않았다. Pluto는 1.36 기준 deprecated·removed API 없음. 공통 검증 체크리스트로 확인한다 |
+
+결론: Phase 1에는 막는 항목이 없다. Phase 2를 막는 것은 기존대로 Sysbox뿐이다. Argo Rollouts와 kube-vip은 막지는 않지만 Phase 2 전후에 다시 확인한다.
+
+### 1.36 deprecation·removal 대조 (2026-10-20 확인)
+
+근거는 [CHANGELOG-1.36.md](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.36.md)의 "Changelog since v1.35.0"이다. Phase 2에만 해당한다. Sysbox 때문에 Phase 2가 2027-01 이후로 밀리면 그때 1.36.x 패치 노트를 다시 본다.
+
+| 변경 | 이 클러스터 | 판정 |
+|---|---|---|
+| Service `.spec.externalIPs` deprecated (경고만, 제거 아님) | `istio-system/istio-ingressgateway`가 사용 (`infra/k8s-workstation-system/src/components/istio/istio.helm-chart.component.ts`의 `externalIPs: [args.workstationIpV4Address]`) | ⚠️ 1.36에서는 경고만 나온다. 제거 시점이 정해지면 LoadBalancer IP(Cilium L2, `loadBalancerIPs: true`)만으로 충분한지 검토하는 후속 이슈로 분리 |
+| `gitRepo` volume 플러그인 기본 비활성 | 사용 Pod 0개 | ✅ |
+| kubeadm flex-volume 지원 제거, in-tree Portworx 제거 | flexVolume PV 0개, Longhorn CSI 사용 | ✅ |
+| 제거된 feature gate (`WatchFromStorageWithoutResourceVersion`, `HonorPVReclaimPolicy`, kubeadm `ControlPlaneKubeletLocalMode` 등) | kubelet `featureGates` 없음, apiserver `--feature-gates` 없음, 인벤토리에 feature gate 오버라이드 없음 | ✅ |
+| kubelet deprecated 설정 플래그 제거 | 1.37로 연기됨 | ✅ (1.37 이슈에서 다시 확인) |
+| kubeadm: etcd < 3.6 미지원 | Kubespray가 1.35·1.36 모두 etcd 3.6.x (`etcd_supported_versions`, host 배포) | ✅ |
+| kubeadm 설정 API | Kubespray 템플릿이 이미 `kubeadm.k8s.io/v1beta4` | ✅ |
+| `StrictIPCIDRValidation` 기본 활성 (IP·CIDR 앞자리 0 거부) | 인벤토리 CIDR·IP는 env 주입, 앞자리 0 표기 없음 | ✅ |
+| 메트릭 이름 변경·제거 (`volume_operation_total_errors` → `volume_operation_errors_total`, cadvisor `container_cpu_load_average_10s` 등) | `infra`·`common`에서 해당 메트릭 참조 없음 | ✅ |
+| `scheduling.k8s.io/v1alpha1` Workload, `SnapshotMetadataService` v1alpha1, `WebhookAdmissionConfiguration` v1alpha1 제거 | 사용 안 함 (Pluto 1.36 통과) | ✅ |
+
+### 노드·Kubespray 설정 대조 (2026-10-20 확인)
+
+| 항목 | 실측 | Kubespray 기본값 | 판정 |
+|---|---|---|---|
+| cgroup | `/sys/fs/cgroup`이 `cgroup2fs`, kubelet `cgroupDriver: systemd` | `kubelet_fail_cgroup_v1: true` | ✅ v2라 충돌 없음 |
+| swap | kubelet `failSwapOn: true`로 정상 기동 중 (swap 꺼짐) | `kubelet_fail_swap_on: true` | ✅ |
+| containerd | 2.3.5 | `release-2.32` 체크섬 최신값 2.3.5 | ✅ 업그레이드 중 교체 없음 |
+| kube-vip | v1.0.3 static Pod | `kube_vip_version: 1.0.3` | ✅ 버전 변화 없음 |
+| sysbox·nvidia 런타임 | `containerd_additional_runtimes`로 등록 (`SystemdCgroup: 'true'`) | — | ✅ Kubespray가 containerd 설정을 다시 써도 인벤토리 값으로 유지 |
+
+### drain 정책 (2026-10-20 확정)
 
 | 선택지 | 내용 | 비고 |
 |---|---|---|
@@ -104,12 +178,48 @@ Kubernetes 1.35 일정 ([릴리스 페이지](https://kubernetes.io/releases/1.3
 
 **추천:** Phase 1에서 drain 생략 + 쓰기 큰 워크로드 scale 0으로 시작해 영향 관찰. 확정은 Phase 0 마지막에.
 
+**결정 (2026-10-20):** drain 생략(`-e drain_nodes=false`) + 아래 선행 정지.
+
+| 대상 | 방법 | 이유 |
+|---|---|---|
+| Coder 워크스페이스 | Coder UI 또는 `coder stop <workspace>`. `kubectl scale`은 Coder 상태와 어긋나므로 쓰지 않는다 | Longhorn PVC 3개(data·docker·home)에 쓰기가 많다. `coder` Deployment(컨트롤 플레인)만 0으로 내리면 워크스페이스 Pod는 그대로 돈다 |
+| qBittorrent | `kubectl scale --replicas=0` | PVC 4개, 다운로드 쓰기 |
+| Coder 서버·postgres | 유지 | 쓰기가 적고, 워크스페이스 stop·start에 필요 |
+
+### 실행 위치 (2026-10-20 결정: 메인 PC)
+
+평소 작업 세션은 Coder 워크스페이스(Sysbox) 안의 devcontainer다. 여기서 `kubespray:upgradeCluster`를 돌리면 kubelet·containerd 재시작이나 워크스페이스 정지 때 Ansible도 같이 죽고, 클러스터가 반쯤 업그레이드된 상태로 남을 수 있다. 위의 선행 정지 대상에 워크스페이스가 들어가므로 같은 세션에서는 실행할 수 없다.
+
+| 안 | 내용 | 판단 |
+|---|---|---|
+| **A (선택)** | 메인 PC에서 Ansible 실행 | 클러스터와 완전히 분리 |
+| B | 노드 호스트에 SSH 후 호스트 tmux에서 실행 | 호스트에 Ansible·레포 필요 |
+| C | 워크스페이스 devcontainer에서 실행 | 워크스페이스가 흔들리면 중단. 배제 |
+
+메인 PC 준비 (당일 전에 완료):
+
+- [ ] 레포 클론 + `git submodule update --init ansible/third_party/kubespray` (현재 커밋 `867694464`)
+- [ ] Python venv에 `requirements.txt` 설치 (ansible 12.3.0, ansible-core 2.19.x)
+- [ ] devcontainer `.env`의 `WORKSTATION_*` 변수와 SSH 키(`WORKSTATION_SSH_PRIVATE_KEY_FILE_ABSOLUTE_PATH`)를 메인 PC로 옮겨서 셸 env로 로드
+- [ ] SSH 접속 확인: `WORKSTATION_DOMAIN_IPTIME` + `WORKSTATION_BOOTSTRAP_NODE_0_EXTERNAL_SSH_PORT` (22번은 막혀 있음). 사내망에서 DDNS hairpin이 안 되면 `ansible_host`를 노드 내부 IP로 덮어쓴다
+- [ ] 리허설: `ansible -i ansible/workstation/inventory/inventory.ini all -m ping -b`
+- [ ] `kubectl` (kubeconfig)도 메인 PC에서 동작하는지 확인. 업그레이드 직후 검증을 워크스페이스 재기동 전에 해야 한다
+
 ### Phase 1 — 1.35.4 → 1.35.9 (패치, 절차 리허설)
 
 1. `k8s-cluster.yml`의 `kube_version`을 `1.35.9`로 변경
 2. `pnpm kubespray:upgradeCluster` 실행 (필요 시 `-e drain_nodes=false`)
 3. 검증 (아래 공통 체크리스트)
 4. 1~3일 관찰. 문제 없으면 Phase 2
+
+2026-10-20 확정 절차 (위 1~4를 대체하지 않고 구체화):
+
+1. 워크스페이스 세션에서 `kube_version: 1.35.9` 변경을 커밋·푸시 (메인 PC가 같은 커밋을 쓰도록)
+2. 메인 PC에서 etcd 스냅샷 재생성 → 호스트 밖 보관
+3. Coder 워크스페이스 stop, qBittorrent scale 0
+4. 메인 PC에서 `pnpm kubespray:upgradeCluster -e drain_nodes=false` (pnpm이 없으면 `package.json`의 같은 `ansible-playbook` 명령)
+5. 메인 PC `kubectl`로 공통 체크리스트 중 노드·kube-system·Cilium·Longhorn 먼저 확인
+6. qBittorrent scale 1, Coder 워크스페이스 start → 나머지 체크리스트 (Sysbox 워크스페이스 기동 포함)
 
 ### Phase 2 — 1.35.9 → 1.36.5 (minor)
 
@@ -167,3 +277,9 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 | 2026-10-13 | Phase 1 착수일을 2026-10-30으로 확정. 그 전에 Phase 0(백업·etcd 스냅샷·호환성 표·drain 정책) 완료 |
 | 2026-10-13 | Sysbox 공식 지원은 K8s 1.32~1.35뿐 ([install-k8s.md](https://github.com/nestybox/sysbox/blob/master/docs/user-guide/install-k8s.md)). 1.36 요청 [#1036](https://github.com/nestybox/sysbox/issues/1036)은 open. Phase 2 착수 금지. K8s 1.35는 2026-12-28 maintenance, EOL 2027-02-28. 2027-01-15까지 1.36 지원이 없으면 Sysbox를 버리고 다른 런타임으로 이전 |
 | 2026-10-15 | Longhorn 볼륨 엔진 `v1.13.0`은 10-13 일괄 완료로 종료. 수요일 분할 일정·Phase 1 겹침 회피 문구 제거. Jellyfin VolumeSnapshot clone PVC는 pCloud 백업 이슈와 분리 |
+| 2026-10-20 | Phase 0 진행. 사용자 하드 백업 완료, 1인 클러스터라 사전 공지 생략. 호환성 표 작성: Phase 1 차단 없음, Phase 2 차단은 Sysbox뿐. Argo Rollouts v1.10.1(e2e 1.35까지)·kube-vip은 Phase 2 전후 재확인 |
+| 2026-10-20 | 1.36 deprecation·removal 대조, 노드·Kubespray 설정 대조 완료. 차단 항목 없음. istio-ingressgateway의 Service `externalIPs`는 1.36에서 경고만 나오며, 제거 일정이 나오면 후속 이슈로 분리 |
+| 2026-10-20 | etcd 스냅샷 생성·검증(revision 82072356), 현재 클러스터 상태·이미지 기록. 저장 위치는 `tmp/etcd-snapshot/` (같은 디스크라 호스트 밖 복사는 사용자 몫). Phase 1 당일 재스냅샷 예정 |
+| 2026-10-20 | drain 정책 확정(drain 생략 + Coder 워크스페이스 stop + qBit scale 0). 작업 세션이 Coder 워크스페이스 안의 devcontainer라서 Ansible 실행 위치를 메인 PC로 확정. 메인 PC 준비 항목 추가. 작업 시간대는 미정 |
+| 2026-10-20 | 작업 시간대 항목은 1인 클러스터라 해당 없음으로 정리. 남은 Phase 0 항목은 메인 PC 준비, 당일 etcd 재스냅샷 |
+| 2026-10-20 | 10-20 etcd 스냅샷 호스트 밖 복사 완료 (사용자) |

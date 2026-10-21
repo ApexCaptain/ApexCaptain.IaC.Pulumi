@@ -5,7 +5,8 @@
 | **등록일** | 2026-10-17 |
 | **영역** | `.cursor/`, `.agents/skills/`, `.projenrc.ts` (MCP·Cursor 설정), `src/constants.ts`, `src/interfaces/`, `scripts/`, `projenrc/workflows/pr-validation.ts` |
 | **관련 문서** | [설계 스펙](../superpowers/specs/2026-10-17-ai-agent-config-rulesync-design.md), [구현 플랜](../superpowers/plans/2026-10-17-ai-agent-config-rulesync.md) |
-| **상태** | **적용** — 마이그레이션·검증 완료. 후속(버전 재검토·중립화 등)은 아래·schedule |
+| **상태** | **해결** — 마이그레이션·검증 완료. 후속 항목은 미착수로 기록만 남김 |
+| **해결일** | 2026-10-21 |
 
 ## 배경
 
@@ -42,8 +43,8 @@
 - [x] `pnpm projen` 한 번으로 Cursor·Claude 설정이 생성되고, `pnpm ai:check`가 exit 0
 - [x] Cursor `.mdc`가 baseline과 의미상 동일하다(검증 스크립트 OK). 예외는 `use-matching-skills` 본문 수정과 신규 `generated-agent-config`·`use-installed-turbo-docs`
 - [x] MCP probe: `.cursor/mcp.json --cursor`와 `.mcp.json` 모두 5/5 OK
-- [x] Claude Code에서 rules 8개 always 로드, skills 16개, MCP 5개 연결 (`claude mcp list`, `skills list`, rebuild 후 확인)
-- [x] Cursor: rule 8·skill 16·MCP 5 (`alwaysApply`, probe, K8s/OCI/Pulumi 실호출). Settings skill 중복 표시는 미관측(동작 문제 없음)
+- [x] Claude Code에서 rules 9개 always 로드, skills 16개, MCP 5개 연결 (`claude mcp list`, `skills list`, rebuild 후 확인)
+- [x] Cursor: rule 9·skill 16·MCP 5 (`alwaysApply`, probe, K8s/OCI/Pulumi 실호출). Settings skill 중복 표시는 미관측(동작 문제 없음)
 - [x] PR Validate에 `pnpm ai:doctor` 단계가 있다
 - [x] turbo 실행 후 `AGENTS.md`가 다시 생기지 않는다 (`agentGuidance: false`)
 
@@ -65,3 +66,4 @@
 | 2026-10-17 | `feat/ai-agent-config-rulesync`에서 플랜 Task 0~7 적용. 자동 검증 통과 |
 | 2026-10-17 | rebuild 후 Task 8 검증(MCP·rules·skills). 수용 기준 충족, **적용** 상태로 정리 |
 | 2026-10-17 | turbo가 만든 untracked `AGENTS.md` 발견. `agentGuidance: false` + rule `use-installed-turbo-docs` 추가(rules 9개), `AGENTS.md` 삭제. `pnpm projen` 후 재생성 없음, `ai:check`·`ai:doctor` OK |
+| 2026-10-21 | 재점검: `ai:check`·`ai:doctor` exit 0, rules 9·skills 16·MCP 5, `AGENTS.md` 미생성. 사용자 요청으로 **해결** 처리, `docs/resolved` 이동. 후속(버전 재검토 등)은 필요 시 새 이슈로 |

@@ -30,13 +30,13 @@ export const helmChartVersions = Object.freeze({
   reloader: '2.2.18',
   argoRollouts: '2.43.8',
   argoCd: '10.10.5',
-  opentelemetryOperator: '0.126.0',
+  opentelemetryOperator: '0.126.1',
   victoriaMetrics: '0.49.0',
-  loki: '18.17.0',
+  loki: '19.0.0',
   tempo: '3.2.0',
   grafana: '14.0.1',
   jellyfin: '3.2.0',
-  coder: '2.38.0',
+  coder: '2.38.1',
   vikunja: '0.16.0',
 } as const);
 
