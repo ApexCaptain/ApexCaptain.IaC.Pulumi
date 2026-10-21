@@ -17,7 +17,6 @@ src/
 └──   adapter/
 └──     index.ts
 └──     sftp-v3-issuer-job.template.ts
-└──     sftp.v1.component.ts
 └──     sftp.v3.component.ts
 └──   backup/
 └──     index.ts

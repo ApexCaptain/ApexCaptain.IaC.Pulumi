@@ -17,7 +17,7 @@ qBit·Jellyfin SFTP를 `SftpV3Component`로 올렸다. 와이어는 생 Ed25519.
 
 v2(SSH cert + 하이브리드 KEX only)는 RaiDrive가 못 붙여서 버렸다. 코드·테스트·라이브 오브젝트 삭제. 플랫폼 `ssh-user-ca` / `ssh-host-ca`와 System identity group은 키젠·사람 KV read용으로 남김.
 
-`SftpV1Component` 코드·유닛 테스트는 남아 있다. 호출자는 없다. 삭제는 [10월 말 관찰 후](../issues/2026-09-10-sftp-v1-removal.md)로 보류.
+`SftpV1Component` 코드·유닛 테스트는 남아 있다. 호출자는 없다. 삭제는 [후속](2026-09-10-sftp-v1-removal.md)으로 분리했고, 2026-10-21 삭제·해결.
 
 이 파일은 아래 여섯 개를 합친 아카이브다.
 
@@ -193,7 +193,7 @@ KV v2는 필드 ACL이 없다. host와 user를 경로로 나눈다.
 
 ## 범위 밖 (후속, 이 파일에 안 닫음)
 
-- `SftpV1Component` 코드·테스트 삭제 — [후속](../issues/2026-09-10-sftp-v1-removal.md) (2026-10-31 이후)
+- `SftpV1Component` 코드·테스트 삭제 — [해결](2026-09-10-sftp-v1-removal.md) (2026-10-21)
 - 호스트키 회전 런북
 - CA 마운트 제거 (아직 키젠에 필요)
 - OpenSSH 기본에서 고전 KEX까지 빼는 재고정
