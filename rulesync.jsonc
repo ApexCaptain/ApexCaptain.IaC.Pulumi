@@ -4,12 +4,14 @@
     "cursor": [
       "rules",
       "mcp",
-      "skills"
+      "skills",
+      "hooks"
     ],
     "claudecode": [
       "rules",
       "mcp",
-      "skills"
+      "skills",
+      "hooks"
     ]
   },
   "outputRoots": [

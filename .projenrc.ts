@@ -198,8 +198,10 @@ const rootProject = new typescript.TypeScriptProject(
         '/.cursor/rules/',
         '/.cursor/skills/',
         '/.cursor/mcp.json',
+        '/.cursor/hooks.json',
         '/.claude/rules/',
         '/.claude/skills/',
+        '/.claude/settings.json',
         '/.claude/settings.local.json',
         '/.mcp.json',
         '/.rulesync.local/',
@@ -216,6 +218,7 @@ const rootProject = new typescript.TypeScriptProject(
         `/${src.constants.paths.dirs.ventoyUserDataDir}`,
         `/${src.constants.paths.dirs.venvDir}`,
         `/${src.constants.paths.dirs.ociConfigDir}`,
+        `/${src.constants.paths.dirs.reposDir}`,
       ],
       deps: ['chalk', 'axios', 'semver', 'flat', 'flatley'],
       devDeps: [
@@ -982,8 +985,8 @@ void (async () => {
 
   const rulesyncConfig: src.interfaces.RulesyncConfig = {
     targets: {
-      cursor: ['rules', 'mcp', 'skills'],
-      claudecode: ['rules', 'mcp', 'skills'],
+      cursor: ['rules', 'mcp', 'skills', 'hooks'],
+      claudecode: ['rules', 'mcp', 'skills', 'hooks'],
     },
     outputRoots: ['.'],
     delete: true,

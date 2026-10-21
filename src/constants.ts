@@ -37,6 +37,8 @@ export const constants = (() => {
   const venvDir = process.env.VIRTUAL_ENV_DIR_NAME || '.venv';
   const keysDir = process.env.KEYS_DIR_NAME || '.keys';
   const ociConfigDir = process.env.OCI_CONFIG_DIR_NAME || '.oci';
+  // 형제 레포 로컬 클론 (gitignore). bootstrap-local-env가 clone/pull
+  const reposDir = 'repos';
 
   // Files
   const repomixOutputXmlFile = 'apexcaptain-iac-repomix-output.xml';
@@ -108,6 +110,7 @@ export const constants = (() => {
       githubGeneratedDir,
       githubGeneratedReadmeDir,
       ociConfigDir,
+      reposDir,
     },
     files: {
       repomixOutputXmlFile,
