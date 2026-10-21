@@ -65,7 +65,7 @@ A. 1단계로 SSOT 파일 도입 + 불일치 3건(Vault) 정리, 2단계로 Reno
 
 **버전 올리기:** SSOT 값 수정 → `k8s-workstation-system` / `apps` / `tools` 각각 `pulumi preview --stack prod` → `pulumi up --stack prod`. `istioVersion`을 올렸으면 Task 4(플랜)처럼 sidecar 워크로드 재시작.
 
-**아직 SSOT로 안 옮긴 floating 태그:** `busybox`, `qmcgaw/gluetun:v3`, `postgres:18-alpine`, `serjs/go-socks5-proxy:latest`, SftpV1 `atmoz/sftp:alpine` 등 (태그 고정은 범위 밖).
+**아직 SSOT로 안 옮긴 floating 태그:** `busybox`, `qmcgaw/gluetun:v3`, `postgres:18-alpine`, `serjs/go-socks5-proxy:latest` 등 (태그 고정은 범위 밖). SFTP 이미지는 v3가 `containerImages.atmozSftp` digest 핀을 쓴다. v1은 2026-10-21 삭제.
 
 **Task 4에서 재시작 안 한 Pod (Job/CronJob):**
 

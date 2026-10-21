@@ -37,6 +37,8 @@ export const constants = (() => {
   const venvDir = process.env.VIRTUAL_ENV_DIR_NAME || '.venv';
   const keysDir = process.env.KEYS_DIR_NAME || '.keys';
   const ociConfigDir = process.env.OCI_CONFIG_DIR_NAME || '.oci';
+  // 형제 레포 로컬 클론 (gitignore). bootstrap-local-env가 clone/pull
+  const reposDir = 'repos';
 
   // Files
   const repomixOutputXmlFile = 'apexcaptain-iac-repomix-output.xml';
@@ -45,7 +47,6 @@ export const constants = (() => {
     process.env.NOVA_CONFIG_FILE_NAME || '.nova-config.json';
   const rulesyncConfigFile = 'rulesync.jsonc';
   const rulesyncMcpFile = path.join(rulesyncDir, 'mcp.jsonc');
-  const cursorSettingsJsonFile = path.join(cursorDir, 'settings.json');
   const workstationSshPrivateKeyFile = path.join(
     keysDir,
     process.env.WORKSTATION_SSH_PRIVATE_KEY_FILE_NAME || 'workstation.key',
@@ -108,6 +109,7 @@ export const constants = (() => {
       githubGeneratedDir,
       githubGeneratedReadmeDir,
       ociConfigDir,
+      reposDir,
     },
     files: {
       repomixOutputXmlFile,
@@ -115,7 +117,6 @@ export const constants = (() => {
       novaConfigFile,
       rulesyncConfigFile,
       rulesyncMcpFile,
-      cursorSettingsJsonFile,
       workstationSshPrivateKeyFile,
       ansibleWorkstationInventoryFile,
       githubGeneratedCommitMessageFile,

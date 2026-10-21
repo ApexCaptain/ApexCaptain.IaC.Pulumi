@@ -198,8 +198,10 @@ const rootProject = new typescript.TypeScriptProject(
         '/.cursor/rules/',
         '/.cursor/skills/',
         '/.cursor/mcp.json',
+        '/.cursor/hooks.json',
         '/.claude/rules/',
         '/.claude/skills/',
+        '/.claude/settings.json',
         '/.claude/settings.local.json',
         '/.mcp.json',
         '/.rulesync.local/',
@@ -216,6 +218,7 @@ const rootProject = new typescript.TypeScriptProject(
         `/${src.constants.paths.dirs.ventoyUserDataDir}`,
         `/${src.constants.paths.dirs.venvDir}`,
         `/${src.constants.paths.dirs.ociConfigDir}`,
+        `/${src.constants.paths.dirs.reposDir}`,
       ],
       deps: ['chalk', 'axios', 'semver', 'flat', 'flatley'],
       devDeps: [
@@ -930,11 +933,6 @@ void (async () => {
   const targetMcpServers = (
     target: AiAgentTarget,
   ): src.interfaces.RulesyncMcpServers => ({
-    context7: remoteMcpProxyServer(target, 'https://mcp.context7.com/mcp', [
-      'CONTEXT7_API_KEY',
-      'CONTEXT7_API_KEY',
-      'raw',
-    ]),
     'cloudflare-api': remoteMcpProxyServer(
       target,
       'https://mcp.cloudflare.com/mcp',
@@ -982,8 +980,8 @@ void (async () => {
 
   const rulesyncConfig: src.interfaces.RulesyncConfig = {
     targets: {
-      cursor: ['rules', 'mcp', 'skills'],
-      claudecode: ['rules', 'mcp', 'skills'],
+      cursor: ['rules', 'mcp', 'skills', 'hooks'],
+      claudecode: ['rules', 'mcp', 'skills', 'hooks'],
     },
     outputRoots: ['.'],
     delete: true,
@@ -993,37 +991,6 @@ void (async () => {
     src.constants.paths.files.rulesyncConfigFile,
     {
       obj: rulesyncConfig,
-    },
-  );
-
-  // Cursor (plugins — 이식 불가, Cursor 전용 override)
-  const cursorSettingsConfig: src.interfaces.CursorSettings = {
-    plugins: {
-      superpowers: {
-        enabled: true,
-      },
-      orchestrate: {
-        enabled: true,
-      },
-      thermos: {
-        enabled: true,
-      },
-      'continual-learning': {
-        enabled: true,
-      },
-      'docs-canvas': {
-        enabled: true,
-      },
-      'pr-review-canvas': {
-        enabled: true,
-      },
-    },
-  };
-  const cursorSettingsFile = new JsonFile(
-    rootProject,
-    src.constants.paths.files.cursorSettingsJsonFile,
-    {
-      obj: cursorSettingsConfig,
     },
   );
 
