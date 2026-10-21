@@ -1,7 +1,7 @@
 # 클러스터 전역 K8s 설정
 # @Ref https://github.com/kubernetes-sigs/kubespray/blob/master/inventory/sample/group_vars/k8s_cluster/k8s-cluster.yml
 
-kube_version: 1.35.4
+kube_version: 1.35.9
 kube_owner: root
 
 # Pod / Service CIDR
