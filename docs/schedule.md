@@ -15,7 +15,6 @@
 | **2026-10-31 이후** | qBit·Jellyfin v3 라이브 확인 후 `SftpV1Component`·테스트·export 삭제. 그 전 삭제 없음 | [SftpV1 삭제](issues/2026-09-10-sftp-v1-removal.md) | 보류 |
 | **2026-11 초** | VPA·Goldilocks 재스냅샷 → 갭 재분석. 안전한 항목만 IaC 패치. jellyfin / qbittorrent / coder는 피크·upperBound 교차 확인 | [VPA 리소스 재조정](issues/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-05 1차 반영 완료 |
 | **2026-11 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
-| **2026-11 초** | rulesync `26.0.0` 고정 재검토. 2주 이상 지난 최신 버전 release notes → 플랜 Task 5 검증(verify·probe·`ai:check`) 통과 시에만 버전 올림 | [AI 에이전트 설정 rulesync](issues/2026-10-17-ai-agent-config-rulesync.md) | 적용 |
 | **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/2026-09-13-priority-class-resource-protection.md) | 보류 |
 | **2027-01-15** | Sysbox 지원 문서에 K8s 1.36이 있는지 확인. 없으면 Sysbox 폐기 후 다른 런타임으로 이전 (1.35 maintenance 2026-12-28, EOL 2027-02-28) | [Kubernetes 1.36 업그레이드](issues/2026-10-13-kubernetes-1-36-upgrade.md) | 보류 |
 
@@ -32,6 +31,7 @@
 | K8s 1.36 업그레이드 완료 | system contract phase 모듈 분해 (URN 불변) | [contract 분해](issues/2026-10-17-system-contract-split.md) | 보류 |
 | 컴포넌트 단위 **트리거 충족** (protect 해결 2026-10-17) / contract 단위는 contract 분해 후 | Pulumi mocks 컴포넌트 테스트 3개+ | [infra 테스트](issues/2026-10-17-infra-component-tests.md) | 보류 |
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/2026-10-17-dr-rebuild-runbook.md) | 보류 |
+| [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso) manifest에 Jellyfin 12 `targetAbi` 버전 등장 | 플러그인 호환 확인 → config 백업 → 차트 3.4.0+ (앱 12.x) 업그레이드 → 재스캔 → SSO 확인 | [Jellyfin 12 업그레이드](issues/2026-10-21-jellyfin-12-upgrade.md) | 보류 |
 ---
 
 ## 갱신
