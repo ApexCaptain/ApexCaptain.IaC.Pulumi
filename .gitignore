@@ -84,6 +84,5 @@ tmp
 !/repomix.config.json
 !/.rulesync/mcp.jsonc
 !/rulesync.jsonc
-!/.cursor/settings.json
 /ansible/workstation/inventory/inventory.ini
 !/.projenrc.ts

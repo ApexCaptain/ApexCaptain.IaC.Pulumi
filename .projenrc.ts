@@ -933,11 +933,6 @@ void (async () => {
   const targetMcpServers = (
     target: AiAgentTarget,
   ): src.interfaces.RulesyncMcpServers => ({
-    context7: remoteMcpProxyServer(target, 'https://mcp.context7.com/mcp', [
-      'CONTEXT7_API_KEY',
-      'CONTEXT7_API_KEY',
-      'raw',
-    ]),
     'cloudflare-api': remoteMcpProxyServer(
       target,
       'https://mcp.cloudflare.com/mcp',
@@ -996,37 +991,6 @@ void (async () => {
     src.constants.paths.files.rulesyncConfigFile,
     {
       obj: rulesyncConfig,
-    },
-  );
-
-  // Cursor (plugins — 이식 불가, Cursor 전용 override)
-  const cursorSettingsConfig: src.interfaces.CursorSettings = {
-    plugins: {
-      superpowers: {
-        enabled: true,
-      },
-      orchestrate: {
-        enabled: true,
-      },
-      thermos: {
-        enabled: true,
-      },
-      'continual-learning': {
-        enabled: true,
-      },
-      'docs-canvas': {
-        enabled: true,
-      },
-      'pr-review-canvas': {
-        enabled: true,
-      },
-    },
-  };
-  const cursorSettingsFile = new JsonFile(
-    rootProject,
-    src.constants.paths.files.cursorSettingsJsonFile,
-    {
-      obj: cursorSettingsConfig,
     },
   );
 
