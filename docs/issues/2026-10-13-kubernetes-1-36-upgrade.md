@@ -5,8 +5,8 @@
 | **등록일** | 2026-10-13 |
 | **영역** | `workstation-0` 단일 노드 (control-plane 겸 worker), Kubespray 기반 클러스터 |
 | **관련 코드** | `ansible/workstation/inventory/group_vars/k8s_cluster/k8s-cluster.yml` (`kube_version`), `ansible/third_party/kubespray` (submodule, `release-2.32` 브랜치), `package.json` (`kubespray:upgradeCluster`) |
-| **예정일** | Phase 1: **2026-10-30 (금)**. Phase 2: Sysbox가 K8s 1.36을 지원 문서에 넣기 전 착수 금지. **결정일 2027-01-15** — 그날까지 미지원이면 Sysbox를 버리고 다른 런타임으로 이전 |
-| **상태** | **보류** — 1.36은 [nestybox/sysbox](https://github.com/nestybox/sysbox) 미지원으로 제동. K8s 1.35 EOL은 2027-02-28 |
+| **예정일** | Phase 1: 2026-10-30 예정이었으나 **2026-10-21 앞당겨 완료** (v1.35.9). 관찰 종료 확인 **2026-10-24**. Phase 2: Sysbox가 K8s 1.36을 지원 문서에 넣기 전 착수 금지. **결정일 2027-01-15** — 그날까지 미지원이면 Sysbox를 버리고 다른 런타임으로 이전 |
+| **상태** | **보류** — Phase 1(1.35.9) 완료·검증, 관찰 중. 1.36은 [nestybox/sysbox](https://github.com/nestybox/sysbox) 미지원으로 제동. K8s 1.35 EOL은 2027-02-28 |
 
 ## 배경
 
@@ -87,7 +87,7 @@ Kubernetes 1.35 일정 ([릴리스 페이지](https://kubernetes.io/releases/1.3
 - [x] 하드 백업 최신 여부 확인. Longhorn 이슈와 마찬가지로 replica 1 + Longhorn 백업 없음 상태이므로 사용자가 직접 수행 — 2026-10-20 사용자가 주요 데이터 백업 완료
 - [x] etcd 스냅샷 수동 생성 — 2026-10-20 17:56 KST. 아래 "etcd 스냅샷"
 - [x] 스냅샷을 호스트 밖으로 복사 (다른 PC·pCloud 등, 사용자 수행) — 2026-10-20 사용자 완료. devcontainer가 `workstation-0` 위에서 돌아서 `./tmp`는 같은 디스크다
-- [ ] Phase 1 당일 착수 직전에 스냅샷을 다시 뜬다 (10-20 스냅샷은 그때 10일 지난 상태)
+- [x] Phase 1 당일 착수 직전에 스냅샷을 다시 뜬다 (10-20 스냅샷은 그때 10일 지난 상태) — 2026-10-21 23:05 KST `tmp/snapshots/etcd-pre-1.35.9-20261021-230500/`
 - [x] 호환성 확인 (릴리스 노트 대조, 결과를 이 문서에 표로 추가) — 아래 "호환성 표"
 - [x] 1.36 deprecation·removal 항목 대조 (feature gate, kubelet 플래그, `kubeadm` 설정 API). Pluto 통과는 API 버전만 본다 — 아래 "1.36 deprecation·removal 대조"
 - [x] kube-vip·containerd·cgroup(v2)·swap 설정이 Kubespray 1.36 기본값과 충돌하는지 확인 (`kubelet_fail_cgroup_v1`, `kubelet_fail_swap_on`) — 아래 "노드·Kubespray 설정 대조"
@@ -95,13 +95,13 @@ Kubernetes 1.35 일정 ([릴리스 페이지](https://kubernetes.io/releases/1.3
 - [x] 시간대 선택: 사용 적은 시간. 사용자 1인 클러스터라 사전 공지 불필요 (2026-10-20 결정) — 해당 없음. 당일 사용자가 편한 시간에 진행
 - [x] drain 정책 결정 (아래) — 2026-10-20 확정
 - [x] 실행 위치 결정 — 2026-10-20 메인 PC로 확정 (아래 "실행 위치")
-- [ ] 메인 PC 실행 환경 준비 (아래 "실행 위치"의 준비 항목)
+- [x] 메인 PC 실행 환경 준비 (아래 "실행 위치"의 준비 항목) — 2026-10-21 완료
 
 ### etcd 스냅샷
 
 | 항목 | 값 |
 |---|---|
-| 위치 | `tmp/etcd-snapshot/pre-1.35.9-20261020-175649/` (gitignore. Secret이 평문으로 들어 있으니 커밋·공유 금지) |
+| 위치 | 최신: `tmp/snapshots/etcd-pre-1.35.9-20261021-225644/` (메인 PC, revision 82660233, 2887 keys, 173 MB). 이전: `tmp/etcd-snapshot/pre-1.35.9-20261020-175649/` (로컬 사본 없음, 호스트 밖 사본만). gitignore. Secret이 평문으로 들어 있으니 커밋·공유 금지 |
 | 파일 | `etcd.db`, `SNAPSHOT.txt`(sha256·리비전), `cluster-state.txt`, `images.txt`, `node-describe.txt` |
 | 검증 | 노드의 `etcdutl snapshot status`: revision 82072356, keys 2804, 170 MB. 노드 원본과 sha256 일치 |
 | etcd | 3.6.15, Kubespray `etcd_deployment_type: host` (systemd `etcd.service`, 설정은 `/etc/etcd.env`) |
@@ -198,12 +198,12 @@ devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_
 
 메인 PC 준비 (당일 전에 완료):
 
-- [ ] 레포 클론 + `git submodule update --init ansible/third_party/kubespray` (현재 커밋 `867694464`)
-- [ ] Python venv에 `requirements.txt` 설치 (ansible 12.3.0, ansible-core 2.19.x)
-- [ ] devcontainer `.env`의 `WORKSTATION_*` 변수와 SSH 키(`WORKSTATION_SSH_PRIVATE_KEY_FILE_ABSOLUTE_PATH`)를 메인 PC로 옮겨서 셸 env로 로드
-- [ ] SSH 접속 확인: `WORKSTATION_DOMAIN_IPTIME` + `WORKSTATION_BOOTSTRAP_NODE_0_EXTERNAL_SSH_PORT` (22번은 막혀 있음). 사내망에서 DDNS hairpin이 안 되면 `ansible_host`를 노드 내부 IP로 덮어쓴다
-- [ ] 리허설: `ansible -i ansible/workstation/inventory/inventory.ini all -m ping -b`
-- [ ] `kubectl` (kubeconfig)도 메인 PC에서 동작하는지 확인. 업그레이드 직후 검증을 워크스페이스 재기동 전에 해야 한다
+- [x] 레포 클론 + `git submodule update --init ansible/third_party/kubespray` (현재 커밋 `867694464`) — 2026-10-21 커밋 일치, 로컬 변경 없음
+- [x] Python venv에 `requirements.txt` 설치 (ansible 12.3.0, ansible-core 2.19.x) — 2026-10-21 `.venv`에 ansible 12.3.0 / core 2.19.14
+- [x] devcontainer `.env`의 `WORKSTATION_*` 변수와 SSH 키(`WORKSTATION_SSH_PRIVATE_KEY_FILE_ABSOLUTE_PATH`)를 메인 PC로 옮겨서 셸 env로 로드
+- [x] SSH 접속 확인: `WORKSTATION_DOMAIN_IPTIME` + `WORKSTATION_BOOTSTRAP_NODE_0_EXTERNAL_SSH_PORT` (22번은 막혀 있음). 사내망에서 DDNS hairpin이 안 되면 `ansible_host`를 노드 내부 IP로 덮어쓴다
+- [x] 리허설: `ansible -i ansible/workstation/inventory/inventory.ini all -m ping -b` — 2026-10-21 `pong` (become 포함)
+- [x] `kubectl` (kubeconfig)도 메인 PC에서 동작하는지 확인. 업그레이드 직후 검증을 워크스페이스 재기동 전에 해야 한다
 
 ### Phase 1 — 1.35.4 → 1.35.9 (패치, 절차 리허설)
 
@@ -217,7 +217,7 @@ devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_
 1. 워크스페이스 세션에서 `kube_version: 1.35.9` 변경을 커밋·푸시 (메인 PC가 같은 커밋을 쓰도록)
 2. 메인 PC에서 etcd 스냅샷 재생성 → 호스트 밖 보관
 3. Coder 워크스페이스 stop, qBittorrent scale 0
-4. 메인 PC에서 `pnpm kubespray:upgradeCluster -e drain_nodes=false` (pnpm이 없으면 `package.json`의 같은 `ansible-playbook` 명령)
+4. 메인 PC에서 `pnpm kubespray:upgradeCluster -e '{"drain_nodes": false}'` (`-e drain_nodes=false`는 문자열로 들어가 ansible-core 2.19에서 `Conditionals must have a boolean result`로 실패한다) (pnpm이 없으면 `package.json`의 같은 `ansible-playbook` 명령)
 5. 메인 PC `kubectl`로 공통 체크리스트 중 노드·kube-system·Cilium·Longhorn 먼저 확인
 6. qBittorrent scale 1, Coder 워크스페이스 start → 나머지 체크리스트 (Sysbox 워크스페이스 기동 포함)
 
@@ -283,3 +283,10 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 | 2026-10-20 | drain 정책 확정(drain 생략 + Coder 워크스페이스 stop + qBit scale 0). 작업 세션이 Coder 워크스페이스 안의 devcontainer라서 Ansible 실행 위치를 메인 PC로 확정. 메인 PC 준비 항목 추가. 작업 시간대는 미정 |
 | 2026-10-20 | 작업 시간대 항목은 1인 클러스터라 해당 없음으로 정리. 남은 Phase 0 항목은 메인 PC 준비, 당일 etcd 재스냅샷 |
 | 2026-10-20 | 10-20 etcd 스냅샷 호스트 밖 복사 완료 (사용자) |
+| 2026-10-21 | 10-20 스냅샷 로컬 사본(`tmp/etcd-snapshot/`)이 없어진 것 확인. 메인 PC(현재 작업 환경)에서 etcd 스냅샷 다시 뜸: `tmp/snapshots/etcd-pre-1.35.9-20261021-225644/` (revision 82660233, 노드 원본과 sha256 일치, 노드 `/tmp` 임시 파일 삭제). Phase 1 당일 재스냅샷은 그대로 진행 |
+| 2026-10-21 | 메인 PC 준비 완료: env·SSH 키 로드, SSH(외부 포트)·sudo 비밀번호 없음, `.venv` ansible 12.3.0 / core 2.19.14, `ansible ... -m ping -b` pong, `kubectl` 동작, submodule `867694464` 일치. 남은 Phase 0 항목은 당일 etcd 재스냅샷뿐 |
+| 2026-10-21 | Phase 1 앞당겨 실행 (메인 PC). Coder `Primary` stop, qBit scale 0 후 etcd 재스냅샷(revision 82666199). 1차 `-e drain_nodes=false`는 drain 조건식에서 실패(문자열 → ansible-core 2.19 boolean 강제). rescue로 uncordon, 노드 v1.35.4 유지. 그 전 단계에서 etcd admin·member 인증서 재발급(CA 동일), `resolved.conf.d/kubespray.conf` 재작성 |
+| 2026-10-21 | 2차 `-e '{"drain_nodes": false}'` 성공 (failed=0). 노드·apiserver·controller-manager·scheduler v1.35.9, uncordon 확인. 비정상 Pod 없음, Cilium OK, LB IP 유지, Longhorn 16 attached healthy(qBit 복구 후), CSI sidecar·kube-vip·cilium-operator 재시작 +1~2(apiserver 교체 시 리더 선출), VaultConnection valid, GPU allocatable 1, ambient `15008` LISTEN(coder·goldilocks·loki-canary 등), Coder `/healthz` 200. qBit scale 1 복구. 남은 확인: 워크스페이스 Start 후 Sysbox·내부 Docker, `pulumi preview` 드리프트, 1~3일 관찰 |
+| 2026-10-21 | Coder `Primary` Start: `sysbox-runc` Pod Running, 내부 Docker 29.7.1(cgroup v2) `hello-world` OK. `pulumi preview --refresh` 3스택(system·tools·apps) 모두 성공. 업그레이드 관련 드리프트 없음. 남은 차이는 무관: TTL로 지워진 sftp keys-bootstrap Job 재생성(tools qbittorrent, apps jellyfin), Vault `GroupAlias` 2개 create(system, System User·System Manager OIDC alias), Cloudflare `ZeroTrustDeviceDefaultProfile` update(tools, secret 필드). `pulumi up`은 하지 않음. Phase 1 남은 일은 1~3일 관찰 |
+| 2026-10-21 | 관찰은 며칠 더 이어가기로 결정 (사용자). 클라이언트 1.37 skew 경고는 Sysbox 1.36 지원 전까지 감수. tools 스택 vikunja 차트 등 무관 변경은 당분간 무시 |
+| 2026-10-21 | 관찰 기간 3일로 확정. 2026-10-24에 관찰 종료 확인 |

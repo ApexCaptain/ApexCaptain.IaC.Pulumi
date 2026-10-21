@@ -10,14 +10,14 @@
 
 | 언제 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
+| **2026-10-24** | K8s 1.35.9 Phase 1 관찰 종료 확인 (재시작·알림). Phase 2(1.36)는 Sysbox 지원 전 착수 금지 | [Kubernetes 1.36 업그레이드](issues/2026-10-13-kubernetes-1-36-upgrade.md) | 보류 |
 | **2026-10-25 19:03 KST** | leaf 갱신 (`vault-server-certificate` renewalTime 10:03:36Z). Reloader가 vault-0를 롤했는지, 롤 후 `VaultConnection` Healthy·서비스 DNS TLS 유지되는지. 통과하면 `docs/resolved`로 이동 | [Vault TLS cert reload](issues/2026-09-06-vault-tls-cert-reload.md) | 적용 · 실검증 대기 |
-| **2026-10-30** | K8s 1.35.4 → 1.35.9 (Phase 1) 착수. **메인 PC에서 실행** (워크스페이스 세션 아님). 전에 메인 PC 준비·당일 etcd 재스냅샷. Phase 2(1.36)는 Sysbox가 1.36을 지원 문서에 넣기 전 착수 금지 | [Kubernetes 1.36 업그레이드](issues/2026-10-13-kubernetes-1-36-upgrade.md) | 보류 |
 | **2026-11 초** | VPA·Goldilocks 재스냅샷 → 갭 재분석. 안전한 항목만 IaC 패치. jellyfin / qbittorrent / coder는 피크·upperBound 교차 확인 | [VPA 리소스 재조정](issues/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-05 1차 반영 완료 |
 | **2026-11 초** | projen `CronScheduleOptions` / 이슈·PR 재검색. 없으면 업스트림 이슈 등록. 타입 생기면 `as any` 제거 여부 결정 | [Projen schedule timezone](issues/2026-09-09-projen-workflow-schedule-timezone.md) | 보류 |
 | **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/2026-09-13-priority-class-resource-protection.md) | 보류 |
 | **2027-01-15** | Sysbox 지원 문서에 K8s 1.36이 있는지 확인. 없으면 Sysbox 폐기 후 다른 런타임으로 이전 (1.35 maintenance 2026-12-28, EOL 2027-02-28) | [Kubernetes 1.36 업그레이드](issues/2026-10-13-kubernetes-1-36-upgrade.md) | 보류 |
 
-10-25는 CA도 거의 동시에 돈다. Reloader는 Vault STS만 롤하므로 VSO `vault-ca-secret` 옛 CA 문제는 **범위 밖 후속** (Vault TLS 이슈 본문). 12월 PriorityClass는 11월 VPA 주기 결과를 함께 본다. Longhorn 1.13 엔진 업그레이드는 **완료** ([resolved](resolved/2026-10-07-longhorn-1-13-0-upgrade.md)) — K8s Phase 1 일정과 겹침 제약 없음.
+10-25는 CA도 거의 동시에 돈다. Reloader는 Vault STS만 롤하므로 VSO `vault-ca-secret` 옛 CA 문제는 **범위 밖 후속** (Vault TLS 이슈 본문). 12월 PriorityClass는 11월 VPA 주기 결과를 함께 본다. Longhorn 1.13 엔진 업그레이드는 **완료** ([resolved](resolved/2026-10-07-longhorn-1-13-0-upgrade.md)) — K8s Phase 1은 2026-10-21 완료.
 
 ---
 
@@ -25,6 +25,7 @@
 
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
+| 다음 Coder 워크스페이스 JWT 로그인 (OIDC 로그인은 2026-10-21 확인) | JWT 토큰 `identity_policies`에 System Manager 정책 확인 → 옛 external group 잔여 정책 정리 | [Vault external group alias](issues/2026-10-21-vault-external-group-single-alias.md) | 적용 |
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 | 사용자 재개 결정 (2026-10-19 보류. protect 선행은 충족) | 클러스터 도달·자격 증명 결정 → 일일 drift 감지 → PR preview | [CI preview·drift](issues/2026-10-17-ci-pulumi-preview-drift.md) | 보류 |
 | K8s 1.36 업그레이드 완료 | system contract phase 모듈 분해 (URN 불변) | [contract 분해](issues/2026-10-17-system-contract-split.md) | 보류 |
