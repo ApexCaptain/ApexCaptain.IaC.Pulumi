@@ -124,7 +124,9 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
           allowMergeCommit: true,
           allowSquashMerge: true,
           allowRebaseMerge: true,
-          allowAutoMerge: false,
+          // develop PR은 Validate 통과 뒤 auto-merge. develop→main 은 수동.
+          // 예약은 스크립트와 auto-merge-develop 워크플로. ruleset 이 체크를 기다린다.
+          allowAutoMerge: true,
           deleteBranchOnMerge: true,
           allowUpdateBranch: false,
           allowForking: true,

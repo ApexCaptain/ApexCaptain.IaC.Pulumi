@@ -16,6 +16,7 @@ import * as utils from './common/utils/src';
 import { inflateCommonProject } from './projenrc/projects/common-projects';
 import { inflatePulumiProject } from './projenrc/projects/pulumi-projects';
 import { pinWorkflowActions } from './projenrc/workflows/action-pins';
+import { addAutoMergeDevelopWorkflow } from './projenrc/workflows/auto-merge-develop';
 import { addPrValidationWorkflow } from './projenrc/workflows/pr-validation';
 import { modifyUpgradeWorkflow } from './projenrc/workflows/upgrade';
 import * as src from './src';
@@ -263,6 +264,7 @@ const rootProject = new typescript.TypeScriptProject(
 void (async () => {
   await modifyUpgradeWorkflow(rootProject);
   addPrValidationWorkflow(rootProject);
+  addAutoMergeDevelopWorkflow(rootProject);
   pinWorkflowActions(rootProject);
 
   // Common
