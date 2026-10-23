@@ -30,6 +30,35 @@ function readLabels(filePath: string): string[] {
 }
 
 /**
+ * develop PR만 auto-merge 를 켠다. 체크가 끝나면 GitHub가 merge commit 으로 넣는다.
+ * develop→main (`--base main`) 은 켜지 않는다.
+ */
+function enableDevelopAutoMerge(prUrl: string): void {
+  const enabled = execFileSync(
+    'gh',
+    [
+      'pr',
+      'view',
+      prUrl,
+      '--json',
+      'autoMergeRequest',
+      '--jq',
+      '.autoMergeRequest != null',
+    ],
+    { encoding: 'utf-8' },
+  ).trim();
+  if (enabled === 'true') {
+    console.log(chalk.green(`auto-merge 이미 켜짐: ${prUrl}`));
+    return;
+  }
+
+  console.log(chalk.blue(`gh pr merge --merge --auto ${prUrl}`));
+  execFileSync('gh', ['pr', 'merge', prUrl, '--merge', '--auto'], {
+    stdio: 'inherit',
+  });
+}
+
+/**
  * `generatePullRequest`가 만든 title/body/labels 파일로 `gh pr create`를 실행한다.
  */
 function createGithubPullRequest(): void {
@@ -72,7 +101,24 @@ function createGithubPullRequest(): void {
       }`,
     ),
   );
-  execFileSync('gh', args, { stdio: 'inherit' });
+  const output = execFileSync('gh', args, {
+    encoding: 'utf-8',
+    stdio: ['inherit', 'pipe', 'inherit'],
+  });
+  process.stdout.write(output.endsWith('\n') ? output : `${output}\n`);
+  if (base !== 'develop') {
+    return;
+  }
+
+  const httpsLines = output
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.startsWith('https://'));
+  const prUrl = httpsLines[httpsLines.length - 1];
+  if (!prUrl) {
+    throw new Error('gh pr create 출력에서 PR URL을 찾지 못했습니다.');
+  }
+  enableDevelopAutoMerge(prUrl);
 }
 
 try {
