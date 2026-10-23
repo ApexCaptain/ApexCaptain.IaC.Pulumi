@@ -110,11 +110,11 @@ function createGithubPullRequest(): void {
     return;
   }
 
-  const prUrl = output
+  const httpsLines = output
     .split('\n')
     .map(line => line.trim())
-    .filter(line => line.startsWith('https://'))
-    .at(-1);
+    .filter(line => line.startsWith('https://'));
+  const prUrl = httpsLines[httpsLines.length - 1];
   if (!prUrl) {
     throw new Error('gh pr create 출력에서 PR URL을 찾지 못했습니다.');
   }
