@@ -36,7 +36,7 @@
 
     // Apt-get Packages
     "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
-      "packages": "netcat-openbsd, iputils-ping, parallel, ripgrep"
+      "packages": "netcat-openbsd, iputils-ping, parallel, ripgrep, tmux"
     },
 
     // Codex

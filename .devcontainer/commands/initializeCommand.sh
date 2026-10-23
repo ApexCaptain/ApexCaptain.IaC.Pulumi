@@ -103,6 +103,8 @@ HOST_CLAUDE_DIR_PATH=$HOST_CLAUDE_DIR_PATH
 CONTAINER_CLAUDE_DIR_PATH=/home/$username/.claude
 HOST_CLAUDE_JSON_FILE_PATH=$HOST_CLAUDE_JSON_FILE_PATH
 CONTAINER_CLAUDE_JSON_FILE_PATH=/home/$username/.claude.json
+## Remote Control (opt-in, 호스트 환경변수 ENABLE_CLAUDE_RC=true 로 활성화)
+ENABLE_CLAUDE_RC=${ENABLE_CLAUDE_RC:-false}
 
 # OCI Arguments
 OCI_CONFIG_FILE=${containerWorkspaceFolder}/${OCI_CONFIG_DIR_NAME}/oci.config

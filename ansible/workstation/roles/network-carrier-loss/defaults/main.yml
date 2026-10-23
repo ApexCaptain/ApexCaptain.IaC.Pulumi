@@ -1,0 +1,6 @@
+---
+# 대상 인터페이스. 미지정 시 기본 라우트 인터페이스(ansible_default_ipv4.interface)
+# network_carrier_loss_interface: enp34s0
+
+# systemd.network [Network] IgnoreCarrierLoss= 값 (yes / no / timespan)
+network_carrier_loss_ignore: "yes"
