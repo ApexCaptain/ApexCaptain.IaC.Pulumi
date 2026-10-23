@@ -291,3 +291,4 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 | 2026-10-21 | 관찰은 며칠 더 이어가기로 결정 (사용자). 클라이언트 1.37 skew 경고는 Sysbox 1.36 지원 전까지 감수. tools 스택 vikunja 차트 등 무관 변경은 당분간 무시 |
 | 2026-10-21 | 관찰 기간 3일로 확정. 2026-10-24에 관찰 종료 확인 |
 | 2026-10-23 | 관찰 중 점검: 07:00 KST 리더 선출 컨트롤러 일제 재시작은 업그레이드와 무관. 라우터 재부팅 링크 끊김 → 노드 IP 제거 → apiserver↔etcd 단절이 원인 (업그레이드 전부터 발생, 현재 상태 표의 controller-manager·scheduler 재시작 수도 같은 원인). 후속은 [라우터 재부팅 링크 끊김](2026-10-23-router-reboot-link-flap-leader-election.md). Phase 1 관찰 판정에서 제외 |
+| 2026-10-23 | 라우터 재부팅 링크 끊김 이슈 해결 → [resolved](../resolved/2026-10-23-router-reboot-link-flap-leader-election.md). 07:00 KST 컨트롤 플레인 재시작은 더 이상 관찰 노이즈로 보지 않음 |

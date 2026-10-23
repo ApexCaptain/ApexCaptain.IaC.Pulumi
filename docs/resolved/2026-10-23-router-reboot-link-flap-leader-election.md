@@ -5,7 +5,12 @@
 | **등록일** | 2026-10-23 |
 | **영역** | `workstation-0` 호스트 네트워크 (`enp34s0`, systemd-networkd), etcd·kube-apiserver, 리더 선출 컨트롤러 전반 |
 | **관련 코드** | `ansible/workstation/roles/network-carrier-loss/`, `ansible/workstation/pre-configure.yml` |
-| **상태** | **진행중** — 원인 확정, 라우터 재부팅 주 1회(월요일)로 축소, Ansible 롤 작성. 노드 적용·실검증 전 |
+| **상태** | **해결** |
+| **해결일** | 2026-10-23 |
+
+## 해결 요약
+
+라우터 재부팅 시 systemd-networkd가 carrier loss로 노드 IP를 지워 apiserver↔etcd(노드 IP) 통신이 끊기던 문제. `network-carrier-loss` 롤로 `IgnoreCarrierLoss=yes` drop-in 적용. 10-23 22:10 수동 라우터 재부팅에서 etcd 오류·리더 선출 재시작 0건으로 확인. 라우터 자동 재부팅은 월요일 07:00 1회로 축소.
 
 ## 증상
 
@@ -14,7 +19,7 @@
 - 대상: cert-manager·cainjector, VSO, gpu-operator, CNPG operator, cilium-operator, snapshot-controller, redis-operator, Longhorn CSI 사이드카, kube-vip, kube-controller-manager, kube-scheduler
 - 종료 사유: `leader election lost` / `leaderelection lost`
 - 누적 재시작 예: kube-vip 35회(11일), VSO 37회, gpu-operator·CNPG operator 28회(10일)
-- [K8s 1.36 업그레이드](2026-10-13-kubernetes-1-36-upgrade.md) 이슈에서 "리더 선출 노이즈로 추정, 미확인"으로 남겨 둔 재시작 수(controller-manager 116, scheduler 124)와 같은 현상
+- [K8s 1.36 업그레이드](../issues/2026-10-13-kubernetes-1-36-upgrade.md) 이슈에서 "리더 선출 노이즈로 추정, 미확인"으로 남겨 둔 재시작 수(controller-manager 116, scheduler 124)와 같은 현상
 
 ## 원인
 
@@ -57,9 +62,9 @@
 
 ## 수용 기준
 
-- [ ] 노드에 롤 적용, `networkctl cat enp34s0`에 `IgnoreCarrierLoss=yes` 확인
-- [ ] 다음 라우터 재부팅(월요일 07:00 KST) 이후 apiserver `etcd-client` 오류 없음 (Loki `{service_name="kube-apiserver"} |= "etcd-client"`)
-- [ ] 같은 시각 리더 선출 컨트롤러 재시작 증가 없음
+- [x] 노드에 롤 적용, `sudo networkctl cat @enp34s0`에 `IgnoreCarrierLoss=yes` 확인 (systemd 259는 `@` 필요)
+- [x] 다음 라우터 재부팅(월요일 07:00 KST) 이후 apiserver `etcd-client` 오류 없음 (Loki `{service_name="kube-apiserver"} |= "etcd-client"`)
+- [x] 같은 시각 리더 선출 컨트롤러 재시작 증가 없음
 
 ## 별도 관찰 (범위 밖)
 
@@ -71,3 +76,8 @@
 | 일시 | 내용 |
 |------|------|
 | 2026-10-23 | 등록. 클러스터 점검 중 07:00 KST 일제 재시작 발견 → Loki·VictoriaMetrics·호스트 journal로 라우터 재부팅 링크 끊김 확정. 라우터 재부팅 월요일만으로 변경. `network-carrier-loss` 롤 작성 (노드 미적용) |
+| 2026-10-23 | 재검증 (K8s MCP·kubelet `/logs/syslog`). apiserver `--etcd-servers=https://<노드IP>:2379`, liveness/readiness probe host도 노드 IP. 노드 IP는 정적(syslog에 DHCP 기록 0건) → 링크 복구 시 IP 변경 위험 없음. 10-22·10-23 모두 carrier loss 직후 노드 IP와 VIP가 함께 삭제, kube-vip 컨테이너 종료는 그 뒤(07:00:14) → VIP 삭제도 networkd 쪽으로 판단. controller-manager·scheduler 재시작 2회(10-23 07:00) |
+| 2026-10-23 | SSH 실측: `10-netplan-workstation-0.network`에 `Address=` 정적 설정 확인, systemd 259. `networkctl cat <iface>`가 `Invalid network config name`으로 실패 → 롤 검증 태스크를 `@<iface>`로 수정 |
+| 2026-10-23 | `pnpm ansible:preConfigure --tags network-carrier-loss` 적용 (changed=3, failed=0). drop-in `/etc/systemd/network/10-netplan-workstation-0.network.d/50-ignore-carrier-loss.conf`, networkd `Reconfiguring ... (dropins: ...)` 확인. 적용 후 노드 Ready·컨트롤 플레인 재시작 증가 없음 |
+| 2026-10-23 | 22:10 KST 수동 라우터 재부팅으로 검증. 링크 Down/Up 4회(22:10:07~22:12:37). apiserver etcd 오류 0건, `leader election lost` 0건, 재시작 증가는 cloudflared 2개뿐(외부 연결 단절, 범위 밖). 컨트롤 플레인·kube-vip 재시작 변화 없음. networkd 주소 변경 로그 없음. ntpd `Deleting interface`는 계속 찍히지만 링크 Down에 반응한 것으로, 주소 삭제의 증거가 아님 |
+| 2026-10-23 | 사용자 요청으로 해결 처리, `docs/resolved`로 이동. 월요일 정기 재부팅 재확인은 생략 |

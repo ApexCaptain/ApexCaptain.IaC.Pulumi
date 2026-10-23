@@ -59,8 +59,9 @@
 - name: Apply networkd reload
   ansible.builtin.meta: flush_handlers
 
+# systemd 256+ 는 인터페이스를 '@' 접두사로 받는다 (없으면 설정 파일 이름으로 해석)
 - name: Check effective network config
-  ansible.builtin.command: networkctl cat --no-pager {{ network_carrier_loss_effective_interface }}
+  ansible.builtin.command: networkctl cat --no-pager @{{ network_carrier_loss_effective_interface }}
   register: network_carrier_loss_cat
   changed_when: false
 
