@@ -30,6 +30,12 @@ interface CertificateV1ArgsShape {
     keySize?: number;
     keyAlgorithm?: string;
     keyEncoding?: string;
+    privateKey?: {
+      rotationPolicy?: 'Never' | 'Always';
+      algorithm?: string;
+      encoding?: string;
+      size?: number;
+    };
     duration?: string;
     renewBefore?: string;
     isCA?: boolean;

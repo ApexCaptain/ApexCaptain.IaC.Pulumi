@@ -217,5 +217,10 @@ describe('SftpV3Component', () => {
     expect(jobJson).toContain('ssh-keygen -y');
     expect(jobJson).toContain('openssh-keygen');
     expect(jobJson).not.toContain('.data.public_key');
+    // bootstrap 재실행 시 기존 키를 덮어쓰지 않는다 (TTL 삭제 후 재생성 대비).
+    expect(jobJson).toContain('kv_get_or_empty');
+    expect(jobJson).toContain('No value found');
+    expect(jobJson).toContain('host key exists');
+    expect(jobJson).toContain('user key exists');
   });
 });
