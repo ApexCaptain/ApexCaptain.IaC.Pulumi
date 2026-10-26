@@ -107,6 +107,21 @@ const rootProject = new typescript.TypeScriptProject(
             'shell-quote': '1.12.0',
             'follow-redirects': '1.16.1',
             undici: '6.29.1',
+            'fast-uri@3': '3.1.9',
+            'ip-address@10': '10.7.5',
+            '@modelcontextprotocol/sdk@1': '1.32.2',
+            'hono@4': '4.13.14',
+            'proxy-addr@2': '2.0.8',
+            'postcss-selector-parser@7': '7.1.7',
+            '@grpc/grpc-js@1': '1.14.6',
+            'brace-expansion@1': '1.1.21',
+            'brace-expansion@2': '2.1.7',
+            'brace-expansion@5': '5.0.12',
+            'js-yaml@4': '4.3.2',
+            'pacote@21': '21.5.1',
+            'protobufjs@7': '7.6.6',
+            'form-data@4': '4.0.6',
+            'zod@4': '4.6.7',
             ...Object.fromEntries(
               Object.values(src.constants.bridgedProviders)
                 .flatMap(eachBridgedProvider =>
