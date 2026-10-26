@@ -6,9 +6,12 @@
 #   1. enable-iscsi           Longhorn iSCSI
 #   2. longhorn-disks         Longhorn 디스크 (host_vars)
 #   3. init-wol               Wake-on-LAN
-#   4. install-nvidia-driver  GPU driver staging (reboot 없음)
-#   5. install-sysbox-runc    Sysbox CE (group_vars)
-#   6. verify-nvidia-driver   nvidia-smi 확인 / 수동 reboot 안내 (reboot 없음)
+#   4. network-carrier-loss   링크 끊김 시 IP 유지 (IgnoreCarrierLoss)
+#   5. install-nvidia-driver  GPU driver staging (reboot 없음)
+#   6. install-sysbox-runc    Sysbox CE (group_vars)
+#   7. verify-nvidia-driver   nvidia-smi 확인 / 수동 reboot 안내 (reboot 없음)
+#
+# 4번만: pnpm ansible:preConfigure --tags network-carrier-loss
 
 - name: Pre-Configure Workstation
   hosts: k8s_cluster
@@ -18,6 +21,8 @@
     - role: enable-iscsi
     - role: longhorn-disks
     - role: init-wol
+    - role: network-carrier-loss
+      tags: [network-carrier-loss]
     - role: install-nvidia-driver
     - role: install-sysbox-runc
     - role: verify-nvidia-driver

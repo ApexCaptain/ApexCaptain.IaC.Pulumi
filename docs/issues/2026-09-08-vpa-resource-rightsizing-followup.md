@@ -3,12 +3,12 @@
 | 항목 | 내용 |
 |---|---|
 | **등록일** | 2026-09-08 |
-| **재검토 예정** | **2026-11 초** (약 1달 주기 — 2026-10-05 1차 반영 완료) |
+| **재검토 예정** | **2026-10-30** (Kata PoC 2026-10-31 착수 전으로 앞당김. 10-21 업그레이드·qBit 변경이 8일 메모리 윈도에서 빠지는 날. 원래 2026-11 초, 약 1달 주기 — 2026-10-05 1차 반영 완료) |
 | **영역** | workstation 클러스터 워크로드 requests/limits · Pulumi IaC |
 | **관련 코드** | `infra/k8s-workstation-{system,tools,apps}`, `common/custom-resources/.../sftp.v3.component.ts` |
 | **선행** | [Goldilocks + VPA 배포](../resolved/2026-09-08-goldilocks-vpa-deploy.md) (해결) |
 | **관련 이슈** | [PriorityClass·eviction](2026-09-13-priority-class-resource-protection.md) — 축출 순서. qBit request는 이 이슈에서 |
-| **상태** | **적용** — 2026-10-05 VPA(Off) 스냅 기준 IaC 반영·`pulumi up` 완료. **2026-11 초** 동일 절차 반복 |
+| **상태** | **적용** — 2026-10-05 VPA(Off) 스냅 기준 IaC 반영·`pulumi up` 완료. **2026-10-30** 동일 절차 반복 (PoC 전) |
 
 ## 배경
 
@@ -78,7 +78,7 @@
 - [x] 갭 표 갱신 (위 2026-10-05)
 - [x] IaC 패치 + 적용/보류 결정 (본문 정책)
 - [x] `pulumi up` (system / tools / apps prod) 및 워크로드 Ready 확인
-- [ ] **2026-11 초** 2차 스냅·패치 (일정: `docs/schedule.md`)
+- [ ] **2026-10-30** 2차 스냅·패치 (PoC 전, 일정: `docs/schedule.md`)
 
 ## 범위 밖
 
@@ -101,3 +101,6 @@
 | 2026-09-13 | 관련: PriorityClass 이슈 등록. qBit 등 request 축소는 계속 이 VPA 이슈(10월 초). 축출 클래스·kubelet은 그쪽 |
 | 2026-10-05 | 1차 재스냅(68 컨테이너). 메모리 중심 IaC 패치 — Argo CD, cert-manager, monitoring(Loki/Tempo/Grafana/VM), Longhorn manager, Authentik PG, Reloader, LXCFS, VSO, snapshot-controller, CNPG operator, jellyfin, qbittorrent, coder, vikunja, SFTP v3 sidecar. `k8s-workstation-{system,tools,apps}` prod `pulumi up` 성공. Argo dex request>limit 한 번 실패 → dex limit 256Mi 수정 후 재적용. 다음 주기 **2026-11 초** |
 | 2026-10-12 | 중간 스냅. 메모리 request/limit 재조정. UNDER: Vault, Authentik server/worker, Argo dex/notifications, qBit, VSO manager, Tempo request. OVER limit 축소: Grafana, Loki, VM, Longhorn manager, Tempo limit, OTel, Reloader, CNPG, Argo server/repo/controller. 신규 request: GPU operator(device plugin, DCGM, GFD, validator, NFD), Longhorn global manager, generic-device-plugin, Loki canary/sidecar/exporter. 백업 CronJob은 target만 반영. 11월 정기 재검토는 유지 |
+| 2026-10-21 | qBit 12Gi/16Gi가 mmap+OS cache. WebUI를 POSIX·cache off로 바꾼 뒤 라이브 ~30Mi. IaC request 512Mi / limit 2Gi로 축소. VPA ~19Gi는 옛 히스토리. 11월 정기 재검토 유지 |
+| 2026-10-24 | 2차 재스냅을 2026-10-30까지로 앞당김 (사용자). 10-31 Kata PoC(Kubespray 재실행·테스트 워크스페이스)가 추천 히스토리를 오염시키지 않게. 참고: 10-21 K8s 1.35.9 업그레이드 재시작이 히스토리에 섞여 있음 |
+| 2026-10-24 | 진행일 2026-10-30 확정 (사용자). 오늘 진행 시 10-21 업그레이드 피크·qBit 옛 히스토리(~19Gi)가 VPA 기본 8일 메모리 윈도에 남아 qBit 추천 신뢰 불가 → 10-30이면 둘 다 윈도 밖 |

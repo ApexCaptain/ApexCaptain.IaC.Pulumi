@@ -2,10 +2,10 @@
 
 * text=auto eol=lf
 *.snap linguist-generated
-/.cursor/settings.json linguist-generated
 /.eslintrc.json linguist-generated linguist-language=JSON-with-Comments
 /.gitattributes linguist-generated
 /.github/pull_request_template.md linguist-generated
+/.github/workflows/auto-merge-develop.yml linguist-generated
 /.github/workflows/pr-validation.yml linguist-generated
 /.github/workflows/pull-request-lint.yml linguist-generated
 /.github/workflows/upgrade-develop.yml linguist-generated

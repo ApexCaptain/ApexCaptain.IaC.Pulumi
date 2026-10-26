@@ -16,6 +16,7 @@ import * as utils from './common/utils/src';
 import { inflateCommonProject } from './projenrc/projects/common-projects';
 import { inflatePulumiProject } from './projenrc/projects/pulumi-projects';
 import { pinWorkflowActions } from './projenrc/workflows/action-pins';
+import { addAutoMergeDevelopWorkflow } from './projenrc/workflows/auto-merge-develop';
 import { addPrValidationWorkflow } from './projenrc/workflows/pr-validation';
 import { modifyUpgradeWorkflow } from './projenrc/workflows/upgrade';
 import * as src from './src';
@@ -102,6 +103,10 @@ const rootProject = new typescript.TypeScriptProject(
             '@pulumi/pulumi': '$@pulumi/pulumi',
             '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
             typescript: '$typescript',
+            axios: '$axios',
+            'shell-quote': '1.12.0',
+            'follow-redirects': '1.16.1',
+            undici: '6.29.1',
             ...Object.fromEntries(
               Object.values(src.constants.bridgedProviders)
                 .flatMap(eachBridgedProvider =>
@@ -198,8 +203,10 @@ const rootProject = new typescript.TypeScriptProject(
         '/.cursor/rules/',
         '/.cursor/skills/',
         '/.cursor/mcp.json',
+        '/.cursor/hooks.json',
         '/.claude/rules/',
         '/.claude/skills/',
+        '/.claude/settings.json',
         '/.claude/settings.local.json',
         '/.mcp.json',
         '/.rulesync.local/',
@@ -216,6 +223,7 @@ const rootProject = new typescript.TypeScriptProject(
         `/${src.constants.paths.dirs.ventoyUserDataDir}`,
         `/${src.constants.paths.dirs.venvDir}`,
         `/${src.constants.paths.dirs.ociConfigDir}`,
+        `/${src.constants.paths.dirs.reposDir}`,
       ],
       deps: ['chalk', 'axios', 'semver', 'flat', 'flatley'],
       devDeps: [
@@ -260,6 +268,7 @@ const rootProject = new typescript.TypeScriptProject(
 void (async () => {
   await modifyUpgradeWorkflow(rootProject);
   addPrValidationWorkflow(rootProject);
+  addAutoMergeDevelopWorkflow(rootProject);
   pinWorkflowActions(rootProject);
 
   // Common
@@ -305,7 +314,7 @@ void (async () => {
           src.constants.pulumiPackages.tls,
           src.constants.pulumiPackages.random,
           src.constants.pulumiPackages.vault,
-          'axios',
+          'axios@^1.20.0',
           'flat',
           '@kubernetes/client-node',
         ],
@@ -930,11 +939,6 @@ void (async () => {
   const targetMcpServers = (
     target: AiAgentTarget,
   ): src.interfaces.RulesyncMcpServers => ({
-    context7: remoteMcpProxyServer(target, 'https://mcp.context7.com/mcp', [
-      'CONTEXT7_API_KEY',
-      'CONTEXT7_API_KEY',
-      'raw',
-    ]),
     'cloudflare-api': remoteMcpProxyServer(
       target,
       'https://mcp.cloudflare.com/mcp',
@@ -982,8 +986,8 @@ void (async () => {
 
   const rulesyncConfig: src.interfaces.RulesyncConfig = {
     targets: {
-      cursor: ['rules', 'mcp', 'skills'],
-      claudecode: ['rules', 'mcp', 'skills'],
+      cursor: ['rules', 'mcp', 'skills', 'hooks'],
+      claudecode: ['rules', 'mcp', 'skills', 'hooks'],
     },
     outputRoots: ['.'],
     delete: true,
@@ -993,37 +997,6 @@ void (async () => {
     src.constants.paths.files.rulesyncConfigFile,
     {
       obj: rulesyncConfig,
-    },
-  );
-
-  // Cursor (plugins — 이식 불가, Cursor 전용 override)
-  const cursorSettingsConfig: src.interfaces.CursorSettings = {
-    plugins: {
-      superpowers: {
-        enabled: true,
-      },
-      orchestrate: {
-        enabled: true,
-      },
-      thermos: {
-        enabled: true,
-      },
-      'continual-learning': {
-        enabled: true,
-      },
-      'docs-canvas': {
-        enabled: true,
-      },
-      'pr-review-canvas': {
-        enabled: true,
-      },
-    },
-  };
-  const cursorSettingsFile = new JsonFile(
-    rootProject,
-    src.constants.paths.files.cursorSettingsJsonFile,
-    {
-      obj: cursorSettingsConfig,
     },
   );
 

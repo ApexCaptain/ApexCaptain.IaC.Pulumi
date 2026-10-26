@@ -37,6 +37,9 @@ services:
       - .env
 
     command: sleep infinity
+    # PID 1(tini)이 좀비 프로세스를 reap. 없으면 종료된 claude remote-control 이
+    # <defunct> 로 남아 "already served" 로 재시작이 거부된다
+    init: true
 
     deploy:
       resources:

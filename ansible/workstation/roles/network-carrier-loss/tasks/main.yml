@@ -1,0 +1,72 @@
+---
+# Carrier loss 시 IP 유지 (pre-configure)
+#
+# 라우터 재부팅 등으로 링크가 잠깐 끊기면 systemd-networkd가 노드 IP를 지운다.
+# apiserver → etcd 가 노드 IP로 붙어 있어 같은 호스트 안 통신도 끊기고,
+# 리더 선출 컨트롤러가 일제히 재시작한다. netplan 생성 .network 에 drop-in 으로
+# IgnoreCarrierLoss 를 얹는다 (netplan YAML 은 건드리지 않음).
+
+- name: Resolve carrier-loss interface
+  ansible.builtin.set_fact:
+    network_carrier_loss_effective_interface: "{{ network_carrier_loss_interface | default(ansible_default_ipv4.interface) }}"
+
+- name: Ensure carrier-loss interface is resolved
+  ansible.builtin.assert:
+    that:
+      - network_carrier_loss_effective_interface is defined
+      - network_carrier_loss_effective_interface | length > 0
+    fail_msg: "Interface could not be resolved. Set network_carrier_loss_interface or ensure ansible_default_ipv4.interface is available."
+
+- name: Read networkd status for interface
+  ansible.builtin.command: networkctl status --no-pager {{ network_carrier_loss_effective_interface }}
+  register: network_carrier_loss_status
+  changed_when: false
+
+- name: Resolve active .network file
+  ansible.builtin.set_fact:
+    network_carrier_loss_network_file: >-
+      {{ network_carrier_loss_status.stdout
+         | regex_search('Network File: (\S+)', '\1')
+         | default([''], true) | first }}
+
+- name: Ensure interface is managed by systemd-networkd
+  ansible.builtin.assert:
+    that:
+      - network_carrier_loss_network_file | length > 0
+      - network_carrier_loss_network_file != 'n/a'
+    fail_msg: "{{ network_carrier_loss_effective_interface }} has no systemd-networkd .network file."
+
+- name: Create .network drop-in directory
+  ansible.builtin.file:
+    path: "/etc/systemd/network/{{ network_carrier_loss_network_file | basename }}.d"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Write IgnoreCarrierLoss drop-in
+  ansible.builtin.copy:
+    dest: "/etc/systemd/network/{{ network_carrier_loss_network_file | basename }}.d/50-ignore-carrier-loss.conf"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Managed by Ansible (network-carrier-loss)
+      [Network]
+      IgnoreCarrierLoss={{ network_carrier_loss_ignore }}
+  notify: Reload systemd-networkd
+
+- name: Apply networkd reload
+  ansible.builtin.meta: flush_handlers
+
+# systemd 256+ 는 인터페이스를 '@' 접두사로 받는다 (없으면 설정 파일 이름으로 해석)
+- name: Check effective network config
+  ansible.builtin.command: networkctl cat --no-pager @{{ network_carrier_loss_effective_interface }}
+  register: network_carrier_loss_cat
+  changed_when: false
+
+- name: Ensure IgnoreCarrierLoss is applied
+  ansible.builtin.assert:
+    that:
+      - "'IgnoreCarrierLoss=' ~ network_carrier_loss_ignore in network_carrier_loss_cat.stdout"
+    fail_msg: "IgnoreCarrierLoss drop-in not visible in networkctl cat output."

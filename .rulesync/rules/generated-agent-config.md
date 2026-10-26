@@ -19,6 +19,7 @@ rules·skills·MCP의 SSOT는 `.rulesync/`와 `.projenrc.ts`다. 아래 경로�
 | `.cursor/rules/*.mdc`, `.claude/rules/*.md` | `.rulesync/rules/*.md` |
 | `.cursor/skills/`, `.claude/skills/` | `.rulesync/skills/` (레포 전용은 실제 디렉토리, 범용은 `.agents/skills/` symlink) |
 | `.cursor/mcp.json`, `.mcp.json` | `.projenrc.ts` → `.rulesync/mcp.jsonc` (projen 생성물, 직접 수정 금지) |
+| `.cursor/hooks.json`, `.claude/settings.json` | `.rulesync/hooks.jsonc` |
 
 `.cursor/settings.json`(plugins)은 projen이 직접 쓰는 Cursor 전용 설정이다.
 

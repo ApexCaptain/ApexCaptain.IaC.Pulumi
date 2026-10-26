@@ -12,18 +12,6 @@
   },
   "cursor": {
     "mcpServers": {
-      "context7": {
-        "type": "stdio",
-        "command": "bash",
-        "args": [
-          "${workspaceFolder}/scripts/mcp-remote-proxy.sh",
-          "https://mcp.context7.com/mcp",
-          "CONTEXT7_API_KEY",
-          "CONTEXT7_API_KEY",
-          "raw"
-        ],
-        "envFile": "${workspaceFolder}/.devcontainer/.env"
-      },
       "cloudflare-api": {
         "type": "stdio",
         "command": "bash",
@@ -66,17 +54,6 @@
   },
   "claudecode": {
     "mcpServers": {
-      "context7": {
-        "type": "stdio",
-        "command": "bash",
-        "args": [
-          "scripts/mcp-remote-proxy.sh",
-          "https://mcp.context7.com/mcp",
-          "CONTEXT7_API_KEY",
-          "CONTEXT7_API_KEY",
-          "raw"
-        ]
-      },
       "cloudflare-api": {
         "type": "stdio",
         "command": "bash",

@@ -10,6 +10,23 @@ USER_KV="__KV_MOUNT__/__USER_KV_PATH__"
 HOST_KV="__KV_MOUNT__/__HOST_KV_PATH__"
 SLACK_URL="$(cat /slack/url)"
 kv_blank() { [ -z "$1" ] || [ "$1" = "null" ]; }
+# KV 읽기: 있으면 JSON, 없으면(No value found) 빈 문자열, 그 밖의 오류는 실패.
+# 권한·네트워크 오류를 "키 없음"으로 오인해 기존 키를 덮어쓰지 않도록 구분한다.
+kv_get_or_empty() {
+  err="$(mktemp)"
+  if out="$(vault kv get -format=json "$1" 2>"$err")"; then
+    rm -f "$err"
+    printf '%s' "$out"
+    return 0
+  fi
+  if grep -q 'No value found' "$err"; then
+    rm -f "$err"
+    return 0
+  fi
+  cat "$err" >&2
+  rm -f "$err"
+  return 1
+}
 pub_from_priv() {
   umask 077
   tmp="$(mktemp)"
@@ -143,19 +160,33 @@ put_user() {
 }
 case "$SFTP_JOB_MODE" in
   bootstrap)
-    HOST_ISSUE="$(vault write -format=json "__HOST_CA_MOUNT__/issue/__HOST_ROLE__" \
-      cert_type=host \
-      key_type=ed25519 \
-      valid_principals="__HOST_PRINCIPALS__" \
-      ttl="__HOST_ISSUE_TTL__")"
-    HOST_PRIV="$(echo "$HOST_ISSUE" | jq -r .data.private_key)"
-    vault kv put "$HOST_KV" \
-      private_key="$HOST_PRIV" \
-      public_key="$(pub_from_priv "$HOST_PRIV")"
-    USER_ISSUE="$(issue_user)"
-    CUR_PRIV="$(echo "$USER_ISSUE" | jq -r .data.private_key)"
-    CUR_PUB="$(pub_from_priv "$CUR_PRIV")"
-    put_user "$CUR_PRIV" "$CUR_PUB" "" "" "" "true" "$CUR_PUB"
+    # Job이 다시 만들어져도(TTL 삭제 후 pulumi up 등) 이미 있는 키는 덮어쓰지 않는다.
+    # 호스트 키가 바뀌면 클라이언트 TOFU가 깨진다.
+    HOST_DATA="$(kv_get_or_empty "$HOST_KV")"
+    EXIST_HOST_PRIV="$(printf '%s' "$HOST_DATA" | jq -r '.data.data.private_key // empty')"
+    if kv_blank "$EXIST_HOST_PRIV"; then
+      HOST_ISSUE="$(vault write -format=json "__HOST_CA_MOUNT__/issue/__HOST_ROLE__" \
+        cert_type=host \
+        key_type=ed25519 \
+        valid_principals="__HOST_PRINCIPALS__" \
+        ttl="__HOST_ISSUE_TTL__")"
+      HOST_PRIV="$(echo "$HOST_ISSUE" | jq -r .data.private_key)"
+      vault kv put "$HOST_KV" \
+        private_key="$HOST_PRIV" \
+        public_key="$(pub_from_priv "$HOST_PRIV")"
+    else
+      echo "bootstrap: host key exists at $HOST_KV, skip"
+    fi
+    USER_DATA="$(kv_get_or_empty "$USER_KV")"
+    EXIST_USER_PRIV="$(printf '%s' "$USER_DATA" | jq -r '.data.data.current_private // empty')"
+    if kv_blank "$EXIST_USER_PRIV"; then
+      USER_ISSUE="$(issue_user)"
+      CUR_PRIV="$(echo "$USER_ISSUE" | jq -r .data.private_key)"
+      CUR_PUB="$(pub_from_priv "$CUR_PRIV")"
+      put_user "$CUR_PRIV" "$CUR_PUB" "" "" "" "true" "$CUR_PUB"
+    else
+      echo "bootstrap: user key exists at $USER_KV, skip"
+    fi
     ;;
   rotate)
     OLD="$(vault kv get -format=json "$USER_KV")"

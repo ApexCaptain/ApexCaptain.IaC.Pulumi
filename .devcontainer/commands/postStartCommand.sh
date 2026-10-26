@@ -7,3 +7,5 @@ echo "🔄 Pull latest changes"
 git pull
 
 ./.devcontainer/commands/common/synchronizeProject.sh
+
+./.devcontainer/commands/common/startClaudeRemoteControl.sh
