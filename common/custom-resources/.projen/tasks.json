@@ -168,7 +168,7 @@
             "--peer",
             "--no-deprecated",
             "--dep=dev,prod,peer,optional",
-            "--filter=@types/jest,@types/node,@types/ws,eslint-import-resolver-typescript,eslint-plugin-import,jest,ts-jest,typescript,@kubernetes/client-node,@pulumi/command,@pulumi/kubernetes,@pulumi/pulumi,@pulumi/random,@pulumi/tls,@pulumi/vault,axios,dedent,flat,lodash,yaml"
+            "--filter=@types/jest,@types/node,@types/ws,eslint-import-resolver-typescript,eslint-plugin-import,jest,ts-jest,typescript,@kubernetes/client-node,@pulumi/command,@pulumi/kubernetes,@pulumi/pulumi,@pulumi/random,@pulumi/tls,@pulumi/vault,dedent,flat,lodash,yaml"
           ]
         },
         {
