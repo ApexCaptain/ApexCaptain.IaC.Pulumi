@@ -103,6 +103,10 @@ const rootProject = new typescript.TypeScriptProject(
             '@pulumi/pulumi': '$@pulumi/pulumi',
             '@pulumi/esc-sdk': '$@pulumi/esc-sdk',
             typescript: '$typescript',
+            axios: '$axios',
+            'shell-quote': '1.12.0',
+            'follow-redirects': '1.16.1',
+            undici: '6.29.1',
             ...Object.fromEntries(
               Object.values(src.constants.bridgedProviders)
                 .flatMap(eachBridgedProvider =>
@@ -310,7 +314,7 @@ void (async () => {
           src.constants.pulumiPackages.tls,
           src.constants.pulumiPackages.random,
           src.constants.pulumiPackages.vault,
-          'axios',
+          'axios@^1.20.0',
           'flat',
           '@kubernetes/client-node',
         ],
