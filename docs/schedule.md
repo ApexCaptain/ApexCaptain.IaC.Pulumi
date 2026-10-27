@@ -32,7 +32,7 @@
 | 컴포넌트 단위 **트리거 충족** (protect 해결 2026-10-17) / contract 단위는 contract 분해 후 | Pulumi mocks 컴포넌트 테스트 3개+ | [infra 테스트](issues/active/2026-10-17-infra-component-tests.md) | 보류 |
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/active/2026-10-17-dr-rebuild-runbook.md) | 보류 |
 | [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso) manifest에 Jellyfin 12 `targetAbi` 버전 등장 | 플러그인 호환 확인 → config 백업 → 차트 3.4.0+ (앱 12.x) 업그레이드 → 재스캔 → SSO 확인 | [Jellyfin 12 업그레이드](issues/active/2026-10-21-jellyfin-12-upgrade.md) | 보류 |
-| develop 머지 | `docs-issue-mirror` workflow 첫 실행 확인 → Issue 49개 생성·resolved close·재실행 no-op 확인 | [GitHub Issues 미러](issues/active/2026-10-27-github-issues-mirror.md) | 진행중 |
+| 다음 이슈 resolved 이동 | 이동 push 후 해당 Issue가 close(`completed`)되는지 확인 → 확인되면 `docs/issues/resolved` 이동 | [GitHub Issues 미러](issues/active/2026-10-27-github-issues-mirror.md) | 적용 |
 | CI가 GitOps `main`에 이미지 태그 자동 push 시작 | `repos/gitops` behind 상태에서 commit 시 guard hook deny 실확인 → 통과 시 `docs/issues/resolved` 이동 | [GitOps 로컬 클론](issues/active/2026-10-21-gitops-repo-local-clone.md) | 적용 |
 ---
 

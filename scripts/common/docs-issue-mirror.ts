@@ -26,7 +26,7 @@ export const KNOWN_STATUSES = [
 /** GitHub Issue 본문 최대 길이 */
 const MAX_BODY_LENGTH = 65536;
 
-const SLUG_MARKER_RE = /<!-- docs-issue: ([a-z0-9-]+) -->/;
+const SLUG_MARKER_RE = /<!-- docs-issue: ([a-z0-9.-]+) -->/;
 const HASH_MARKER_RE = /<!-- docs-issue-hash: ([0-9a-f]+) -->/;
 const STATUS_ROW_RE = /^\|\s*\*\*상태\*\*\s*\|\s*\*\*([^*|]+)\*\*/m;
 const TITLE_RE = /^#\s+(.+)$/m;
