@@ -109,6 +109,7 @@ export const ZeroTrustAccessComponent = utils.functions.defineComponent(
         accountId: args.accountId,
         name: 'Allow WARP device enrollment',
         decision: 'allow',
+        sessionDuration: '24h',
         includes: pulumi
           .output(args.allowedEmails)
           .apply(emails => emails.map(email => ({ email: { email } }))),
@@ -141,7 +142,8 @@ export const ZeroTrustAccessComponent = utils.functions.defineComponent(
         accountId: args.accountId,
         includes: args.splitTunnelIncludes,
       },
-      providerOpts,
+      // policyId: computed 필드가 매 plan마다 unknown으로 잡혀 영구 diff 발생
+      { ...providerOpts, ignoreChanges: ['policyId'] },
     );
 
     new cloudflare.ZeroTrustDeviceDefaultProfileLocalDomainFallback(
