@@ -17,6 +17,7 @@ import { inflateCommonProject } from './projenrc/projects/common-projects';
 import { inflatePulumiProject } from './projenrc/projects/pulumi-projects';
 import { pinWorkflowActions } from './projenrc/workflows/action-pins';
 import { addAutoMergeDevelopWorkflow } from './projenrc/workflows/auto-merge-develop';
+import { addDocsIssueMirrorWorkflow } from './projenrc/workflows/docs-issue-mirror';
 import { addPrValidationWorkflow } from './projenrc/workflows/pr-validation';
 import { modifyUpgradeWorkflow } from './projenrc/workflows/upgrade';
 import * as src from './src';
@@ -148,7 +149,7 @@ const rootProject = new typescript.TypeScriptProject(
         },
         pullRequestTitle: 'Upgrade Node Deps',
         workflow: true,
-        // rulesync는 메이저가 매일 바뀐다. 업그레이드는 docs/resolved/2026-10-17-ai-agent-config-rulesync.md 후속으로 수동 진행.
+        // rulesync는 메이저가 매일 바뀐다. 업그레이드는 docs/issues/resolved/2026-10-17-ai-agent-config-rulesync.md 후속으로 수동 진행.
         exclude: ['rulesync'],
       },
       prettier: true,
@@ -284,6 +285,7 @@ void (async () => {
   await modifyUpgradeWorkflow(rootProject);
   addPrValidationWorkflow(rootProject);
   addAutoMergeDevelopWorkflow(rootProject);
+  addDocsIssueMirrorWorkflow(rootProject);
   pinWorkflowActions(rootProject);
 
   // Common
@@ -1059,6 +1061,7 @@ void (async () => {
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     posttest: 'pnpm test:workspaces',
     'test:workspaces': `turbo run test --filter ${workspacePackageFilters} --concurrency=2`,
+    'test:scripts': `TS_NODE_PROJECT=${src.constants.paths.dirs.scriptDir}/tsconfig.json node --test --require ts-node/register/transpile-only '${src.constants.paths.dirs.scriptDir}/**/*.test.ts'`,
     'build:infra': `turbo run build --filter ${infraPackageFilter}`,
 
     // ESLint
@@ -1077,6 +1080,7 @@ void (async () => {
     'script:generateVentoyUserData': `ts-node scripts/generate-ventoy-user-data.script.ts`,
     'script:bootstrapLocalEnv': `ts-node scripts/bootstrap-local-env.script.ts`,
     'script:synthProjectReadme': `ts-node scripts/synth-project-readme.script.ts`,
+    'script:syncGithubIssues': `ts-node scripts/sync-github-issues.script.ts`,
 
     // Pulumi — refresh는 PULUMI_REFRESH=1 로 선택 (기본 off)
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,

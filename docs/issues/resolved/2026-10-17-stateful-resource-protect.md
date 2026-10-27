@@ -6,7 +6,7 @@
 | **우선순위** | 높음 |
 | **영역** | `infra/k8s-workstation-system`, `infra/k8s-workstation-apps`, `infra/k8s-workstation-tools`, `common/custom-resources` |
 | **관련 코드** | `infra/k8s-workstation-apps/src/components/jellyfin/jellyfin.helm-chart.component.ts`, `infra/k8s-workstation-tools/src/components/qbittorrent/qbittorrent.app.component.ts`, `infra/k8s-workstation-tools/src/components/coder/coder.base.component.ts`, `infra/k8s-workstation-tools/src/components/vikunja/vikunja.base.component.ts`, `infra/k8s-workstation-system/src/components/authentik/authentik.helm-chart.component.ts`, `infra/k8s-workstation-system/src/components/vault/vault.helm-chart.component.ts` |
-| **관련 문서** | [구현 플랜](../superpowers/plans/2026-10-17-stateful-resource-protect.md) |
+| **관련 문서** | [구현 플랜](../../superpowers/plans/2026-10-17-stateful-resource-protect.md) |
 | **상태** | **해결** — 3개 스택 protect·retainOnDelete 반영, 후속(SC 이전·policy pack)은 범위 밖 |
 | **해결일** | 2026-10-17 |
 

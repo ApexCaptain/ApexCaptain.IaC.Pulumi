@@ -53,4 +53,4 @@ pnpm --filter @common/nexus test
 ## 참조
 
 - `src/esc/`에 정의된 ESC 모듈은 동명 `@infra/*` 스택 및 Cloudflare·OCI·GitHub 연동 설정과 대응함.
-- 운영·품질 관련 문서: [Jest 유닛 테스트 도입](../../docs/resolved/2026-09-21-nexus-jest-unit-tests.md), [오류 처리·env 검증 강화](../../docs/resolved/2026-10-17-nexus-error-handling-hardening.md).
+- 운영·품질 관련 문서: [Jest 유닛 테스트 도입](../../docs/issues/resolved/2026-09-21-nexus-jest-unit-tests.md), [오류 처리·env 검증 강화](../../docs/issues/resolved/2026-10-17-nexus-error-handling-hardening.md).

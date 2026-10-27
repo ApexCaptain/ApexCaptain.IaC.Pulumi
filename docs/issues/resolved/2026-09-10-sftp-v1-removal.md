@@ -96,9 +96,9 @@ rg -n "SftpV1Component|sftp\\.v1|sftp-v1" --glob '!docs/**' --glob '!**/node_mod
 |---|---|
 | 이 이슈 | 상태·게이트·계획. 타임라인 append만 |
 | `docs/schedule.md` | 날짜를 2026-10-21로. 닫히면 행 삭제 |
-| `docs/resolved/2026-09-09-sftp-adapter-v3.md` | 본문 역사 유지. 닫을 때 후속 한 줄만 “오늘 삭제”로 고침 |
-| `docs/resolved/2026-09-08-jest-unit-test-setup.md` | 당시 목록. 수정 없음 |
-| `docs/resolved/2026-10-17-version-pin-ssot.md` | 닫을 때 “SftpV1 `atmoz/sftp:alpine`” 문구만 v3 digest 핀으로 정정 |
+| `docs/issues/resolved/2026-09-09-sftp-adapter-v3.md` | 본문 역사 유지. 닫을 때 후속 한 줄만 “오늘 삭제”로 고침 |
+| `docs/issues/resolved/2026-09-08-jest-unit-test-setup.md` | 당시 목록. 수정 없음 |
+| `docs/issues/resolved/2026-10-17-version-pin-ssot.md` | 닫을 때 “SftpV1 `atmoz/sftp:alpine`” 문구만 v3 digest 핀으로 정정 |
 
 ### 4. 검증
 

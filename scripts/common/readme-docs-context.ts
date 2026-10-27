@@ -9,8 +9,8 @@ const EXCLUDED_PREFIXES = [
 ] as const;
 
 const ISSUE_DIRS = [
-  path.join(DOCS_DIR, 'issues'),
-  path.join(DOCS_DIR, 'resolved'),
+  path.join(DOCS_DIR, 'issues', 'active'),
+  path.join(DOCS_DIR, 'issues', 'resolved'),
 ] as const;
 
 const MAX_RELATED_DOCS = 5;
@@ -88,7 +88,7 @@ function formatDocMetaList(docs: DocMeta[]): string {
 }
 
 /**
- * 루트 README 합성용: schedule.md 전문 + issues/resolved 메타만.
+ * 루트 README 합성용: schedule.md 전문 + issues/active·resolved 메타만.
  */
 export function buildRootDocsContext(): string {
   const parts: string[] = [];

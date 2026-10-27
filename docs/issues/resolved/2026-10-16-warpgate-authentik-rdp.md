@@ -4,7 +4,7 @@
 |---|---|
 | **등록일** | 2026-10-16 |
 | **영역** | `infra/k8s-workstation-tools`, Authentik OIDC, Cloudflare Zero Trust, ESC |
-| **관련 문서** | [설계 스펙](../superpowers/specs/2026-10-18-cloudflare-zero-trust-rdp-design.md), [구현 플랜](../superpowers/plans/2026-10-18-cloudflare-zero-trust-rdp.md) · 폐기: [Warpgate 스펙](../superpowers/specs/2026-10-16-warpgate-authentik-rdp-design.md), [Warpgate 플랜](../superpowers/plans/2026-10-16-warpgate-authentik-rdp.md) |
+| **관련 문서** | [설계 스펙](../../superpowers/specs/2026-10-18-cloudflare-zero-trust-rdp-design.md), [구현 플랜](../../superpowers/plans/2026-10-18-cloudflare-zero-trust-rdp.md) · 폐기: [Warpgate 스펙](../../superpowers/specs/2026-10-16-warpgate-authentik-rdp-design.md), [Warpgate 플랜](../../superpowers/plans/2026-10-16-warpgate-authentik-rdp.md) |
 | **상태** | **해결** |
 | **해결일** | 2026-10-18 |
 

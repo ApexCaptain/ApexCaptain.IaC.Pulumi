@@ -7,7 +7,7 @@
 | **영역** | `@common/utils`, `@common/custom-resources`, `.projenrc.ts` |
 | **관련 코드** | `common/utils/test`, `common/custom-resources/test`, `.projenrc.ts` `inflateCommonProject` |
 | **상태** | **해결** — Spec 1·2 구현·수용 기준 충족. 이 레포에서 이 주제로 할 일 없음 |
-| **원본** | `docs/issues/2026-09-08-jest-unit-test-setup.md` (+ plan), `docs/issues/2026-09-09-jest-custom-resources-spec-2.md` (+ plan). 2026-09-09 한 파일로 합쳐 아카이브 |
+| **원본** | `docs/issues/resolved/2026-09-08-jest-unit-test-setup.md` (+ plan), `docs/issues/2026-09-09-jest-custom-resources-spec-2.md` (+ plan). 2026-09-09 한 파일로 합쳐 아카이브 |
 
 ## 해결 요약
 

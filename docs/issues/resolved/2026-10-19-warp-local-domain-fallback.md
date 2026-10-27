@@ -5,7 +5,7 @@
 | **등록일** | 2026-10-19 |
 | **영역** | `infra/k8s-workstation-tools` Zero Trust 디바이스 기본 프로필, 클라이언트 PC(WARP) |
 | **관련 코드** | `infra/k8s-workstation-tools/src/components/zero-trust/zero-trust.access.component.ts`, `infra/k8s-workstation-tools/src/contract.ts`, `common/nexus/src/esc/cloudflare.esc.ts`, `scripts/sync-pulumi-esc.script.ts` |
-| **관련 이슈** | [외부 RDP Zero Trust (해결)](../resolved/2026-10-16-warpgate-authentik-rdp.md) |
+| **관련 이슈** | [외부 RDP Zero Trust (해결)](2026-10-16-warpgate-authentik-rdp.md) |
 | **상태** | **해결** |
 | **해결일** | 2026-10-19 |
 

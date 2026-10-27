@@ -7,7 +7,7 @@
  * clusterName · credentials는 system `pcloud-backup` platform SSOT.
  * Job이 platform ConfigMap/Secret get. worker에는 base64 env로만 전달.
  *
- * @see docs/issues/2026-09-15-pcloud-pvc-encrypted-backup.md
+ * @see docs/issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md
  */
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';

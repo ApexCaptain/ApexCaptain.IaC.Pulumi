@@ -2,7 +2,7 @@
  * 노드 부팅마다 istio-cni-node를 한 번 재시작해, startup reconcile이
  * netns 생성 전에 포기한 ambient 파드를 다시 등록한다.
  *
- * docs/resolved/2026-10-12-ambient-reboot-redirect.md
+ * docs/issues/resolved/2026-10-12-ambient-reboot-redirect.md
  */
 import * as fs from 'fs';
 import * as path from 'path';

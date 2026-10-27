@@ -7,7 +7,7 @@
 | **영역** | workstation · `k8s-workstation-system` `lxcfs` Helm |
 | **관련 코드** | `infra/k8s-workstation-system/src/components/lxcfs/lxcfs.helm-chart.component.ts`, `infra/k8s-workstation-system/src/contract.ts` |
 | **관련** | [upstream #128](https://github.com/cndoit18/lxcfs-on-kubernetes/issues/128), [PR #138](https://github.com/cndoit18/lxcfs-on-kubernetes/pull/138), [agent self-heal #122](https://github.com/cndoit18/lxcfs-on-kubernetes/issues/122) |
-| **계획** | [구현 계획](../superpowers/plans/2026-10-06-lxcfs-on-kubernetes-0.2.8.md) |
+| **계획** | [구현 계획](../../superpowers/plans/2026-10-06-lxcfs-on-kubernetes-0.2.8.md) |
 | **상태** | **해결** — chart 0.2.8, manager·agent `v0.2.8`. webhook 라벨 Pod 스모크 통과 |
 
 ## 해결 요약
@@ -86,7 +86,7 @@ MutatingWebhook 이름(release `lxcfs`): `lxcfs-lxcfs-on-kubernetes-mutating-web
 - runc에 `/proc/pressure` overmount를 넣는 upstream 요청
 - mount-recovery를 통째로 주석 블록으로 보관 (한 줄 주석으로 #122만 가리킨다)
 - Nova diagnosis 파일 수동 편집. 재생성 스크립트가 돌 때 갱신
-- [PriorityClass 이슈](../issues/2026-09-13-priority-class-resource-protection.md) 설계 변경. DS 삭제 시 그 이슈 타임라인에 “mount-recovery가 쓰던 `system-node-critical` 명시가 사라짐” 한 줄만 추가
+- [PriorityClass 이슈](../active/2026-09-13-priority-class-resource-protection.md) 설계 변경. DS 삭제 시 그 이슈 타임라인에 “mount-recovery가 쓰던 `system-node-critical` 명시가 사라짐” 한 줄만 추가
 
 ## 타임라인
 

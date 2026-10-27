@@ -23,7 +23,7 @@
 - [x] `data-authentik-postgresql-0`만 삭제 대상. `authentik-db-1`·CNPG Cluster CR은 건드리지 않음
 - [x] 삭제: `kubectl delete pvc data-authentik-postgresql-0 -n authentik` (Pulumi에 이 PVC 없음 — 수동 삭제만)
 - [ ] 삭제 후 24h 내 auth 재확인
-- [x] `docs/issues/2026-09-15-pcloud-pvc-encrypted-backup.md` Lane A에서 `data-authentik-postgresql-0` 행 제거
+- [x] `docs/issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md` Lane A에서 `data-authentik-postgresql-0` 행 제거
 
 이상 있으면 PVC 유지하고 이슈 상태 **보류** 유지, 재검토일만 연기.
 

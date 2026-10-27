@@ -7,7 +7,7 @@
  *
  * PVC/file copy·VolumeSnapshot 금지. `vault operator raft snapshot`만.
  *
- * @see docs/issues/2026-09-15-pcloud-pvc-encrypted-backup.md
+ * @see docs/issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md
  */
 import fs from 'node:fs';
 import path from 'node:path';
