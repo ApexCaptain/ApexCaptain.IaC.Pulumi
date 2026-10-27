@@ -87,6 +87,17 @@ void describe('renderIssueBody', () => {
     assert.equal(body, renderIssueBody(doc, repo));
   });
 
+  void test('버전 점이 들어간 slug도 마커로 되읽는다', () => {
+    const doc = parseIssueDoc(
+      'docs/issues/resolved/2026-10-06-lxcfs-0.2.8-upgrade.md',
+      '# t',
+    );
+    assert.equal(
+      extractSlug(renderIssueBody(doc, repo)),
+      '2026-10-06-lxcfs-0.2.8-upgrade',
+    );
+  });
+
   void test('너무 긴 본문은 65536자 안으로 자른다', () => {
     const doc = parseIssueDoc(
       'docs/issues/active/2026-01-02-b.md',

@@ -5,7 +5,7 @@
 | **등록일** | 2026-10-27 |
 | **영역** | 레포 문서 (`docs/`), GitHub Issues, CI |
 | **관련 코드** | `docs/issues/active/`, `docs/issues/resolved/`, `docs/schedule.md`, `.rulesync/rules/use-docs-issues.md`, `.projenrc.ts` (workflow 생성), `scripts/` |
-| **상태** | **진행중** — 스크립트·workflow 구현. develop 머지 후 첫 전체 동기화 대기 |
+| **상태** | **적용** — 첫 전체 동기화 완료 (open 18 / closed 31). resolved 이동 시 close는 실제 이동 때 확인 |
 
 ## 배경
 
@@ -47,7 +47,7 @@ GitHub Issues에 미러하면 얻는 것: 커밋·PR에서 `#N` 참조, 모바�
 - [x] 공개 노출 점검 완료 (필요 시 마스킹 규칙 또는 미러 제외 목록) — 2026-10-27, 시크릿 없음. 노드 공인 IP 1건은 허용
 - [x] 스크립트: 로컬 dry-run으로 생성·갱신·close 계획 출력
 - [x] workflow: `.projenrc.ts`에서 생성, `develop` push 시 실행
-- [ ] 재실행해도 결과 동일 (idempotent), 중복 Issue 없음
+- [x] 재실행해도 결과 동일 (idempotent), 중복 Issue 없음
 - [ ] `docs/issues/resolved` 이동 시 Issue close 확인
 - [x] `use-docs-issues` 룰에 "GitHub Issue는 미러, 수정은 md" 한 줄 추가
 
@@ -65,3 +65,4 @@ GitHub Issues에 미러하면 얻는 것: 커밋·PR에서 `#N` 참조, 모바�
 | 2026-10-27 | 공개 노출 점검 (`docs/` 현재 파일 + git 히스토리). 토큰·키·비밀번호 없음. `resolved/2026-09-18-opentelemetry-operator-crashloop.md`의 노드 공인 IP는 사용자 판단으로 그대로 둠 |
 | 2026-10-27 | 이슈 디렉터리 재구성(`docs/issues/active`·`docs/issues/resolved`)에 맞춰 경로 갱신. 미러 트리거 경로는 `docs/issues/**` 하나로 충분 |
 | 2026-10-27 | 결정: resolved도 미러(closed로 생성), 트리거 `develop`, 댓글 열어둠. 구현 — `scripts/common/docs-issue-mirror.ts`(순수 로직)·`.test.ts`(node:test 15개), `scripts/sync-github-issues.script.ts`(기본 dry-run, `--apply`), `projenrc/workflows/docs-issue-mirror.ts`, `pnpm test:scripts`를 pr-validation에 추가. 로컬 dry-run: md 49개 → create 49 |
+| 2026-10-27 | PR #106 머지, workflow 첫 실행 성공 — Issue 49개 생성 (open 18 / closed 31). 재실행 dry-run에서 `lxcfs-on-kubernetes-0.2.8-upgrade`만 다시 create로 잡힘: slug 마커 정규식이 `.`을 허용하지 않아 기존 Issue를 못 찾음. 정규식 수정 + 테스트 추가 후 dry-run 동작 0개 |
