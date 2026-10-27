@@ -416,8 +416,8 @@ importers:
         specifier: workspace:*
         version: link:../../common/utils
       '@pulumi/cloudflare':
-        specifier: ^6.17.0
-        version: 6.17.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
+        specifier: ^6.23.1
+        version: 6.23.1(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
       '@pulumi/pulumi':
         specifier: ^3.272.0
         version: 3.272.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
@@ -684,8 +684,8 @@ importers:
         specifier: workspace:*
         version: link:../k8s-workstation-system
       '@pulumi/cloudflare':
-        specifier: ^6.17.0
-        version: 6.17.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
+        specifier: ^6.23.1
+        version: 6.23.1(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
       '@pulumi/kubernetes':
         specifier: ^4.31.1
         version: 4.31.1(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
@@ -1682,8 +1682,8 @@ packages:
   '@pulumi/authentik@file:common/bridged-provider/sdks/authentik':
     resolution: {directory: common/bridged-provider/sdks/authentik, type: directory}
 
-  '@pulumi/cloudflare@6.17.0':
-    resolution: {integrity: sha512-sIL1rfjNavy+yZQ/OjyFHD4owe2E/TpHLFCVsogQJOC+Y6Bj7JxrhoTfsJdxVEXEFBGlNCu68T+g9im8iEZM9A==}
+  '@pulumi/cloudflare@6.23.1':
+    resolution: {integrity: sha512-VaEZaHQFFpToKdG+OkjlLPXhChxhKCHNGqnJoBC0yZaTG2bb02Vh5gP3NOIjQLn7enKkZX3VzdEV5dM0gJJcJA==}
 
   '@pulumi/coderd@file:common/bridged-provider/sdks/coderd':
     resolution: {directory: common/bridged-provider/sdks/coderd, type: directory}
@@ -6492,7 +6492,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  '@pulumi/cloudflare@6.17.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)':
+  '@pulumi/cloudflare@6.23.1(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)':
     dependencies:
       '@pulumi/pulumi': 3.272.0(ts-node@10.9.2(@types/node@25.9.5)(typescript@6.0.3))(typescript@6.0.3)
     transitivePeerDependencies:

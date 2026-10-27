@@ -177,10 +177,11 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
         },
       );
 
+      // 삭제·force-push 금지, PR 경유 필수. 1인 레포 + develop auto-merge 라 승인 0.
       new github.RepositoryRuleset(
         `${resourceName}-branchDeletionRuleset`,
         {
-          name: 'Protect main and develop from deletion',
+          name: 'Protect main and develop',
           repository: repository.name,
           target: 'branch',
           enforcement: 'active',
@@ -189,6 +190,10 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
           },
           rules: {
             deletion: true,
+            nonFastForward: true,
+            pullRequest: {
+              requiredApprovingReviewCount: 0,
+            },
           },
         },
         {

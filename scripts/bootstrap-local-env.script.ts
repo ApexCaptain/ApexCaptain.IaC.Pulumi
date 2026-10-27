@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -14,8 +14,8 @@ const siblingRepositories = [
   },
 ];
 
-function git(cwd: string, args: string): string {
-  return execSync(`git ${args}`, { cwd, encoding: 'utf-8', stdio: 'pipe' });
+function git(cwd: string, args: string[]): string {
+  return execFileSync('git', args, { cwd, encoding: 'utf-8', stdio: 'pipe' });
 }
 
 // 실패해도 bootstrap 전체는 막지 않는다 (네트워크·권한 문제는 경고만)
@@ -25,27 +25,29 @@ function syncSiblingRepository(repo: (typeof siblingRepositories)[number]) {
     if (!fs.existsSync(path.join(dir, '.git'))) {
       fs.mkdirSync(path.dirname(dir), { recursive: true });
       // --branch 없이: 빈 레포도 clone된다 (기본 브랜치 = main)
-      execSync(`git clone ${repo.url} ${dir}`, {
+      execFileSync('git', ['clone', repo.url, dir], {
         stdio: 'inherit',
       });
       return;
     }
     // 빈 레포는 원격 브랜치가 없다
-    if (!git(dir, `ls-remote --heads origin ${repo.branch}`).trim()) {
+    if (!git(dir, ['ls-remote', '--heads', 'origin', repo.branch]).trim()) {
       console.warn(
         `⚠️  ${repo.dir}: origin/${repo.branch} 없음 (빈 레포). 건너뜀`,
       );
       return;
     }
-    if (git(dir, 'status --porcelain').trim()) {
+    if (git(dir, ['status', '--porcelain']).trim()) {
       console.warn(`⚠️  ${repo.dir}: 로컬 변경 있음. pull 건너뜀`);
       return;
     }
-    if (git(dir, 'rev-parse --abbrev-ref HEAD').trim() !== repo.branch) {
+    if (
+      git(dir, ['rev-parse', '--abbrev-ref', 'HEAD']).trim() !== repo.branch
+    ) {
       console.warn(`⚠️  ${repo.dir}: ${repo.branch} 브랜치 아님. pull 건너뜀`);
       return;
     }
-    execSync(`git pull --ff-only origin ${repo.branch}`, {
+    execFileSync('git', ['pull', '--ff-only', 'origin', repo.branch], {
       cwd: dir,
       stdio: 'inherit',
     });
@@ -55,10 +57,12 @@ function syncSiblingRepository(repo: (typeof siblingRepositories)[number]) {
 }
 
 function bootstrapLocalEnv(): void {
-  execSync('git submodule update --init --recursive', { stdio: 'inherit' });
+  execFileSync('git', ['submodule', 'update', '--init', '--recursive'], {
+    stdio: 'inherit',
+  });
   siblingRepositories.forEach(syncSiblingRepository);
   const requirementsPath = path.join(process.cwd(), 'requirements.txt');
-  const log = execSync(`pip install -r ${requirementsPath}`, {
+  const log = execFileSync('pip', ['install', '-r', requirementsPath], {
     encoding: 'utf-8',
   });
   console.log(log);

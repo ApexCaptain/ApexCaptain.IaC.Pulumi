@@ -51,5 +51,5 @@ export const containerImages = Object.freeze({
     'ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.156.0',
   vuetorrentMod: 'ghcr.io/vuetorrent/vuetorrent-lsio-mod:2.36.1',
   cloudflared:
-    'cloudflare/cloudflared:2026.10.1@sha256:a15a3b50b8dabd57ac2090e9484c0247dba9dfa1f0df4d298d4317f9d69eb2d5',
+    'cloudflare/cloudflared:2026.10.4@sha256:c6c7ae1d5dfdcb094ad344ed68ccffc26635c9c6be80965664c33baf064b0515',
 } as const);
