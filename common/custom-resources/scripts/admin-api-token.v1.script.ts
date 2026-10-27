@@ -49,7 +49,7 @@ function hoursToNanoseconds(hours: number): number {
 }
 
 function shellSingleQuote(value: string): string {
-  return `'${value.replace(/'/g, '\'\"\'\"\'')}'`;
+  return `'${value.replace(/'/g, "'\"'\"'")}'`;
 }
 
 function resolveKubeconfigPath(kubeconfig: string): {
@@ -135,7 +135,9 @@ async function curlJsonInPod(args: {
 }): Promise<{ statusCode: number; body: string }> {
   const headerLines = [`-H ${shellSingleQuote('Accept: application/json')}`];
   if (args.body !== undefined) {
-    headerLines.push(`-H ${shellSingleQuote('Content-Type: application/json')}`);
+    headerLines.push(
+      `-H ${shellSingleQuote('Content-Type: application/json')}`,
+    );
   }
   if (args.sessionToken) {
     headerLines.push(
@@ -178,14 +180,14 @@ async function curlJsonInPod(args: {
 
   if (result.code !== 0) {
     throw new Error(
-      `kubectl exec curl failed (code=${result.code}): ${result.stderr || result.stdout}`,
+      `kubectl exec curl failed (code=${result.code}): ${result.stderr || `(stderr empty, stdout ${result.stdout.length} bytes)`}`,
     );
   }
 
   const separatorIndex = result.stdout.indexOf('\n---\n');
   if (separatorIndex < 0) {
     throw new Error(
-      `unexpected curl response from pod (no separator): ${result.stdout}`,
+      `unexpected curl response from pod (no separator, ${result.stdout.length} bytes)`,
     );
   }
 
@@ -195,7 +197,9 @@ async function curlJsonInPod(args: {
   );
   const body = result.stdout.slice(separatorIndex + '\n---\n'.length);
   if (Number.isNaN(statusCode)) {
-    throw new Error(`failed to parse HTTP status from pod curl: ${result.stdout}`);
+    throw new Error(
+      `failed to parse HTTP status from pod curl (${result.stdout.length} bytes)`,
+    );
   }
 
   return { statusCode, body };
@@ -346,8 +350,9 @@ export async function resolveAdminApiTokenV1(
         `failed to login as admin (${login.statusCode}): ${login.body}`,
       );
     }
-    const sessionToken = (JSON.parse(login.body) as CoderLoginResponse)
-      .session_token?.trim();
+    const sessionToken = (
+      JSON.parse(login.body) as CoderLoginResponse
+    ).session_token?.trim();
     if (!sessionToken) {
       throw new Error('login response did not include session_token');
     }
