@@ -1,65 +1,85 @@
 # ApexCaptain.IaC.Pulumi
 
-Pulumi 기반 IaC 모노레포. 홈 쿠버네티스 워크스테이션 클러스터와 Cloudflare·GitHub 등 외부 리소스를 코드로 선언하고, pnpm workspace + turbo로 공통 라이브러리(`common/*`)와 인프라 스택(`infra/*`)을 함께 관리한다.
+Pulumi로 Cloudflare·GitHub·워크스테이션 Kubernetes를 선언적으로 관리하는 pnpm 모노레포입니다. `common/*`는 공용 라이브러리, `infra/*`는 독립 Pulumi 스택입니다.
 
 ## Workspace 패키지
 
-| 경로 | 패키지 | 계층 |
+| 경로 | 패키지 | 역할 |
 | --- | --- | --- |
-| `common/bridged-provider` | `@common/bridged-provider` | common |
-| `common/custom-resources` | `@common/custom-resources` | common |
-| `common/nexus` | `@common/nexus` | common |
-| `common/utils` | `@common/utils` | common |
-| `infra/cloudflare` | `@infra/cloudflare` | infra |
-| `infra/github` | `@infra/github` | infra |
-| `infra/k8s-workstation-apps` | `@infra/k8s-workstation-apps` | infra |
-| `infra/k8s-workstation-system` | `@infra/k8s-workstation-system` | infra |
-| `infra/k8s-workstation-tools` | `@infra/k8s-workstation-tools` | infra |
+| `common/bridged-provider` | `@common/bridged-provider` | bridged Pulumi provider 설치·공유 |
+| `common/custom-resources` | `@common/custom-resources` | 커스텀 Pulumi·Kubernetes 리소스 |
+| `common/nexus` | `@common/nexus` | GitHub·자동화 워크플로 연동 |
+| `common/utils` | `@common/utils` | 모노레포 공용 유틸 |
+| `infra/cloudflare` | `@infra/cloudflare` | Cloudflare DNS·Zero Trust 등 |
+| `infra/github` | `@infra/github` | GitHub 리포·설정 등 |
+| `infra/k8s-workstation-system` | `@infra/k8s-workstation-system` | 워크스테이션 클러스터 시스템 레이어 |
+| `infra/k8s-workstation-apps` | `@infra/k8s-workstation-apps` | 워크스테이션 사용자 애플리케이션 |
+| `infra/k8s-workstation-tools` | `@infra/k8s-workstation-tools` | 워크스테이션 플랫폼·도구 |
 
-`common/*`는 Pulumi provider 바인딩, 커스텀 리소스, DI 컨테이너, 공용 유틸리티 등 `infra/*` 스택이 공유하는 추상화를 제공한다. `infra/*`는 실제 Pulumi 프로젝트이며 각각 독립된 스택을 가진다.
+패키지별 상세는 각 디렉터리의 `README.md`를 참고합니다.
 
 ## Infra 배포 순서
 
+upstream 스택 출력·contract를 downstream이 참조합니다. 아래 순서를 지킵니다.
+
 ```
 cloudflare → k8s-workstation-system → k8s-workstation-apps
-                                  → k8s-workstation-tools
+                                    → k8s-workstation-tools
 ```
 
-`k8s-workstation-system`이 클러스터 플랫폼 레이어(Istio, Vault, 모니터링, 스토리지 등)를 구성한 뒤에만 `k8s-workstation-apps`와 `k8s-workstation-tools`를 배포할 수 있다. `infra/github`은 리포지토리 설정 자체를 다루므로 클러스터 배포 순서와 독립적이다.
+`infra/github`는 다른 infra 패키지와 contract로 연결될 수 있으며, 스택 배포 전 해당 패키지 README의 upstream·downstream을 확인합니다.
 
 ## 로컬 개발
 
-- `pnpm script:bootstrapLocalEnv` — 로컬 개발 환경 부트스트랩
-- `pnpm script:fetchWorkstationKubeconfig` — 워크스테이션 클러스터 kubeconfig 조회
-- `pnpm script:mergeKubeConfig` — 조회한 kubeconfig를 로컬 kubeconfig에 병합
-- `pnpm script:syncPulumiEsc` — Pulumi ESC 환경 값 동기화
-- `pnpm pulumi:install` — `common/bridged-provider` 기준 Pulumi provider 설치
+- `pnpm script:bootstrapLocalEnv` — 로컬 개발 환경 초기 설정
+- `pnpm pulumi:install` — `common/bridged-provider`에 Pulumi provider 설치 (`--no-dependencies`)
+- `pnpm script:fetchWorkstationKubeconfig` — 워크스테이션 kubeconfig 조회
+- `pnpm script:mergeKubeConfig` — kubeconfig 병합
+- `pnpm script:syncPulumiEsc` — Pulumi ESC 동기화 (실제 secret 값은 README·커밋에 넣지 않음)
 
-## 빌드 · 테스트
+빌드·검증:
 
-- `pnpm build:workspaces` — `common/*`, `infra/*` 전체 빌드 (turbo)
-- `pnpm build:infra` — `infra/*`만 빌드
-- `pnpm test:workspaces` — `common/*`, `infra/*` 전체 테스트 (동시성 2)
+```bash
+pnpm build:workspaces
+pnpm test:workspaces
+pnpm build:infra
+```
 
-## Pulumi 배포
+## Pulumi (루트)
 
-- `pnpm pulumi:preview` — `infra/*` 전체 preview (turbo)
-- `pnpm pulumi:up` — `infra/*` 전체 up (turbo, TUI)
-- `postpulumi:up` — up 이후 kubeconfig 병합과 Nova·Pluto 진단 리포트 생성을 자동 실행
+```bash
+pnpm pulumi:preview
+pnpm pulumi:up
+```
+
+`pulumi:up` 완료 후 `postpulumi:up`이 kubeconfig 병합과 Nova·Pluto 진단 생성을 실행합니다.
 
 ## 자동화 스크립트
 
-- `pnpm script:generateCommitMessage` — 커밋 메시지 초안 생성
-- `pnpm git:commit` — 생성된 커밋 메시지로 커밋
-- `pnpm script:generatePullRequest` / `pnpm script:openPullRequest` — PR 본문 생성 및 오픈
-- `pnpm git:pr` — `develop` 베이스로 PR 생성
-- `pnpm git:pr:to-main` — `develop` → `main` PR 생성
-- `pnpm script:promoteDevelopToMain` — `develop`을 `main`으로 승격
-- `pnpm script:synthProjectReadme` — 서브모듈 및 루트 README 합성 (`--apply`로 반영, `--all-workspace` / `--package <path>`로 범위 지정)
-- `pnpm script:generateNovaDiagnosis` / `pnpm script:generatePlutoDiagnosis` — 클러스터 진단 리포트 생성
-- `pnpm script:generateVentoyUserData` — Ventoy 부팅 미디어용 user-data 생성
+| 스크립트 | 설명 |
+| --- | --- |
+| `build:infra` | `infra/*` turbo build |
+| `build:workspaces` | `common/*`, `infra/*` turbo build |
+| `test:workspaces` | workspace 패키지 Jest 등 테스트 |
+| `git:commit` | `.github/generated/commit-message.txt`로 커밋 |
+| `git:pr` | `develop` 대상 PR 생성 |
+| `git:pr:to-main` | `develop` → `main` PR 생성 |
+| `script:generateCommitMessage` | 커밋 메시지 초안 생성 |
+| `script:generatePullRequest` | PR 본문 초안 생성 |
+| `script:openPullRequest` | 생성된 PR 열기 |
+| `script:promoteDevelopToMain` | develop → main 승격 워크플로 |
+| `script:generateNovaDiagnosis` | Nova 클러스터 진단 문서 생성 |
+| `script:generatePlutoDiagnosis` | Pluto 진단 문서 생성 |
+| `script:generateVentoyUserData` | Ventoy user-data 생성 |
+| `script:synthProjectReadme` | README 합성 (기본: 루트, `--apply`로 반영, `--all-workspace` 또는 `--package`로 서브모듈) |
+
+합성 결과 미리보기는 `.github/generated/readme/`에 둡니다.
 
 ## 문서
 
-- 열린 이슈와 일정은 [docs/schedule.md](docs/schedule.md)에서 관리한다.
-- 이슈 원문은 `docs/issues/`, 해결된 이슈는 `docs/resolved/`에 보관한다.
+- [docs/schedule.md](docs/schedule.md) — 열린 이슈 일정·재검토 시점
+- [docs/issues/active/](docs/issues/active/) — 진행·보류 이슈
+- [docs/issues/resolved/](docs/issues/resolved/) — 완료 이슈 아카이브
+- [docs/diagnosis/](docs/diagnosis/) — Nova·Pluto 등 운영 진단 (별도 SSOT)
+
+일정 표는 언제 무엇을 볼지만 담고, 기능 목록이나 로드맵 대체용이 아닙니다.

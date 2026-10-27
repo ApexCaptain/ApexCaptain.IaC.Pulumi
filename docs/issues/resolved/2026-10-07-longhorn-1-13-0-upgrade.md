@@ -36,7 +36,7 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 longhorn 차트 1.12.1 →
 
 ### 1. 안전망 없음 (선행 조건)
 
-모든 볼륨이 replica 1개이고 Longhorn 백업이 없다. 엔진·IM 문제 시 복구 수단이 없다. 최대 볼륨은 2 TiB / 1 TiB급. 오프사이트 백업 이슈는 [PVC pCloud 암호화 백업](../issues/2026-09-15-pcloud-pvc-encrypted-backup.md).
+모든 볼륨이 replica 1개이고 Longhorn 백업이 없다. 엔진·IM 문제 시 복구 수단이 없다. 최대 볼륨은 2 TiB / 1 TiB급. 오프사이트 백업 이슈는 [PVC pCloud 암호화 백업](../active/2026-09-15-pcloud-pvc-encrypted-backup.md).
 
 → **사용자가 하드 백업을 직접 수행한 뒤** 진행한다. Jellyfin media(약 2 Ti) 등 대용량 PVC는 주말에 시간이 걸릴 수 있다.
 

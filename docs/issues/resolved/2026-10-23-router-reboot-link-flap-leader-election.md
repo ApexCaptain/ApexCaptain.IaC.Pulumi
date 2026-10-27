@@ -19,7 +19,7 @@
 - 대상: cert-manager·cainjector, VSO, gpu-operator, CNPG operator, cilium-operator, snapshot-controller, redis-operator, Longhorn CSI 사이드카, kube-vip, kube-controller-manager, kube-scheduler
 - 종료 사유: `leader election lost` / `leaderelection lost`
 - 누적 재시작 예: kube-vip 35회(11일), VSO 37회, gpu-operator·CNPG operator 28회(10일)
-- [K8s 1.36 업그레이드](../issues/2026-10-13-kubernetes-1-36-upgrade.md) 이슈에서 "리더 선출 노이즈로 추정, 미확인"으로 남겨 둔 재시작 수(controller-manager 116, scheduler 124)와 같은 현상
+- [K8s 1.36 업그레이드](../active/2026-10-13-kubernetes-1-36-upgrade.md) 이슈에서 "리더 선출 노이즈로 추정, 미확인"으로 남겨 둔 재시작 수(controller-manager 116, scheduler 124)와 같은 현상
 
 ## 원인
 

@@ -23,7 +23,7 @@
 
 ## 루트 README
 
-- 모노레포 개요, workspace 패키지 표(경로·패키지명·역할 한 줄), 로컬 개발(DevContainer·bootstrap 등 manifest에 있는 스크립트만), infra 배포 순서, 자동화 스크립트, `docs/issues`·`docs/schedule` 링크
+- 모노레포 개요, workspace 패키지 표(경로·패키지명·역할 한 줄), 로컬 개발(DevContainer·bootstrap 등 manifest에 있는 스크립트만), infra 배포 순서, 자동화 스크립트, `docs/issues/active`·`docs/issues/resolved`·`docs/schedule` 링크
 - 서브모듈 README 전문을 복사하지 않습니다.
 - `# replace this` placeholder를 남기지 않습니다.
 

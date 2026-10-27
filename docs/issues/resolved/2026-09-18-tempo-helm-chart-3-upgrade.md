@@ -38,7 +38,7 @@ Nova diagnosis(`docs/diagnosis/nova.diagnosis.md`)에서 `monitoring/tempo` 릴�
 | # | 항목 | 영향 | 이 배포 관련도 |
 |---|---|---|---|
 | 1 | **vParquet4 미만 블록** | Tempo 3.0은 vParquet3 이하 미지원 → 기동/쿼리 실패 | 2.10.8은 보통 vParquet4+ 기본이나 **PVC 실측 필수** |
-| 2 | **다운그레이드 없음** | 3.0 적용·데이터 경로 전환 후 chart 2.x 롤백 어려움 | PVC 백업·스냅샷 권장 (`storage-tempo-0`, 이슈 [pCloud 백업](../issues/2026-09-15-pcloud-pvc-encrypted-backup.md)) |
+| 2 | **다운그레이드 없음** | 3.0 적용·데이터 경로 전환 후 chart 2.x 롤백 어려움 | PVC 백업·스냅샷 권장 (`storage-tempo-0`, 이슈 [pCloud 백업](../active/2026-09-15-pcloud-pvc-encrypted-backup.md)) |
 | 3 | **메모리** | VPA 추천 target ~1.22Gi | **2Gi limits**로 조정 완료 |
 | 4 | **디스크** | 72h retention + 10Gi PVC | compaction 경로 변경 후 사용량은 운영 중 주기 확인 |
 | 5 | **설정 스키마** | chart 3.0 스키마 | chart 기본 변환으로 적용 |

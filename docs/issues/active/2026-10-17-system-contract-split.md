@@ -15,7 +15,7 @@ system contract는 Cilium → cert-manager → Vault → Istio → Longhorn → 
 ## 문제
 
 - 한 파일 수정 범위가 너무 커서 리뷰·충돌·AI 에이전트 컨텍스트 비용이 크다.
-- 클로저 안 지역 변수로만 연결돼 단계별 단위 테스트가 불가능하다 (`docs/issues/2026-10-17-infra-component-tests.md`).
+- 클로저 안 지역 변수로만 연결돼 단계별 단위 테스트가 불가능하다 (`docs/issues/active/2026-10-17-infra-component-tests.md`).
 - Longhorn↔Authentik 3단계 분리처럼 순환 성격 의존이 주석으로만 관리된다.
 
 ## 목표

@@ -8,7 +8,7 @@
 | **관련 코드** | `infra/k8s-workstation-system/src/contract.ts:432`, `common/custom-resources/src/components/adapter/sftp.v3.component.ts:22`, `common/custom-resources/src/components/backup/vault-raft-archive.v1.component.ts:19` |
 | **상태** | **해결** |
 | **해결일** | 2026-10-17 |
-| **플랜** | [`docs/superpowers/plans/2026-10-17-version-pin-ssot.md`](../superpowers/plans/2026-10-17-version-pin-ssot.md) |
+| **플랜** | [`docs/superpowers/plans/2026-10-17-version-pin-ssot.md`](../../superpowers/plans/2026-10-17-version-pin-ssot.md) |
 
 ## 해결 요약
 
@@ -91,7 +91,7 @@ A. 1단계로 SSOT 파일 도입 + 불일치 3건(Vault) 정리, 2단계로 Reno
 
 ## 범위 밖
 
-- Kubespray가 관리하는 컨트롤 플레인 이미지 (`docs/issues/2026-10-13-kubernetes-1-36-upgrade.md`)
+- Kubespray가 관리하는 컨트롤 플레인 이미지 (`docs/issues/active/2026-10-13-kubernetes-1-36-upgrade.md`)
 - 실제 메이저 버전 업그레이드 (각자 이슈)
 - Renovate 등 자동 업데이트 PR (결정 D5, 필요 시 새 이슈)
 

@@ -7,7 +7,7 @@
 | **영역** | `@common/nexus`, `.projenrc.ts` |
 | **관련 코드** | `common/nexus/src/classes/contract.ts`, `common/nexus/src/abstract/esc.abstract.ts`, `common/nexus/test/` |
 | **상태** | **해결** — Jest·Contract·AbstractEsc 유닛 테스트 도입. 이 레포에서 할 일 없음 |
-| **선행** | [Jest 유닛 테스트 도입](../resolved/2026-09-08-jest-unit-test-setup.md) (해결 — utils·custom-resources만; nexus는 `jest: false`로 남음) |
+| **선행** | [Jest 유닛 테스트 도입](2026-09-08-jest-unit-test-setup.md) (해결 — utils·custom-resources만; nexus는 `jest: false`로 남음) |
 | **원안** | `tmp/gemini/nexus_test_coverage_implementation_plan.md` |
 
 ## 해결 요약

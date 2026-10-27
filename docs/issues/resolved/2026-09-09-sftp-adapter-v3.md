@@ -219,4 +219,4 @@ KV v2는 필드 ACL이 없다. host와 user를 경로로 나눈다.
 | 2026-09-10           | 사용자: qBit RaiDrive 로그인 정상                                                                                                                                      |
 | 2026-09-10           | Jellyfin `SftpV1` → `SftpV3` (`jellyfinSftpAdapter`). system `vault-oidc-kv`에 Jellyfin user list. apps 138. bootstrap Complete, VSO Synced, `jellyfin-7bb6488d47` 3/3 |
 | 2026-09-10           | 사용자: Jellyfin RaiDrive `current_private` 로그인 정상. 아카이브                                                                                                      |
-| 2026-09-10           | v1 삭제를 `docs/issues/2026-09-10-sftp-v1-removal.md`로 분리. 10월 말까지 v3 관찰                                                                                      |
+| 2026-09-10           | v1 삭제를 `docs/issues/resolved/2026-09-10-sftp-v1-removal.md`로 분리. 10월 말까지 v3 관찰                                                                                      |

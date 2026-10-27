@@ -148,7 +148,7 @@ export const VaultHelmChartComponent = utils.functions.defineComponent(
             secretName: vaultRootCaSecretName,
             // CA 사본(istio·VSO·sftp)은 배포 시점 복사라 CA 키가 바뀌면 깨진다.
             // 장수명 + 키 고정으로 회전을 없앤다 (leaf는 기본 90일 + Reloader).
-            // @see docs/issues/2026-10-25-vault-ca-rotation-trust-propagation.md
+            // @see docs/issues/active/2026-10-25-vault-ca-rotation-trust-propagation.md
             duration: '87600h',
             privateKey: {
               rotationPolicy: 'Never',

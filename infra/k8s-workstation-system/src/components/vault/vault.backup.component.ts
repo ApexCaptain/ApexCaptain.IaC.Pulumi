@@ -6,7 +6,7 @@
  *
  * clusterName · credentials는 system pcloud-backup platform SSOT.
  *
- * @see docs/issues/2026-09-15-pcloud-pvc-encrypted-backup.md
+ * @see docs/issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md
  */
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';

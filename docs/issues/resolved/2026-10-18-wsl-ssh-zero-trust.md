@@ -5,7 +5,7 @@
 | **등록일** | 2026-10-18 |
 | **영역** | `infra/k8s-workstation-tools` Zero Trust Gateway, 대상 Windows PC(WSL) |
 | **관련 코드** | `infra/k8s-workstation-tools/src/components/zero-trust/zero-trust.gateway.component.ts`, `infra/k8s-workstation-tools/src/contract.ts` (`zeroTrustGateway` targets) |
-| **관련 이슈** | [외부 RDP Zero Trust (해결)](../resolved/2026-10-16-warpgate-authentik-rdp.md) |
+| **관련 이슈** | [외부 RDP Zero Trust (해결)](2026-10-16-warpgate-authentik-rdp.md) |
 | **상태** | **해결** |
 | **해결일** | 2026-10-19 |
 

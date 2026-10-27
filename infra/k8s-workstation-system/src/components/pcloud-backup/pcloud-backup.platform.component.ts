@@ -8,7 +8,7 @@
  *
  * clusterName·credentials SSOT는 여기. 워크로드 CronJob은 이름만 받아 Job이 런타임 조회.
  *
- * @see docs/issues/2026-09-15-pcloud-pvc-encrypted-backup.md
+ * @see docs/issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md
  */
 import * as utils from '@common/utils/src';
 import * as k8s from '@pulumi/kubernetes';

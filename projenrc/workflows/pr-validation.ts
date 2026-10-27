@@ -3,7 +3,7 @@ import { ActionRefs, GithubWorkflow } from 'projen/lib/github';
 import { JobPermission } from 'projen/lib/github/workflows-model';
 import * as src from '../../src';
 
-/** PR 정적 검증 — 시크릿 없음. docs/issues/2026-09-11-pr-ci-validation-pipeline.md */
+/** PR 정적 검증 — 시크릿 없음. docs/issues/resolved/2026-09-11-pr-ci-validation-pipeline.md */
 export function addPrValidationWorkflow(
   rootProject: typescript.TypeScriptProject,
 ): void {
@@ -67,6 +67,10 @@ export function addPrValidationWorkflow(
       {
         name: 'Test workspaces',
         run: 'pnpm test:workspaces',
+      },
+      {
+        name: 'Test scripts',
+        run: 'pnpm test:scripts',
       },
       {
         name: 'ESLint',

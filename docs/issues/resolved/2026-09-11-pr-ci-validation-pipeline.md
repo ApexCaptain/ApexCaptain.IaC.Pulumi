@@ -5,7 +5,7 @@
 | **등록일** | 2026-09-11 |
 | **영역** | GitHub Actions, Projen 워크플로, PR 품질 게이트 |
 | **관련 코드** | `.projenrc.ts`, `.github/workflows/`, `package.json` (`build:workspaces`, `test:workspaces`, `eslint`) |
-| **선행** | [lint-staged pre-commit](../resolved/2026-09-06-lint-staged-pre-commit.md) (해결 — CI ESLint를 후속으로 명시), [Jest 유닛 테스트](../resolved/2026-09-08-jest-unit-test-setup.md) (해결 — GHA test workflow를 범위 밖으로 명시) |
+| **선행** | [lint-staged pre-commit](2026-09-06-lint-staged-pre-commit.md) (해결 — CI ESLint를 후속으로 명시), [Jest 유닛 테스트](2026-09-08-jest-unit-test-setup.md) (해결 — GHA test workflow를 범위 밖으로 명시) |
 | **상태** | **해결** |
 | **해결일** | 2026-09-11 |
 

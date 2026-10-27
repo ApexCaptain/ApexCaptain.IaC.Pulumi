@@ -4,7 +4,7 @@
  * Longhorn은 CSI sidecar(`csi-snapshotter`)만 띄움. 클러스터 CRD·컨트롤러는 여기.
  * VolumeSnapshotClass는 pcloud-backup Platform이 소유.
  *
- * @see docs/issues/2026-09-15-pcloud-pvc-encrypted-backup.md
+ * @see docs/issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md
  */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';

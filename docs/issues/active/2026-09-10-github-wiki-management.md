@@ -4,7 +4,7 @@
 |---|---|
 | **등록일** | 2026-09-10 |
 | **영역** | 레포 문서 (`docs/`), GitHub Wiki |
-| **관련 코드** | `docs/issues/`, `docs/resolved/`, `docs/schedule.md`, `.cursor/rules/use-docs-issues.mdc`, `.cursor/rules/use-docs-schedule.mdc` |
+| **관련 코드** | `docs/issues/active/`, `docs/issues/resolved/`, `docs/schedule.md`, `.rulesync/rules/use-docs-issues.md`, `.rulesync/rules/use-docs-schedule.md` |
 | **상태** | **보류** — 급하지 않음. 일정표 미등록. 시간 될 때 결정 |
 
 ## 배경
@@ -22,7 +22,7 @@ github.com/ApexCaptain/ApexCaptain.IaC.Pulumi.wiki.git    ← Wiki (조직 Repos
 
 ## 현재 상태
 
-- 이슈 SSOT는 GitHub Issue가 아니라 `docs/issues/` → 해결 시 `docs/resolved/`. 인덱스는 `docs/schedule.md`.
+- 이슈 SSOT는 GitHub Issue가 아니라 `docs/issues/active/` → 해결 시 `docs/issues/resolved/`. 인덱스는 `docs/schedule.md`.
 - 에이전트 룰이 이 경로를 전제로 한다. 이슈 갱신과 IaC 변경은 같은 커밋/PR에 탄다.
 - 레포 설정 `has_wiki: true`. 페이지는 없음. `.wiki.git` clone은 `Repository not found`.
 - Wiki MCP 없음. `gh wiki` 없음. GitHub REST로 위키 페이지 CRUD가 거의 없음.

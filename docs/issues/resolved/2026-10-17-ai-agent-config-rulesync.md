@@ -4,7 +4,7 @@
 |---|---|
 | **등록일** | 2026-10-17 |
 | **영역** | `.cursor/`, `.agents/skills/`, `.projenrc.ts` (MCP·Cursor 설정), `src/constants.ts`, `src/interfaces/`, `scripts/`, `projenrc/workflows/pr-validation.ts` |
-| **관련 문서** | [설계 스펙](../superpowers/specs/2026-10-17-ai-agent-config-rulesync-design.md), [구현 플랜](../superpowers/plans/2026-10-17-ai-agent-config-rulesync.md) |
+| **관련 문서** | [설계 스펙](../../superpowers/specs/2026-10-17-ai-agent-config-rulesync-design.md), [구현 플랜](../../superpowers/plans/2026-10-17-ai-agent-config-rulesync.md) |
 | **상태** | **해결** — 마이그레이션·검증 완료. 후속 항목은 미착수로 기록만 남김 |
 | **해결일** | 2026-10-21 |
 
