@@ -5,7 +5,8 @@
 | **등록일** | 2026-10-27 |
 | **영역** | 레포 문서 (`docs/`), GitHub Issues, CI |
 | **관련 코드** | `docs/issues/active/`, `docs/issues/resolved/`, `docs/schedule.md`, `.rulesync/rules/use-docs-issues.md`, `.projenrc.ts` (workflow 생성), `scripts/` |
-| **상태** | **적용** — 첫 전체 동기화 완료 (open 18 / closed 31). resolved 이동 시 close는 실제 이동 때 확인 |
+| **상태** | **해결** — 미러 운영 중. resolved 이동 시 close(`completed`) 실사례 확인 |
+| **해결일** | 2026-10-28 |
 
 ## 배경
 
@@ -48,7 +49,7 @@ GitHub Issues에 미러하면 얻는 것: 커밋·PR에서 `#N` 참조, 모바�
 - [x] 스크립트: 로컬 dry-run으로 생성·갱신·close 계획 출력
 - [x] workflow: `.projenrc.ts`에서 생성, `develop` push 시 실행
 - [x] 재실행해도 결과 동일 (idempotent), 중복 Issue 없음
-- [ ] `docs/issues/resolved` 이동 시 Issue close 확인
+- [x] `docs/issues/resolved` 이동 시 Issue close 확인 — 2026-10-28, #141·#138 closed(completed), 신규 #162 open
 - [x] `use-docs-issues` 룰에 "GitHub Issue는 미러, 수정은 md" 한 줄 추가
 
 ## 범위 밖
@@ -67,3 +68,4 @@ GitHub Issues에 미러하면 얻는 것: 커밋·PR에서 `#N` 참조, 모바�
 | 2026-10-27 | 결정: resolved도 미러(closed로 생성), 트리거 `develop`, 댓글 열어둠. 구현 — `scripts/common/docs-issue-mirror.ts`(순수 로직)·`.test.ts`(node:test 15개), `scripts/sync-github-issues.script.ts`(기본 dry-run, `--apply`), `projenrc/workflows/docs-issue-mirror.ts`, `pnpm test:scripts`를 pr-validation에 추가. 로컬 dry-run: md 49개 → create 49 |
 | 2026-10-27 | PR #106 머지, workflow 첫 실행 성공 — Issue 49개 생성 (open 18 / closed 31). 재실행 dry-run에서 `lxcfs-on-kubernetes-0.2.8-upgrade`만 다시 create로 잡힘: slug 마커 정규식이 `.`을 허용하지 않아 기존 Issue를 못 찾음. 정규식 수정 + 테스트 추가 후 dry-run 동작 0개 |
 | 2026-10-28 | 점검: 미러 49/49, drift 0. resolved 이동은 아직 실제 사례 없음 — 사본 dry-run에서 `#155 → closed/completed` 계획 확인. 버그 수정: 본문 비교가 Issue의 hash 마커만 읽어, 웹에서 마커를 남기고 본문만 고치면 덮어쓰지 않았음 → 실제 본문을 다시 hash해 비교 + 테스트 추가. 남은 한계: 웹에서 slug 마커나 `docs-mirror` 라벨을 지우면 기존 Issue를 못 찾아 중복 생성 (배너로 수정 금지 안내, 수용) |
+| 2026-10-28 | 첫 실사례: PR #161로 `system-contract-split`·`infra-component-tests`를 resolved로 이동 → develop push 후 workflow 성공, #141·#138 closed(completed), 신규 `tools-contract-split` → #162 open. 해결 |
