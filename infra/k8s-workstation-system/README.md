@@ -6,6 +6,7 @@ Workstation Kubernetes 클러스터에 플랫폼·GitOps·IdP·스토리지·DB/
 
 - Cilium, cert-manager, Vault, Istio, Longhorn, CNPG·Redis Operator, Authentik, Argo CD 등 클러스터 공통 인프라를 한 스택에서 정의한다.
 - `@infra/cloudflare`의 DNS/API 자격 증명으로 cert-manager Issuer를 구성하고, `@infra/github`의 GitOps 레포 정체성에 deploy key·webhook만 연결한다.
+- `src/contract.ts`는 `src/phases/` 조립 함수를 순서대로 호출하고 `output`·`secret`만 매핑한다. 컴포넌트 생성은 각 phase가 담당한다.
 - `output`·`secret`을 `@infra/k8s-workstation-apps`, `@infra/k8s-workstation-tools`가 참조한다.
 
 ## Pulumi 프로젝트
@@ -67,61 +68,72 @@ cloudflare → k8s-workstation-system → k8s-workstation-apps
 | `reloader` | Stakater Reloader |
 | `pcloud-backup` | pCloud 백업 연동 |
 
+## 단계 모듈 (`src/phases/`)
+
+contract 호출 순서가 배포 순서다. Longhorn ↔ Authentik은 Outpost 순환을 피하려고 3단계로 나눈다.
+
+| 파일 | 함수 | 담당 |
+|------|------|------|
+| `providers.ts` | `deployProviders` | Kubernetes 등 Provider |
+| `node-runtime.ts` | `deployNodeRuntime` | Sysbox, lxcfs, generic-device-plugin, GPU |
+| `cert-manager.ts` | `deployCertManager` | cert-manager Helm·Issuer/CA |
+| `backup-platform.ts` | `deployBackupPlatform` | snapshot-controller, pCloud |
+| `vault.ts` | `deployVaultServer`, `deployVaultAccess`, `deployVaultIdentity`, `deployVaultSecretsOperator` | Vault 서버 → 접근 경로 → Identity → VSO |
+| `mesh.ts` | `deployMesh` | Istio Helm·gateway |
+| `data-operators.ts` | `deployDataOperators` | CloudNative PG, Redis Operator |
+| `longhorn.ts` | `deployLonghorn`, `deployLonghornServiceMesh` | Longhorn, 이후 Authentik proxy 연동 |
+| `authentik.ts` | `deployAuthentik`, `deployAuthentikOutpost` | 그룹/플로 (Outpost 없음) → Longhorn mesh 이후 Outpost |
+| `autoscaling.ts` | `deployAutoscaling` | Goldilocks, VPA |
+| `reloader.ts` | `deployReloader` | Stakater Reloader |
+| `argo.ts` | `deployArgo` | Argo CD·Rollouts·GitOps |
+| `monitoring.ts` | `deployMonitoring` | 모니터링 스택 |
+| `constants.ts` | `authentikNames` | Authentik 리소스 이름 상수 |
+
+리소스 이름·parent를 바꾸면 URN이 바뀐다. output 객체 키 순서는 contract hash에 들어가므로 바꾸지 않는다.
+
 ## 구조
 
 ```
 src/
 └── components/
 └──   argo/
-└──     argo.authentik.component.ts
-└──     argo.cd.component.ts
-└──     argo.cd.redis.ts
-└──     argo.git-ops.component.ts
-└──     argo.redis-acl.ts
-└──     argo.resources.component.ts
-└──     argo.rollouts.component.ts
-└──     argo.service-mesh.component.ts
-└──     index.ts
 └──   authentik/
-└──     authentik.helm-chart.component.ts
-└──     authentik.outpost.component.ts
-└──     authentik.resources.component.ts
-└──     authentik.service-mesh.component.ts
-└──     index.ts
 └──   cert-manager/
-└──     cert-manager.helm-chart.component.ts
-└──     cert-manager.resources.component.ts
-└──     index.ts
 └──   cilium/
-└──     cilium.resources.component.ts
-└──     index.ts
 └──   generic-device-plugin/
-└──     generic-device-plugin.helm-chart.component.ts
-└──     index.ts
 └──   goldilocks/
-└──     goldilocks.helm-chart.component.ts
-└──     goldilocks.service-mesh.component.ts
-└──     index.ts
 └──   gpu-operator/
-└──     gpu-operator.helm-chart.component.ts
-└──     gpu-runtime-class.component.ts
-└──     index.ts
-└──   index.ts
 └──   istio/
-└──     assets/
-└──       istio-cni-reboot-repair.sh
-└──       istio-cni-reboot-repair.test.sh
-└──     index.ts
-└──     istio-cni-reboot-repair.component.ts
-└──     istio.gateway.component.ts
-└──     istio.helm-chart.component.ts
 └──   longhorn/
-└──     index.ts
-└──     longhorn.helm-chart.component.ts
-└──     longhorn.resources.component.ts
-└──     …
-└──   …
-└── …
+└──   lxcfs/
+└──   monitoring/
+└──   pcloud-backup/
+└──   postgresql-operator/
+└──   redis-operator/
+└──   reloader/
+└──   snapshot-controller/
+└──   sysbox/
+└──   vault/
+└──   vault-secrets-operator/
+└──   vpa/
+└── contract.ts
+└── index.ts
+└── phases/
+└──   argo.ts
+└──   authentik.ts
+└──   autoscaling.ts
+└──   backup-platform.ts
+└──   cert-manager.ts
+└──   constants.ts
+└──   data-operators.ts
+└──   index.ts
+└──   longhorn.ts
+└──   mesh.ts
+└──   monitoring.ts
+└──   node-runtime.ts
+└──   providers.ts
+└──   reloader.ts
+└──   vault.ts
 ```
 
 ## 의존성
