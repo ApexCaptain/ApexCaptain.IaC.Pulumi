@@ -2,7 +2,7 @@
  * contract 단위 테스트 — phase 조립 결과를 검증한다. 컴포넌트 내부는 각 component 테스트 몫.
  *
  * - 최상위 리소스(type::name): 이름이 바뀌면 URN이 바뀐다. phase 이동·추가 시 의도한 변경인지 확인
- * - output·secret 키 순서: `JSON.stringify` 결과로 contract hash를 만든다
+ * - output·secret 키 순서: 실제 `Contract`가 `JSON.stringify` 결과로 hash를 만든다
  * - 배포 순서: contract JSDoc의 제약이 `dependsOn`으로 남아 있는지
  */
 import * as path from 'path';
@@ -13,7 +13,11 @@ const runtimeResource = require('@pulumi/pulumi/runtime/resource');
 
 const PROJECT = 'k8s-workstation-system';
 
-const stackReferenceOutputs: Record<string, Record<string, unknown>> = {
+// 다른 스택 contract가 내보내는 값 중 system이 읽는 키만.
+const mockContractFixtures: Record<
+  string,
+  { output: unknown; secret: unknown }
+> = {
   cloudflare: {
     output: {
       zones: {
@@ -45,6 +49,41 @@ const stackReferenceOutputs: Record<string, Record<string, unknown>> = {
   },
 };
 
+/**
+ * 실제 `Contract`는 Pulumi.yaml·Pulumi.<stage>.yaml(projen 생성물, gitignore)로 프로젝트를 찾고
+ * StackReference·hash 파일을 만든다. CI에는 그 파일이 없고, 이 테스트 대상도 아니다.
+ * system은 inflate만, 나머지 스택은 fixture를 돌려준다.
+ */
+jest.mock('@common/nexus', () => {
+  const actual = jest.requireActual('@common/nexus');
+  const pulumiSdk = jest.requireActual('@pulumi/pulumi');
+  class ContractDouble {
+    readonly output: unknown;
+    readonly secret: unknown;
+    constructor(
+      callerPath: string,
+      inflateContract: () => Promise<{ output: unknown; secret: unknown }>,
+    ) {
+      const project = callerPath.split('/infra/')[1].split('/')[0];
+      if (project === 'k8s-workstation-system') {
+        const inflated = pulumiSdk.output(Promise.resolve(inflateContract()));
+        this.output = pulumiSdk.unsecret(
+          inflated.apply((result: { output: unknown }) => result.output),
+        );
+        this.secret = inflated.apply(
+          (result: { secret: unknown }) => result.secret,
+        );
+        return;
+      }
+      const fixture = mockContractFixtures[project];
+      if (!fixture) throw new Error(`no contract fixture for ${project}`);
+      this.output = pulumiSdk.output(fixture.output);
+      this.secret = pulumiSdk.secret(fixture.secret);
+    }
+  }
+  return { ...actual, classes: { ...actual.classes, Contract: ContractDouble } };
+});
+
 installPulumiMocks({
   project: PROJECT,
   stack: 'prod',
@@ -56,10 +95,6 @@ installPulumiMocks({
     ...args.inputs,
   }),
   stateOverrides: args => {
-    if (args.type === 'pulumi:pulumi:StackReference') {
-      const project = String(args.inputs.name).split('/')[1];
-      return { outputs: stackReferenceOutputs[project] ?? {} };
-    }
     // BootstrapTokenV1 등 — Command stdout을 JSON으로 파싱
     if (args.type.toLowerCase().includes('command')) {
       return { stdout: JSON.stringify({ token: 'mock-bootstrap-token' }) };
@@ -166,7 +201,6 @@ function fakeFromZod(schema: any, key: string): unknown {
 async function inflate() {
   // devcontainer가 넣는 경로 env. turbo·CI에는 없다. 파일 쓰기는 mock Command라 실제로 일어나지 않는다.
   for (const name of [
-    'PULUMI_CONTRACT_HASH_DIR_PATH',
     'PULUMI_CONTRACT_KEYS_DIR_PATH',
     'PULUMI_GENERATED_KUBECONFIG_DIR_PATH',
   ]) {

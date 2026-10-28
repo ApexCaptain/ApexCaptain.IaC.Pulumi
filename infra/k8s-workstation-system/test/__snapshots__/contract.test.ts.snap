@@ -155,8 +155,6 @@ exports[`k8sWorkstationSystemContract top-level resources keep type and name (UR
   "Component:vaultSecretsOperatorResources::vaultSecretsOperatorResources",
   "Component:victoriaMetricsHelmChart::victoriaMetricsHelmChart",
   "Component:vpaHelmChart::vpaHelmChart",
-  "command:local:Command::outputHashFile",
-  "command:local:Command::secretHashFile",
   "pulumi:providers:argocd::argoCdProvider",
   "pulumi:providers:authentik::authentikProvider",
   "pulumi:providers:github::apexCaptainGithubProvider",
