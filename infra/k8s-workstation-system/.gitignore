@@ -30,6 +30,10 @@ jspm_packages/
 *.tgz
 .yarn-integrity
 .cache
+/test-reports/
+junit.xml
+!/jest.config.json
+/coverage/
 !/test/
 !/tsconfig.json
 !/test/tsconfig.json

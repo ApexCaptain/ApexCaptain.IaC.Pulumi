@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { LocalWorkspace } from '@pulumi/pulumi/automation';
 import _ from 'lodash';
-import { JsonFile, typescript, YamlFile } from 'projen';
+import { javascript, JsonFile, typescript, YamlFile } from 'projen';
 import {
   TypeScriptProject,
   TypeScriptProjectOptions,
@@ -24,6 +24,7 @@ export function inflatePulumiProject(
     devDeps?: string[];
     esc?: AbstractEsc<any>[];
     bridgedProviders?: src.classes.BridgedProvider[];
+    jest?: boolean;
   },
 ) {
   if (!option.stages.includes(utils.enums.StackStage.PROD)) {
@@ -81,6 +82,25 @@ export function inflatePulumiProject(
         parent: rootProject,
         name: `@infra/${name}`,
         outdir,
+        ...(option.jest
+          ? {
+              jest: true,
+              jestOptions: {
+                configFilePath: 'jest.config.json',
+                jestConfig: {
+                  testMatch: ['**/test/**/*.test.ts'],
+                  passWithNoTests: true,
+                  // default is cores-1; Pulumi/k8s test files otherwise saturate the box
+                  maxWorkers: 2,
+                  moduleNameMapper: {
+                    // flat@6 ESM 전용 — custom-resources import 시 CJS shim으로
+                    '^flat$':
+                      '<rootDir>/../../common/utils/src/testing/flat.shim.ts',
+                  },
+                } as javascript.JestConfigOptions,
+              },
+            }
+          : { jest: false }),
         deps: [
           ...(option.deps ?? []),
 
@@ -97,6 +117,12 @@ export function inflatePulumiProject(
       utils.functions.mergeCustomizer,
     ),
   );
+
+  if (option.jest && project.jest) {
+    // testMatch를 덮어쓰지 않으면 Projen이 기본 src/**, test/** 패턴을 붙인다.
+    project.jest.config.testMatch = ['**/test/**/*.test.ts'];
+    project.jest.config.maxWorkers = 2;
+  }
 
   if (option.bridgedProviders && option.bridgedProviders.length > 0) {
     pulumiProjectWithBridgedProviderOrder.push(project);
