@@ -6,7 +6,7 @@
 | **우선순위** | 낮음~중간 |
 | **영역** | `infra/*/test`, jest 설정 (`projenrc/projects/pulumi-projects.ts`) |
 | **선행** | [Jest 유닛 테스트 도입](../resolved/2026-09-08-jest-unit-test-setup.md), [contract 분해](2026-10-17-system-contract-split.md) (contract 수준 테스트는 분해 후) |
-| **상태** | **적용** — 컴포넌트 단위 4개 스택 적용 (2026-10-28, `feat/infra-component-tests`). contract 단위는 분해 후 |
+| **상태** | **적용** — 컴포넌트 단위 4개 (2026-10-28, #157 머지) + system contract 단위 (2026-10-28, `refactor/system-contract-phases`, 머지 전) |
 
 ## 배경
 
@@ -34,12 +34,29 @@
 
 변형 확인: qBittorrent config PVC의 `statefulResourceOptions`를 빼면 protect 테스트가 해당 이름을 짚어 실패함.
 
+### contract 단위 (2026-10-28)
+
+`infra/k8s-workstation-system/test/contract.test.ts` — [contract 분해](2026-10-17-system-contract-split.md) 후 system contract 전체를 mock으로 inflate한다.
+
+- ESC: `nexus.esc` 각 zod 스키마(`_zod.def`)를 따라 가짜 값을 채워 `setAllConfig`. 파싱되는 kubeconfig만 형식 맞춤. zod 의존성 추가 없음
+- cloudflare·github contract: StackReference mock `outputs`로 필요한 키만 제공
+- mock `newResource`는 parent·`dependsOn`을 안 받으므로 `@pulumi/pulumi/runtime/resource`의 `registerResource`를 감싸 기록
+- mock 보정: Command `stdout`(bootstrap token), K8s Secret `data`(ca.crt·token), invoke `id`·`result`
+
+| 테스트 | 검증 |
+|---|---|
+| 최상위 리소스 snapshot | `type::name` 59개. live state(`pulumi stack export`)의 최상위 명시 리소스와 일치 (기본 provider·StackReference 제외) |
+| output·secret 키 경로 snapshot | 키 순서 (contract hash가 `JSON.stringify`에 의존) |
+| `dependsOn` 12개 | contract JSDoc 순서 제약 (cert-manager → Vault/ingress, Longhorn·CNPG → Authentik, ProviderProxy → Outpost → proxy 앱 등) |
+
+변형 확인: Outpost 이름 변경 → snapshot 실패, Outpost `dependsOn`에서 longhornServiceMesh 제거 → 해당 케이스 실패, output 키 순서 교환 → hash 케이스 실패.
+
 ## 수용 기준
 
 - [x] 최소 3개 컴포넌트 테스트가 `pnpm test:workspaces`에서 실행·통과 — 4개 파일 16 케이스, 16 tasks 성공
 - [x] 상태 보존 리소스가 `protect: true`인지 검증하는 테스트 포함
 - [x] PR Validate에서 함께 실행됨 (추가 설정 불필요 확인) — `pr-validation.yml`이 `pnpm test:workspaces` 실행. [#157](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/157) CI에서 system 10·tools 3·apps 3 통과 확인
-- [ ] (contract 분해 후) contract 단위 테스트 — 별도 진행
+- [x] (contract 분해 후) contract 단위 테스트 — system contract 14 케이스. system jest 3 suites 24 tests 통과
 
 ## 범위 밖
 
@@ -53,3 +70,4 @@
 | 2026-10-17 | 등록 |
 | 2026-10-28 | 컴포넌트 단위 적용: infra jest 활성화, 공용 mock 헬퍼, Vault·Authentik·qBittorrent·Jellyfin 테스트 4개. 상태 → 적용 (contract 단위 남음) |
 | 2026-10-28 | [#157](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/157) develop 머지. PR Validate 로그에서 infra 테스트 16개 실행·통과 확인 |
+| 2026-10-28 | system contract 단위 테스트 추가 (`refactor/system-contract-phases`): 최상위 리소스·output 키 snapshot + `dependsOn` 12개. 변형 3종 실패 확인 |

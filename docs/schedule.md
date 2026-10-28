@@ -27,8 +27,8 @@
 |---|---|---|---|
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/active/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 | 사용자 재개 결정 (2026-10-19 보류. protect 선행은 충족) | 클러스터 도달·자격 증명 결정 → 일일 drift 감지 → PR preview | [CI preview·drift](issues/active/2026-10-17-ci-pulumi-preview-drift.md) | 보류 |
-| K8s 1.36 업그레이드 완료 | system contract phase 모듈 분해 (URN 불변) | [contract 분해](issues/active/2026-10-17-system-contract-split.md) | 보류 |
-| [contract 분해](issues/active/2026-10-17-system-contract-split.md) 완료 | contract 단위 테스트 (컴포넌트 단위는 2026-10-28 적용) | [infra 테스트](issues/active/2026-10-17-infra-component-tests.md) | 적용 |
+| `refactor/system-contract-phases` develop 머지 | 머지 후 system preview diff 0 재확인. tools contract 분해 여부 결정 | [contract 분해](issues/active/2026-10-17-system-contract-split.md) | 적용 |
+| `refactor/system-contract-phases` develop 머지 | PR Validate에서 contract 테스트 실행 확인 → 닫을지 결정 | [infra 테스트](issues/active/2026-10-17-infra-component-tests.md) | 적용 |
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/active/2026-10-17-dr-rebuild-runbook.md) | 보류 |
 | [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso) manifest에 Jellyfin 12 `targetAbi` 버전 등장 | 플러그인 호환 확인 → config 백업 → 차트 3.4.0+ (앱 12.x) 업그레이드 → 재스캔 → SSO 확인 | [Jellyfin 12 업그레이드](issues/active/2026-10-21-jellyfin-12-upgrade.md) | 보류 |
 | 다음 이슈 resolved 이동 | 이동 push 후 해당 Issue가 close(`completed`)되는지 확인 → 확인되면 `docs/issues/resolved` 이동 | [GitHub Issues 미러](issues/active/2026-10-27-github-issues-mirror.md) | 적용 |
