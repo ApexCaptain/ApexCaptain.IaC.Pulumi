@@ -2,33 +2,33 @@
 root: false
 targets:
   - '*'
-description: '열린 이슈는 docs/issues, 해결되면 docs/resolved로 아카이브. 이슈 문서 작성·갱신 규칙'
+description: '열린 이슈는 docs/issues/active, 해결되면 docs/issues/resolved로 아카이브. 이슈 문서 작성·갱신 규칙'
 globs: []
 cursor:
   alwaysApply: true
-  description: '열린 이슈는 docs/issues, 해결되면 docs/resolved로 아카이브. 이슈 문서 작성·갱신 규칙'
+  description: '열린 이슈는 docs/issues/active, 해결되면 docs/issues/resolved로 아카이브. 이슈 문서 작성·갱신 규칙'
   globs: []
 ---
-# 이슈 문서 (`docs/issues` → `docs/resolved`)
+# 이슈 문서 (`docs/issues/active` → `docs/issues/resolved`)
 
-이 레포의 이슈 SSOT는 GitHub Issue가 아니라 마크다운이다.
+이 레포의 이슈 SSOT는 GitHub Issue가 아니라 마크다운이다. GitHub Issues(라벨 `docs-mirror`)는 `develop` push 때 workflow `docs-issue-mirror`가 만드는 **단방향 미러**다. 제목·본문·라벨·상태는 md만 고친다 (Issue에서 고치면 덮어씀). 댓글은 자유.
 
 | 상태 | 위치 |
 |------|------|
-| 열림 (조사·진행·완화·후속 남음) | `docs/issues/` |
-| 닫힘 (이 레포에서 할 일 없음) | `docs/resolved/` |
+| 열림 (조사·진행·완화·후속 남음) | `docs/issues/active/` |
+| 닫힘 (이 레포에서 할 일 없음) | `docs/issues/resolved/` |
 
-관련 작업 시작 전 두 디렉터리를 검색한다. 같은 주제면 **기존 파일을 갱신**하고 새 파일을 만들지 않는다. 재검토일·확인 트리거가 있는 열린 이슈는 `docs/schedule.md`에도 올린다 (규칙: `use-docs-schedule`).
+관련 작업 시작 전 두 디렉터리를 검색한다. 이슈 문서 간 상대 링크는 `../resolved/<file>`·`../active/<file>`처럼 형제 디렉터리 기준으로 쓴다. 같은 주제면 **기존 파일을 갱신**하고 새 파일을 만들지 않는다. 재검토일·확인 트리거가 있는 열린 이슈는 `docs/schedule.md`에도 올린다 (규칙: `use-docs-schedule`).
 
 ## 언제 쓰는가
 
 - 사용자가 이슈 문서화·기록·아카이브를 요청할 때
 - 원인·재현·결정이 세션을 넘어 남아야 할 때
-- 같은 턴에 고친 원라이너, 질문만 있는 대화, 이미 `docs/resolved`에 있는 건은 쓰지 않는다
+- 같은 턴에 고친 원라이너, 질문만 있는 대화, 이미 `docs/issues/resolved`에 있는 건은 쓰지 않는다
 
 ## 파일 이름
 
-`docs/issues/YYYY-MM-DD-kebab-slug.md`
+`docs/issues/active/YYYY-MM-DD-kebab-slug.md`
 
 - 날짜는 **등록일**(최초 작성일). 해결돼도 파일명을 바꾸지 않는다
 - slug는 영어 소문자·숫자·하이픈. 제목은 한국어
@@ -88,17 +88,17 @@ cursor:
 
 ## 아카이브 (해결)
 
-이 레포에서 더 할 일이 없을 때만 옮긴다. **완화·upstream 대기·후속 체크가 남아 있으면 `docs/issues`에 둔다.** 체크박스가 다 채워져도 사용자가 닫기 전이면 옮기지 않는다. 사용자가 “해결·아카이브·닫기”를 말하면 옮긴다.
+이 레포에서 더 할 일이 없을 때만 옮긴다. **완화·upstream 대기·후속 체크가 남아 있으면 `docs/issues/active`에 둔다.** 체크박스가 다 채워져도 사용자가 닫기 전이면 옮기지 않는다. 사용자가 “해결·아카이브·닫기”를 말하면 옮긴다.
 
 1. 메타 `상태`를 **해결**로 바꾸고 **해결일**을 추가한다
 2. 짧으면 타임라인 한 줄로 충분. 길면 `## 해결 요약`을 메타 바로 아래에 추가한다
 3. 조사 본문은 역사 기록으로 유지한다. 삭제·전면 재작성 금지
-4. `docs/issues/<file>` → `docs/resolved/<file>` 로 이동 (파일명 유지)
-5. `docs/resolved/`가 없으면 만든다
+4. `docs/issues/active/<file>` → `docs/issues/resolved/<file>` 로 이동 (파일명 유지, `git mv`)
+5. `docs/issues/resolved/`가 없으면 만든다
 6. `docs/schedule.md`에서 해당 행을 지운다
 
 ## 하지 않을 것
 
-- `docs/issues` 밖(채팅 전용, `docs/diagnosis/` 등 자동 생성 리포트, 임의 경로)에 이슈 SSOT를 만들지 않는다
-- 해결 파일을 `docs/issues`에 남기거나, 열린 이슈를 `docs/resolved`에 두지 않는다
+- `docs/issues/` 밖(채팅 전용, `docs/diagnosis/` 등 자동 생성 리포트, 임의 경로)에 이슈 SSOT를 만들지 않는다
+- 해결 파일을 `docs/issues/active`에 남기거나, 열린 이슈를 `docs/issues/resolved`에 두지 않는다
 - 사용자 요청 없이 기존 이슈를 삭제하지 않는다

@@ -74,6 +74,7 @@ tmp
 !/projenrc/tsconfig.json
 !/.github/workflows/pr-validation.yml
 !/.github/workflows/auto-merge-develop.yml
+!/.github/workflows/docs-issue-mirror.yml
 !/scripts/tsconfig.json
 !/turbo.json
 !/.vscode/settings.json

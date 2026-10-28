@@ -8,7 +8,7 @@ targets:
 
 사용자가 **README 작성**, **README 갱신**, **서브모듈 README** 등을 요청하면 아래를 따른다.
 
-**CLI (Cursor SDK):** 루트 기본 — `pnpm script:synthProjectReadme` (생성만), `pnpm script:synthProjectReadme --apply` (반영). 서브모듈 전체 — `--all-workspace`, 하나만 — `--package common/utils`. 출력은 `.github/generated/readme/`; docs는 `schedule.md` 전문 + issues/resolved 메타만 (`docs/superpowers`, `docs/diagnosis` 제외).
+**CLI (Cursor SDK):** 루트 기본 — `pnpm script:synthProjectReadme` (생성만), `pnpm script:synthProjectReadme --apply` (반영). 서브모듈 전체 — `--all-workspace`, 하나만 — `--package common/utils`. 출력은 `.github/generated/readme/`; docs는 `schedule.md` 전문 + `docs/issues/active`·`docs/issues/resolved` 메타만 (`docs/superpowers`, `docs/diagnosis` 제외).
 
 채팅에서 수동 작성 시 **루트 `README.md`는 사용자가 명시하지 않으면 제외**한다 (`docs/diagnosis/` Nova·Pluto 리포트 등 별도 용도).
 

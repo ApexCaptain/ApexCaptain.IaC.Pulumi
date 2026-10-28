@@ -6,7 +6,7 @@
  *
  * `targets`는 preview에 CronJob이 보이도록 concrete 배열이어야 한다 (Output 금지).
  *
- * @see docs/issues/2026-09-15-pcloud-pvc-encrypted-backup.md
+ * @see docs/issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md
  */
 import fs from 'node:fs';
 import path from 'node:path';

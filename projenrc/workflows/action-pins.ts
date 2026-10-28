@@ -3,7 +3,7 @@ import { typescript } from 'projen';
 /**
  * projen ActionRefs 중 태그로 남은 action을 commit SHA로 고정.
  * github.actions override는 모든 workflow step의 `uses`에 적용된다.
- * docs/issues/2026-10-17-nexus-error-handling-hardening.md
+ * docs/issues/resolved/2026-10-17-nexus-error-handling-hardening.md
  */
 export function pinWorkflowActions(
   rootProject: typescript.TypeScriptProject,

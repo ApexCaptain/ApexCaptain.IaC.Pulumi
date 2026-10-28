@@ -1,617 +1,57 @@
 /**
  * Workstation 클러스터의 "시스템" 스택.
  *
- * 네트워킹(Cilium) → 인증서(cert-manager) → Vault → Istio mesh → 스토리지(Longhorn)
- * → DB/캐시 오퍼레이터(CNPG, Redis Operator) → IdP(Authentik) 순으로 깔고,
+ * 각 단계는 `./phases`의 조립 함수다. 아래 호출 순서가 배포 순서이고,
+ * 단계 간 의존은 인자로 넘긴 이전 단계 결과(+ 각 컴포넌트의 `dependsOn`)로 드러난다.
  * apps/tools 스택이 여기 output을 참조한다.
- * GitOps 레포 정체성은 `githubContract`. 이 스택은 deploy key·webhook만 붙인다.
  *
  * 배포 순서가 꼬이기 쉬운 구간:
  * - Vault는 cert-manager CA에, mesh ingress는 LE wildcard cert에 의존
  * - Authentik PG는 Longhorn SSD SC에, Longhorn UI는 Authentik proxy에 의존
  *   → Longhorn↔Authentik 3단계 분리는 아래 JSDoc 참고
+ *
+ * 리소스 이름·parent를 바꾸면 URN이 바뀐다. 단계 이동은 preview diff 0으로 확인한다.
+ * output 객체 키 순서는 contract hash에 들어가므로 바꾸지 않는다.
  */
-import { authentik, argocd } from '@common/bridged-provider';
 import * as nexus from '@common/nexus';
-import * as utils from '@common/utils/src';
 import { cloudflareContract } from '@infra/cloudflare/src/contract';
-import { githubContract } from '@infra/github/src/contract';
-import * as github from '@pulumi/github';
-import * as kubernetes from '@pulumi/kubernetes';
-import * as oci from '@pulumi/oci';
 import * as pulumi from '@pulumi/pulumi';
-import * as vault from '@pulumi/vault';
-import CronTime from 'cron-time-generator';
-import Timezone from 'timezone-enum';
-import * as components from './components';
+import * as phases from './phases';
 
 export const k8sWorkstationSystemContract = new nexus.classes.Contract(
   __filename,
   async () => {
-    // ESC
-    const commonEsc = nexus.esc.commonEsc;
-    const projectEsc = nexus.esc.k8sWorkstationSystemEsc;
-    const githubEsc = nexus.esc.githubEsc;
+    const providers = phases.deployProviders();
 
-    const authentikNamespace = 'authentik';
-    const authentikProxyOutpostName = 'authentik-proxy-outpost';
-    const authentikProxyOutpostProviderName =
-      'authentik-proxy-outpost-provider';
+    const {
+      sysbox,
+      lxcfsHelmChart,
+      genericDevicePluginHelmChart,
+      gpuRuntimeClass,
+      gpuOperatorHelmChart,
+    } = phases.deployNodeRuntime({ providers });
 
-    // K8s Provider
-    const workstationK8sProvider = new kubernetes.Provider(
-      'workstationK8sProvider',
-      {
-        kubeconfig: nexus.esc.commonEsc.esc.workstationKubeconfig,
-      },
-    );
+    const certManager = phases.deployCertManager({ providers });
+    const backupPlatform = phases.deployBackupPlatform({ providers });
+    const { pcloudBackupPlatform } = backupPlatform;
 
-    // Github Provider
-    const apexCaptainGithubProvider = new github.Provider(
-      'apexCaptainGithubProvider',
-      {
-        token: githubEsc.esc.apexCaptain.token,
-      },
-    );
+    // Vault 서버는 mesh보다 먼저, 접근 경로(ingress·Provider)는 mesh 이후
+    const vaultServer = phases.deployVaultServer({ providers, certManager });
+    const { vaultHelmChart } = vaultServer;
 
-    // OCI Provider
-    const ociProvider = new oci.Provider('ociProvider', {
-      auth: nexus.esc.ociEsc.esc.auth,
-      fingerprint: nexus.esc.ociEsc.esc.fingerprint,
-      privateKey: nexus.esc.ociEsc.esc.privateKey,
-      region: nexus.esc.ociEsc.esc.region,
-      tenancyOcid: nexus.esc.ociEsc.esc.tenancyOcid,
-      userOcid: nexus.esc.ociEsc.esc.userOcid,
+    const mesh = phases.deployMesh({ providers, certManager });
+    const { istioHelmChart, istioGateway } = mesh;
+
+    const dataOperators = phases.deployDataOperators({ providers });
+
+    const vaultAccess = phases.deployVaultAccess({
+      providers,
+      vaultServer,
+      mesh,
+      backupPlatform,
     });
-
-    // Cilium
-    const ciliumResources = new components.cilium.CiliumResourcesComponent(
-      'ciliumResources',
-      {
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-    );
-
-    // Lxcfs
-    const lxcfsHelmChart = new components.lxcfs.LxcfsHelmChartComponent(
-      'lxcfsHelmChart',
-      {
-        helm: {
-          lxcfs: {
-            version: utils.configs.helmChartVersions.lxcfs,
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls[
-                'cndoit18.github.io/lxcfs-on-kubernetes'
-              ],
-          },
-        },
-        kubeconfig: nexus.esc.commonEsc.esc.workstationKubeconfig,
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-    );
-
-    // Sysbox — RuntimeClass만 (호스트 설치는 Ansible/Kubespray)
-    const sysbox = new components.sysbox.SysboxComponent('sysbox', {
-      providers: {
-        kubernetes: workstationK8sProvider,
-      },
-    });
-
-    // Generic Device Plugin — 호스트 /dev를 extended resource로 노출
-    const genericDevicePluginHelmChart =
-      new components.genericDevicePlugin.GenericDevicePluginHelmChartComponent(
-        'genericDevicePluginHelmChart',
-        {
-          helm: {
-            genericDevicePlugin: {
-              version: utils.configs.helmChartVersions.genericDevicePlugin,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['charts.gabe565.com'],
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-      );
-
-    // GPU — RuntimeClass + Operator (호스트 driver/toolkit은 Ansible)
-    const gpuRuntimeClass = new components.gpuOperator.GpuRuntimeClassComponent(
-      'gpuRuntimeClass',
-      {
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-    );
-
-    const gpuOperatorHelmChart =
-      new components.gpuOperator.GpuOperatorHelmChartComponent(
-        'gpuOperatorHelmChart',
-        {
-          helm: {
-            gpuOperator: {
-              version: utils.configs.helmChartVersions.gpuOperator,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['helm.ngc.nvidia.com/nvidia'],
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-        { dependsOn: [gpuRuntimeClass] },
-      );
-
-    // Cert Manager
-    const certManagerHelmChart =
-      new components.certManager.CertManagerHelmChartComponent(
-        'certManagerHelmChart',
-        {
-          helm: {
-            certManager: {
-              version: utils.configs.helmChartVersions.certManager,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['charts.jetstack.io'],
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-      );
-
-    const certManagerResources =
-      new components.certManager.CertManagerResourcesComponent(
-        'certManagerResources',
-        {
-          namespace: certManagerHelmChart.output.namespace,
-          cloudflareApiToken:
-            cloudflareContract.secret.apexCaptainCloudflareApiToken,
-          cloudflareEmail: cloudflareContract.secret.apexCaptainCloudflareEmail,
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-        { dependsOn: [certManagerHelmChart] },
-      );
-
-    // CSI VolumeSnapshot CRD·controller — PVC tar 백업·Platform VSC 선행
-    const snapshotControllerHelmChart =
-      new components.snapshotController.SnapshotControllerHelmChartComponent(
-        'snapshotControllerHelmChart',
-        {
-          helm: {
-            snapshotController: {
-              version: utils.configs.helmChartVersions.snapshotController,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['piraeus.io/helm-charts'],
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-      );
-
-    // pCloud credentials·Lease·VSC. Lane A/B Job은 platform 이름만 참조 (Vault raft Job은 vault k8s auth 이후).
-    const pcloudBackupPlatform =
-      new components.pcloudBackup.PcloudBackupPlatformComponent(
-        'pcloudBackupPlatform',
-        {
-          clusterName: commonEsc.esc.istioNetwork.workstationClusterName,
-          credentials: {
-            hostname: projectEsc.esc.pcloudBackup.hostname,
-            token: projectEsc.esc.pcloudBackup.token,
-            cryptPassword: projectEsc.esc.pcloudBackup.cryptPassword,
-            cryptPassword2: projectEsc.esc.pcloudBackup.cryptPassword2,
-          },
-          slack: {
-            webhookUrlBackupInfraInfo:
-              projectEsc.esc.pcloudBackup.slackWebhookUrlBackupInfraInfo,
-            webhookUrlBackupInfraError:
-              projectEsc.esc.pcloudBackup.slackWebhookUrlBackupInfraError,
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-        {
-          // VolumeSnapshotClass는 snapshot.storage CRD 이후
-          dependsOn: [snapshotControllerHelmChart],
-        },
-      );
-
-    // Vault — mesh 밖 Helm, IaC Provider는 ingress mesh 경유 (OIDC는 후속)
-    const vaultKms = new components.vault.VaultKmsComponent('vaultKms', {
-      tenancyOcid: nexus.esc.ociEsc.esc.tenancyOcid,
-      region: nexus.esc.ociEsc.esc.region,
-      providers: {
-        oci: ociProvider,
-      },
-    });
-
-    const vaultHelmChart = new components.vault.VaultHelmChartComponent(
-      'vaultHelmChart',
-      {
-        helm: {
-          vault: {
-            version: utils.configs.helmChartVersions.vault,
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
-          },
-        },
-        kms: {
-          oci: {
-            keyId: vaultKms.secret.apply(secret => secret.kms.keyId),
-            cryptoEndpoint: vaultKms.secret.apply(
-              secret => secret.kms.cryptoEndpoint,
-            ),
-            managementEndpoint: vaultKms.secret.apply(
-              secret => secret.kms.managementEndpoint,
-            ),
-          },
-        },
-        unsealAuth: vaultKms.secret.apply(secret => secret.unsealAuth),
-        pvc: {
-          server: {
-            storageClass: commonEsc.esc.workstationLocalPathStorageClassName,
-            size: '10Gi',
-          },
-        },
-        bootstrapToken: {
-          kubeconfig: commonEsc.esc.workstationKubeconfig,
-          bootstrapTokenEncryptionKey:
-            projectEsc.esc.vault.bootstrapTokenEncryptionKey,
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-      { dependsOn: [vaultKms, certManagerHelmChart] },
-    );
-
-    // Istio
-    // Jellyfin·qBittorrent SFTP — L4 direct gateway (HTTPS ingress와 별도 포트)
-    const directGatewayPorts: utils.types.DeepPulumiInput<
-      {
-        name: string;
-        port: number;
-        protocol: string;
-      }[]
-    > = [
-      {
-        name: commonEsc.esc.istioNetwork.workstationDirectGateway
-          .jellyfinSftpName,
-        port: commonEsc.esc.istioNetwork.workstationDirectGateway
-          .jellyfinSftpPort,
-        protocol:
-          commonEsc.esc.istioNetwork.workstationDirectGateway
-            .jellyfinSftpProtocol,
-      },
-      {
-        name: commonEsc.esc.istioNetwork.workstationDirectGateway
-          .qbittorrentSftpName,
-        port: commonEsc.esc.istioNetwork.workstationDirectGateway
-          .qbittorrentSftpPort,
-        protocol:
-          commonEsc.esc.istioNetwork.workstationDirectGateway
-            .qbittorrentSftpProtocol,
-      },
-    ];
-
-    const istioHelmChart = new components.istio.IstioHelmChartComponent(
-      'istioHelmChart',
-      {
-        helm: {
-          istio: {
-            version: utils.configs.helmChartVersions.istio,
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls[
-                'istio-release.storage.googleapis.com/charts'
-              ],
-          },
-        },
-        meshId: commonEsc.esc.istioNetwork.meshId,
-        workstationIpV4Address: commonEsc.esc.workstationIpV4Address,
-        ingressGatewayIp: projectEsc.esc.loadbalancer.celium.ingressGatewayIp,
-        topology: {
-          clusterName: commonEsc.esc.istioNetwork.workstationClusterName,
-          network: commonEsc.esc.istioNetwork.workstationClusterNetwork,
-        },
-        directGatewayPorts,
-        authentik: {
-          namespace: authentikNamespace,
-          proxyOutpostName: authentikProxyOutpostName,
-          proxyOutpostProviderName: authentikProxyOutpostProviderName,
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-    );
-
-    new components.istio.IstioCniRebootRepairComponent(
-      'istioCniRebootRepair',
-      {
-        namespace: istioHelmChart.output.namespace,
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-      { dependsOn: [istioHelmChart] },
-    );
-
-    const istioGateway = new components.istio.IstioGatewayComponent(
-      'istioGateway',
-      {
-        namespace: istioHelmChart.output.namespace,
-        apexCaptainCloudflareZoneName:
-          cloudflareContract.output.zones.ayteneve93com.domain,
-        letsEncryptProdClusterIssuerName:
-          certManagerResources.output.letsEncryptProdClusterIssuerName,
-        letsEncryptStagingClusterIssuerName:
-          certManagerResources.output.letsEncryptStagingClusterIssuerName,
-        istioIngressGatewayLabel:
-          istioHelmChart.output.istioIngressGatewayLabel,
-        directGatewayPorts,
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-      {
-        dependsOn: [certManagerResources, istioHelmChart],
-      },
-    );
-
-    // PostgreSQL Operator
-    const postgresqlOperatorHelmChart =
-      new components.postgresqlOperator.PostgreSQLOperatorHelmChartComponent(
-        'postgresqlOperatorHelmChart',
-        {
-          helm: {
-            postgresqlOperator: {
-              version: utils.configs.helmChartVersions.postgresqlOperator,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls[
-                  'cloudnative-pg.github.io/charts'
-                ],
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-      );
-
-    // Redis Operator — Redis CR은 앱/GitOps에서 생성
-    const redisOperatorHelmChart =
-      new components.redisOperator.RedisOperatorHelmChartComponent(
-        'redisOperatorHelmChart',
-        {
-          helm: {
-            redisOperator: {
-              version: utils.configs.helmChartVersions.redisOperator,
-              repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls[
-                'ot-container-kit.github.io/helm-charts'
-              ],
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-      );
-
-    // Vault Service Mesh — 공개 ingress + TLS origination (Authentik OIDC 전 단계)
-    const vaultServiceMesh = new components.vault.VaultServiceMeshComponent(
-      'vaultServiceMesh',
-      {
-        namespace: vaultHelmChart.output.namespace,
-        ingress: {
-          istioNamespace: istioHelmChart.output.namespace,
-          vault: {
-            host: cloudflareContract.output.zones.ayteneve93com.records.vault,
-            serviceHost: vaultHelmChart.output.tls.serverName,
-            tlsServerName: vaultHelmChart.output.tls.serverName,
-            gatewayPath: istioGateway.output.istioIngressGatewayPath,
-            gatewayLabel: istioHelmChart.output.istioIngressGatewayLabel,
-            port: vaultHelmChart.output.services.vault.ports.vault,
-          },
-        },
-        vault: {
-          bootstrapToken: vaultHelmChart.secret.apply(
-            secret => secret.bootstrapToken.token,
-          ),
-          rootCaSecretName: vaultHelmChart.output.tls.rootCaSecretName,
-          serverVersion: utils.configs.vaultVersion,
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-      {
-        dependsOn: [istioGateway, vaultHelmChart, istioHelmChart],
-      },
-    );
-
-    const vaultProvider = new vault.Provider(
-      'vaultProvider',
-      vaultServiceMesh.secret.apply(secret => secret.vaultProviderConfig),
-      {
-        dependsOn: [vaultServiceMesh],
-      },
-    );
-
-    const vaultResources = new components.vault.VaultResourcesComponent(
-      'vaultResources',
-      {
-        providers: {
-          vault: vaultProvider,
-        },
-      },
-      {
-        dependsOn: [vaultHelmChart, vaultServiceMesh, vaultProvider],
-      },
-    );
-
-    const vaultKubernetesAuth =
-      new components.vault.VaultKubernetesAuthComponent(
-        'vaultKubernetesAuth',
-        {
-          kubeconfig: commonEsc.esc.workstationKubeconfig,
-          providers: {
-            kubernetes: workstationK8sProvider,
-            vault: vaultProvider,
-          },
-        },
-        {
-          dependsOn: [vaultResources, vaultProvider],
-        },
-      );
-
-    // Vault raft → pCloud Crypt (Lane A). PVC snap 아님.
-    const vaultBackup = new components.vault.VaultBackupComponent(
-      'vaultBackup',
-      {
-        namespace: vaultHelmChart.output.namespace,
-        leafName: 'data-vault-0',
-        runOnceOnCreate: false,
-        schedule: {
-          cron: CronTime.everyDayAt(12),
-          timezone: Timezone['Asia/Seoul'],
-        },
-        keepWithin: '10d',
-        platform: {
-          namespace: pcloudBackupPlatform.output.namespace,
-          configMapName: pcloudBackupPlatform.output.configMapName,
-          credentialsSecretName:
-            pcloudBackupPlatform.output.credentialsSecretName,
-          slackSecretName: pcloudBackupPlatform.output.slackSecretName,
-          drLeaseName: pcloudBackupPlatform.output.drLeaseName,
-        },
-        vault: {
-          address: pulumi.interpolate`https://${vaultHelmChart.output.tls.serverName}:${vaultHelmChart.output.services.vault.ports.vault}`,
-          caSecretName: vaultHelmChart.output.tls.rootCaSecretName,
-          kubernetesAuthMountPath: vaultKubernetesAuth.output.mountPath,
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-          vault: vaultProvider,
-        },
-      },
-      {
-        dependsOn: [pcloudBackupPlatform, vaultHelmChart, vaultKubernetesAuth],
-      },
-    );
-
-    // Longhorn
-    const longhornHelmChart =
-      new components.longhorn.LonghornHelmChartComponent('longhornHelmChart', {
-        helm: {
-          longhorn: {
-            version: utils.configs.helmChartVersions.longhorn,
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls['charts.longhorn.io'],
-          },
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      });
-
-    const longhornResources =
-      new components.longhorn.LonghornResourcesComponent(
-        'longhornResources',
-        {
-          namespace: longhornHelmChart.output.namespace,
-          nodes: projectEsc.esc.longhorn.nodes,
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-        {
-          dependsOn: [longhornHelmChart],
-        },
-      );
-
-    // Authentik
-    const authentikHelmChart =
-      new components.authentik.AuthentikHelmChartComponent(
-        'authentikHelmChart',
-        {
-          namespace: authentikNamespace,
-          helm: {
-            authentik: {
-              version: utils.configs.helmChartVersions.authentik,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['charts.goauthentik.io'],
-            },
-          },
-          secretKey: projectEsc.esc.authentik.secretKey,
-          host: cloudflareContract.output.zones.ayteneve93com.records.auth,
-          secrets: {
-            bootstrap: {
-              token: projectEsc.esc.authentik.bootstrap.token,
-              email: projectEsc.esc.authentik.bootstrap.email,
-              password: projectEsc.esc.authentik.bootstrap.password,
-            },
-            postgresqlPassword: projectEsc.esc.authentik.postgresqlPassword,
-          },
-          pvc: {
-            postgresql: {
-              storageClass: longhornResources.output.storageClasses.longhornSsd,
-              size: '8Gi',
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-        {
-          dependsOn: [
-            longhornHelmChart,
-            longhornResources,
-            postgresqlOperatorHelmChart,
-          ],
-        },
-      );
-
-    const authentikServiceMesh =
-      new components.authentik.AuthentikServiceMeshComponent(
-        'authentikServiceMesh',
-        {
-          namespace: authentikHelmChart.output.namespace,
-          rootDomain: cloudflareContract.output.zones.ayteneve93com.domain,
-          ingress: {
-            authentikWebUi: {
-              host: cloudflareContract.output.zones.ayteneve93com.records.auth,
-              serviceName: authentikHelmChart.output.services.authentik.name,
-              gatewayPath: istioGateway.output.istioIngressGatewayPath,
-              port: authentikHelmChart.output.services.authentik.port.http,
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-        {
-          dependsOn: [istioGateway, authentikHelmChart],
-        },
-      );
-
-    const authentikProvider = new authentik.Provider(
-      'authentikProvider',
-      authentikHelmChart.secret.authentikProviderConfig,
-      {
-        dependsOn: [authentikHelmChart, authentikServiceMesh],
-      },
-    );
+    const { vaultServiceMesh, vaultResources, vaultKubernetesAuth, vaultBackup } =
+      vaultAccess;
 
     /**
      * Longhorn ↔ Authentik 상호 의존으로 배포 순서·리소스 구성이 3단계로 나뉜다.
@@ -623,646 +63,70 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
      * 따라서 한 component에 묶으면 Outpost ↔ ProviderProxy 순환 의존이 생긴다.
      * 아래 순서로 분리한다.
      *
-     * 1. authentikResources — groups/flows/oauth/serviceConnection (Outpost 없음)
-     * 2. longhornServiceMesh — ProviderProxy 등 앱별 Authentik·mesh 리소스
-     * 3. authentikOutpost — longhorn provider를 bootstrap으로 Outpost 생성
+     * 1. deployAuthentik — groups/flows/oauth/serviceConnection (Outpost 없음)
+     * 2. deployLonghornServiceMesh — ProviderProxy 등 앱별 Authentik·mesh 리소스
+     * 3. deployAuthentikOutpost — longhorn provider를 bootstrap으로 Outpost 생성
      *
      * longhorn 이후 추가되는 proxy outpost 앱(tools/apps 등)은
      * OutpostProviderAttachment로 연결한다. Outpost.protocolProviders는
      * bootstrap만 담당하며, attachment로 붙은 provider drift는
      * AuthentikOutpostComponent의 ignoreChanges로 무시한다.
      */
-    const authentikResources =
-      new components.authentik.AuthentikResourcesComponent(
-        'authentikResources',
-        {
-          oauth: {
-            google: {
-              clientId: projectEsc.esc.authentik.oauth.google.clientId,
-              clientSecret: projectEsc.esc.authentik.oauth.google.clientSecret,
-            },
-          },
-          providers: {
-            authentik: authentikProvider,
-          },
-        },
-        {
-          dependsOn: [authentikServiceMesh, authentikHelmChart],
-        },
-      );
+    const longhorn = phases.deployLonghorn({ providers });
+    const { longhornResources } = longhorn;
 
-    const vaultAuthentik = new components.vault.VaultAuthentikComponent(
-      'vaultAuthentik',
-      {
-        hosts: {
-          vault: cloudflareContract.output.zones.ayteneve93com.records.vault,
-          authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
-        },
-        authentik: {
-          allowedGroupId: authentikResources.output.groupIds.systemManagerGroup,
-          flow: {
-            authorizationFlowId:
-              authentikResources.output.flow
-                .defaultProviderAuthorizationImplicitConsentId,
-            invalidationFlowId:
-              authentikResources.output.flow.defaultInvalidationFlowId,
-          },
-        },
-        providers: {
-          vault: vaultProvider,
-          authentik: authentikProvider,
-        },
-        vault: {
-          oidcKvPolicyName: vaultResources.output.oidcKvPolicyName,
-        },
-      },
-      {
-        dependsOn: [
-          vaultHelmChart,
-          vaultServiceMesh,
-          authentikResources,
-          authentikProvider,
-          vaultResources,
-        ],
-      },
-    );
+    const authentik = phases.deployAuthentik({
+      providers,
+      longhorn,
+      dataOperators,
+      mesh,
+    });
+    const { authentikHelmChart, authentikResources } = authentik;
 
-    const vaultCoderJwt = new components.vault.VaultCoderJwtComponent(
-      'vaultCoderJwt',
-      {
-        hosts: {
-          authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
-        },
-        allowedGroupNames: ['System User', 'System Manager'],
-        providers: {
-          vault: vaultProvider,
-        },
-      },
-      {
-        dependsOn: [vaultAuthentik, vaultResources],
-      },
-    );
+    const { vaultAuthentik, vaultCoderJwt, vaultIdentityTiers } =
+      phases.deployVaultIdentity({ vaultServer, vaultAccess, authentik });
 
-    const vaultIdentityTiers = new components.vault.VaultIdentityTiersComponent(
-      'vaultIdentityTiers',
-      {
-        oidcMountAccessor: vaultAuthentik.output.oidc.mountAccessor,
-        coderJwtMountAccessor: vaultCoderJwt.output.jwt.mountAccessor,
-        oidcKvPolicyName: vaultResources.output.oidcKvPolicyName,
-        providers: {
-          vault: vaultProvider,
-        },
-      },
-      {
-        dependsOn: [vaultAuthentik, vaultCoderJwt, vaultResources],
-      },
-    );
-
-    const longhornServiceMesh =
-      new components.longhorn.LonghornServiceMeshComponent(
-        'longhornServiceMesh',
-        {
-          namespace: longhornHelmChart.output.namespace,
-          ingress: {
-            istioNamespace: istioHelmChart.output.namespace,
-            longhornFrontend: {
-              host: cloudflareContract.output.zones.ayteneve93com.records
-                .longhorn,
-              serviceName:
-                longhornHelmChart.output.services.longhornFrontend.name,
-              gatewayPath: istioGateway.output.istioIngressGatewayPath,
-              gatewayLabel: istioHelmChart.output.istioIngressGatewayLabel,
-              port: longhornHelmChart.output.services.longhornFrontend.port
-                .http,
-            },
-          },
-          authentik: {
-            allowedGroupId:
-              authentikResources.output.groupIds.systemManagerGroup,
-            proxyOutpostProviderName: authentikProxyOutpostProviderName,
-            flow: {
-              authorizationFlowId:
-                authentikResources.output.flow
-                  .defaultProviderAuthorizationImplicitConsentId,
-              invalidationFlowId:
-                authentikResources.output.flow.defaultInvalidationFlowId,
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-            authentik: authentikProvider,
-          },
-        },
-      );
-
-    const authentikOutpost = new components.authentik.AuthentikOutpostComponent(
-      'authentikOutpost',
-      {
-        outposts: {
-          proxy: {
-            name: authentikProxyOutpostName,
-            providerIds: [longhornServiceMesh.output.authentikProxyProviderId],
-          },
-        },
-        host: cloudflareContract.output.zones.ayteneve93com.records.auth,
-        serviceConnectionId:
-          authentikResources.output.serviceConnections.localKubernetesClusterId,
-        providers: {
-          authentik: authentikProvider,
-        },
-      },
-      {
-        dependsOn: [longhornServiceMesh, authentikResources],
-      },
-    );
-
-    // VPA (recommender only) + Goldilocks dashboard
-    const vpaHelmChart = new components.vpa.VpaHelmChartComponent(
-      'vpaHelmChart',
-      {
-        helm: {
-          vpa: {
-            version: utils.configs.helmChartVersions.vpa,
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls['charts.fairwinds.com/stable'],
-          },
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-    );
-
-    const goldilocksHelmChart =
-      new components.goldilocks.GoldilocksHelmChartComponent(
-        'goldilocksHelmChart',
-        {
-          helm: {
-            goldilocks: {
-              version: utils.configs.helmChartVersions.goldilocks,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['charts.fairwinds.com/stable'],
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-        { dependsOn: [vpaHelmChart] },
-      );
-
-    new components.goldilocks.GoldilocksServiceMeshComponent(
-      'goldilocksServiceMesh',
-      {
-        namespace: goldilocksHelmChart.output.namespace,
-        ingress: {
-          istioNamespace: istioHelmChart.output.namespace,
-          goldilocksDashboard: {
-            host: cloudflareContract.output.zones.ayteneve93com.records
-              .goldilocks,
-            serviceName:
-              goldilocksHelmChart.output.services.goldilocksDashboard.name,
-            gatewayPath: istioGateway.output.istioIngressGatewayPath,
-            gatewayLabel: istioHelmChart.output.istioIngressGatewayLabel,
-            port: goldilocksHelmChart.output.services.goldilocksDashboard.port
-              .http,
-          },
-        },
-        authentik: {
-          allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
-          proxyOutpostId: authentikOutpost.output.outpostIds.proxyOutpostId,
-          proxyOutpostProviderName: authentikProxyOutpostProviderName,
-          flow: {
-            authorizationFlowId:
-              authentikResources.output.flow
-                .defaultProviderAuthorizationImplicitConsentId,
-            invalidationFlowId:
-              authentikResources.output.flow.defaultInvalidationFlowId,
-          },
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-          authentik: authentikProvider,
-        },
-      },
-      {
-        dependsOn: [istioGateway, goldilocksHelmChart, authentikOutpost],
-      },
-    );
-
-    const vaultSecretsOperatorHelmChart =
-      new components.vaultSecretsOperator.VaultSecretsOperatorHelmChartComponent(
-        'vaultSecretsOperatorHelmChart',
-        {
-          helm: {
-            vaultSecretOperator: {
-              version: utils.configs.helmChartVersions.vaultSecretOperator,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls['helm.releases.hashicorp.com'],
-            },
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-        {
-          dependsOn: [vaultHelmChart],
-        },
-      );
-
-    const vaultSecretsOperatorResources =
-      new components.vaultSecretsOperator.VaultSecretsOperatorResourcesComponent(
-        'vaultSecretsOperatorResources',
-        {
-          namespace: vaultSecretsOperatorHelmChart.output.namespace,
-          vault: {
-            namespace: vaultHelmChart.output.namespace,
-            rootCaSecretName: vaultHelmChart.output.tls.rootCaSecretName,
-            address: pulumi.interpolate`https://${vaultHelmChart.output.tls.serverName}:${vaultHelmChart.output.services.vault.ports.vault}`,
-            tlsServerName: vaultHelmChart.output.tls.serverName,
-          },
-          providers: {
-            kubernetes: workstationK8sProvider,
-          },
-        },
-        {
-          dependsOn: [vaultSecretsOperatorHelmChart, vaultHelmChart],
-        },
-      );
-
-    // Reloader
-    new components.reloader.ReloaderHelmChartComponent('reloaderHelmChart', {
-      helm: {
-        reloader: {
-          version: utils.configs.helmChartVersions.reloader,
-          repositoryUrl:
-            commonEsc.esc.helmRepositoryUrls[
-              'stakater.github.io/stakater-charts'
-            ],
-        },
-      },
-      providers: {
-        kubernetes: workstationK8sProvider,
-      },
+    const longhornServiceMesh = phases.deployLonghornServiceMesh({
+      providers,
+      longhorn,
+      mesh,
+      authentik,
     });
 
-    // Argo (CD / Rollouts / Workflows …)
-    const argoChartRepositoryUrl =
-      commonEsc.esc.helmRepositoryUrls['argoproj.github.io/argo-helm'];
+    const authentikOutpostPhase = phases.deployAuthentikOutpost({
+      authentik,
+      longhornServiceMesh,
+    });
+    const { authentikOutpost } = authentikOutpostPhase;
 
-    // Argo Rollouts — CD와 독립. Application이 Rollout CR을 쓰기 전에 컨트롤러 준비.
-    new components.argo.ArgoRolloutsComponent('argoRollouts', {
-      helm: {
-        argoRollouts: {
-          version: utils.configs.helmChartVersions.argoRollouts,
-          repositoryUrl: argoChartRepositoryUrl,
-        },
-      },
-      providers: {
-        kubernetes: workstationK8sProvider,
-      },
+    // Authentik proxy outpost 뒤에 붙는 시스템 UI·나머지 애드온
+    phases.deployAutoscaling({
+      providers,
+      mesh,
+      authentik,
+      authentikOutpost: authentikOutpostPhase,
     });
 
-    // Argo CD
-    const argoGitOps = new components.argo.ArgoGitOpsComponent('argoGitOps', {
-      gitOpsRepository: {
-        name: githubContract.output.repositories.apexCaptainIacGitOps.name,
-        sshCloneUrl:
-          githubContract.output.repositories.apexCaptainIacGitOps.sshCloneUrl,
-      },
-      argoCdHost: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
-      providers: {
-        github: apexCaptainGithubProvider,
-      },
+    const { vaultSecretsOperatorHelmChart, vaultSecretsOperatorResources } =
+      phases.deployVaultSecretsOperator({ providers, vaultServer });
+
+    phases.deployReloader({ providers });
+
+    phases.deployArgo({
+      providers,
+      mesh,
+      longhorn,
+      dataOperators,
+      authentik,
     });
 
-    const argoAuthentik = new components.argo.ArgoAuthentikComponent(
-      'argoAuthentik',
-      {
-        hosts: {
-          argoCd: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
-          authentik: cloudflareContract.output.zones.ayteneve93com.records.auth,
-        },
-        authentik: {
-          allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
-          flow: {
-            authorizationFlowId:
-              authentikResources.output.flow
-                .defaultProviderAuthorizationImplicitConsentId,
-            invalidationFlowId:
-              authentikResources.output.flow.defaultInvalidationFlowId,
-          },
-        },
-        providers: {
-          authentik: authentikProvider,
-        },
-      },
-      {
-        dependsOn: [authentikResources, authentikProvider],
-      },
-    );
-
-    const argoCd = new components.argo.ArgoCdComponent(
-      'argoCd',
-      {
-        host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
-        bootstrapPasswordBcrypt: projectEsc.esc.argoCd.bootstrapPasswordBcrypt,
-        githubSecret: argoGitOps.secret.webHookSecret,
-        oidc: {
-          name: argoAuthentik.output.oidc.name,
-          issuerUrl: argoAuthentik.output.oidc.issuerUrl,
-          groupsClaim: argoAuthentik.output.oidc.groupsClaim,
-          requestedScopes: argoAuthentik.output.oidc.requestedScopes,
-          clientId: argoAuthentik.secret.oidc.clientId,
-          clientSecret: argoAuthentik.secret.oidc.clientSecret,
-        },
-        helm: {
-          argoCd: {
-            version: utils.configs.helmChartVersions.argoCd,
-            repositoryUrl: argoChartRepositoryUrl,
-          },
-        },
-        redis: {
-          password: projectEsc.esc.argoCd.redisPassword,
-          storageClass: longhornResources.output.storageClasses.longhornSsd,
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-      {
-        dependsOn: [argoAuthentik, redisOperatorHelmChart],
-      },
-    );
-
-    const argoServiceMesh = new components.argo.ArgoServiceMeshComponent(
-      'argoServiceMesh',
-      {
-        namespace: argoCd.output.namespace,
-        bootstrapPassword: projectEsc.esc.argoCd.bootstrapPassword,
-        ingress: {
-          argoCd: {
-            host: cloudflareContract.output.zones.ayteneve93com.records.argoCd,
-            serviceName: argoCd.output.services.argoCdServer.name,
-            gatewayPath: istioGateway.output.istioIngressGatewayPath,
-            port: argoCd.output.services.argoCdServer.port.webUi,
-          },
-        },
-        providers: {
-          kubernetes: workstationK8sProvider,
-        },
-      },
-    );
-
-    const argoCdProvider = new argocd.Provider(
-      'argoCdProvider',
-      argoServiceMesh.secret.argoCdProviderConfig,
-      {
-        dependsOn: [argoCd, argoServiceMesh],
-      },
-    );
-
-    const argoResources = new components.argo.ArgoResourcesComponent(
-      'argoResources',
-      {
-        namespace: argoCd.output.namespace,
-        gitOpsRepository: {
-          name: argoGitOps.output.gitOpsRepository.name,
-          sshCloneUrl: argoGitOps.output.gitOpsRepository.sshCloneUrl,
-          deployPrivateKeyPem: argoGitOps.secret.deployPrivateKeyPem,
-        },
-        gitOpsProjects: {
-          apps: {
-            name: argoCd.output.projects.apps.name,
-            accountName: argoCd.output.projects.apps.accountName,
-            readerGroupName: argoCd.output.projects.apps.readerGroupName,
-          },
-          tools: {
-            name: argoCd.output.projects.tools.name,
-            accountName: argoCd.output.projects.tools.accountName,
-            readerGroupName: argoCd.output.projects.tools.readerGroupName,
-          },
-        },
-        providers: {
-          argocd: argoCdProvider,
-          authentik: authentikProvider,
-        },
-      },
-      {
-        dependsOn: [
-          argoCd,
-          argoServiceMesh,
-          argoCdProvider,
-          argoAuthentik,
-          authentikProvider,
-        ],
-      },
-    );
-
-    // Monitoring stack
-    const otelOperatorHelmChart =
-      new components.monitoring.OtelOperatorHelmChartComponent(
-        'otelOperatorHelmChart',
-        {
-          helm: {
-            opentelemetryOperator: {
-              version: utils.configs.helmChartVersions.opentelemetryOperator,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls[
-                  'open-telemetry.github.io/opentelemetry-helm-charts'
-                ],
-            },
-          },
-          providers: { kubernetes: workstationK8sProvider },
-        },
-        { dependsOn: [certManagerHelmChart] },
-      );
-
-    const monitoringNamespace = otelOperatorHelmChart.output.namespace;
-    const monitoringStorageClass =
-      longhornResources.output.storageClasses.longhornSsd;
-
-    const victoriaMetricsHelmChart =
-      new components.monitoring.VictoriaMetricsHelmChartComponent(
-        'victoriaMetricsHelmChart',
-        {
-          namespace: monitoringNamespace,
-          storageClassName: monitoringStorageClass,
-          helm: {
-            victoriaMetrics: {
-              version: utils.configs.helmChartVersions.victoriaMetrics,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls[
-                  'victoriametrics.github.io/helm-charts'
-                ],
-            },
-          },
-          providers: { kubernetes: workstationK8sProvider },
-        },
-        { dependsOn: [otelOperatorHelmChart, longhornResources] },
-      );
-
-    const lokiHelmChart = new components.monitoring.LokiHelmChartComponent(
-      'lokiHelmChart',
-      {
-        namespace: monitoringNamespace,
-        storageClassName: monitoringStorageClass,
-        helm: {
-          loki: {
-            version: utils.configs.helmChartVersions.loki,
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls[
-                'grafana-community.github.io/helm-charts'
-              ],
-          },
-        },
-        providers: { kubernetes: workstationK8sProvider },
-      },
-      { dependsOn: [otelOperatorHelmChart, longhornResources] },
-    );
-
-    const tempoHelmChart = new components.monitoring.TempoHelmChartComponent(
-      'tempoHelmChart',
-      {
-        namespace: monitoringNamespace,
-        storageClassName: monitoringStorageClass,
-        helm: {
-          tempo: {
-            version: utils.configs.helmChartVersions.tempo,
-            repositoryUrl:
-              commonEsc.esc.helmRepositoryUrls[
-                'grafana-community.github.io/helm-charts'
-              ],
-          },
-        },
-        providers: { kubernetes: workstationK8sProvider },
-      },
-      { dependsOn: [otelOperatorHelmChart, longhornResources] },
-    );
-
-    const grafanaHost =
-      cloudflareContract.output.zones.ayteneve93com.records.grafana;
-
-    const grafanaAuthentik =
-      new components.monitoring.GrafanaAuthentikComponent(
-        'grafanaAuthentik',
-        {
-          hosts: {
-            grafana: grafanaHost,
-            authentik:
-              cloudflareContract.output.zones.ayteneve93com.records.auth,
-          },
-          authentik: {
-            allowedGroupId: authentikResources.output.groupIds.systemUserGroup,
-            flow: {
-              authorizationFlowId:
-                authentikResources.output.flow
-                  .defaultProviderAuthorizationImplicitConsentId,
-              invalidationFlowId:
-                authentikResources.output.flow.defaultInvalidationFlowId,
-            },
-          },
-          providers: { authentik: authentikProvider },
-        },
-        { dependsOn: [authentikResources, authentikProvider] },
-      );
-
-    const grafanaHelmChart =
-      new components.monitoring.GrafanaHelmChartComponent(
-        'grafanaHelmChart',
-        {
-          namespace: monitoringNamespace,
-          host: grafanaHost,
-          storageClassName: monitoringStorageClass,
-          adminPassword: projectEsc.esc.grafana.adminPassword,
-          slackWebhookUrlInfraWarning:
-            projectEsc.esc.grafana.slackWebhookUrlInfraWarning,
-          oidc: {
-            name: grafanaAuthentik.output.oidc.name,
-            issuerUrl: grafanaAuthentik.output.oidc.issuerUrl,
-            authUrl: grafanaAuthentik.output.oidc.authUrl,
-            tokenUrl: grafanaAuthentik.output.oidc.tokenUrl,
-            apiUrl: grafanaAuthentik.output.oidc.apiUrl,
-            requestedScopes: grafanaAuthentik.output.oidc.requestedScopes,
-            roleAttributePath: grafanaAuthentik.output.oidc.roleAttributePath,
-            clientId: grafanaAuthentik.secret.oidc.clientId,
-            clientSecret: grafanaAuthentik.secret.oidc.clientSecret,
-          },
-          datasources: {
-            victoriaMetrics: {
-              url: pulumi.interpolate`http://${victoriaMetricsHelmChart.output.services.victoriaMetrics.name}.${monitoringNamespace}.svc.cluster.local:${victoriaMetricsHelmChart.output.services.victoriaMetrics.port.http}`,
-            },
-            loki: {
-              url: pulumi.interpolate`http://${lokiHelmChart.output.services.loki.name}.${monitoringNamespace}.svc.cluster.local:${lokiHelmChart.output.services.loki.port.http}`,
-            },
-            tempo: {
-              url: pulumi.interpolate`http://${tempoHelmChart.output.services.tempo.name}.${monitoringNamespace}.svc.cluster.local:${tempoHelmChart.output.services.tempo.port.query}`,
-            },
-          },
-          helm: {
-            grafana: {
-              version: utils.configs.helmChartVersions.grafana,
-              repositoryUrl:
-                commonEsc.esc.helmRepositoryUrls[
-                  'grafana-community.github.io/helm-charts'
-                ],
-            },
-          },
-          providers: { kubernetes: workstationK8sProvider },
-        },
-        {
-          dependsOn: [
-            grafanaAuthentik,
-            victoriaMetricsHelmChart,
-            lokiHelmChart,
-            tempoHelmChart,
-          ],
-        },
-      );
-
-    new components.monitoring.OtelResourcesComponent(
-      'otelResources',
-      {
-        namespace: monitoringNamespace,
-        backends: {
-          victoriaMetrics: {
-            remoteWriteUrl: pulumi.interpolate`http://${victoriaMetricsHelmChart.output.services.victoriaMetrics.name}.${monitoringNamespace}.svc.cluster.local:${victoriaMetricsHelmChart.output.services.victoriaMetrics.port.http}/api/v1/write`,
-          },
-          loki: {
-            otlpHttpUrl: pulumi.interpolate`http://${lokiHelmChart.output.services.loki.name}.${monitoringNamespace}.svc.cluster.local:${lokiHelmChart.output.services.loki.port.http}/otlp`,
-          },
-          tempo: {
-            otlpGrpcEndpoint: pulumi.interpolate`${tempoHelmChart.output.services.tempo.name}.${monitoringNamespace}.svc.cluster.local:${tempoHelmChart.output.services.tempo.port.otlpGrpc}`,
-          },
-        },
-        providers: { kubernetes: workstationK8sProvider },
-      },
-      {
-        dependsOn: [
-          otelOperatorHelmChart,
-          victoriaMetricsHelmChart,
-          lokiHelmChart,
-          tempoHelmChart,
-        ],
-      },
-    );
-
-    new components.monitoring.GrafanaServiceMeshComponent(
-      'grafanaServiceMesh',
-      {
-        namespace: monitoringNamespace,
-        ingress: {
-          grafana: {
-            host: grafanaHost,
-            serviceName: grafanaHelmChart.output.services.grafana.name,
-            gatewayPath: istioGateway.output.istioIngressGatewayPath,
-            port: grafanaHelmChart.output.services.grafana.port.http,
-          },
-        },
-        providers: { kubernetes: workstationK8sProvider },
-      },
-      { dependsOn: [grafanaHelmChart, istioGateway] },
-    );
+    phases.deployMonitoring({
+      providers,
+      certManager,
+      mesh,
+      longhorn,
+      authentik,
+    });
 
     return {
       output: pulumi.output({
@@ -1295,7 +159,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           outposts: {
             proxy: {
               id: authentikOutpost.output.outpostIds.proxyOutpostId,
-              providerName: authentikProxyOutpostProviderName,
+              providerName: phases.authentikNames.proxyOutpostProviderName,
             },
           },
         },
@@ -1345,7 +209,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
             hostCaMount: vaultResources.output.ssh.hostCaMount,
           },
           cluster: {
-            address: pulumi.interpolate`https://${vaultHelmChart.output.tls.serverName}:${vaultHelmChart.output.services.vault.ports.vault}`,
+            address: vaultServer.clusterAddress,
             tlsServerName: vaultHelmChart.output.tls.serverName,
             namespace: vaultHelmChart.output.namespace,
             rootCaSecretName: vaultHelmChart.output.tls.rootCaSecretName,

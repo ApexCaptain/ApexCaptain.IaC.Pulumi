@@ -86,6 +86,9 @@ function createGithubPullRequest(): void {
     title,
     '--body-file',
     bodyFile,
+    // gh 인증 사용자를 Assignee 로
+    '--assignee',
+    '@me',
   ];
   if (head) {
     args.push('--head', head);
@@ -96,7 +99,7 @@ function createGithubPullRequest(): void {
 
   console.log(
     chalk.blue(
-      `gh pr create --base ${base}${head ? ` --head ${head}` : ''}${
+      `gh pr create --base ${base} --assignee @me${head ? ` --head ${head}` : ''}${
         labels.length ? ` --label ${labels.join(',')}` : ''
       }`,
     ),
