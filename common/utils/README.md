@@ -8,6 +8,7 @@ Pulumi 기반 IaC 모노레포에서 공통으로 쓰는 설정, 타입, 유틸 
 - Pulumi 컴포넌트 정의(`defineComponent`), lodash 병합 커스터마이저, kebab-case 변환 등 **컴포넌트·리소스 작성 보조** 함수를 제공한다.
 - Cloudflare DNS FQDN, OCI 정책 문구, Argo CD 정책 CSV, 만료 간격 생성 등 **인프라 연동용 헬퍼**를 제공한다.
 - `DeepPartial`, `DeepPulumiInput`, `Kubeconfig` 등 **타입·인터페이스**로 스택 코드의 입력 모델을 맞춘다.
+- 테스트 전용 헬퍼는 `@common/utils/src/testing`에서 직접 import한다. 런타임 `src/index`에는 넣지 않는다 (`installPulumiMocks`, `unwrap`, `flat` CJS shim).
 
 ## 구조
 
@@ -36,6 +37,10 @@ src/
 └── interfaces/
 └──   index.ts
 └──   kubeconfig.interface.ts
+└── testing/
+└──   flat.shim.ts
+└──   index.ts
+└──   pulumi-mocks.ts
 └── types/
 └──   deep-partial.type.ts
 └──   deep-pulumi-input.type.ts

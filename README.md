@@ -72,8 +72,9 @@ pnpm pulumi:up
 | `script:generatePlutoDiagnosis` | Pluto 진단 문서 생성 |
 | `script:generateVentoyUserData` | Ventoy user-data 생성 |
 | `script:synthProjectReadme` | README 합성 (기본: 루트, `--apply`로 반영, `--all-workspace` 또는 `--package`로 서브모듈) |
+| `script:syncGithubIssues` | `docs/issues/{active,resolved}` → GitHub Issues 단방향 미러 (기본 dry-run, `--apply`로 반영) |
 
-합성 결과 미리보기는 `.github/generated/readme/`에 둡니다.
+합성 결과 미리보기는 `.github/generated/readme/`에 둡니다. `develop` push 시 `docs/issues/**` 경로면 workflow `docs-issue-mirror`가 같은 미러를 돌립니다.
 
 ## 문서
 
@@ -82,4 +83,4 @@ pnpm pulumi:up
 - [docs/issues/resolved/](docs/issues/resolved/) — 완료 이슈 아카이브
 - [docs/diagnosis/](docs/diagnosis/) — Nova·Pluto 등 운영 진단 (별도 SSOT)
 
-일정 표는 언제 무엇을 볼지만 담고, 기능 목록이나 로드맵 대체용이 아닙니다.
+이슈 SSOT는 위 마크다운입니다. GitHub Issues(`docs-mirror` 라벨)는 단방향 미러이며, Issue에서 고치면 다음 싱크에 덮어씁니다. 일정 표는 언제 무엇을 볼지만 담고, 기능 목록이나 로드맵 대체용이 아닙니다.
