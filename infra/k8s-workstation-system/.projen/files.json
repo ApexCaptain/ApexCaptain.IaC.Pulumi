@@ -7,6 +7,7 @@
     ".projen/deps.json",
     ".projen/files.json",
     ".projen/tasks.json",
+    "jest.config.json",
     "LICENSE",
     "Pulumi.prod.yaml",
     "Pulumi.yaml",

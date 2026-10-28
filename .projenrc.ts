@@ -436,6 +436,7 @@ void (async () => {
           NexusEsc.k8sWorkstationSystemEsc,
           NexusEsc.githubEsc,
         ],
+        jest: true,
       },
     );
 
@@ -469,6 +470,7 @@ void (async () => {
           NexusEsc.cloudflareEsc,
           NexusEsc.k8sWorkstationToolsEsc,
         ],
+        jest: true,
       },
     );
 
@@ -496,6 +498,7 @@ void (async () => {
           k8sWorkstationSystemProject.project.package.packageName,
         ],
         esc: [NexusEsc.commonEsc, NexusEsc.k8sWorkstationAppsEsc],
+        jest: true,
       },
     );
 
