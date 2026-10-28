@@ -137,6 +137,17 @@ void describe('planSync', () => {
     assert.deepEqual(planSync([desired], [issue]), []);
   });
 
+  void test('웹에서 본문만 고치고 hash 마커는 남김 → body 덮어씀', () => {
+    const edited = synced({
+      body: desired.body.replace('샘플', '웹 편집').replace('보류', '진행중'),
+    });
+    assert.notEqual(edited.body, desired.body);
+    const [action] = planSync([desired], [edited]);
+    assert.ok(action?.kind === 'update');
+    if (action.kind !== 'update') return;
+    assert.deepEqual(action.changes, { body: desired.body });
+  });
+
   void test('resolved로 이동 → body 갱신 + close(completed)', () => {
     const closed = toDesiredIssue(
       parseIssueDoc('docs/issues/resolved/2026-01-02-b.md', sample),

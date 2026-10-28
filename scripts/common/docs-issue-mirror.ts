@@ -179,6 +179,14 @@ function extractHash(body: string): string | undefined {
   return body.match(HASH_MARKER_RE)?.[1];
 }
 
+/** 마커가 아닌 실제 본문으로 hash를 다시 계산한다. 웹 편집이 마커를 남겨도 잡힌다. */
+function actualHash(body: string): string {
+  const main = body
+    .replace(/\r\n/g, '\n')
+    .replace(/\n<!-- docs-issue-hash: [0-9a-f]+ -->\s*$/, '');
+  return hashContent(main);
+}
+
 function isManagedLabel(label: string): boolean {
   return (
     label === MIRROR_LABEL ||
@@ -226,7 +234,7 @@ export function planSync(
 
     const changes: Extract<SyncAction, { kind: 'update' }>['changes'] = {};
     if (issue.title !== want.title) changes.title = want.title;
-    if (extractHash(issue.body) !== extractHash(want.body)) {
+    if (actualHash(issue.body) !== extractHash(want.body)) {
       changes.body = want.body;
     }
     const labels = mergeLabels(issue.labels, want.labels);
