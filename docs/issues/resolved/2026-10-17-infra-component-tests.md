@@ -6,7 +6,8 @@
 | **우선순위** | 낮음~중간 |
 | **영역** | `infra/*/test`, jest 설정 (`projenrc/projects/pulumi-projects.ts`) |
 | **선행** | [Jest 유닛 테스트 도입](../resolved/2026-09-08-jest-unit-test-setup.md), [contract 분해](2026-10-17-system-contract-split.md) (contract 수준 테스트는 분해 후) |
-| **상태** | **적용** — 컴포넌트 단위 4개 (2026-10-28, #157 머지) + system contract 단위 (2026-10-28, `refactor/system-contract-phases`, 머지 전) |
+| **상태** | **해결** — 컴포넌트 단위 4개 (#157) + system contract 단위 (#160) |
+| **해결일** | 2026-10-28 |
 
 ## 배경
 
@@ -71,3 +72,4 @@
 | 2026-10-28 | 컴포넌트 단위 적용: infra jest 활성화, 공용 mock 헬퍼, Vault·Authentik·qBittorrent·Jellyfin 테스트 4개. 상태 → 적용 (contract 단위 남음) |
 | 2026-10-28 | [#157](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/157) develop 머지. PR Validate 로그에서 infra 테스트 16개 실행·통과 확인 |
 | 2026-10-28 | system contract 단위 테스트 추가 (`refactor/system-contract-phases`): 최상위 리소스·output 키 snapshot + `dependsOn` 12개. 변형 3종 실패 확인 |
+| 2026-10-28 | CI에서 contract 테스트 첫 실패: 실제 `Contract`가 gitignore된 `Pulumi*.yaml`(projen 생성물)을 찾음. `Contract`를 jest mock 더블로 바꿔 해결. [#160](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/160) PR Validate에서 `contract.test.ts` PASS 확인 후 머지. 해결 (tools contract 테스트는 [tools 분해 이슈](../active/2026-10-28-tools-contract-split.md) 수용 기준에 포함) |

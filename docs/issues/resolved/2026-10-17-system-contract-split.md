@@ -6,7 +6,8 @@
 | **우선순위** | 중간 |
 | **영역** | `infra/k8s-workstation-system`, `infra/k8s-workstation-tools` |
 | **관련 코드** | `infra/k8s-workstation-system/src/contract.ts` (1357줄), `infra/k8s-workstation-tools/src/contract.ts` (623줄) |
-| **상태** | **적용** — system contract 분해 완료 (2026-10-28, `refactor/system-contract-phases`, 머지 전). tools contract는 미착수 |
+| **상태** | **해결** — system contract phase 분해 (#160). tools contract는 [후속 이슈](../active/2026-10-28-tools-contract-split.md)로 분리 |
+| **해결일** | 2026-10-28 |
 
 ## 배경
 
@@ -15,7 +16,7 @@ system contract는 Cilium → cert-manager → Vault → Istio → Longhorn → 
 ## 문제
 
 - 한 파일 수정 범위가 너무 커서 리뷰·충돌·AI 에이전트 컨텍스트 비용이 크다.
-- 클로저 안 지역 변수로만 연결돼 단계별 단위 테스트가 불가능하다 (`docs/issues/active/2026-10-17-infra-component-tests.md`).
+- 클로저 안 지역 변수로만 연결돼 단계별 단위 테스트가 불가능하다 ([infra 테스트](2026-10-17-infra-component-tests.md)).
 - Longhorn↔Authentik 3단계 분리처럼 순환 성격 의존이 주석으로만 관리된다.
 
 ## 목표
@@ -61,6 +62,7 @@ A 먼저. B는 A 완료 후 별도 이슈로 재평가.
 
 - 스택 분할 (B)
 - 컴포넌트 내부 리팩터
+- tools contract 분해 → [후속 이슈](../active/2026-10-28-tools-contract-split.md)
 
 ## 타임라인
 
@@ -69,3 +71,4 @@ A 먼저. B는 A 완료 후 별도 이슈로 재평가.
 | 2026-10-17 | 등록. K8s 1.36 업그레이드 이후 착수로 보류 |
 | 2026-10-28 | 대기 조건 변경: "1.36 업그레이드 완료 뒤" → "클러스터 변경 작업과 동시 진행 금지". 1.36은 Sysbox 미지원으로 2027-01-15까지 막힘. 분해는 URN 불변·preview diff 0이라 라이브 변경이 없고, 업그레이드는 Kubespray 쪽이라 겹치지 않음. 후속(contract 단위 테스트)을 풀기 위해 먼저 착수 |
 | 2026-10-28 | system contract phase 분해 적용 (`refactor/system-contract-phases`). preview system 268·apps 66·tools 143 unchanged, 타입 불변. tools contract(623줄)는 남음 |
+| 2026-10-28 | [#160](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/160) develop 머지. 머지 후 system preview 268 unchanged. tools contract는 후속 이슈로 분리. 해결 |
