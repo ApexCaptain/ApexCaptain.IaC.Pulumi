@@ -38,7 +38,7 @@
 
 - [x] 최소 3개 컴포넌트 테스트가 `pnpm test:workspaces`에서 실행·통과 — 4개 파일 16 케이스, 16 tasks 성공
 - [x] 상태 보존 리소스가 `protect: true`인지 검증하는 테스트 포함
-- [x] PR Validate에서 함께 실행됨 (추가 설정 불필요 확인) — `pr-validation.yml`이 `pnpm test:workspaces` 실행. 실제 CI 통과는 PR에서 확인
+- [x] PR Validate에서 함께 실행됨 (추가 설정 불필요 확인) — `pr-validation.yml`이 `pnpm test:workspaces` 실행. [#157](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/157) CI에서 system 10·tools 3·apps 3 통과 확인
 - [ ] (contract 분해 후) contract 단위 테스트 — 별도 진행
 
 ## 범위 밖
@@ -52,3 +52,4 @@
 |------|------|
 | 2026-10-17 | 등록 |
 | 2026-10-28 | 컴포넌트 단위 적용: infra jest 활성화, 공용 mock 헬퍼, Vault·Authentik·qBittorrent·Jellyfin 테스트 4개. 상태 → 적용 (contract 단위 남음) |
+| 2026-10-28 | [#157](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/157) develop 머지. PR Validate 로그에서 infra 테스트 16개 실행·통과 확인 |
