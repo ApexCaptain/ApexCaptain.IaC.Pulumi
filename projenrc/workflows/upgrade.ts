@@ -2,6 +2,7 @@ import CronTime from 'cron-time-generator';
 import { typescript } from 'projen';
 import { Job } from 'projen/lib/github/workflows-model';
 import Timezone from 'timezone-enum';
+import { setupPulumiCliStep } from './setup-pulumi';
 
 export async function modifyUpgradeWorkflow(
   rootProject: typescript.TypeScriptProject,
@@ -22,6 +23,12 @@ export async function modifyUpgradeWorkflow(
       } as any,
     ],
   });
+
+  upgradeJobSteps.splice(
+    upgradeJobSteps.findIndex(eachStep => eachStep.name == 'Setup pnpm') + 1,
+    0,
+    setupPulumiCliStep(),
+  );
 
   // Build Projects Step 추가
   upgradeJobSteps.splice(

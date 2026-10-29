@@ -26,4 +26,9 @@ export function pinWorkflowActions(
     'peter-evans/create-pull-request',
     'peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1',
   );
+  // v7.0.0
+  actions.set(
+    'pulumi/actions',
+    'pulumi/actions@8e5e406f4007fca908480587cb9893c07090f58d',
+  );
 }
