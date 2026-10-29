@@ -134,23 +134,33 @@ export const constants = (() => {
     (process.env.IS_DEV_CONTAINER ?? 'false').toLocaleLowerCase(),
   );
 
+  // bridged-provider SDK 생성 결과는 CLI(sdkgen)·브리지 플러그인 버전에 따라 달라진다.
+  // 로컬과 CI가 같은 SDK를 만들도록 둘 다 고정한다. CLI는 .devcontainer/devcontainer.json과 함께 올린다
+  // https://github.com/pulumi/pulumi/releases
+  const pulumiCliVersion = '3.273.0';
+  // https://github.com/pulumi/pulumi-terraform-provider/releases
+  const terraformBridgeConverterVersion = '1.5.1';
+
   const bridgedProviders = {
     terraform: {
       // https://app.pulumi.com/ApexCaptain/idp/registry/opentofu/goauthentik/authentik
       authentik: new TerraformBridgedProvider({
         name: 'authentik',
+        converterVersion: terraformBridgeConverterVersion,
         providerSource: 'goauthentik/authentik',
         providerVersion: '2026.8.0',
       }),
       // https://registry.terraform.io/providers/argoproj-labs/argocd/latest
       argocd: new TerraformBridgedProvider({
         name: 'argocd',
+        converterVersion: terraformBridgeConverterVersion,
         providerSource: 'argoproj-labs/argocd',
         providerVersion: '7.17.2',
       }),
       // https://registry.terraform.io/providers/coder/coderd/latest
       coderd: new TerraformBridgedProvider({
         name: 'coderd',
+        converterVersion: terraformBridgeConverterVersion,
         providerSource: 'coder/coderd',
         providerVersion: '0.0.30',
       }),
@@ -222,6 +232,7 @@ export const constants = (() => {
     branches,
     paths,
     isDevContainer,
+    pulumiCliVersion,
     bridgedProviders,
     pulumiPackages,
     packagesAllowingBuildScripts,

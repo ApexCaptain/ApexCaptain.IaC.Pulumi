@@ -59,7 +59,7 @@
     "organization": false
   },
   "devDependencies": {
-    "@cursor/sdk": "^1.0.40",
+    "@cursor/sdk": "^1.2.0",
     "@pulumi/esc-sdk": "^0.14.0",
     "@types/json2md": "^1.5.4",
     "@types/lodash": "^4.17.27",
@@ -81,7 +81,7 @@
     "lint-staged": "^17.6.0",
     "lodash": "^4.18.1",
     "prettier": "^3.9.10",
-    "projen": "^0.104.14",
+    "projen": "^0.104.19",
     "repomix": "^1.18.1",
     "rulesync": "26.0.0",
     "sha512-crypt-ts": "^0.1.27",
@@ -92,8 +92,8 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@pulumi/pulumi": "^3.272.0",
-    "axios": "^1.20.0",
+    "@pulumi/pulumi": "^3.273.0",
+    "axios": "^1.21.0",
     "chalk": "^4.1.2",
     "dedent": "^1.7.2",
     "flat": "^6.0.1",
