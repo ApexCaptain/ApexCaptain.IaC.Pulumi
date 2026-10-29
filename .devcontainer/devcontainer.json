@@ -16,8 +16,11 @@
     // Github CLI
     "ghcr.io/devcontainers/features/github-cli:1": {},
 
-    // Pulumi
-    "ghcr.io/devcontainers-extra/features/pulumi:1": {},
+    // Pulumi (src/constants.ts pulumiCliVersion과 동일하게 유지)
+    // https://github.com/pulumi/pulumi/releases
+    "ghcr.io/devcontainers-extra/features/pulumi:1": {
+      "version": "3.273.0"
+    },
 
     // Kubectl
     "ghcr.io/devcontainers-extra/features/kubectl-asdf:2": {},
@@ -37,7 +40,7 @@
     // Apt-get Packages
     "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
       "packages": "netcat-openbsd, iputils-ping, parallel, ripgrep, tmux"
-    },
+    }
 
     // Codex
     // "ghcr.io/jsburckhardt/devcontainer-features/codex:1" : {}
@@ -56,8 +59,7 @@
         "ms-azuretools.vscode-docker",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
         "hashicorp.terraform",
-        // testing
-        "openai.chatgpt"
+        "anthropic.claude-code"
       ]
     }
   },

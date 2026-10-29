@@ -30,7 +30,6 @@
 | 사용자 착수 결정 (클러스터 변경 작업과 같은 시기 금지) | tools contract phase 분해 + contract 단위 테스트 (system 방식 재사용) | [tools contract 분해](issues/active/2026-10-28-tools-contract-split.md) | 보류 |
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/active/2026-10-17-dr-rebuild-runbook.md) | 보류 |
 | [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso) manifest에 Jellyfin 12 `targetAbi` 버전 등장 | 플러그인 호환 확인 → config 백업 → 차트 3.4.0+ (앱 12.x) 업그레이드 → 재스캔 → SSO 확인 | [Jellyfin 12 업그레이드](issues/active/2026-10-21-jellyfin-12-upgrade.md) | 보류 |
-| [projen/projen#5020](https://github.com/projen/projen/pull/5020) 머지 + 포함 릴리스가 주간 upgrade로 반영 | `projenrc/workflows/upgrade.ts`의 `as any` 제거 → `pnpm exec projen`으로 YAML 유지 확인. `UpgradeDependenciesSchedule` timezone 후속 PR 여부 결정 | [Projen schedule timezone](issues/active/2026-09-09-projen-workflow-schedule-timezone.md) | 진행중 |
 | CI가 GitOps `main`에 이미지 태그 자동 push 시작 | `repos/gitops` behind 상태에서 commit 시 guard hook deny 실확인 → 통과 시 `docs/issues/resolved` 이동 | [GitOps 로컬 클론](issues/active/2026-10-21-gitops-repo-local-clone.md) | 적용 |
 ---
 
