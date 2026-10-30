@@ -268,12 +268,12 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
               jellyfinSftpAdapter.output.userSecretName,
           },
           runtimeClassName: args.gpu.runtimeClassName,
-          // VPA 2026-10: upperBound ~380Mi; 트랜스코딩 스파이크용 limit headroom 유지
+          // VPA 2026-10-30: target 600Mi / upper 619Mi. 트랜스코딩 스파이크용 limit headroom 유지
           // nvidia.com/gpu 1 = RTX 2080 전체. device plugin sharing 없음. SFTP sidecar에는 안 붙음
           resources: {
             requests: {
               'cpu': '200m',
-              'memory': '512Mi',
+              'memory': '640Mi',
               'nvidia.com/gpu': '1',
             },
             limits: {

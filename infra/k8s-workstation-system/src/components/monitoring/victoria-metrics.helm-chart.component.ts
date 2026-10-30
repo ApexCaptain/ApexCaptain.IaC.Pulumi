@@ -48,11 +48,11 @@ export const VictoriaMetricsHelmChartComponent = utils.functions.defineComponent
               storageClassName: args.storageClassName,
               size: '20Gi',
             },
-            // VPA 2026-10-12: target 215Mi / upper 221Mi
+            // VPA 2026-10-30: target 283Mi / upper 289Mi
             resources: {
               requests: {
                 cpu: '100m',
-                memory: '256Mi',
+                memory: '320Mi',
               },
               limits: {
                 cpu: '1000m',
