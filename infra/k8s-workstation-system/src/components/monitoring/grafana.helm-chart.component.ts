@@ -292,15 +292,15 @@ export const GrafanaHelmChartComponent = utils.functions.defineComponent(
               storageClassName,
               size: '5Gi',
             },
-            // VPA 2026-10-12: target 561Mi / upper 581Mi
+            // VPA 2026-10-30: target 878Mi / upper 899Mi. 이전 limit 768Mi가 target보다 낮았음
             'resources': {
               requests: {
                 cpu: '100m',
-                memory: '640Mi',
+                memory: '896Mi',
               },
               limits: {
                 cpu: '500m',
-                memory: '768Mi',
+                memory: '1280Mi',
               },
             },
           };
