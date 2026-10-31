@@ -16,7 +16,7 @@ export const helmChartVersions = Object.freeze({
   lxcfs: '0.2.8',
   genericDevicePlugin: '0.1.3',
   gpuOperator: 'v26.7.2',
-  certManager: 'v1.21.2',
+  certManager: 'v1.21.3',
   snapshotController: '5.4.0',
   vault: '0.34.1',
   istio: istioVersion,
@@ -27,16 +27,16 @@ export const helmChartVersions = Object.freeze({
   vpa: '5.1.0',
   goldilocks: '11.2.0',
   vaultSecretOperator: '1.6.2',
-  reloader: '2.2.18',
+  reloader: '2.2.19',
   argoRollouts: '2.43.8',
-  argoCd: '10.11.0',
-  opentelemetryOperator: '0.126.2',
-  victoriaMetrics: '0.49.0',
-  loki: '19.1.1',
+  argoCd: '10.11.6',
+  opentelemetryOperator: '0.128.0',
+  victoriaMetrics: '0.50.0',
+  loki: '20.2.0',
   tempo: '3.2.1',
-  grafana: '14.0.1',
+  grafana: '14.2.0',
   jellyfin: '3.2.0',
-  coder: '2.38.1',
+  coder: '2.38.5',
   vikunja: '0.16.0',
 } as const);
 
@@ -50,6 +50,8 @@ export const containerImages = Object.freeze({
   otelCollectorContrib:
     'ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.156.0',
   vuetorrentMod: 'ghcr.io/vuetorrent/vuetorrent-lsio-mod:2.36.1',
+  /** sidecar 주입 템플릿의 istio-validation을 덮어쓸 때(Kata 워크스페이스) 쓰는 이미지. istio 차트 기본 hub·variant */
+  istioProxyv2: `registry.istio.io/release/proxyv2:${istioVersion}-distroless`,
   cloudflared:
     'cloudflare/cloudflared:2026.10.4@sha256:c6c7ae1d5dfdcb094ad344ed68ccffc26635c9c6be80965664c33baf064b0515',
 } as const);

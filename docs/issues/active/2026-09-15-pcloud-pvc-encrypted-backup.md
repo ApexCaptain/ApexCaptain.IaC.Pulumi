@@ -36,6 +36,13 @@
 | 백업 CronJob/컴포넌트            | Vault raft·qBit·Vikunja dr + Jellyfin `jellyfin-config` (**`keepWithin=3d`**) — **매일 12:00 KST** (`dr` Lease). qBit/Vault/Vikunja `keepWithin=10d`. Jellyfin worker: `zstd -T1 -6`, limit 3Gi, `/work` 8Gi (2026-10-14) |
 | 구성 SSOT                        | 본 이슈 |
 | pCloud 용량 전략                 | POC 통과. Lane B는 유료 플랜 후 |
+| Coder 워크스페이스 PVC           | 운영은 `coder-kata-ubuntu` `Primary-Kata`. 옛 Sysbox `Primary` PVC는 Bound 잔존. Lane B home 포함은 Sysbox 기준이라 Kata 이전 후 재확인 |
+
+운영 홈이 Kata로 옮긴 뒤(2026-10-31):
+
+- `coder-kata-ubuntu`: home·docker **Block** 50Gi, data Filesystem 100Gi. 워크스페이스 Running
+- `coder-sysbox-ubuntu`: 옛 `Primary` PVC 3개 Bound. 워크스페이스 Pod 없음
+- Lane B "home 포함 확정"은 당시 Sysbox Filesystem home. Kata home은 Block이라 CSI 스냅샷 경로를 다시 봐야 한다. 2026-11-06 이후 Sysbox PVC 제거 예정이면 백업 대상을 Kata home으로 옮길지 이 이슈에서 결정
 
 ## PVC 분류 (할당 용량)
 
@@ -60,6 +67,8 @@
 | `coder-sysbox-ubuntu/...-home`               | 50 Gi    | longhorn-ssd        | CSI 스냅샷→클론 후 rclone           | `k8s-backup/coder-ws/home/`              | **포함 확정**              |
 | `coder-sysbox-ubuntu/...-data`               | 100 Gi   | longhorn-hdd        | —                                   | —                                        | **제외 확정**              |
 | `coder-sysbox-ubuntu/...-docker`             | 100 Gi   | longhorn-ssd        | —                                   | —                                        | **제외 확정** (재pull)     |
+
+운영 홈이 Kata로 옮긴 뒤(2026-10-31) 위 Sysbox 행은 옛 PVC 기준이다. 위 "현재 상태"를 본다.
 
 ### Lane C — 제외 확정 (2026-09-15)
 
@@ -354,3 +363,4 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-10-14 | Slack 문안을 SFTP와 같이 한국어 Block Kit (헤더·대상·경로·보관·시각)로 변경 |
 | 2026-10-13 | Authentik DB CNPG 컷오버: 라이브 PVC `authentik/authentik-db-1`. Bitnami `data-authentik-postgresql-0`는 롤백 보관 |
 | 2026-10-19 | Bitnami `authentik/data-authentik-postgresql-0` 삭제 (PV reclaim `Delete`로 볼륨도 제거). Lane A 행 제거 |
+| 2026-10-31 | 운영 워크스페이스가 `coder-kata-ubuntu` `Primary-Kata`로 이전. Lane B home 포함은 옛 Sysbox PVC 기준. Kata home은 Block이라 백업 경로 재확인 필요. 일정 없음 |

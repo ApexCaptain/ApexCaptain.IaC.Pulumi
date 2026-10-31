@@ -11,7 +11,7 @@ ntp_package: ntpsec
 ntp_timezone: 'Asia/Seoul'
 
 # Sysbox CE — pre-configure install-sysbox-runc (deb; sysbox-deploy-k8s DaemonSet 미사용)
-sysbox_ce_version: '0.7.0'
+sysbox_ce_version: '0.7.1'
 
 # NVIDIA GPU — 노드별 host_vars (nvidia_enabled, nvidia_driver_package)
 #   preConfigure    install-nvidia-driver + verify-nvidia-driver (수동 reboot 안내, 자동 reboot 없음)

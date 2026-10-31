@@ -1,6 +1,6 @@
 ---
 name: coder-templates
-description: Creates and updates Coder workspace templates (coder_agent, coder_script, coder_parameter, registry module consumption). Use when editing templates under infra/**/assets/coder, sysbox-ubuntu, or when the user mentions Coder templates, workspace templates, coder_script, or coder_parameter. Do not use for publishing templates to the public Coder Registry.
+description: Creates and updates Coder workspace templates (coder_agent, coder_script, coder_parameter, registry module consumption). Use when editing templates under infra/**/assets/coder (kata-ubuntu is production, sysbox-ubuntu remains until 2026-11-06), or when the user mentions Coder templates, workspace templates, coder_script, or coder_parameter. Do not use for publishing templates to the public Coder Registry.
 targets:
   - '*'
 ---
@@ -10,13 +10,13 @@ Coder workspace templates are Terraform that define a workspace: agent, paramete
 
 This repo does **not** publish templates to the public Coder Registry. Do not scaffold `registry/<namespace>/...`, do not run `coder templates push`, and do not open a PR to `coder/registry`.
 
-Existing templates live under `infra/k8s-workstation-tools/assets/coder/` (for example `sysbox-ubuntu/main` and `sysbox-ubuntu/test`). Edit those directories in place. Match the sibling template's file split (`main.tf`, `agent.tf`, `parameters.tf`, `scripts.tf`, `modules.tf`, `assets/`) rather than collapsing everything into a single `main.tf`.
+Existing templates live under `infra/k8s-workstation-tools/assets/coder/`. Production is `kata-ubuntu/main` and `kata-ubuntu/test`. `sysbox-ubuntu/main` and `sysbox-ubuntu/test` remain until the 2026-11-06 review, then removal. Edit those directories in place. Match the sibling template's file split (`main.tf`, `agent.tf`, `parameters.tf`, `scripts.tf`, `modules.tf`, `assets/`) rather than collapsing everything into a single `main.tf`.
 
 ## Before You Start
 
 Before writing or modifying any code:
 
-1. **Understand the request.** What platform (here: Kubernetes + Sysbox) and what kind of workspace (container with nested Docker/DevContainer, etc.)?
+1. **Understand the request.** What platform (here: Kubernetes + Kata; Sysbox templates still exist until removal) and what kind of workspace (container with nested Docker/DevContainer, etc.)?
 2. **Read the existing template.** When updating, read its current resources, parameters, and module consumption first. Prefer the other variant in the same family (`main` vs `test`) as the pattern reference.
 3. **Check provider docs.** Coder provider plus the platform provider (Kubernetes). Use version-specific docs when the template pins a provider version.
 4. **Clarify before building.** If platform, parameters, or which variant (`main` / `test`) is unclear, ask rather than guessing.

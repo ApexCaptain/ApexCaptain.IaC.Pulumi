@@ -79,6 +79,34 @@ export const CoderBaseComponent = utils.functions.defineComponent(
       },
     );
 
+    // Kata 워크스페이스는 ambient가 아니라 파드별 sidecar로 메시에 참여 (Kata는 ambient 리다이렉션이 안 걸림). Mesh Proxy 없음
+    const kataUbuntuNamespace = new kubernetes.core.v1.Namespace(
+      `${resourceName}-kataUbuntuNamespace`,
+      {
+        metadata: {
+          name: 'coder-kata-ubuntu',
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+        ...utils.configs.statefulResourceOptions,
+      },
+    );
+
+    const kataUbuntuTestNamespace = new kubernetes.core.v1.Namespace(
+      `${resourceName}-kataUbuntuTestNamespace`,
+      {
+        metadata: {
+          name: 'coder-kata-ubuntu-test',
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
+
     const sysboxUbuntuMeshProxy = new CoderWorkspaceMeshProxyComponent(
       'coderWorkspaceMeshProxy',
       {
@@ -219,6 +247,8 @@ export const CoderBaseComponent = utils.functions.defineComponent(
         namespace: namespace.metadata.name,
         sysboxUbuntuNamespace: sysboxUbuntuNamespace.metadata.name,
         sysboxUbuntuTestNamespace: sysboxUbuntuTestNamespace.metadata.name,
+        kataUbuntuNamespace: kataUbuntuNamespace.metadata.name,
+        kataUbuntuTestNamespace: kataUbuntuTestNamespace.metadata.name,
         meshProxies: {
           sysboxUbuntu: sysboxUbuntuMeshProxy.output,
           sysboxUbuntuTest: sysboxUbuntuTestMeshProxy.output,

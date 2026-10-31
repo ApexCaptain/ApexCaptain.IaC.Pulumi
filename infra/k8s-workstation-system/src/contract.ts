@@ -25,6 +25,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
 
     const {
       sysbox,
+      kata,
       lxcfsHelmChart,
       genericDevicePluginHelmChart,
       gpuRuntimeClass,
@@ -147,6 +148,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
         },
         storageClasses: longhornResources.output.storageClasses,
         sysbox: sysbox.output,
+        kata: kata.output,
         lxcfs: lxcfsHelmChart.output,
         genericDevicePlugin: genericDevicePluginHelmChart.output,
         gpu: {

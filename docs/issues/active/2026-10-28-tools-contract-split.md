@@ -7,7 +7,7 @@
 | **영역** | `infra/k8s-workstation-tools` |
 | **관련 코드** | `infra/k8s-workstation-tools/src/contract.ts` (751줄, 컴포넌트·Provider 생성 23곳) |
 | **선행** | [system contract 분해](../resolved/2026-10-17-system-contract-split.md) — 같은 방식 재사용 |
-| **상태** | **보류** — 착수 시점 미정. 클러스터 변경 작업(K8s 업그레이드·Kata PoC 등)과 같은 시기에는 진행하지 않는다 |
+| **상태** | **보류** — 착수 시점 미정. 클러스터 변경(Sysbox 스택 제거·K8s 1.36, 2026-11-06 이후)과 같은 시기에는 진행하지 않는다 |
 
 ## 배경
 
@@ -38,3 +38,4 @@ system과 같은 방식.
 | 일시 | 내용 |
 |------|------|
 | 2026-10-28 | 등록. system contract 분해 이슈에서 분리 |
+| 2026-10-31 | 동시 진행 금지 대상을 Kata PoC에서 Sysbox 스택 제거·K8s 1.36(2026-11-06 이후)으로 갱신 |

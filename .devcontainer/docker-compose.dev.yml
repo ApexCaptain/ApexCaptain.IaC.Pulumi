@@ -13,8 +13,6 @@ services:
       IS_DEV_CONTAINER: true
       # Auto Sync 활성화
       ENABLE_AUTO_SYNC: true
-      # Disable Corepack Download Prompt
-      COREPACK_ENABLE_DOWNLOAD_PROMPT: 0
       # 소유자를 변경할 디렉토리 경로 (복수 지정시 Space 구분)
       DIR_PATHS_TO_CHANGE_OWNER: ${CONTAINER_PNPM_STORE_DIR_PATH} ${PULUMI_PLUGIN_DIR} ${PULUMI_DYNAMIC_TF_PLUGIN_DIR} ${CONTAINER_CLAUDE_DIR_PATH}
 
@@ -41,12 +39,6 @@ services:
     # <defunct> 로 남아 "already served" 로 재시작이 거부된다
     init: true
 
-    deploy:
-      resources:
-        limits:
-          cpus: 4
-          memory: 10GB
-
     volumes:
       # Anonymous Volume
       ## Cache
@@ -55,8 +47,12 @@ services:
       - ${WORKSPACE_HUB_APEX_CAPTAIN:-$HOME/workspace-hub}:${WORKSPACE_HUB_CONTAINER_DIR_PATH}:ro
       ## Settings
       - ./data/workspace/docker-daemon.json:/etc/docker/daemon.json
-      ## Secrets
-      - ${HOST_SECRETS_DIR_PATH}:${CONTAINER_SECRETS_DIR_PATH}
+      ## Rclone Mounts (Google Drive 등). .secrets는 common/linkSecrets.sh가 링크
+      - type: bind
+        source: ${HOST_RCLONE_MNT_DIR_PATH}
+        target: ${CONTAINER_RCLONE_MNT_DIR_PATH}
+        bind:
+          propagation: rslave
       ## Claude
       - ${HOST_CLAUDE_JSON_FILE_PATH}:${CONTAINER_CLAUDE_JSON_FILE_PATH}
       - ${HOST_CLAUDE_DIR_PATH}:${CONTAINER_CLAUDE_DIR_PATH}
