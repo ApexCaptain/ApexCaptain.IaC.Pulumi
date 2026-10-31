@@ -4,8 +4,7 @@ resource "coder_script" "install-devcontainers-cli" {
   icon         = local.icons_base64_data_url["devcontainer.png"]
   script       = <<EOF
         #!/bin/bash
-        sudo apt-get install -y \
-            curl
+        command -v curl >/dev/null 2>&1 || sudo apt-get install -y -o DPkg::Lock::Timeout=300 curl
         curl -fsSL https://raw.githubusercontent.com/devcontainers/cli/v0.87.0/scripts/install.sh | sh -s -- --prefix /tmp/devcontainer-cli --version 0.87.0
         sudo cp -R /tmp/devcontainer-cli/* /usr
     EOF

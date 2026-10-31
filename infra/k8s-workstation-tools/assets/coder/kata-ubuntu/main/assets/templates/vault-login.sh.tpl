@@ -97,7 +97,7 @@ fi
 printf "🔑 Authenticating with Vault ...\n\n"
 
 set +e
-echo "$${CODER_OIDC_ACCESS_TOKEN}" | vault write -field=token "auth/$${VAULT_JWT_AUTH_PATH}/login" role="$${VAULT_JWT_ROLE}" jwt=- | vault login -
+echo "$${CODER_OIDC_ACCESS_TOKEN}" | vault write -field=token "auth/$${VAULT_JWT_AUTH_PATH}/login" role="$${VAULT_JWT_ROLE}" jwt=- | vault login -no-print -
 rc=$?
 set -e
 
