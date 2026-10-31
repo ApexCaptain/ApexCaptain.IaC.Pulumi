@@ -17,10 +17,11 @@ resource "coder_agent" "main" {
     web_terminal           = contains(local.selected_additional_ides, "terminal")
   }
 
+  // --host는 Kata VM 전체(기본 + 사이드카 몫)를 읽는다 → 컨테이너 cgroup 제한 기준
   metadata {
     display_name = "CPU Usage"
     key          = "0_cpu_usage"
-    script       = "coder stat cpu --host"
+    script       = "coder stat cpu"
     interval     = 10
     timeout      = 1
   }
@@ -28,7 +29,7 @@ resource "coder_agent" "main" {
   metadata {
     display_name = "RAM Usage"
     key          = "1_ram_usage"
-    script       = "coder stat mem --host"
+    script       = "coder stat mem"
     interval     = 10
     timeout      = 1
   }
@@ -56,6 +57,15 @@ resource "coder_agent" "main" {
     script       = "coder stat disk --path /home/coder/data"
     interval     = 60
     timeout      = 1
+  }
+
+  metadata {
+    display_name = "Rclone Mounts"
+    key          = "4_rclone_mounts"
+    // 정상 마운트 수 / ~/.config/rclone/mounts 항목 수
+    script   = "rclone-mounts status 2>/dev/null || echo '준비 중'"
+    interval = 30
+    timeout  = 1
   }
 
   metadata {

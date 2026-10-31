@@ -129,6 +129,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
           workspaceNamespaces: [
             coderBase.output.sysboxUbuntuNamespace,
             coderBase.output.sysboxUbuntuTestNamespace,
+            coderBase.output.kataUbuntuNamespace,
             coderBase.output.kataUbuntuTestNamespace,
           ],
           adminApiToken: {
@@ -158,6 +159,7 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
               allowedNamespaces: [
                 coderBase.output.sysboxUbuntuNamespace,
                 coderBase.output.sysboxUbuntuTestNamespace,
+                coderBase.output.kataUbuntuNamespace,
                 coderBase.output.kataUbuntuTestNamespace,
               ],
             },
@@ -252,6 +254,28 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                 port: coderBase.output.meshProxies.sysboxUbuntuTest.port,
                 url: coderBase.output.meshProxies.sysboxUbuntuTest.url,
               },
+              vault: {
+                addr: pulumi.interpolate`https://${vaultHost}`,
+                jwtAuthPath:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.mountPath,
+                jwtRole:
+                  k8sWorkstationSystemContract.output.vault.coderJwt.roleName,
+              },
+            },
+            kataUbuntu: {
+              namespace: coderBase.output.kataUbuntuNamespace,
+              runtimeClassName:
+                k8sWorkstationSystemContract.output.kata.runtimeClassName,
+              storageClassNames: {
+                home: k8sWorkstationSystemContract.output.storageClasses
+                  .longhornSsd,
+                docker:
+                  k8sWorkstationSystemContract.output.storageClasses
+                    .longhornSsd,
+                data: k8sWorkstationSystemContract.output.storageClasses
+                  .longhornHdd,
+              },
+              istioProxyImage: utils.configs.containerImages.istioProxyv2,
               vault: {
                 addr: pulumi.interpolate`https://${vaultHost}`,
                 jwtAuthPath:

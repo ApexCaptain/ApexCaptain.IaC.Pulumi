@@ -50,6 +50,40 @@ resource "coder_script" "run-dockerd" {
   run_on_start       = true
 }
 
+resource "coder_script" "rclone-mounts" {
+  agent_id     = coder_agent.main.id
+  display_name = "Rclone Mounts"
+  icon         = local.icons_base64_data_url["cloud.png"]
+  script       = <<EOF
+        #!/bin/bash
+        RCLONE_VERSION=${local.rclone_version}
+        # fuse3: fusermount3. 미리 만든 /etc/fuse.conf가 있어도 묻지 않게 confold
+        sudo apt-get install -y -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confold fuse3
+        if [ "$(rclone version 2>/dev/null | head -n 1)" != "rclone v$RCLONE_VERSION" ]; then
+          deb=$(mktemp --suffix=.deb)
+          curl -fsSL -o "$deb" "https://downloads.rclone.org/v$RCLONE_VERSION/rclone-v$RCLONE_VERSION-linux-amd64.deb"
+          sudo apt-get install -y -o DPkg::Lock::Timeout=300 "$deb"
+          rm -f "$deb"
+        fi
+        # devContainer(dockerd, root)가 FUSE 마운트를 bind하려면 allow_other가 필요하다
+        grep -qxF user_allow_other /etc/fuse.conf 2>/dev/null || echo user_allow_other | sudo tee -a /etc/fuse.conf >/dev/null
+        echo '${local.files["rclone-mounts.sh"]}' | base64 -d | sudo tee /usr/local/bin/rclone-mounts >/dev/null
+        sudo chmod 755 /usr/local/bin/rclone-mounts
+
+        mkdir -p "$HOME/.cache/rclone-mounts"
+        : >"$HOME/.cache/rclone-mounts/sync.log"
+        rclone-mounts sync
+        (
+          while true; do
+            sleep 30
+            rclone-mounts sync --auto
+          done
+        ) >>"$HOME/.cache/rclone-mounts/sync.log" 2>&1 &
+        disown
+    EOF
+  run_on_start = true
+}
+
 resource "coder_script" "lifecycle-on-start-script" {
   agent_id     = coder_agent.main.id
   display_name = "Lifecycle On Start Script"
