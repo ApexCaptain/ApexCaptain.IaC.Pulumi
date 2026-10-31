@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# synchronizeProject.sh보다 먼저 .secrets가 있어야 한다
+./.devcontainer/commands/common/linkSecrets.sh
+
 echo "🔄 Changing directory ownership for $DIR_PATHS_TO_CHANGE_OWNER to $USER"
 sudo chown -R $USER:$USER $DIR_PATHS_TO_CHANGE_OWNER
 echo "✅ Changed directory ownership for $DIR_PATHS_TO_CHANGE_OWNER to $USER"
@@ -15,13 +18,6 @@ install_helm() {
     echo "🔄 Installing Helm CLI"
     bash -c "$(curl -L https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3)"
     echo "✅ Helm CLI installed"
-}
-
-install_pnpm() {
-    echo "🔄 Installing pnpm"
-    corepack enable pnpm
-    corepack prepare pnpm@latest --activate
-    echo "✅ pnpm installed"
 }
 
 install_nova() {
@@ -48,7 +44,7 @@ install_istioctl() {
     echo "✅ istioctl ${ISTIOCTL_VERSION} installed"
 }
 
-export -f install_oci install_helm install_pnpm install_nova install_pluto install_istioctl
-parallel --jobs 3 ::: install_oci install_helm install_pnpm install_nova install_pluto install_istioctl
+export -f install_oci install_helm install_nova install_pluto install_istioctl
+parallel --jobs 3 ::: install_oci install_helm install_nova install_pluto install_istioctl
 
 ./.devcontainer/commands/common/synchronizeProject.sh

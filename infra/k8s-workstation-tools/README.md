@@ -34,7 +34,7 @@
 
 | 컴포넌트 | 개요 | 저장·DB | 인증 | 메시/노출 |
 |----------|------|---------|------|-----------|
-| **coder** | 원격 개발(Coder Helm, Sysbox 워크스페이스 NS) | PostgreSQL 클러스터(Longhorn SSD PVC) | Authentik OIDC, GitHub external auth | Istio AuthorizationPolicy, ingress `coder` 호스트 |
+| **coder** | 원격 개발(Coder Helm). 운영 워크스페이스는 Kata NS(`coder-kata-ubuntu` / `-test`, Istio sidecar). Sysbox NS(`coder-sysbox-ubuntu` / `-test`, Mesh Proxy)는 잔존 | PostgreSQL 클러스터(Longhorn SSD PVC) | Authentik OIDC, GitHub external auth | Istio AuthorizationPolicy, ingress `coder` 호스트 |
 | **vikunja** | 할 일(Vikunja Helm) | CNPG PostgreSQL(Longhorn SSD) + data PVC, pCloud 백업 | Authentik OIDC(`toolsUserGroup`) | ambient mesh, `todo` 호스트 |
 | **qbittorrent** | BitTorrent 클라이언트 | Longhorn SSD/HDD PVC, pCloud 백업 | Authentik Proxy(`toolsManagerGroup`) | service-mesh, NordLynx sidecar, SFTP(direct gateway) |
 | **zero-trust** | Cloudflare Zero Trust — WARP로 LAN Windows RDP(`windows` FQDN) 접근 | 무상태 (cloudflared 2 replica) | Authentik OIDC + MFA(`toolsManagerGroup`), Cloudflare 허용 이메일 | mesh 밖 `zero-trust` ns, outbound 터널만. Gateway DNS override + L4 allow/block, Split Tunnel Include |

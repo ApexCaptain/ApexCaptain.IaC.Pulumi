@@ -152,6 +152,6 @@ node /tmp/auto-stop-workspace/autostop-workspace.js
 - Rclone 마운트를 추가했습니다 (`~/.config/rclone/mounts` → `~/mnt/<이름>`, DevContainer에서도 사용).
 - CPU·RAM 메트릭이 VM 전체가 아니라 워크스페이스에 준 값 기준으로 나옵니다.
 - File Browser를 뺐습니다 (Kata에서 설치 실패). Docker Disk 메트릭은 디스크 마운트 전 "준비 중"으로 표시합니다.
-- 전용 네임스페이스(`coder-kata-ubuntu-test`)로 옮겼습니다. Mesh Proxy를 빼고 Istio sidecar를 붙였습니다. 클러스터 서비스를 워크스페이스·DevContainer에서 바로 호출합니다.
+- 전용 네임스페이스(`coder-kata-ubuntu`)로 옮겼습니다. Mesh Proxy를 빼고 Istio sidecar를 붙였습니다. 클러스터 서비스를 워크스페이스·DevContainer에서 바로 호출합니다.
 - 홈 디스크를 블록 장치로 바꿨습니다 (virtiofs 대비 `pnpm install` 약 4배, 삭제 약 17배 빠름). 메모리 request를 limit과 같게 했습니다.
-- Ubuntu on Sysbox (Test)에서 분리해 새로 만들었습니다. 런타임 Kata, Docker 디스크 블록 장치, lxcfs 제거, Fuse Device 수 파라미터 대신 VM 안 `/dev/fuse` 상시 제공.
+- Ubuntu on Sysbox에서 분리해 새로 만들었습니다. 런타임 Kata, Docker 디스크 블록 장치, lxcfs 제거, Fuse Device 수 파라미터 대신 VM 안 `/dev/fuse` 상시 제공.

@@ -5,7 +5,7 @@
 | **등록일** | 2026-10-25 |
 | **영역** | Vault 내부 CA (cert-manager), istio-ingressgateway TLS origination, VSO, sftp adapter (`k8s-workstation-system` / `-tools` / `-apps`) |
 | **관련 코드** | `infra/k8s-workstation-system/src/components/vault/vault.helm-chart.component.ts` (CA Certificate), `.../vault/vault.service-mesh.component.ts`, `.../vault-secrets-operator/vault-secrets-operator.resources.component.ts`, `common/custom-resources/src/components/adapter/sftp.v3.component.ts` |
-| **상태** | **진행중** — 2026-10-25 수동 패치로 복구. A(CA 장수명 + 키 고정) 적용 완료. 2026-10-25 강제 갱신으로 같은 키·10년 CA(만료 2036-10-22), 사본 4곳 갱신. 남은 것: 2027-01 말 재검토 다음 CA 회전 **2026-12-24 10:03Z** |
+| **상태** | **진행중** — A(CA 장수명 + 키 고정) 적용 완료. CA revision 4, 만료 2036-10-22, 다음 CA 갱신 2033-06-23. 남은 것: 2027-01 말 방법론 재검토 |
 | **재검토** | **2027-01 말** — 방법론 재검토 (사용자 요청) |
 
 ## 증상 (2026-10-25 19:03 KST)

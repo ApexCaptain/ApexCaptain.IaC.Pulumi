@@ -37,16 +37,9 @@ STS annotation: `secret.reloader.stakater.com/reload: vault-server-certificate-s
 
 ## 다음 확인
 
-cert-manager 기본 90일, `renewBefore` ≈ 만료 30일 전. 현재 revision 2 기준:
+2026-10-25 leaf 갱신에서 Reloader 롤·Vault 재기동·서비스 DNS TLS는 통과. 이 이슈 수용 기준은 충족. CA 사본 전파 실패는 [후속 이슈](2026-10-25-vault-ca-rotation-trust-propagation.md)로 이관.
 
-| 인증서 | notBefore | renewalTime (UTC) | 만료 notAfter | KST |
-|--------|-----------|-------------------|---------------|-----|
-| `vault-server-certificate` (leaf) | 2026-08-26 10:03 | **2026-10-25 10:03:36Z** | 2026-11-24 10:03:36Z | 갱신 **2026-10-25 19:03** |
-| `vault-ca-certificate` | 2026-08-26 10:03 | 2026-10-25 10:03:34Z | 2026-11-24 10:03:34Z | 같은 날, leaf와 거의 동시 |
-
-**그때 할 일:** Reloader가 `vault-server-certificate-secret` 변경으로 vault-0를 롤했는지, 롤 후 `VaultConnection` Healthy·서비스 DNS TLS가 유지되는지. 통과하면 이슈를 `docs/issues/resolved`로 옮긴다.
-
-CA도 같은 날 돈다. VSO `vault-ca-secret`은 배포 시점 복사라, Reloader가 Vault만 롤해도 VSO가 옛 CA를 들고 있을 수 있다. 그건 범위 밖 후속.
+leaf는 revision 3, 다음 갱신 **2026-12-24**. Reloader 동작은 이미 검증됨. `docs/issues/resolved` 이동은 사용자 확인 대기.
 
 ## 수용 기준
 
