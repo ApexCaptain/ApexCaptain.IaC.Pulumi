@@ -2,6 +2,8 @@ export * as cilium from './cilium';
 
 export * as sysbox from './sysbox';
 
+export * as kata from './kata';
+
 export * as lxcfs from './lxcfs';
 
 export * as genericDevicePlugin from './generic-device-plugin';

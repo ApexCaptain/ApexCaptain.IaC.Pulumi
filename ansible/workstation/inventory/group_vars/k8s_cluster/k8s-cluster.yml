@@ -16,6 +16,25 @@ kubeadm_control_plane_schedulable: true
 # container runtime
 container_manager: containerd
 
+# Kata Containers (PoC) — containerd 핸들러 kata-qemu → Pulumi RuntimeClass kata
+# 버전은 Kubespray 고정값(kata_containers_binary_checksums 최신). 적용: --tags container-engine
+# 기본 VM 메모리가 호스트 전체(memtotal_mb)라 고정. 파드 limit만큼 hotplug 된다
+# 1024: 대기 RSS 차이는 작고(2048 대비 -20MB) 게스트 MemTotal이 limit+1Gi로 줄어든다. RuntimeClass overhead와 맞춘다
+# @see docs/issues/active/2026-10-24-sysbox-runtime-replacement.md
+kata_containers_enabled: true
+kata_containers_qemu_default_memory: 1024
+# post-configure configure-kata-containers (config.d 드롭인). 해제 메모리를 호스트에 반환 — 끄면 3GiB 해제해도 안 돌아옴 (2026-10-31 실측)
+kata_containers_reclaim_guest_freed_memory: true
+
+# Kata 핸들러 `kata` (RuntimeClass kata가 사용). Kubespray 내장 kata-qemu는 런타임 옵션을 못 넣는다.
+# privileged 파드(워크스페이스 dockerd)에 호스트 /dev 전체가 VM으로 넘어가지 않게 한다.
+# containerd_extra_args는 config.toml 최상위([grpc] 앞)에 그대로 들어간다. 하위 테이블 선정의는 TOML상 유효
+# @see https://github.com/kata-containers/kata-containers/blob/main/docs/how-to/privileged.md
+containerd_extra_args: |
+  [plugins."io.containerd.cri.v1.runtime".containerd.runtimes.kata]
+    runtime_type = "io.containerd.kata-qemu.v2"
+    privileged_without_host_devices = true
+
 # cluster DNS
 dns_mode: coredns
 

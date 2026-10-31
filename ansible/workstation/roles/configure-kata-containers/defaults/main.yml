@@ -1,0 +1,5 @@
+---
+# Kubespray kata-containers 롤이 노출하지 않는 Kata 설정
+kata_containers_config_dir: /etc/kata-containers
+# 게스트가 비운 페이지를 호스트에 반환 (virtio-balloon free page reporting)
+kata_containers_reclaim_guest_freed_memory: false
