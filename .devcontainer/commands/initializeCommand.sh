@@ -13,7 +13,11 @@ MERGED_ENV_FILE_PATH=.devcontainer/.env
 HOST_CLAUDE_DIR_PATH=$HOME/.claude
 HOST_CLAUDE_JSON_FILE_PATH=$HOME/.claude.json
 
-SECRETS_DIR_PATH=$HOME/google-drive 
+# Kata 워크스페이스 rclone-mounts가 마운트한 Google Drive. *.env 병합은 여기서 직접 읽는다
+RCLONE_MNT_DIR_PATH=$HOME/mnt
+RCLONE_GDRIVE_MOUNT_NAME=gdrive-secrets
+CONTAINER_RCLONE_MNT_DIR_PATH=/mnt/rclone
+SECRETS_DIR_PATH=$RCLONE_MNT_DIR_PATH/$RCLONE_GDRIVE_MOUNT_NAME
 SECRETS_ENV_DIR_PATH=$SECRETS_DIR_PATH/.pulumi/.env
 KUBE_CONFIG_DIR_NAME=.kube
 KUBE_CONFIG_DIR_PATH=${containerWorkspaceFolder}/${KUBE_CONFIG_DIR_NAME}
@@ -39,6 +43,16 @@ WORKSTATION_SSH_PRIVATE_KEY_FILE_ABSOLUTE_PATH=${containerWorkspaceFolder}/${KEY
 
 OCI_CONFIG_DIR_NAME=.oci
 
+# Google Drive 마운트 대기 (워크스페이스 직후엔 rclone-mounts가 아직 마운트 중일 수 있다)
+for _ in $(seq 1 60); do
+    mountpoint -q "$SECRETS_DIR_PATH" && break
+    sleep 1
+done
+if ! mountpoint -q "$SECRETS_DIR_PATH"; then
+    echo "❌ $SECRETS_DIR_PATH 가 마운트되지 않았습니다. 워크스페이스에서 rclone-mounts status -v 를 확인하세요." >&2
+    exit 1
+fi
+
 # Create docker-compose.dev.yml arg
 cat > $MERGED_ENV_FILE_PATH <<EOL
 # Original DevContainer Arguments
@@ -47,9 +61,6 @@ containerWorkspaceFolder=$containerWorkspaceFolder
 localWorkspaceFolderBasename=$localWorkspaceFolderBasename
 containerWorkspaceFolderBasename=$containerWorkspaceFolderBasename 
 username=$username
-
-# Corepack Arguments
-COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 # Shared Volume Arguments
 ## Pnpm Store Directory Path
@@ -110,9 +121,12 @@ ENABLE_CLAUDE_RC=${ENABLE_CLAUDE_RC:-false}
 OCI_CONFIG_FILE=${containerWorkspaceFolder}/${OCI_CONFIG_DIR_NAME}/oci.config
 
 # Secrets Arguments
-HOST_SECRETS_DIR_PATH=$SECRETS_DIR_PATH
 SECRETS_DIR_NAME=$SECRETS_DIR_NAME
 CONTAINER_SECRETS_DIR_PATH=$containerWorkspaceFolder/${SECRETS_DIR_NAME}
+## 상위 ~/mnt를 rslave로 넘긴다 (개별 마운트는 rclone 재시작 시 끊김). .secrets는 컨테이너 안에서 링크 (common/linkSecrets.sh)
+HOST_RCLONE_MNT_DIR_PATH=$RCLONE_MNT_DIR_PATH
+CONTAINER_RCLONE_MNT_DIR_PATH=$CONTAINER_RCLONE_MNT_DIR_PATH
+SECRETS_LINK_SOURCE=$CONTAINER_RCLONE_MNT_DIR_PATH/$RCLONE_GDRIVE_MOUNT_NAME
 
 # Cursor Arguments
 CURSOR_GENERATE_BRANCH_NAME_AI_MODEL=composer-2.5

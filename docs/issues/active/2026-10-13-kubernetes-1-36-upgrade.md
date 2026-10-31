@@ -5,29 +5,31 @@
 | **등록일** | 2026-10-13 |
 | **영역** | `workstation-0` 단일 노드 (control-plane 겸 worker), Kubespray 기반 클러스터 |
 | **관련 코드** | `ansible/workstation/inventory/group_vars/k8s_cluster/k8s-cluster.yml` (`kube_version`), `ansible/third_party/kubespray` (submodule, `release-2.32` 브랜치), `package.json` (`kubespray:upgradeCluster`) |
-| **예정일** | Phase 1: 2026-10-30 예정이었으나 **2026-10-21 앞당겨 완료** (v1.35.9). 관찰 종료 확인 **2026-10-24**. Phase 2: Sysbox가 K8s 1.36을 지원 문서에 넣기 전 착수 금지. **결정일 2027-01-15** — 그날까지 미지원이면 Sysbox를 버리고 다른 런타임으로 이전 |
-| **상태** | **보류** — Phase 1(1.35.9) 완료·검증, 관찰 중. 1.36은 [nestybox/sysbox](https://github.com/nestybox/sysbox) 미지원으로 제동. K8s 1.35 EOL은 2027-02-28 |
+| **예정일** | Phase 1: 2026-10-30 예정이었으나 **2026-10-21 앞당겨 완료** (v1.35.9). 관찰 종료 확인 **2026-10-24**. Phase 2: **2026-11-06**까지 Kata 실사용 이상 없고, Sysbox 스택(템플릿·lxcfs·Sysbox·generic-device-plugin) 제거가 끝난 뒤. 2027-01-15 Sysbox 지원 대기는 폐기 |
+| **상태** | **보류** — Phase 1(1.35.9) 완료. Phase 2는 [Sysbox 대체](2026-10-24-sysbox-runtime-replacement.md) 제거 작업이 선행. K8s 1.35 EOL은 2027-02-28 |
 
 ## 배경
 
-`kubectl version` 기준 서버 v1.35.4, 클라이언트 v1.37.1이다. 클라이언트가 서버보다 2 minor 앞서 skew 경고가 난다. 최종 목표는 서버를 1.36.x로 올리는 것이다.
+등록 당시 `kubectl version` 기준 서버 v1.35.4, 클라이언트 v1.37.1이었다. Phase 1 이후 서버는 **v1.35.9**. 최종 목표는 서버를 1.36.x로 올리는 것이다.
 클라이언트 1.37은 서버를 1.36으로 올리면 +1 minor가 되어 skew 경고가 사라진다.
 
 Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 apiserver·controller-manager·scheduler 이미지의 최신 패치가 v1.35.9로 나온다. Pluto 진단(`docs/diagnosis/pluto.diagnosis.md`)은 target v1.36.0 기준 deprecated·removed API 없음으로 나왔다 (2026-10-13 03:51Z).
 
-## 현재 상태 (2026-10-15 갱신)
+## 현재 상태 (2026-10-31 갱신)
 
 | 항목 | 값 |
 |---|---|
-| 노드 | `workstation-0` 1대, Ready, v1.35.4, Ubuntu 26.04, kernel 7.0.0-38, containerd 2.3.5 |
-| 설치 도구 | Kubespray (`kube_version: 1.35.4` 고정). submodule은 v2.31.0 + 178 커밋 (2026-09-26) |
+| 노드 | `workstation-0` 1대, Ready, **v1.35.9**, Ubuntu 26.04, kernel 7.0.0-38, containerd 2.3.5 |
+| 설치 도구 | Kubespray (`kube_version: 1.35.9`). submodule은 `release-2.32` 추적 |
 | Kubespray가 아는 버전 | kubelet/kubeadm 체크섬에 1.35.4~1.35.9, 1.36.0~1.36.5 존재. **1.36.5가 상한** |
-| CNI | Cilium 1.20.2, `cilium_kube_proxy_replacement: true` (kube-proxy Pod 없음) |
+| CNI | Cilium 1.20.2, `cilium_kube_proxy_replacement: true`, `socketLB.hostNamespaceOnly: true` (Kata ClusterIP용, 2026-10-31) |
 | 컨트롤 플레인 | kube-apiserver / controller-manager / scheduler static Pod, kube-vip(ARP) VIP |
-| 컨트롤 플레인 재시작 | apiserver 14회, controller-manager 116회, scheduler 124회 (리더 선출 노이즈로 추정, 미확인) |
-| Sysbox | 호스트 설치(Ansible), RuntimeClass `sysbox-runc`만 Pulumi. `sysbox-deploy-k8s` DaemonSet 미사용. upstream 지원 상한은 K8s 1.35 |
-| Longhorn | 1.13.0 차트, 운영 PVC 18개 `replicas=1`, 엔진 `v1.13.0` 일괄 완료 ([해결 기록](../resolved/2026-10-07-longhorn-1-13-0-upgrade.md)). Jellyfin 백업용 clone VolumeSnapshot PVC는 [pCloud 백업](2026-09-15-pcloud-pvc-encrypted-backup.md) 이슈 |
-| Istio | ambient 1.30.x, 2026-10-12에 재부팅 후 리다이렉트 유실 이슈 해결 ([해결 기록](../resolved/2026-10-12-ambient-reboot-redirect.md)) |
+| 컨트롤 플레인 재시작 | 과거 높은 재시작 수는 라우터 링크 끊김 ([해결 기록](../resolved/2026-10-23-router-reboot-link-flap-leader-election.md)) |
+| Coder 런타임 | **Kata** production (`Primary-Kata`, RuntimeClass `kata`). Sysbox 호스트·RuntimeClass·템플릿은 잔존, 워크스페이스 Pod 없음 |
+| Sysbox | 호스트 0.7.1 (Ansible), RuntimeClass `sysbox-runc`. `sysbox-deploy-k8s` 미사용. 2026-11-06 이후 제거 예정 |
+| Kata | 3.32.0 (Kubespray `kata_containers_enabled`), RuntimeClass `kata` (Pulumi). default_memory 1024, free page reporting on |
+| Longhorn | 1.13.0 차트, 운영 PVC `replicas=1`, 엔진 `v1.13.0` 일괄 완료 ([해결 기록](../resolved/2026-10-07-longhorn-1-13-0-upgrade.md)). Jellyfin 백업용 clone VolumeSnapshot PVC는 [pCloud 백업](2026-09-15-pcloud-pvc-encrypted-backup.md) 이슈 |
+| Istio | ambient 1.30.x, 2026-10-12에 재부팅 후 리다이렉트 유실 이슈 해결 ([해결 기록](../resolved/2026-10-12-ambient-reboot-redirect.md)). Kata 워크스페이스는 사이드카 |
 
 ## 문제와 위험
 
@@ -38,7 +40,7 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 apiserver·controller-mana
 | drain 중단 | Kubespray `upgrade-cluster`는 기본 `drain_nodes: true`. 단일 노드 drain은 전 워크로드 evict. PDB·Longhorn attach 때문에 timeout(360s) 가능 | 아래 "drain 정책" |
 | replica 1 볼륨 | Longhorn 운영 볼륨 전부 replica 1. kubelet·containerd 재시작 시 attach 끊김 가능 | 하드 백업 선행, 쓰기 큰 워크로드 scale 0 검토 |
 | 재부팅·CNI | 재시작 후 Cilium → istio-cni 체인과 ambient 리다이렉트 복구 확인 필요 | 2026-10-12 이슈의 검증 절차 재사용 |
-| Sysbox | 공식 지원은 v1.32~v1.35. v1.36은 지원 목록 밖이라 Phase 2 착수 금지. 호스트 설치라 DaemonSet 버전 게이트는 안 타도 upstream이 1.36을 넣기 전에는 올리지 않음 | 2027-01-15에 재확인. 미지원이면 런타임 교체. 지원이 생기면 Coder Sysbox 워크스페이스 기동을 Phase 2 검증에 포함 |
+| Sysbox | 공식 지원은 v1.32~v1.35. v1.36은 지원 목록 밖. 호스트 설치라 DaemonSet 버전 게이트는 안 탐 | Kata로 이전 완료. Sysbox 스택은 2026-11-06 관찰 후 제거, 그다음 Phase 2. 지원 등재는 더 이상 기다리지 않음 |
 | 애드온 호환 | Cilium 1.20.2, Longhorn 1.13.0, Istio 1.30.x, metrics-server 0.9.0, VSO 등의 K8s 1.36 지원 여부 | Phase 0에서 각 릴리스 노트 확인 |
 | Kubespray 버전 | submodule이 `release-2.32` 추적. 1.36 체크섬은 있으나 업그레이드 경로 실검증 없음 | 실행 직전 submodule 상태·`kube_version_min_required` 재확인 |
 
@@ -50,7 +52,7 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 apiserver·controller-mana
 | **B (추천)** | 1.35.4 → 1.35.9 → 1.36.5 두 단계 | 첫 단계로 절차·drain·복구를 저위험(패치)에서 리허설. 실패 원인 분리 쉬움 | 중단 2회 |
 | C | 1.36.0으로 먼저 올린 뒤 패치 | 없음 | 1.36.0은 초기 릴리스. 이점 없음 |
 
-Kubespray 문서상 minor는 한 단계씩만 올린다. 1.35 → 1.36은 한 단계이므로 B가 이를 만족한다. 1.37은 이번 범위에 넣지 않는다. B의 두 번째 단계(Phase 2)는 아래 Sysbox 제동이 풀리기 전에는 실행하지 않는다.
+Kubespray 문서상 minor는 한 단계씩만 올린다. 1.35 → 1.36은 한 단계이므로 B가 이를 만족한다. 1.37은 이번 범위에 넣지 않는다. Phase 2는 Sysbox 스택 제거가 끝나기 전에는 실행하지 않는다 (아래 "현재 결정").
 
 ## Sysbox로 인한 1.36 제동
 
@@ -63,7 +65,7 @@ Kubespray 문서상 minor는 한 단계씩만 올린다. 1.35 → 1.36은 한 �
 
 그 외 버전은 지원하지 않는다고 적혀 있다. v1.36 지원 요청 [nestybox/sysbox#1036](https://github.com/nestybox/sysbox/issues/1036)은 2026-08-24에 열렸고 아직 open이다.
 
-이 클러스터의 Coder 워크스페이스는 Sysbox(`sysbox-runc`)에 의존한다. 그래서 API를 1.36으로 올리는 Phase 2는 upstream이 1.36을 지원 목록에 넣기 전에는 하지 않는다. Phase 1(1.35.4 → 1.35.9)은 같은 minor이고 Sysbox 지원 안이라 2026-10-30 일정을 유지한다.
+등록 당시 Coder 워크스페이스는 Sysbox(`sysbox-runc`)에 의존했다. 그래서 API를 1.36으로 올리는 Phase 2는 upstream이 1.36을 지원 목록에 넣기 전에는 하지 않기로 했다. Phase 1(1.35.4 → 1.35.9)은 같은 minor이고 Sysbox 지원 안이라 진행했다. 2026-10-31 이후는 아래 "현재 결정".
 
 Kubernetes 1.35 일정 ([릴리스 페이지](https://kubernetes.io/releases/1.35/)):
 
@@ -72,11 +74,17 @@ Kubernetes 1.35 일정 ([릴리스 페이지](https://kubernetes.io/releases/1.3
 | maintenance mode 시작 | 2026-12-28 |
 | End of Life | 2027-02-28 |
 
-**결정:** 2027-01-15까지 Sysbox 지원 문서에 Kubernetes 1.36이 없으면, Sysbox를 버리고 다른 컨테이너 런타임으로 이전한 뒤 1.36 업그레이드를 재개한다. 1.35 EOL(2027-02-28)보다 앞당긴 날짜다. maintenance mode(2026-12-28) 이후에도 패치는 나오지만, EOL 직전에 런타임을 바꾸면 여유가 없다.
-
-런타임 선정과 이전 작업은 그 트리거가 켜질 때 후속 이슈로 분리한다. 그 전에 후보를 이 문서에서 고르지 않는다.
+**결정 (2026-10-13, 폐기):** 2027-01-15까지 Sysbox 지원 문서에 Kubernetes 1.36이 없으면, Sysbox를 버리고 다른 컨테이너 런타임으로 이전한 뒤 1.36 업그레이드를 재개한다.
 
 확인 방법: `install-k8s.md`의 Kubernetes Version Requirements에 v1.36이 들어가는지, [#1036](https://github.com/nestybox/sysbox/issues/1036)이 지원 추가로 닫히는지.
+
+**현재 결정 (2026-10-31):** Kata production으로 이전했다 ([Sysbox 대체](2026-10-24-sysbox-runtime-replacement.md)). Sysbox 1.36 지원 대기(2027-01-15)는 쓰지 않는다. Phase 2는 아래 순서가 끝난 뒤에만 한다.
+
+1. 2026-11-06까지 Kata 실사용 이상 없음
+2. Sysbox 기반 Coder 템플릿 제거
+3. lxcfs, Sysbox, generic-device-plugin 제거
+
+이상 있으면 Phase 2 보류.
 
 ## 계획
 
@@ -133,17 +141,18 @@ devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_
 | VPA | recommender 1.7.1 | ✅ | [installation.md](https://github.com/kubernetes/autoscaler/blob/master/vertical-pod-autoscaler/docs/installation.md): 1.7.x는 1.35–1.37 |
 | cert-manager | v1.21.2 | ✅ | [supported releases](https://cert-manager.io/docs/releases/): 1.33–1.36 지원·테스트 |
 | CloudNativePG | 1.30.1 | ✅ | [supported releases](https://cloudnative-pg.io/docs/devel/supported_releases): 1.30.x는 1.34–1.36 |
-| Coder | v2.38.0 | ✅ | [K8s 설치 문서](https://coder.com/docs/install/kubernetes): 1.19 이상, 상한 없음. 실제 제약은 Sysbox |
-| Sysbox | 호스트 설치 | ❌ | 1.32–1.35만 지원 (위 "Sysbox로 인한 1.36 제동") |
+| Coder | v2.38.0 | ✅ | [K8s 설치 문서](https://coder.com/docs/install/kubernetes): 1.19 이상, 상한 없음. 운영 런타임은 Kata |
+| Kata | 3.32.0 | ✅ | containerd shim. K8s 마이너에 덜 묶임 |
+| Sysbox | 호스트 0.7.1 | 잔존 | 1.32–1.35만 지원. 운영 워크스페이스는 안 씀. 2026-11-06 이후 제거가 Phase 2 선행 |
 | kube-vip | v1.0.3 (Kubespray static Pod) | ⚠️ | 공식 K8s 호환표 없음. Kubespray `release-2.32`가 1.36.5까지 이 버전을 기본값으로 쓴다. Phase 2 직후 VIP 응답을 확인한다 |
 | CoreDNS | Kubespray 관리 | ✅ | Kubespray `coredns_supported_versions`가 1.36에서 1.14.2로 자동 전환 |
 | 기타 (Reloader v1.4.22, redis-operator v0.27.0, OTel operator 0.161.0, snapshot-controller v8.7.0, Authentik, 모니터링 차트 등) | — | ➖ | 공식 호환표는 확인하지 않았다. Pluto는 1.36 기준 deprecated·removed API 없음. 공통 검증 체크리스트로 확인한다 |
 
-결론: Phase 1에는 막는 항목이 없다. Phase 2를 막는 것은 기존대로 Sysbox뿐이다. Argo Rollouts와 kube-vip은 막지는 않지만 Phase 2 전후에 다시 확인한다.
+결론: Phase 1에는 막는 항목이 없었다. Phase 2를 막는 것은 잔존 Sysbox 스택(템플릿·lxcfs·호스트·generic-device-plugin)이다. 2026-11-06 관찰 후 제거가 선행. Argo Rollouts와 kube-vip은 막지는 않지만 Phase 2 전후에 다시 확인한다.
 
 ### 1.36 deprecation·removal 대조 (2026-10-20 확인)
 
-근거는 [CHANGELOG-1.36.md](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.36.md)의 "Changelog since v1.35.0"이다. Phase 2에만 해당한다. Sysbox 때문에 Phase 2가 2027-01 이후로 밀리면 그때 1.36.x 패치 노트를 다시 본다.
+근거는 [CHANGELOG-1.36.md](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.36.md)의 "Changelog since v1.35.0"이다. Phase 2에만 해당한다. Phase 2 직전에 1.36.x 패치 노트를 다시 본다.
 
 | 변경 | 이 클러스터 | 판정 |
 |---|---|---|
@@ -223,9 +232,9 @@ devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_
 
 ### Phase 2 — 1.35.9 → 1.36.5 (minor)
 
-Sysbox가 K8s 1.36을 지원 문서에 넣기 전에는 시작하지 않는다. 2027-01-15까지 미지원이면 이 Phase 대신 런타임 교체 후속 이슈를 연다.
+2026-11-06까지 Kata 실사용 이상이 없고, Sysbox 스택(템플릿·lxcfs·Sysbox·generic-device-plugin) 제거가 끝나기 전에는 시작하지 않는다. Sysbox 1.36 지원 등재는 선행 조건이 아니다.
 
-1. 사전 재확인: Phase 1 결과, Sysbox 1.36 지원 등재, submodule 변경 여부, 새 릴리스 노트(1.36.x 패치)
+1. 사전 재확인: Phase 1 결과, Sysbox 스택 제거 완료, submodule 변경 여부, 새 릴리스 노트(1.36.x 패치)
 2. `kube_version`을 `1.36.5`로 변경
 3. `pnpm kubespray:upgradeCluster`
 4. 공통 체크리스트 + 1.36 신규 deprecation 경고 로그 확인
@@ -245,7 +254,7 @@ Sysbox가 K8s 1.36을 지원 문서에 넣기 전에는 시작하지 않는다. 
 - [ ] Cilium: `cilium status` 정상, Service·NodePort·L2 announcement(LoadBalancer IP) 동작
 - [ ] Longhorn: 모든 볼륨 attached/healthy, CSI Pod 정상, 새 PVC 생성·attach 테스트
 - [ ] Istio ambient: ztunnel·istio-cni Ready, `coder`·`goldilocks`·`monitoring` Pod에 `15008` listen (2026-10-12 이슈 검증 방법)
-- [ ] Coder 외부 접속 200, Sysbox RuntimeClass 워크스페이스 기동·내부 Docker 실행
+- [ ] Coder 외부 접속 200, Kata RuntimeClass 워크스페이스 기동·내부 Docker 실행 (Sysbox 제거 후면 Sysbox 검증은 해당 없음)
 - [ ] Vault `VaultConnection` Healthy, VSO 동기화
 - [ ] 모니터링 스택(VM·Grafana·OTel) 수집 재개, 알림 오탐 정리
 - [ ] GPU: nvidia device plugin·dcgm-exporter 정상, GPU 워크로드 1개 기동
@@ -265,7 +274,7 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 ## 범위 밖
 
 - Kubernetes 1.37 업그레이드 (별도 이슈)
-- Sysbox 대체 런타임 선정·이전 (2027-01-15에 1.36 미지원이 확인될 때 후속 이슈)
+- Sysbox 스택 제거 ([Sysbox 대체](2026-10-24-sysbox-runtime-replacement.md). Phase 2 선행, 2026-11-06 관찰 후)
 - Cilium 1.21, CoreDNS·nodelocaldns·kube-vip 이미지 최신화 (Nova 항목. K8s 업그레이드와 분리해 순차 진행)
 - 노드 증설·HA 구성
 
@@ -294,3 +303,5 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 | 2026-10-23 | 라우터 재부팅 링크 끊김 이슈 해결 → [resolved](../resolved/2026-10-23-router-reboot-link-flap-leader-election.md). 07:00 KST 컨트롤 플레인 재시작은 더 이상 관찰 노이즈로 보지 않음 |
 | 2026-10-24 | Phase 1(1.35.9) 관찰 종료. 특이사항 없음 (사용자 확인). 10-23 07:00 리더 선출 재시작은 라우터 링크 끊김으로 판정 제외. Phase 2(1.36)는 Sysbox 1.36 지원 확인(2027-01-15) 전 착수 금지 유지 |
 | 2026-10-24 | Sysbox 1.36 공식 지원 없음 재확인. 대체 런타임 선정을 [Sysbox 대체 런타임](2026-10-24-sysbox-runtime-replacement.md)으로 분리 (추천 Kata, 2026-12 PoC). 2027-01-15 판단은 그 PoC 결과와 함께 |
+| 2026-10-31 | 사용자: Kata 베이스 재구성 완료. Sysbox는 당장 유지. 2026-11-06까지 이상 없으면 Sysbox 스택 제거 후 Phase 2. 2027-01-15 지원 대기는 폐기 |
+| 2026-10-31 | 현재 상태 표 갱신: 노드 v1.35.9, Cilium hostNamespaceOnly, 운영 런타임 Kata(`Primary-Kata`). 호환성 표 Sysbox는 잔존·제거 선행 |

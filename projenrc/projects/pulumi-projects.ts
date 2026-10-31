@@ -92,6 +92,9 @@ export function inflatePulumiProject(
                   passWithNoTests: true,
                   // default is cores-1; Pulumi/k8s test files otherwise saturate the box
                   maxWorkers: 2,
+                  // 첫 테스트가 @pulumi/kubernetes·vault 등 provider SDK cold import를 떠안는다.
+                  // 단독 1~3초지만 pre-push turbo 병렬 실행 부하에서 기본 5초를 넘겨 flaky timeout이 났다.
+                  testTimeout: 30_000,
                   moduleNameMapper: {
                     // flat@6 ESM 전용 — custom-resources import 시 CJS shim으로
                     '^flat$':

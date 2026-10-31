@@ -32,7 +32,7 @@ cloudflare → k8s-workstation-system → k8s-workstation-apps
 5. **Vault**·**vault-secrets-operator** → 앱 시크릿 패턴; **postgresql-operator**·**redis-operator** → Argo·Authentik 등 데이터 계층
 6. **Authentik**·**Istio** → Argo·Goldilocks·Monitoring 등 service-mesh·Authentik 연동 컴포넌트
 
-호스트 측 **Sysbox**·**GPU driver/toolkit** 설치는 Ansible/Kubespray; 이 스택은 RuntimeClass·Operator·Helm 위주다.
+호스트 측 **Kata**(Kubespray `kata_containers_enabled`)·**Sysbox**·**GPU driver/toolkit** 설치는 Ansible/Kubespray; 이 스택은 RuntimeClass·Operator·Helm 위주다. 운영 Coder 런타임은 Kata. Sysbox·lxcfs·generic-device-plugin은 2026-11-06 관찰 후 제거 예정.
 
 ## upstream / downstream
 
@@ -48,9 +48,10 @@ cloudflare → k8s-workstation-system → k8s-workstation-apps
 | 디렉터리 | 담당 |
 |----------|------|
 | `cilium` | CNI·클러스터 네트워킹 리소스 |
-| `lxcfs` | lxcfs Helm(컨테이너 리소스 뷰) |
-| `sysbox` | Sysbox RuntimeClass |
-| `generic-device-plugin` | 호스트 `/dev` extended resource |
+| `kata` | Kata RuntimeClass (`kata`, handler `kata`, overhead 250m / 1Gi) |
+| `sysbox` | Sysbox RuntimeClass (`sysbox-runc`). 잔존, 제거 예정 |
+| `lxcfs` | lxcfs Helm(컨테이너 리소스 뷰). Sysbox 템플릿 전용, 제거 예정 |
+| `generic-device-plugin` | 호스트 `/dev` extended resource (`squat.ai/fuse`). Sysbox 템플릿 전용, 제거 예정 |
 | `gpu-operator` | GPU RuntimeClass·NVIDIA GPU Operator |
 | `cert-manager` | cert-manager Helm·Issuer/CA·wildcard 등 |
 | `snapshot-controller` | VolumeSnapshot CRD·controller |
@@ -75,7 +76,7 @@ contract 호출 순서가 배포 순서다. Longhorn ↔ Authentik은 Outpost �
 | 파일 | 함수 | 담당 |
 |------|------|------|
 | `providers.ts` | `deployProviders` | Kubernetes 등 Provider |
-| `node-runtime.ts` | `deployNodeRuntime` | Sysbox, lxcfs, generic-device-plugin, GPU |
+| `node-runtime.ts` | `deployNodeRuntime` | Cilium 리소스, Kata·Sysbox RuntimeClass, lxcfs, generic-device-plugin, GPU |
 | `cert-manager.ts` | `deployCertManager` | cert-manager Helm·Issuer/CA |
 | `backup-platform.ts` | `deployBackupPlatform` | snapshot-controller, pCloud |
 | `vault.ts` | `deployVaultServer`, `deployVaultAccess`, `deployVaultIdentity`, `deployVaultSecretsOperator` | Vault 서버 → 접근 경로 → Identity → VSO |
@@ -101,6 +102,7 @@ src/
 └──   cert-manager/
 └──   cilium/
 └──   generic-device-plugin/
+└──   kata/
 └──   goldilocks/
 └──   gpu-operator/
 └──   istio/

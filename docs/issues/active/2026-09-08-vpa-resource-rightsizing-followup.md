@@ -14,7 +14,7 @@
 
 2026-09-08에 VPA recommender + Goldilocks를 배포하고 19개 NS에 opt-in 라벨을 달았다. 당일 스냅샷으로 requests vs VPA target 갭 분석을 돌렸으나, 추천 히스토리가 **수 시간** 수준이라 idle 편향이 큼 (특히 Jellyfin encode, qBittorrent 피크, Coder idle/busy).
 
-바로 IaC에 반영하지 않고 **약 1달 관찰 후(10월 초)** 다시 갭을 보고 조정한다. 무사히 마치면 **매월 초** 같은 작업을 반복한다 (다음: **2026-11 초**).
+바로 IaC에 반영하지 않고 **약 1달 관찰 후** 다시 갭을 보고 조정한다. 1차 2026-10-05, 2차 2026-10-30(11월 주기 대체). 다음: **2026-12 초**.
 
 ## 문제
 
@@ -112,7 +112,7 @@ Missing requests: Longhorn CSI·UI·driver-deployer·engine-image, Authentik out
 - Goldilocks/VPA 차트 자체 재구성 (이미 해결됨).
 - CPU 일괄 25m 축소 (VPA idle 편향).
 
-## 체크리스트 (2026-11 초 재개 시)
+## 체크리스트 (2026-12 초 재개 시)
 
 - [ ] `kubectl get vpa -A` / Goldilocks UI로 추천 성숙도 확인
 - [ ] requests vs target 갭 스크립트 재실행

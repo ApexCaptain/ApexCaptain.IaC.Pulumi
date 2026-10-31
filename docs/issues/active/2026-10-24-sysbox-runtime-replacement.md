@@ -5,18 +5,19 @@
 | **등록일** | 2026-10-24 |
 | **영역** | Coder 워크스페이스 런타임 (`sysbox-runc` RuntimeClass), `workstation-0` 호스트 |
 | **관련 코드** | `ansible/workstation/roles/install-sysbox-runc/`, `ansible/workstation/inventory/group_vars/all/all.yml` (`sysbox_ce_version`), `infra/k8s-workstation-system/src/components/sysbox/`, `infra/k8s-workstation-tools/src/components/coder/`, `infra/k8s-workstation-tools/assets/coder/sysbox-ubuntu/`, `infra/k8s-workstation-tools/assets/coder/kata-ubuntu/`, `infra/k8s-workstation-system/src/components/kata/` |
-| **상태** | **조사중** — PoC 1~4단계 검증, I/O·메모리 대책과 Cilium ClusterIP 해결 적용. Kata 템플릿 전용 네임스페이스 + 사이드카 적용·실제 워크스페이스 검증 완료. Kata production 템플릿(`coder-kata-ubuntu`) 추가, 실사용 시작(디스크·startup 스크립트·inotify 수정). 남은 것: Sysbox 기동 비교. 결과 정리는 2026-12 초 |
+| **상태** | **완화** — Kata production(`coder-kata-ubuntu`)으로 환경 재구성 완료. Sysbox 호스트·RuntimeClass·`sysbox-ubuntu` 템플릿은 2026-11-06까지 유지. 그날까지 이상 없으면 Sysbox 템플릿 → lxcfs·Sysbox·generic-device-plugin 제거 후 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) |
 
 ## 배경
 
-[K8s 1.36 업그레이드](2026-10-13-kubernetes-1-36-upgrade.md)의 Phase 2가 Sysbox 1.36 지원 대기로 막혀 있다. 그 이슈의 범위 밖 항목 "Sysbox 대체 런타임 선정·이전"을 분리한 것. 1.35는 maintenance 2026-12-28, EOL 2027-02-28.
+[K8s 1.36 업그레이드](2026-10-13-kubernetes-1-36-upgrade.md)의 Phase 2가 Sysbox 1.36 지원 대기로 막혀 있어, 그 이슈의 범위 밖 항목 "Sysbox 대체 런타임 선정·이전"을 분리한 것. 1.35는 maintenance 2026-12-28, EOL 2027-02-28. 2026-10-31 Kata production 전환으로 지원 대기는 폐기. 아래 "현재 결정".
 
 ## 현재 상태
 
-- Sysbox CE 0.7.0을 호스트에 deb로 설치 (Ansible, `sysbox-deploy-k8s` 미사용). 최신은 0.7.1 (7/31)
-- RuntimeClass `sysbox-runc`, node label `sysbox-runtime=running`
-- Coder 템플릿 `sysbox-ubuntu` (main / test) 워크스페이스가 이 런타임으로 돈다. 내부 Docker(devcontainer) 사용
-- containerd 2.3.5, 단일 노드, 사용자 1명 (홈랩)
+- 운영 런타임은 Kata. 템플릿 `kata-ubuntu` (main / test), 네임스페이스 `coder-kata-ubuntu` / `coder-kata-ubuntu-test`
+- 라이브 (2026-10-31): 노드 `workstation-0` v1.35.9, containerd 2.3.5. 워크스페이스 `Primary-Kata` Running 2/2 (사이드카 포함). home·docker PVC Block 50Gi, data Filesystem 100Gi
+- Sysbox는 당장 유지. 호스트 CE 0.7.1 (Ansible), RuntimeClass `sysbox-runc`, node label `sysbox-runtime=running`. 템플릿 `sysbox-ubuntu` (main / test) 코드·네임스페이스 잔존
+- `coder-sysbox-ubuntu`: 워크스페이스 Pod 없음. Mesh Proxy만 Running. 옛 `Primary` PVC 3개 Bound (home 50Gi / docker 100Gi / data 100Gi, Filesystem)
+- 단일 노드, 사용자 1명 (홈랩)
 
 ## 문제
 
@@ -56,6 +57,18 @@ K8s 버전 업그레이드를 런타임 지원 여부에 묶지 않는다. 워�
    - GPU: **안 씀** (사용자). Kata 감점 요인 없음
    - systemd: **불필요**. 현재 템플릿 PID 1은 `sh -c`(`infra/k8s-workstation-tools/assets/coder/sysbox-ubuntu/main/main.tf`), dockerd는 `coder_script` `run-dockerd`가 `sudo dockerd`로 직접 기동(`main/scripts.tf`). `systemctl` 사용 없음
    - 따라서 userns(`hostUsers: false`) 안을 2순위 PoC로 올린다. 단 비privileged userns 파드에서 rootful dockerd(mount·overlay·iptables)가 뜨는지가 관건. Kata는 현재 스크립트 그대로 가능해 주력 유지
+
+위 2번은 2026-10-31 결정으로 폐기. 아래 "현재 결정"이 우선.
+
+## 현재 결정 (2026-10-31)
+
+Kata production으로 환경을 재구성했다. Sysbox 자체는 당장 제거하지 않는다. 2027-01-15 Sysbox 1.36 지원 대기는 쓰지 않는다.
+
+| 언제 | 할 일 |
+|---|---|
+| 지금 ~ 2026-11-06 | Sysbox 호스트 설치·RuntimeClass `sysbox-runc`·`sysbox-ubuntu` 템플릿 유지. Kata 실사용 관찰 |
+| 2026-11-06, 이상 없음 | 1. Sysbox 기반 Coder 템플릿 제거 2. lxcfs, Sysbox, generic-device-plugin 제거 3. 그다음 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) |
+| 2026-11-06, 이상 있음 | 제거·1.36 보류. 이 문서에 증상 기록 |
 
 ## Kata 트레이드오프
 
@@ -195,7 +208,7 @@ dockerd는 privileged가 필요하다. Kata는 privileged 파드에 호스트 `/
 
 ### Kata 전면 전환 시 제거 가능한 구성요소 (2026-10-31 확인)
 
-Sysbox 워크스페이스를 모두 Kata로 옮기고 Sysbox를 제거하면 아래 두 컴포넌트도 필요 없어진다. 제거는 이전 완료 후 별도 이슈.
+Sysbox 워크스페이스를 모두 Kata로 옮기고 Sysbox를 제거하면 아래 두 컴포넌트도 필요 없어진다. 제거는 2026-10-31 결정으로 이 이슈에서 2026-11-06 관찰 후 진행.
 
 | 컴포넌트 | 현재 용도 | 다른 사용처 | Kata에서 |
 |---|---|---|---|
@@ -423,12 +436,14 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
   - [x] 3. home I/O 실측 (`pnpm install` 등), Sysbox 대비 기록 — ② (2026-10-31, virtiofs 2~4배 느림)
   - [ ] 4. 메모리 사용량·기동 시간 관찰, Sysbox 대비 기록 — ③ ⑥ (2026-10-31: 대책 후 실사용 PSS 약 3.4Gi로 request 안. 1차 6.7Gi는 shmem 중복 집계였음. 기동 15초, Sysbox 워크스페이스 기동 비교는 미측정)
 - [ ] (2순위) userns 파드(`hostUsers: false`, 비privileged)에서 `run-dockerd` 스크립트로 dockerd 기동 가능 여부 기록
-- [ ] 2027-01-15 판단 결과(이전 / 유지 / 폴백)를 이 문서에 기록
+- [x] 런타임 판단 — Kata 이전 확정 (2026-10-31). 2027-01-15 Sysbox 지원 확인은 폐기
+- [ ] 2026-11-06까지 Kata 실사용 이상 없음 확인
+- [ ] (이상 없을 때) Sysbox 기반 Coder 템플릿 제거
+- [ ] (이상 없을 때) lxcfs, Sysbox, generic-device-plugin 제거
 
 ## 범위 밖
 
-- 실제 운영 워크스페이스 이전과 Sysbox 제거 (PoC 결과로 결정 후 별도 이슈)
-- K8s 1.36 업그레이드 자체 ([업그레이드 이슈](2026-10-13-kubernetes-1-36-upgrade.md))
+- K8s 1.36 업그레이드 자체 ([업그레이드 이슈](2026-10-13-kubernetes-1-36-upgrade.md)). Sysbox 스택 제거가 끝난 뒤 그 이슈에서 진행
 
 ## 관련 링크
 
@@ -463,3 +478,5 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
 | 2026-10-31 | Kata 템플릿 rclone 마운트 추가 (`~/.config/rclone/mounts` → `~/mnt/<이름>`). Google Drive 마운트 실사용 확인. devContainer는 상위 `~/mnt` rslave로 전달 (개별 경로는 rclone 재시작 시 끊김), Sysbox는 runc 제약으로 불가 |
 | 2026-10-31 | Kata production 템플릿 `kata-ubuntu-template`·네임스페이스 `coder-kata-ubuntu` 추가 (tools 스택 적용, Coder RBAC·AuthorizationPolicy 반영). 클러스터 점검: 노드 Ready, 비정상 Pod·미바인딩 PVC·비정상 Longhorn 볼륨 없음, drift 없음 |
 | 2026-10-31 | production Kata 워크스페이스 실사용: docker 디스크 기본 10Gi가 devContainer에 부족 → 사용자가 50Gi로 확장, `resize2fs` 반영 확인. Kata 템플릿 수정·적용: devcontainers-cli apt 락, rclone 데몬 파이프 경고, Vault 토큰 로그 출력(`-no-print`, Sysbox 미수정), inotify 한도(게스트 커널 8192 → 524288) |
+| 2026-10-31 | 사용자: Kata를 베이스로 환경 재구성 완료. Sysbox는 당장 유지. 2026-11-06까지 이상 없으면 Sysbox Coder 템플릿 → lxcfs·Sysbox·generic-device-plugin 제거 후 K8s 1.36. 2027-01-15 Sysbox 지원 대기는 이 일정으로 대체 |
+| 2026-10-31 | 문서 최신화. 라이브: 노드 v1.35.9, `Primary-Kata` Running 2/2, Sysbox 워크스페이스 Pod 없음(옛 Primary PVC Bound·Mesh Proxy만) |
