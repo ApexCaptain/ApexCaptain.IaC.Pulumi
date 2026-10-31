@@ -1,0 +1,27 @@
+---
+# Kata 설정 드롭인 (post-configure; Kubespray kata_containers_enabled 이후)
+#
+#   Kata는 configuration-qemu.toml 옆 config.d/*.toml 을 합쳐 읽는다.
+#   Kubespray는 config.d 를 건드리지 않아 cluster.yml 재실행에도 유지된다.
+#   샌드박스 생성 시 읽으므로 containerd 재시작 불필요 (새 Kata 파드부터 적용)
+#
+# @see docs/issues/active/2026-10-24-sysbox-runtime-replacement.md
+
+- name: Check Kata configuration installed by Kubespray
+  ansible.builtin.stat:
+    path: "{{ kata_containers_config_dir }}/configuration-qemu.toml"
+  register: kata_qemu_config
+
+- name: Ensure Kata config.d directory exists
+  ansible.builtin.file:
+    path: "{{ kata_containers_config_dir }}/config.d"
+    state: directory
+    mode: "0755"
+  when: kata_qemu_config.stat.exists
+
+- name: Write Kata configuration drop-in
+  ansible.builtin.template:
+    src: 90-workstation.toml.j2
+    dest: "{{ kata_containers_config_dir }}/config.d/90-workstation.toml"
+    mode: "0644"
+  when: kata_qemu_config.stat.exists

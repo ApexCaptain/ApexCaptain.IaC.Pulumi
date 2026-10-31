@@ -3,7 +3,7 @@ import * as utils from '@common/utils/src';
 import * as components from '../components';
 import { SystemProviders } from './providers';
 
-/** 노드 런타임 계층: CNI 리소스, lxcfs, Sysbox·GPU RuntimeClass, 장치 플러그인. */
+/** 노드 런타임 계층: CNI 리소스, lxcfs, Sysbox·Kata·GPU RuntimeClass, 장치 플러그인. */
 export const deployNodeRuntime = (deps: { providers: SystemProviders }) => {
   const commonEsc = nexus.esc.commonEsc;
   const { workstationK8sProvider } = deps.providers;
@@ -40,6 +40,13 @@ export const deployNodeRuntime = (deps: { providers: SystemProviders }) => {
 
   // Sysbox — RuntimeClass만 (호스트 설치는 Ansible/Kubespray)
   const sysbox = new components.sysbox.SysboxComponent('sysbox', {
+    providers: {
+      kubernetes: workstationK8sProvider,
+    },
+  });
+
+  // Kata — RuntimeClass만 (호스트 설치는 Kubespray kata_containers_enabled, PoC)
+  const kata = new components.kata.KataComponent('kata', {
     providers: {
       kubernetes: workstationK8sProvider,
     },
@@ -95,6 +102,7 @@ export const deployNodeRuntime = (deps: { providers: SystemProviders }) => {
     ciliumResources,
     lxcfsHelmChart,
     sysbox,
+    kata,
     genericDevicePluginHelmChart,
     gpuRuntimeClass,
     gpuOperatorHelmChart,

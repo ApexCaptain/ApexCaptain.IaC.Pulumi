@@ -1,0 +1,3 @@
+# Ansible configure-kata-containers 관리. Kubespray configuration-qemu.toml 위에 덮어쓴다
+[hypervisor.qemu]
+reclaim_guest_freed_memory = {{ kata_containers_reclaim_guest_freed_memory | bool | lower }}

@@ -48,6 +48,23 @@ interface CoderResourcesComponentArgsShape {
         jwtRole: string;
       };
     };
+    /** Kata PoC — 전용 네임스페이스, sidecar로 메시 참여 (Mesh Proxy 없음) */
+    kataUbuntuTest: {
+      namespace: string;
+      runtimeClassName: string;
+      storageClassNames: {
+        home: string;
+        docker: string;
+        data: string;
+      };
+      /** 주입 istio-validation 덮어쓰기용 proxyv2 이미지 */
+      istioProxyImage: string;
+      vault: {
+        addr: string;
+        jwtAuthPath: string;
+        jwtRole: string;
+      };
+    };
   };
   providers: {
     coderd: coderd.Provider;
@@ -276,10 +293,95 @@ export const CoderResourcesComponent = utils.functions.defineComponent(
       },
     );
 
+    const kataUbuntuTestTemplate = new coderd.Template(
+      `${resourceName}-kataUbuntuTestTemplate`,
+      {
+        name: 'kata-ubuntu-test-template',
+        displayName: 'Ubuntu on Kata (Test)',
+        description: dedent`
+          Kata Containers(경량 VM)로 동작하는 Ubuntu 워크스페이스 템플릿입니다. (PoC)
+          DevContainer 기능을 사용할 수 있습니다. 클러스터 내부 Service 접근은 아직 안 됩니다.
+        `,
+        icon: '/icon/ubuntu.svg',
+        versions: [
+          {
+            directory: path.join(
+              process.cwd(),
+              '../',
+              'assets',
+              'coder',
+              'kata-ubuntu',
+              'test',
+            ),
+            active: true,
+            tfVars: [
+              {
+                name: 'use_kubeconfig',
+                value: 'false',
+              },
+              {
+                name: 'namespace',
+                value: args.templateVariables.kataUbuntuTest.namespace,
+              },
+              {
+                name: 'runtime_class_name',
+                value: args.templateVariables.kataUbuntuTest.runtimeClassName,
+              },
+              {
+                name: 'home_storage_class_name',
+                value:
+                  args.templateVariables.kataUbuntuTest.storageClassNames.home,
+              },
+              {
+                name: 'docker_storage_class_name',
+                value:
+                  args.templateVariables.kataUbuntuTest.storageClassNames
+                    .docker,
+              },
+              {
+                name: 'data_storage_class_name',
+                value:
+                  args.templateVariables.kataUbuntuTest.storageClassNames.data,
+              },
+              {
+                name: 'workspace_directory_name',
+                value: 'Workspace',
+              },
+              {
+                name: 'istio_proxy_image',
+                value: args.templateVariables.kataUbuntuTest.istioProxyImage,
+              },
+              {
+                name: 'vault_addr',
+                value: args.templateVariables.kataUbuntuTest.vault.addr,
+              },
+              {
+                name: 'vault_jwt_auth_path',
+                value: args.templateVariables.kataUbuntuTest.vault.jwtAuthPath,
+              },
+              {
+                name: 'vault_jwt_role',
+                value: args.templateVariables.kataUbuntuTest.vault.jwtRole,
+              },
+              {
+                name: 'vault_cli_version',
+                value: utils.configs.vaultVersion,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        ...opts,
+        provider: args.providers.coderd,
+      },
+    );
+
     return {
       output: pulumi.output({
         sysboxUbuntuTemplateId: sysboxUbuntuTemplate.id,
         sysboxUbuntuTestTemplateId: sysboxUbuntuTestTemplate.id,
+        kataUbuntuTestTemplateId: kataUbuntuTestTemplate.id,
       }),
       secret: pulumi.secret({}),
     };

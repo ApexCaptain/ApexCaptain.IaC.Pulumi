@@ -12,6 +12,7 @@
 #   7. verify-nvidia-driver   nvidia-smi 확인 / 수동 reboot 안내 (reboot 없음)
 #
 # 4번만: pnpm ansible:preConfigure --tags network-carrier-loss
+# 6번만: pnpm ansible:preConfigure --tags install-sysbox-runc
 
 - name: Pre-Configure Workstation
   hosts: k8s_cluster
@@ -25,4 +26,5 @@
       tags: [network-carrier-loss]
     - role: install-nvidia-driver
     - role: install-sysbox-runc
+      tags: [install-sysbox-runc]
     - role: verify-nvidia-driver

@@ -17,10 +17,10 @@
 
 - name: Resolve Sysbox CE package metadata
   ansible.builtin.set_fact:
-    sysbox_ce_version_effective: "{{ sysbox_ce_version | default('0.7.0') }}"
-    sysbox_ce_package_name: "sysbox-ce_{{ sysbox_ce_version | default('0.7.0') }}-0.linux_amd64.deb"
-    sysbox_ce_package_url: "https://downloads.nestybox.com/sysbox/releases/v{{ sysbox_ce_version | default('0.7.0') }}/sysbox-ce_{{ sysbox_ce_version | default('0.7.0') }}-0.linux_amd64.deb"
-    sysbox_ce_package_path: "/tmp/sysbox-ce_{{ sysbox_ce_version | default('0.7.0') }}-0.linux_amd64.deb"
+    sysbox_ce_version_effective: "{{ sysbox_ce_version | default('0.7.1') }}"
+    sysbox_ce_package_name: "sysbox-ce_{{ sysbox_ce_version | default('0.7.1') }}-0.linux_amd64.deb"
+    sysbox_ce_package_url: "https://downloads.nestybox.com/sysbox/releases/v{{ sysbox_ce_version | default('0.7.1') }}/sysbox-ce_{{ sysbox_ce_version | default('0.7.1') }}-0.linux_amd64.deb"
+    sysbox_ce_package_path: "/tmp/sysbox-ce_{{ sysbox_ce_version | default('0.7.1') }}-0.linux_amd64.deb"
 
 - name: Install Sysbox dependencies
   ansible.builtin.apt:

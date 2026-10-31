@@ -50,6 +50,8 @@ export const containerImages = Object.freeze({
   otelCollectorContrib:
     'ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.156.0',
   vuetorrentMod: 'ghcr.io/vuetorrent/vuetorrent-lsio-mod:2.36.1',
+  /** sidecar 주입 템플릿의 istio-validation을 덮어쓸 때(Kata 워크스페이스) 쓰는 이미지. istio 차트 기본 hub·variant */
+  istioProxyv2: `registry.istio.io/release/proxyv2:${istioVersion}-distroless`,
   cloudflared:
     'cloudflare/cloudflared:2026.10.4@sha256:c6c7ae1d5dfdcb094ad344ed68ccffc26635c9c6be80965664c33baf064b0515',
 } as const);

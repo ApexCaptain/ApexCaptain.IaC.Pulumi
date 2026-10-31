@@ -3,6 +3,10 @@
 # 실행: pnpm ansible:postConfigure
 #
 # 선행: preConfigure — verify-nvidia-driver [OK] (nvidia-smi)
+#
+# 역할
+#   install-nvidia-container-toolkit
+#   configure-kata-containers   Kata config.d 드롭인 (--tags configure-kata-containers)
 
 - name: Post-Configure Workstation
   hosts: k8s_cluster
@@ -10,3 +14,5 @@
   gather_facts: true
   roles:
     - role: install-nvidia-container-toolkit
+    - role: configure-kata-containers
+      tags: [configure-kata-containers]
