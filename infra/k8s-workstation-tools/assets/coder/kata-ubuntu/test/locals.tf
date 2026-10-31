@@ -4,6 +4,9 @@ locals {
   docker_device_path = "/dev/docker-disk"
   data_staging_path  = "/mnt/data"
 
+  # scripts.tf rclone-mounts. downloads.rclone.org .deb
+  rclone_version = "1.75.2"
+
   selected_additional_ides = jsondecode(data.coder_parameter.additional_ides.value)
 
   ubuntu_mirrors = {

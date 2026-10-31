@@ -1,13 +1,14 @@
-# Ubuntu on Kata (Test)
+# Ubuntu on Kata
 
-[Kata Containers](https://katacontainers.io/) 경량 VM 위에서 도는 Ubuntu 워크스페이스입니다. **PoC 단계**입니다.
+[Kata Containers](https://katacontainers.io/) 경량 VM 위에서 도는 Ubuntu 워크스페이스입니다.
 VM 안에 커널이 따로 있어 **Docker**와 **DevContainer**를 일반 서버처럼 쓸 수 있습니다.
 
 ### Ubuntu on Sysbox와 다른 점
 
 - **Mesh Proxy가 없습니다.** 워크스페이스에 Istio sidecar가 붙어 클러스터 안 서비스(mTLS STRICT 포함)를 바로 호출합니다. DevContainer(기본 bridge·compose 네트워크)도 같습니다.
 - **File Browser가 없습니다.** 파일 업로드·다운로드는 VS Code 탐색기를 쓰세요 (Kata 루트 파일시스템에서 설치 스크립트의 `setcap`이 실패).
-- **Fuse Device 수를 고르지 않습니다.** VM 안 `/dev/fuse`를 시작할 때 만들어 항상 쓸 수 있습니다 (rclone 등).
+- **Fuse Device 수를 고르지 않습니다.** VM 안 `/dev/fuse`를 시작할 때 만들어 항상 쓸 수 있습니다.
+- **Rclone 마운트를 DevContainer에 바로 넘깁니다.** Sysbox처럼 unison으로 복사할 필요가 없습니다.
 - 홈(`/home/coder`)과 Docker 디스크는 블록 장치로 붙어 첫 기동에 ext4로 포맷됩니다. 작은 파일 I/O가 빠릅니다. Data(`~/data`, HDD)는 virtiofs라 큰 파일 위주로 쓰세요.
 - 메모리는 선택한 값 전체를 예약합니다 (Sysbox는 1/4). VM이 페이지 캐시로 메모리를 잘 돌려주지 않아 실사용에 맞췄습니다.
 
@@ -57,6 +58,36 @@ Coder 계정의 이름·이메일이 `git config --global user.name` / `user.ema
 | -------------------------------------------- | ---- |
 | `~/Workspace/.lifecycle-scripts/on-start.sh` | 시작 |
 | `~/Workspace/.lifecycle-scripts/on-stop.sh`  | 종료 |
+
+### ☁️ Rclone 마운트
+
+Google Drive 같은 rclone remote를 `~/mnt/<이름>`에 마운트합니다. 자격 증명과 목록은 Home에 있어 재시작해도 유지되고, 템플릿·Coder에는 남지 않습니다.
+
+1. remote 등록 (처음 한 번): `rclone config`
+   - Google Drive 등 브라우저 인증: VS Code Desktop/Cursor로 접속했으면 auto config `y` (포트 포워딩으로 인증). 웹 터미널만 쓰면 `n` → 로컬 PC에서 `rclone authorize "drive"` → 나온 토큰 붙여넣기
+   - 확인: `rclone lsd <remote>:`
+2. `~/.config/rclone/mounts`에 한 줄 추가: `<이름> <remote:경로> [rclone mount 옵션...]`
+   ```text
+   gdrive-secrets gdrive:secrets
+   gdrive-photos  gdrive:Photos --read-only
+   ```
+3. `rclone-mounts` 실행 (안 해도 30초 안에 반영). 줄을 지우면 해제됩니다.
+
+```bash
+rclone-mounts status -v      # 항목별 상태
+tail ~/.cache/rclone-mounts/<이름>.log
+```
+
+대시보드 **Rclone Mounts**에 정상 수/항목 수가 보입니다. rclone이 죽으면 다시 마운트하고, 실패한 항목은 5분마다 다시 시도합니다.
+기본 옵션은 `--vfs-cache-mode writes --dir-cache-time 1m --poll-interval 1m`이고, 캐시는 `~/.cache/rclone`에 있습니다.
+
+DevContainer에서 쓰려면 `devcontainer.json`에 한 번 넣습니다. 나중에 추가한 마운트도 자동으로 보입니다.
+
+```json
+"mounts": ["source=/home/coder/mnt,target=/mnt/rclone,type=bind,bind-propagation=rslave"]
+```
+
+다른 경로에서 쓰려면 심볼릭 링크를 거세요 (`ln -s ~/mnt/gdrive-secrets ~/Workspace/secrets`). 네트워크 마운트라 remote가 느리거나 끊기면 그 경로 접근도 멈출 수 있습니다.
 
 ### 🌐 클러스터 서비스 호출
 
@@ -118,6 +149,8 @@ node /tmp/auto-stop-workspace/autostop-workspace.js
 
 ### 2026-10-31
 
+- Rclone 마운트를 추가했습니다 (`~/.config/rclone/mounts` → `~/mnt/<이름>`, DevContainer에서도 사용).
+- CPU·RAM 메트릭이 VM 전체가 아니라 워크스페이스에 준 값 기준으로 나옵니다.
 - File Browser를 뺐습니다 (Kata에서 설치 실패). Docker Disk 메트릭은 디스크 마운트 전 "준비 중"으로 표시합니다.
 - 전용 네임스페이스(`coder-kata-ubuntu-test`)로 옮겼습니다. Mesh Proxy를 빼고 Istio sidecar를 붙였습니다. 클러스터 서비스를 워크스페이스·DevContainer에서 바로 호출합니다.
 - 홈 디스크를 블록 장치로 바꿨습니다 (virtiofs 대비 `pnpm install` 약 4배, 삭제 약 17배 빠름). 메모리 request를 limit과 같게 했습니다.

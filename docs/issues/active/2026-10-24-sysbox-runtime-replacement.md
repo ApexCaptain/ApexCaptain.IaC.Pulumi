@@ -4,8 +4,8 @@
 |------|------|
 | **등록일** | 2026-10-24 |
 | **영역** | Coder 워크스페이스 런타임 (`sysbox-runc` RuntimeClass), `workstation-0` 호스트 |
-| **관련 코드** | `ansible/workstation/roles/install-sysbox-runc/`, `ansible/workstation/inventory/group_vars/all/all.yml` (`sysbox_ce_version`), `infra/k8s-workstation-system/src/components/sysbox/`, `infra/k8s-workstation-tools/src/components/coder/`, `infra/k8s-workstation-tools/assets/coder/sysbox-ubuntu/`, `infra/k8s-workstation-tools/assets/coder/kata-ubuntu/test/`, `infra/k8s-workstation-system/src/components/kata/` |
-| **상태** | **조사중** — PoC 1~4단계 검증, I/O·메모리 대책과 Cilium ClusterIP 해결 적용. Kata 템플릿 전용 네임스페이스 + 사이드카 적용·실제 워크스페이스 검증 완료. 남은 것: Sysbox 기동 비교. 결과 정리는 2026-12 초 |
+| **관련 코드** | `ansible/workstation/roles/install-sysbox-runc/`, `ansible/workstation/inventory/group_vars/all/all.yml` (`sysbox_ce_version`), `infra/k8s-workstation-system/src/components/sysbox/`, `infra/k8s-workstation-tools/src/components/coder/`, `infra/k8s-workstation-tools/assets/coder/sysbox-ubuntu/`, `infra/k8s-workstation-tools/assets/coder/kata-ubuntu/`, `infra/k8s-workstation-system/src/components/kata/` |
+| **상태** | **조사중** — PoC 1~4단계 검증, I/O·메모리 대책과 Cilium ClusterIP 해결 적용. Kata 템플릿 전용 네임스페이스 + 사이드카 적용·실제 워크스페이스 검증 완료. Kata production 템플릿(`coder-kata-ubuntu`) 추가. 남은 것: Sysbox 기동 비교. 결과 정리는 2026-12 초 |
 
 ## 배경
 
@@ -377,6 +377,26 @@ Ubuntu on Kata (Test), CPU 2 / 메모리 4Gi. home·docker PVC Block, request cp
 
 역방향 (워크스페이스 → 컨테이너 IP, publish 포트 127.0.0.1) 모두 200. Mesh Proxy 환경변수 없음.
 
+### 2026-10-31 Kata 템플릿 정리·rclone 마운트·production 템플릿
+
+| 변경 | 내용 |
+|---|---|
+| Deployment 리소스 | `kubernetes_manifest` → `kubernetes_deployment_v1` (`wait_for_rollout = false`). manifest는 Sysbox의 `hostUsers = false` 때문이었고 Kata는 필요 없음. 업데이트 후 Pod·사이드카·블록 디스크·브리지 보정 재확인 |
+| CPU·RAM 메트릭 | `coder stat --host` 제거. `--host`는 Kata VM 전체(기본 1 vCPU·2Gi + 사이드카 limit)를 읽어 5코어·5.89GiB로 보였음. cgroup 기준으로 2코어·4GiB |
+| rclone 마운트 | `~/.config/rclone/mounts`(`<이름> <remote:경로> [옵션]`) → `~/mnt/<이름>`. `rclone-mounts` 헬퍼가 30초마다 맞춤 (재마운트·실패 5분 백오프). 자격 증명은 Home의 `rclone.conf` (템플릿 파라미터에 토큰을 두지 않음). `~/mnt`는 rshared |
+| production 템플릿 | `kata-ubuntu/main` (test와 동일, Sysbox 방식), 네임스페이스 `coder-kata-ubuntu`(protect), Coder RBAC·AuthorizationPolicy 추가 |
+
+devContainer 전달 실측 (rclone `:memory:`):
+
+| 경우 | Kata | Sysbox |
+|---|---|---|
+| `--allow-other` 없이 bind | ❌ root 접근 불가 | ❌ |
+| `--allow-other` + `user_allow_other` | ✅ 읽기·쓰기 | ❌ runc `change mount propagation through procfd` |
+| 상위 `~/mnt`(rshared) → `:rslave`, 나중 마운트·rclone 재시작 | ✅ 자동 반영 | — |
+| 개별 마운트 경로 bind 후 rclone 재시작 | ❌ `Socket not connected`, 컨테이너 재시작 전까지 유지 | — |
+
+Sysbox에서 rclone 사본을 unison으로 동기화하던 이유가 위 runc 제약이다. Kata에서는 unison 없이 상위 `~/mnt`를 넘기고 컨테이너 안에서 심볼릭 링크로 쓴다.
+
 ## 수용 기준
 
 - [x] GPU·systemd 필요 여부 결정 (둘 다 불필요, 2026-10-24)
@@ -425,3 +445,6 @@ Ubuntu on Kata (Test), CPU 2 / 메모리 4Gi. home·docker PVC Block, request cp
 | 2026-10-31 | A안 적용: Kata 템플릿 전용 네임스페이스 `coder-kata-ubuntu-test` (Coder RBAC·AuthorizationPolicy 포함), Mesh Proxy 제거, Istio 사이드카(`istio-validation` 덮어쓰기)와 devContainer 브리지 보정을 템플릿에 반영. tools 스택 적용, 주입 dry-run 확인. 기존 Kata 워크스페이스는 사용자가 삭제 |
 | 2026-10-31 | 새 Kata 워크스페이스(`coder-kata-ubuntu-test`)로 A안 검증: 사이드카 기동, 워크스페이스·devContainer(기본 bridge·사용자 정의 네트워크)에서 coder(STRICT)·vault·외부 200, DNS·역방향 정상. PoC 전 etcd 스냅샷은 로컬 `tmp/`(gitignore)로 옮기고 노드 사본 삭제 (sha256 일치 확인) |
 | 2026-10-31 | Kata 템플릿 File Browser 제거: 설치 스크립트의 `setcap`이 virtiofs 루트(virtiofsd `--xattr` 없음)에서 `Operation not supported`. `--xattr` 드롭인은 보류 (필요 도구 생기면 검토). Docker Disk 메트릭은 블록 디스크 마운트 전 "준비 중" 폴백 |
+| 2026-10-31 | Kata 템플릿: Deployment를 `kubernetes_deployment_v1`로 전환, CPU·RAM 메트릭 `--host` 제거 (VM 전체 대신 cgroup 기준). 실제 워크스페이스 업데이트로 확인 |
+| 2026-10-31 | Kata 템플릿 rclone 마운트 추가 (`~/.config/rclone/mounts` → `~/mnt/<이름>`). Google Drive 마운트 실사용 확인. devContainer는 상위 `~/mnt` rslave로 전달 (개별 경로는 rclone 재시작 시 끊김), Sysbox는 runc 제약으로 불가 |
+| 2026-10-31 | Kata production 템플릿 `kata-ubuntu-template`·네임스페이스 `coder-kata-ubuntu` 추가 (tools 스택 적용, Coder RBAC·AuthorizationPolicy 반영). 클러스터 점검: 노드 Ready, 비정상 Pod·미바인딩 PVC·비정상 Longhorn 볼륨 없음, drift 없음 |
