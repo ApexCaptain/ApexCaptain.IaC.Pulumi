@@ -341,6 +341,8 @@ resource "kubernetes_deployment_v1" "main" {
               if [ ! -e /dev/fuse ]; then
                 sudo mknod -m 666 /dev/fuse c 10 229
               fi
+              # inotify 한도는 게스트(VM) 커널 기본값(watches 8192)이라 IDE가 큰 레포를 못 본다 (ENOSPC). devContainer도 같은 커널을 쓴다
+              sudo sysctl -q -w fs.inotify.max_user_watches=524288 fs.inotify.max_user_instances=1024 || true
               # fusermount3 -u 가 /etc/mtab 을 찾는다
               if [ ! -e /etc/mtab ]; then
                 sudo ln -s /proc/self/mounts /etc/mtab

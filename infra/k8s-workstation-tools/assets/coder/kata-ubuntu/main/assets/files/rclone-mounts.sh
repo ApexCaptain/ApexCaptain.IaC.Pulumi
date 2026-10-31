@@ -45,6 +45,7 @@ do_mount() {
   read -r remote opts <<<"$line"
   mkdir -p "$target"
   # opts는 사용자가 적은 rclone 옵션이라 단어 분리한다. 9>&-: 데몬이 flock fd를 물고 있으면 다음 sync가 멈춘다
+  # 표준 입출력은 로그로: 데몬이 호출자(coder_script) 파이프를 물면 "output pipes were not closed" 경고
   # shellcheck disable=SC2086
   if rclone mount "$remote" "$target" \
     --config "$RCLONE_CONF" \
@@ -56,7 +57,7 @@ do_mount() {
     --log-level INFO \
     --daemon \
     --daemon-wait 30s \
-    $opts 9>&-; then
+    $opts 9>&- </dev/null >>"$LOG_DIR/$name.log" 2>&1; then
     echo "$line" >"$STATE_DIR/$name"
     rm -f "$STATE_DIR/.failed/$name"
     log "마운트: $name ← $remote"

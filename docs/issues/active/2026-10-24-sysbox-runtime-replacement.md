@@ -5,7 +5,7 @@
 | **등록일** | 2026-10-24 |
 | **영역** | Coder 워크스페이스 런타임 (`sysbox-runc` RuntimeClass), `workstation-0` 호스트 |
 | **관련 코드** | `ansible/workstation/roles/install-sysbox-runc/`, `ansible/workstation/inventory/group_vars/all/all.yml` (`sysbox_ce_version`), `infra/k8s-workstation-system/src/components/sysbox/`, `infra/k8s-workstation-tools/src/components/coder/`, `infra/k8s-workstation-tools/assets/coder/sysbox-ubuntu/`, `infra/k8s-workstation-tools/assets/coder/kata-ubuntu/`, `infra/k8s-workstation-system/src/components/kata/` |
-| **상태** | **조사중** — PoC 1~4단계 검증, I/O·메모리 대책과 Cilium ClusterIP 해결 적용. Kata 템플릿 전용 네임스페이스 + 사이드카 적용·실제 워크스페이스 검증 완료. Kata production 템플릿(`coder-kata-ubuntu`) 추가. 남은 것: Sysbox 기동 비교. 결과 정리는 2026-12 초 |
+| **상태** | **조사중** — PoC 1~4단계 검증, I/O·메모리 대책과 Cilium ClusterIP 해결 적용. Kata 템플릿 전용 네임스페이스 + 사이드카 적용·실제 워크스페이스 검증 완료. Kata production 템플릿(`coder-kata-ubuntu`) 추가, 실사용 시작(디스크·startup 스크립트·inotify 수정). 남은 것: Sysbox 기동 비교. 결과 정리는 2026-12 초 |
 
 ## 배경
 
@@ -397,6 +397,20 @@ devContainer 전달 실측 (rclone `:memory:`):
 
 Sysbox에서 rclone 사본을 unison으로 동기화하던 이유가 위 runc 제약이다. Kata에서는 unison 없이 상위 `~/mnt`를 넘기고 컨테이너 안에서 심볼릭 링크로 쓴다.
 
+### 2026-10-31 production 워크스페이스 실사용 첫 문제와 수정
+
+사용자가 production 템플릿으로 워크스페이스(`coder-kata-ubuntu`)를 만들고 이 레포 devContainer를 올렸다. devContainer는 Kata 워크스페이스 체크아웃에서 rclone 방식(`~/mnt` → `/mnt/rclone` rslave, `.secrets` 심볼릭 링크)으로 바꿔 올렸고 바인드 확인. 이 변경은 아직 레포에 없다 (Kata 쪽 에이전트가 진행).
+
+| 문제 | 원인 | 조치 |
+|---|---|---|
+| devContainer 생성 중 `No space left on device` | 디스크 파라미터 기본값 10Gi. 이미지 3.6G + 빌드 캐시 3.7G(대부분 이미지와 공유) + 컨테이너 레이어 2.3G + 볼륨 1.2G로 docker 디스크 100% (Sysbox primary는 docker 100Gi·home 50Gi) | 사용자가 docker·home 50Gi로 파라미터 변경 → 재기동 시 `resize2fs`로 50G 반영 확인 (Longhorn 확장 + Block 디스크 경로 실사용 검증) |
+| Install DevContainers CLI: dpkg 락 실패 | rclone 스크립트의 apt와 동시 실행. curl은 이미 있어 실해 없음 | curl 있으면 생략, 없으면 `DPkg::Lock::Timeout=300` |
+| Rclone Mounts: `output pipes were not closed after 10s` | rclone 데몬이 coder_script 표준 출력·에러를 물고 있음 | `rclone-mounts.sh`에서 rclone 표준 입출력을 마운트별 로그로. 재마운트를 파이프로 받아 2초에 종료 확인 |
+| Vault 로그인 스크립트가 토큰을 startup 로그에 출력 | `vault login -`의 기본 출력 | `vault login -no-print -`. **Sysbox 템플릿에도 같은 코드가 있다 (미수정)** |
+| Cursor "Unable to watch for file changes" (ENOSPC) | inotify 한도가 게스트 커널 기본값(`max_user_watches` 8192). 레포 디렉터리 약 1.5만. Sysbox는 노드 커널 값을 써서 없던 문제 | 시작 명령에 `sysctl fs.inotify.max_user_watches=524288`, `max_user_instances=1024` (VM 안에서만 privileged라 게스트에만 적용). devContainer도 같은 커널이라 함께 반영 확인 |
+
+Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2개 update).
+
 ## 수용 기준
 
 - [x] GPU·systemd 필요 여부 결정 (둘 다 불필요, 2026-10-24)
@@ -448,3 +462,4 @@ Sysbox에서 rclone 사본을 unison으로 동기화하던 이유가 위 runc �
 | 2026-10-31 | Kata 템플릿: Deployment를 `kubernetes_deployment_v1`로 전환, CPU·RAM 메트릭 `--host` 제거 (VM 전체 대신 cgroup 기준). 실제 워크스페이스 업데이트로 확인 |
 | 2026-10-31 | Kata 템플릿 rclone 마운트 추가 (`~/.config/rclone/mounts` → `~/mnt/<이름>`). Google Drive 마운트 실사용 확인. devContainer는 상위 `~/mnt` rslave로 전달 (개별 경로는 rclone 재시작 시 끊김), Sysbox는 runc 제약으로 불가 |
 | 2026-10-31 | Kata production 템플릿 `kata-ubuntu-template`·네임스페이스 `coder-kata-ubuntu` 추가 (tools 스택 적용, Coder RBAC·AuthorizationPolicy 반영). 클러스터 점검: 노드 Ready, 비정상 Pod·미바인딩 PVC·비정상 Longhorn 볼륨 없음, drift 없음 |
+| 2026-10-31 | production Kata 워크스페이스 실사용: docker 디스크 기본 10Gi가 devContainer에 부족 → 사용자가 50Gi로 확장, `resize2fs` 반영 확인. Kata 템플릿 수정·적용: devcontainers-cli apt 락, rclone 데몬 파이프 경고, Vault 토큰 로그 출력(`-no-print`, Sysbox 미수정), inotify 한도(게스트 커널 8192 → 524288) |
