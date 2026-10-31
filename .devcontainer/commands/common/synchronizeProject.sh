@@ -91,6 +91,7 @@ PY
 else
     echo "⏩ K9S_SKIN unset; skipped config.yaml skin update"
 fi
+echo "✅ Synced k9s skins"
 
 echo "🔄 Setup python3 venv"
 # venv 설정
