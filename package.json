@@ -81,7 +81,7 @@
     "lint-staged": "^17.6.0",
     "lodash": "^4.18.1",
     "prettier": "^3.9.10",
-    "projen": "^0.104.19",
+    "projen": "^0.104.21",
     "repomix": "^1.18.1",
     "rulesync": "26.0.0",
     "sha512-crypt-ts": "^0.1.27",
