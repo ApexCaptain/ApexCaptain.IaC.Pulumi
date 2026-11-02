@@ -7,6 +7,7 @@
 #   rclone-mounts status     정상 마운트 수 / 목록 수
 #   rclone-mounts status -v  항목별 상태
 #   rclone-mounts unmount    전부 해제
+#   RCLONE_VERSION=x.y.z rclone-mounts install  rclone 공식 .deb 설치 (버전이 같으면 건너뜀)
 
 set -uo pipefail
 
@@ -19,6 +20,46 @@ STATE_DIR="/tmp/rclone-mounts"
 LOG_DIR="$HOME/.cache/rclone-mounts"
 
 log() { echo "$(date '+%F %T') $*"; }
+
+has_rclone() { command -v rclone >/dev/null 2>&1; }
+
+# 루트 FS는 기동마다 이미지로 돌아가 매번 설치한다.
+# curl --retry는 exit 92(HTTP/2 스트림 끊김) 같은 오류를 재시도하지 않아 --retry-all-errors를 쓰고,
+# 잘린 파일을 apt에 넘기지 않도록 dpkg-deb로 아카이브를 확인한다
+cmd_install() {
+  local want="${RCLONE_VERSION:-}" deb url ok=""
+  if [ -z "$want" ]; then
+    log "설치 실패: RCLONE_VERSION 없음"
+    return 1
+  fi
+  if [ "$(rclone version 2>/dev/null | head -n 1)" = "rclone v$want" ]; then
+    return 0
+  fi
+  log "rclone v$want 설치 시작"
+  deb="$(mktemp --suffix=.deb)"
+  for url in \
+    "https://downloads.rclone.org/v$want/rclone-v$want-linux-amd64.deb" \
+    "https://github.com/rclone/rclone/releases/download/v$want/rclone-v$want-linux-amd64.deb"; do
+    if curl -fsSL --connect-timeout 10 --retry 3 --retry-delay 2 --retry-all-errors -o "$deb" "$url" \
+      && dpkg-deb --info "$deb" >/dev/null 2>&1; then
+      ok=1
+      break
+    fi
+    log "다운로드 실패: $url"
+  done
+  if [ -z "$ok" ]; then
+    rm -f "$deb"
+    log "설치 실패: rclone v$want .deb를 받지 못함"
+    return 1
+  fi
+  sudo apt-get install -y -o DPkg::Lock::Timeout=300 "$deb"
+  rm -f "$deb"
+  if [ "$(rclone version 2>/dev/null | head -n 1)" != "rclone v$want" ]; then
+    log "설치 실패: 설치 후 버전 불일치 ($(rclone version 2>/dev/null | head -n 1))"
+    return 1
+  fi
+  log "rclone v$want 설치 완료"
+}
 
 read_list() {
   [ -f "$LIST" ] || return 0
@@ -89,6 +130,12 @@ cmd_sync() {
   declare -gA WANT=()
   parse_list
 
+  # 바이너리가 없으면 마운트를 시도하지 않는다. .failed 백오프는 remote 오류용이다
+  if [ "${#WANT[@]}" -gt 0 ] && ! has_rclone; then
+    log "rclone 없음: 마운트 건너뜀 (RCLONE_VERSION=<버전> rclone-mounts install)"
+    return 1
+  fi
+
   # 목록에서 빠졌거나 줄이 바뀐 마운트
   local st name
   for st in "$STATE_DIR"/*; do
@@ -123,6 +170,14 @@ cmd_status() {
     echo "없음"
     return 0
   fi
+  if ! has_rclone; then
+    if [ "${1-}" = "-v" ]; then
+      echo "❌ rclone 미설치 ($LOG_DIR/sync.log)"
+    else
+      echo "rclone 없음"
+    fi
+    return 0
+  fi
   for name in "${!WANT[@]}"; do
     target="$MNT_ROOT/$name"
     if is_mounted "$target" && is_alive "$target"; then
@@ -150,8 +205,9 @@ case "${1:-sync}" in
   sync) cmd_sync "${2-}" ;;
   status) cmd_status "${2-}" ;;
   unmount) cmd_unmount_all ;;
+  install) cmd_install ;;
   *)
-    sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
     exit 1
     ;;
 esac
