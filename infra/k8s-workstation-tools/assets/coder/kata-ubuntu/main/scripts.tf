@@ -56,7 +56,8 @@ resource "coder_script" "rclone-mounts" {
   script       = <<EOF
         #!/bin/bash
         set -uo pipefail
-        export RCLONE_VERSION=${local.rclone_version}
+        # RCLONE_* 이름은 쓰지 않는다. rclone이 환경변수를 플래그로 읽는다
+        rclone_version=${local.rclone_version}
         SYNC_LOG="$HOME/.cache/rclone-mounts/sync.log"
         mkdir -p "$(dirname "$SYNC_LOG")"
         : >"$SYNC_LOG"
@@ -69,7 +70,7 @@ resource "coder_script" "rclone-mounts" {
         sudo chmod 755 /usr/local/bin/rclone-mounts
 
         # 설치 결과는 Coder 스크립트 로그와 sync.log 양쪽에 남긴다
-        if rclone-mounts install 2>&1 | tee -a "$SYNC_LOG"; then
+        if rclone-mounts install "$rclone_version" 2>&1 | tee -a "$SYNC_LOG"; then
           rclone-mounts sync
         else
           rc=1
@@ -78,7 +79,7 @@ resource "coder_script" "rclone-mounts" {
         (
           while true; do
             sleep 30
-            command -v rclone >/dev/null 2>&1 || rclone-mounts install
+            command -v rclone >/dev/null 2>&1 || rclone-mounts install "$rclone_version"
             rclone-mounts sync --auto
           done
         ) >>"$SYNC_LOG" 2>&1 &

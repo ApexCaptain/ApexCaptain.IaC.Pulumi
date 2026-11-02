@@ -7,7 +7,7 @@
 #   rclone-mounts status     정상 마운트 수 / 목록 수
 #   rclone-mounts status -v  항목별 상태
 #   rclone-mounts unmount    전부 해제
-#   RCLONE_VERSION=x.y.z rclone-mounts install  rclone 공식 .deb 설치 (버전이 같으면 건너뜀)
+#   rclone-mounts install <버전>  rclone 공식 .deb 설치 (버전이 같으면 건너뜀)
 
 set -uo pipefail
 
@@ -25,11 +25,12 @@ has_rclone() { command -v rclone >/dev/null 2>&1; }
 
 # 루트 FS는 기동마다 이미지로 돌아가 매번 설치한다.
 # curl --retry는 exit 92(HTTP/2 스트림 끊김) 같은 오류를 재시도하지 않아 --retry-all-errors를 쓰고,
-# 잘린 파일을 apt에 넘기지 않도록 dpkg-deb로 아카이브를 확인한다
+# 잘린 파일을 apt에 넘기지 않도록 dpkg-deb로 아카이브를 확인한다.
+# 버전은 인자로 받는다. RCLONE_* 환경변수는 rclone이 플래그로 읽는다 (RCLONE_VERSION은 --version)
 cmd_install() {
-  local want="${RCLONE_VERSION:-}" deb url ok=""
+  local want="${1-}" deb url ok=""
   if [ -z "$want" ]; then
-    log "설치 실패: RCLONE_VERSION 없음"
+    log "설치 실패: 버전 인자 없음 (rclone-mounts install <버전>)"
     return 1
   fi
   if [ "$(rclone version 2>/dev/null | head -n 1)" = "rclone v$want" ]; then
@@ -132,7 +133,7 @@ cmd_sync() {
 
   # 바이너리가 없으면 마운트를 시도하지 않는다. .failed 백오프는 remote 오류용이다
   if [ "${#WANT[@]}" -gt 0 ] && ! has_rclone; then
-    log "rclone 없음: 마운트 건너뜀 (RCLONE_VERSION=<버전> rclone-mounts install)"
+    log "rclone 없음: 마운트 건너뜀 (rclone-mounts install <버전>)"
     return 1
   fi
 
@@ -205,7 +206,7 @@ case "${1:-sync}" in
   sync) cmd_sync "${2-}" ;;
   status) cmd_status "${2-}" ;;
   unmount) cmd_unmount_all ;;
-  install) cmd_install ;;
+  install) cmd_install "${2-}" ;;
   *)
     sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
     exit 1
