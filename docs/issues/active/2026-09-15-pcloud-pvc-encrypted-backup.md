@@ -5,7 +5,7 @@
 | **등록일**    | 2026-09-15                                                                                                                                |
 | **영역**      | workstation 클러스터 PVC 오프사이트 백업. `k8s-workstation-system` / `apps` / `tools`, Pulumi ESC                                         |
 | **관련 코드** | `common/custom-resources` (`PvcSnapshotArchiveV1`, `VaultRaftArchiveV1`), `infra/k8s-workstation-system` (Platform·`VaultBackupComponent`), `infra/k8s-workstation-tools` (`QbittorrentBackupComponent`·`VikunjaBackupComponent`), `infra/k8s-workstation-apps` (`JellyfinBackupComponent`), ESC |
-| **상태**      | **진행중** — **Phase 1 종료** (2026-09-19): Cron·retention·복호화·`backup.tar.zst` 추출까지 검증. **다음:** Phase 2(Lane A 확장)·Lane B는 일정 없이 순차 진행 |
+| **상태**      | **진행중** — **Phase 1 종료** (2026-09-19): Cron·retention·복호화·`backup.tar.zst` 추출까지 검증. **다음:** Phase 2(Lane A 확장)·Lane B는 일정 없이 순차 진행. Coder 워크스페이스 PVC 백업은 **보류** (2026-11-03) |
 
 ## 배경
 
@@ -36,13 +36,15 @@
 | 백업 CronJob/컴포넌트            | Vault raft·qBit·Vikunja dr + Jellyfin `jellyfin-config` (**`keepWithin=3d`**) — **매일 12:00 KST** (`dr` Lease). qBit/Vault/Vikunja `keepWithin=10d`. Jellyfin worker: `zstd -T1 -6`, limit 3Gi, `/work` 8Gi (2026-10-14) |
 | 구성 SSOT                        | 본 이슈 |
 | pCloud 용량 전략                 | POC 통과. Lane B는 유료 플랜 후 |
-| Coder 워크스페이스 PVC           | 운영은 `coder-kata-ubuntu` `Primary-Kata`. 옛 Sysbox `Primary` PVC는 Bound 잔존. Lane B home 포함은 Sysbox 기준이라 Kata 이전 후 재확인 |
+| Coder 워크스페이스 PVC           | **보류 (2026-11-03)**. home·data·docker 모두 백업하지 않는다. 운영은 `coder-kata-ubuntu` `Primary-Kata`. 옛 Sysbox `Primary` PVC는 Bound 잔존 |
 
 운영 홈이 Kata로 옮긴 뒤(2026-10-31):
 
 - `coder-kata-ubuntu`: home·docker **Block** 50Gi, data Filesystem 100Gi. 워크스페이스 Running
 - `coder-sysbox-ubuntu`: 옛 `Primary` PVC 3개 Bound. 워크스페이스 Pod 없음
 - Lane B "home 포함 확정"은 당시 Sysbox Filesystem home. Kata home은 Block이라 CSI 스냅샷 경로를 다시 봐야 한다. 2026-11-06 이후 Sysbox PVC 제거 예정이면 백업 대상을 Kata home으로 옮길지 이 이슈에서 결정
+
+2026-11-03 결정: Coder 워크스페이스 백업은 전부 **보류**한다. home 용량이 커서 pCloud에 올리기 부담이다. Kata home 백업 경로 재확인도 하지 않는다. 다시 넣으려면 이 이슈에서 보류를 풀고 범위를 새로 정한다.
 
 ## PVC 분류 (할당 용량)
 
@@ -64,11 +66,11 @@
 | -------------------------------------------- | -------- | ------------------- | ------------------------------------------- | ---------------------------------------- | -------------------------- |
 | `jellyfin/jellyfin-media`                    | **2 Ti** | longhorn-hdd-retain | CSI 스냅샷→클론 후 rclone           | `k8s-backup/media/jellyfin-media/`       | 최초 sync 매우 김          |
 | `qbittorrent/qbittorrent-complete-downloads` | **1 Ti** | longhorn-hdd        | 동일                                | `k8s-backup/media/qbittorrent-complete/` |                            |
-| `coder-sysbox-ubuntu/...-home`               | 50 Gi    | longhorn-ssd        | CSI 스냅샷→클론 후 rclone           | `k8s-backup/coder-ws/home/`              | **포함 확정**              |
+| `coder-sysbox-ubuntu/...-home`               | 50 Gi    | longhorn-ssd        | CSI 스냅샷→클론 후 rclone           | `k8s-backup/coder-ws/home/`              | ~~포함 확정~~ **보류** (2026-11-03) |
 | `coder-sysbox-ubuntu/...-data`               | 100 Gi   | longhorn-hdd        | —                                   | —                                        | **제외 확정**              |
 | `coder-sysbox-ubuntu/...-docker`             | 100 Gi   | longhorn-ssd        | —                                   | —                                        | **제외 확정** (재pull)     |
 
-운영 홈이 Kata로 옮긴 뒤(2026-10-31) 위 Sysbox 행은 옛 PVC 기준이다. 위 "현재 상태"를 본다.
+운영 홈이 Kata로 옮긴 뒤(2026-10-31) 위 Sysbox 행은 옛 PVC 기준이다. 위 "현재 상태"를 본다. 2026-11-03부터 Coder 워크스페이스 행은 Kata 포함 전부 보류.
 
 ### Lane C — 제외 확정 (2026-09-15)
 
@@ -172,7 +174,7 @@ Jellyfin 백업 Job은 apps 스택에 둔다.
 ## 미결 (이후 이 이슈에서 결정)
 
 - [x] Lane C 제외 목록 최종 — **확정 A**: incomplete · modcache · jellyfin-cache · monitoring 전부 제외
-- [x] Coder workspace 백업 범위 — **확정 B**: `home`만 포함. `data`·`docker` 제외
+- [x] Coder workspace 백업 범위 — **확정 B**: `home`만 포함. `data`·`docker` 제외 → **2026-11-03 전부 보류로 변경** (home 용량)
 - [x] Lane B(및 소형 파일) 읽기 — **확정 A**: CSI VolumeSnapshot + 클론. sidecar 미채택
 - [x] Crypt 경로 — **확정 C-1 수정 (2026-09-16)**: leaf+`{timestamp}`까지 평문. `directory_name_encryption=false`, 파일명만 encrypt
 - [x] 소형 config — **확정 C**: tar/zstd 아카이브 → rclone Crypt copy. restic/kopia 미사용
@@ -183,7 +185,7 @@ Jellyfin 백업 Job은 apps 스택에 둔다.
 | 안건 | 결정 |
 |---|---|
 | Lane C | incomplete·cache·monitoring·coder data/docker 제외 |
-| Coder ws | `home`만 |
+| Coder ws | `home`만 (2026-11-03 전부 보류로 변경) |
 | RWO 읽기 | CSI VolumeSnapshot + 클론 |
 | Crypt 경로 | leaf+timestamp 평문 (`directory_name_encryption=false`), 파일명·내용 crypt |
 | 소형 config | tar/zstd → Crypt copy |
@@ -285,7 +287,7 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 
 ### Phase 4 — Lane B (유료 플랜 이후)
 
-- [ ] jellyfin-media / qbit-complete / coder home 최초 sync
+- [ ] jellyfin-media / qbit-complete 최초 sync (coder home은 2026-11-03 보류로 제외)
 - [ ] Lane A와 스케줄·락 분리 확인
 - [ ] archive retention Job
 
@@ -364,3 +366,4 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-10-13 | Authentik DB CNPG 컷오버: 라이브 PVC `authentik/authentik-db-1`. Bitnami `data-authentik-postgresql-0`는 롤백 보관 |
 | 2026-10-19 | Bitnami `authentik/data-authentik-postgresql-0` 삭제 (PV reclaim `Delete`로 볼륨도 제거). Lane A 행 제거 |
 | 2026-10-31 | 운영 워크스페이스가 `coder-kata-ubuntu` `Primary-Kata`로 이전. Lane B home 포함은 옛 Sysbox PVC 기준. Kata home은 Block이라 백업 경로 재확인 필요. 일정 없음 |
+| 2026-11-03 | Coder 워크스페이스 PVC 백업 전부 보류. home 용량이 커 pCloud 부담. Kata home 백업 경로 재확인 안 함 |

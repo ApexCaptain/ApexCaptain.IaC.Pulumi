@@ -30,7 +30,7 @@
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/active/2026-10-17-dr-rebuild-runbook.md) | 보류 |
 | [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso) manifest에 Jellyfin 12 `targetAbi` 버전 등장 | 플러그인 호환 확인 → config 백업 → 차트 3.4.0+ (앱 12.x) 업그레이드 → 재스캔 → SSO 확인 | [Jellyfin 12 업그레이드](issues/active/2026-10-21-jellyfin-12-upgrade.md) | 보류 |
 | CI가 GitOps `main`에 이미지 태그 자동 push 시작 | `repos/gitops` behind 상태에서 commit 시 guard hook deny 실확인 → 통과 시 `docs/issues/resolved` 이동 | [GitOps 로컬 클론](issues/active/2026-10-21-gitops-repo-local-clone.md) | 적용 |
-| Phase 2(Lane A 확장)·Lane B 순차 / 유료 플랜 | Coder 운영 홈이 Kata(`Primary-Kata`, home Block)로 옮김. Sysbox home 포함 확정은 옛 PVC 기준. Kata home 백업 경로 재확인 후 Lane 확장 | [pCloud PVC 백업](issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md) | 진행중 |
+| Phase 2(Lane A 확장)·Lane B 순차 / 유료 플랜 | Lane A 확장 후 Lane B (jellyfin-media·qbit-complete). Coder 워크스페이스 백업은 보류 (2026-11-03) | [pCloud PVC 백업](issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md) | 진행중 |
 ---
 
 ## 갱신
