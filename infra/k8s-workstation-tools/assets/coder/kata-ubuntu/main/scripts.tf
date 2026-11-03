@@ -4,7 +4,7 @@ resource "coder_script" "install-devcontainers-cli" {
   icon         = local.icons_base64_data_url["devcontainer.png"]
   script       = <<EOF
         #!/bin/bash
-        command -v curl >/dev/null 2>&1 || sudo apt-get install -y -o DPkg::Lock::Timeout=300 curl
+        command -v curl >/dev/null 2>&1 || { sudo apt-get update -y -o DPkg::Lock::Timeout=300 && sudo apt-get install -y -o DPkg::Lock::Timeout=300 curl; }
         curl -fsSL https://raw.githubusercontent.com/devcontainers/cli/v0.87.0/scripts/install.sh | sh -s -- --prefix /tmp/devcontainer-cli --version 0.87.0
         sudo cp -R /tmp/devcontainer-cli/* /usr
     EOF
@@ -20,7 +20,7 @@ resource "coder_script" "run-dockerd" {
         # docker PVC가 블록 장치로 들어온다. 첫 기동에 ext4 포맷 후 마운트
         if [ -b ${local.docker_device_path} ] && ! mountpoint -q /var/lib/docker; then
           if ! sudo blkid ${local.docker_device_path} >/dev/null 2>&1; then
-            command -v mkfs.ext4 >/dev/null 2>&1 || sudo apt-get install -y e2fsprogs
+            command -v mkfs.ext4 >/dev/null 2>&1 || { sudo apt-get update -y -o DPkg::Lock::Timeout=300 && sudo apt-get install -y -o DPkg::Lock::Timeout=300 e2fsprogs; }
             sudo mkfs.ext4 -q -L docker ${local.docker_device_path}
           fi
           sudo mkdir -p /var/lib/docker
@@ -63,7 +63,11 @@ resource "coder_script" "rclone-mounts" {
         : >"$SYNC_LOG"
         rc=0
         # fuse3: fusermount3. 미리 만든 /etc/fuse.conf가 있어도 묻지 않게 confold
-        sudo apt-get install -y -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confold fuse3 || rc=1
+        # 이미지에 apt 목록이 없어 설치 전에 update한다. 컨테이너 시작 명령에서 하면 agent 기동이 미러 응답만큼 늦어진다
+        if ! command -v fusermount3 >/dev/null 2>&1; then
+          { sudo apt-get update -y -o DPkg::Lock::Timeout=300 \
+            && sudo apt-get install -y -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confold fuse3; } || rc=1
+        fi
         # devContainer(dockerd, root)가 FUSE 마운트를 bind하려면 allow_other가 필요하다
         grep -qxF user_allow_other /etc/fuse.conf 2>/dev/null || echo user_allow_other | sudo tee -a /etc/fuse.conf >/dev/null
         echo '${local.files["rclone-mounts.sh"]}' | base64 -d | sudo tee /usr/local/bin/rclone-mounts >/dev/null

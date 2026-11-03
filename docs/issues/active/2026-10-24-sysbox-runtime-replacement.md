@@ -424,6 +424,50 @@ Sysbox에서 rclone 사본을 unison으로 동기화하던 이유가 위 runc �
 
 Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2개 update).
 
+## Sysbox 제거 체크리스트 (2026-11-03 작성)
+
+2026-11-06 관찰 후 제거할 때 쓴다. 기준 커밋 `f2cd206` (develop). 클러스터에서 먼저 지우고 코드에서 나중에 지우면 drift가 생기므로 **스택 순서대로 코드 제거 → preview → up** 한다. 옛 Sysbox PVC 데이터 이전은 사용자가 직접 한다 (이 체크리스트 범위 밖).
+
+### 0. 사전
+
+- [ ] Sysbox 워크스페이스 데이터 이전 완료 확인 (옛 `Primary` PVC 3개, `coder-sysbox-ubuntu`)
+- [ ] Coder에서 Sysbox 템플릿을 쓰는 워크스페이스 0개 확인 (워크스페이스가 남아 있으면 템플릿 삭제가 실패한다). 워크스페이스 삭제 시 PVC도 `Delete` reclaim으로 같이 지워진다
+
+### 1. tools 스택 (`infra/k8s-workstation-tools`)
+
+- [ ] `assets/coder/sysbox-ubuntu/` 디렉터리 (main·test)
+- [ ] `src/components/coder/coder.resources.component.ts`: `sysboxUbuntuTemplate`·`sysboxUbuntuTestTemplate`, 출력 `sysboxUbuntuTemplateId`·`sysboxUbuntuTestTemplateId` (사용처 없음), `templateVariables.sysboxUbuntu*` 타입
+- [ ] `src/components/coder/coder.base.component.ts`: 네임스페이스 `coder-sysbox-ubuntu`·`coder-sysbox-ubuntu-test`, `sysboxUbuntuMeshProxy`·`sysboxUbuntuTestMeshProxy`, 출력 `meshProxies`. **네임스페이스 삭제는 안의 옛 PVC를 같이 지운다**
+- [ ] `src/components/coder/coder.workspace-mesh-proxy.component.ts`: Sysbox 네임스페이스에서만 쓰인다 (Kata는 sidecar). 사용처가 없어지면 파일째 제거
+- [ ] `src/contract.ts`: `workspaceNamespaces`(Coder RBAC)·`allowedNamespaces`(AuthorizationPolicy)의 sysbox 두 항목, `templateVariables.sysboxUbuntu`·`sysboxUbuntuTest` (`lxcfsHostMountPath` 포함)
+- [ ] `README.md`, `assets/coder/kata-ubuntu/{main,test}/assets/scripts/lib.js` L30 주석의 Sysbox 언급
+
+### 2. system 스택 (`infra/k8s-workstation-system`)
+
+- [ ] `src/components/sysbox/` (RuntimeClass `sysbox-runc`)
+- [ ] `src/components/lxcfs/`, `src/components/generic-device-plugin/` (위 "Kata 전면 전환 시 제거 가능한 구성요소")
+- [ ] `src/components/index.ts` export 3개, `src/phases/node-runtime.ts` 생성부·반환값·L6 주석
+- [ ] `src/contract.ts` 출력 `sysbox`·`lxcfs`(·generic-device-plugin)
+- [ ] `test/__snapshots__/contract.test.ts.snap` 갱신 (`sysbox`, `Component:sysbox::sysbox` 등)
+- [ ] `README.md` L35·L53-54·L79·L104·L110
+- [ ] lxcfs 차트 버전·repo: `common/utils/src/configs/versions.config.ts` `lxcfs`, `common/nexus/src/esc/common.esc.ts` L58, `src/constants.ts` L214-215, `.nova-config.json` L14
+
+### 3. Ansible (`ansible/workstation`) — 호스트
+
+- [ ] `inventory/host_vars/workstation-0.yml` L6-9 `node_labels.sysbox-runtime`
+- [ ] `inventory/group_vars/all/all.yml` L13-14 `sysbox_ce_version`, L21-27 containerd runtime `sysbox-runc` 정의
+- [ ] `pre-configure.yml` L11·L15·L28-29 롤 참조, `roles/install-sysbox-runc/` (`files/fusermount3.local` 포함)
+- [ ] **`roles/install-nvidia-container-toolkit/tasks/main.yml` L6·L99-114**: containerd 런타임에 `sysbox-runc`가 있는지 검증한다. runtime 정의만 지우면 이 롤이 실패하므로 같이 고친다
+- [ ] 호스트의 sysbox-ce 패키지·서비스 제거. 제거 롤이 없다 — 수동 절차를 이 이슈에 남기거나 uninstall 태스크를 추가한다. containerd 설정 반영 후 재시작이 필요하다
+- [ ] 노드 라벨 `sysbox-runtime` 제거 확인 (Kubespray가 기존 라벨을 지우지 않으면 수동)
+
+### 4. 문서·규칙
+
+- [ ] `.rulesync/skills/coder-templates/SKILL.md` description·본문의 sysbox-ubuntu 언급 → `pnpm ai:generate`
+- [ ] 이 이슈의 수용 기준 체크, `docs/schedule.md` 행 갱신 후 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) 착수
+
+출처 표시만 남길 것 (지우지 않음): `k8s-cluster.yml`·`k8s-net-cilium.yml`·`configure-kata-containers`의 `@see` 이 이슈 링크, `scripts/common/docs-issue-mirror.test.ts`의 lxcfs 이슈 파일명 픽스처.
+
 ## 수용 기준
 
 - [x] GPU·systemd 필요 여부 결정 (둘 다 불필요, 2026-10-24)
@@ -480,3 +524,5 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
 | 2026-10-31 | production Kata 워크스페이스 실사용: docker 디스크 기본 10Gi가 devContainer에 부족 → 사용자가 50Gi로 확장, `resize2fs` 반영 확인. Kata 템플릿 수정·적용: devcontainers-cli apt 락, rclone 데몬 파이프 경고, Vault 토큰 로그 출력(`-no-print`, Sysbox 미수정), inotify 한도(게스트 커널 8192 → 524288) |
 | 2026-10-31 | 사용자: Kata를 베이스로 환경 재구성 완료. Sysbox는 당장 유지. 2026-11-06까지 이상 없으면 Sysbox Coder 템플릿 → lxcfs·Sysbox·generic-device-plugin 제거 후 K8s 1.36. 2027-01-15 Sysbox 지원 대기는 이 일정으로 대체 |
 | 2026-10-31 | 문서 최신화. 라이브: 노드 v1.35.9, `Primary-Kata` Running 2/2, Sysbox 워크스페이스 Pod 없음(옛 Primary PVC Bound·Mesh Proxy만) |
+| 2026-11-03 | Sysbox 제거 체크리스트 추가 (tools → system → Ansible 순서). 외부 검토에서 빠진 항목 보강: all.yml containerd runtime 정의, nvidia-container-toolkit 롤의 sysbox-runc 검증, 호스트 패키지 제거 절차 없음, 네임스페이스 삭제 시 옛 PVC 동반 삭제 |
+| 2026-11-03 | Kata 템플릿(main·test): 컨테이너 시작 명령의 매 기동 `apt-get update` 제거. update는 필요한 설치 직전에만 (rclone-mounts의 fuse3, curl·e2fsprogs 폴백). 이미지에 apt 목록이 없고 fuse3는 매 기동 설치된다(라이브 확인). 미적용 — tools 스택 `pulumi up` 필요 |

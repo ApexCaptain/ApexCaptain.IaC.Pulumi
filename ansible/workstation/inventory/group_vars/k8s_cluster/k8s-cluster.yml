@@ -16,8 +16,9 @@ kubeadm_control_plane_schedulable: true
 # container runtime
 container_manager: containerd
 
-# Kata Containers (PoC) — containerd 핸들러 kata-qemu → Pulumi RuntimeClass kata
-# 버전은 Kubespray 고정값(kata_containers_binary_checksums 최신). 적용: --tags container-engine
+# Kata Containers — 운영 Coder 워크스페이스 런타임 (kata-ubuntu 템플릿)
+# containerd 핸들러 `kata`(아래 containerd_extra_args) → Pulumi RuntimeClass `kata`. Kubespray 내장 `kata-qemu` 핸들러는 쓰지 않는다
+# 버전은 Kubespray 고정값(kata_containers_binary_checksums 최신, 2026-10-31 설치 3.32.0). Kubespray를 올리면 같이 바뀐다. 적용: --tags container-engine
 # 기본 VM 메모리가 호스트 전체(memtotal_mb)라 고정. 파드 limit만큼 hotplug 된다
 # 1024: 대기 RSS 차이는 작고(2048 대비 -20MB) 게스트 MemTotal이 limit+1Gi로 줄어든다. RuntimeClass overhead와 맞춘다
 # @see docs/issues/active/2026-10-24-sysbox-runtime-replacement.md
