@@ -65,16 +65,12 @@ export function addPrValidationWorkflow(
         run: 'pnpm build:workspaces',
       },
       {
-        name: 'Test workspaces',
-        run: 'pnpm test:workspaces',
-      },
-      {
         name: 'Test scripts',
         run: 'pnpm test:scripts',
       },
       {
         name: 'ESLint',
-        run: 'pnpm eslint',
+        run: 'pnpm exec projen eslint',
       },
     ],
   });

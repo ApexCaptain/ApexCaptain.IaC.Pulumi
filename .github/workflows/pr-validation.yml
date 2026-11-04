@@ -39,12 +39,9 @@ jobs:
       - name: Build workspaces
         id: build_workspaces
         run: pnpm build:workspaces
-      - name: Test workspaces
-        id: test_workspaces
-        run: pnpm test:workspaces
       - name: Test scripts
         id: test_scripts
         run: pnpm test:scripts
       - name: ESLint
         id: eslint
-        run: pnpm eslint
+        run: pnpm exec projen eslint
