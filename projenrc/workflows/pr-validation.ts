@@ -56,7 +56,7 @@ export function addPrValidationWorkflow(
         name: 'Install dependencies',
         run: 'pnpm i --frozen-lockfile',
       },
-      // turbo 2.x 기본 cacheDir = .turbo/cache; .turbo 전체를 저장해 로그·캐시 모두 유지
+      // turbo 2.x 기본 cacheDir = .turbo/cache. `.turbo` 전체를 저장 (로그·캐시).
       {
         name: 'Cache turbo',
         uses: 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9',
