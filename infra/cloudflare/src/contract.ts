@@ -1,8 +1,10 @@
 /**
- * Cloudflare DNS — workstation 도메인
+ * Cloudflare DNS — workstation / itemguesser 도메인
  *
- * `ayteneve93.com` zone의 CNAME 레코드를 Pulumi로 관리.
- * proxied 여부는 서비스마다 다름 — records.workstation 주석 참고.
+ * - `ayteneve93.com`: 기존 workstation 서비스 CNAME
+ * - `itemguesser.com`: 공개 HTTPS 경로·앱용 (현재 test POC)
+ *
+ * proxied 여부는 서비스마다 다름 — 각 records 컴포넌트 주석 참고.
  */
 import * as nexus from '@common/nexus';
 import * as cloudflare from '@pulumi/cloudflare';
@@ -34,6 +36,15 @@ export const cloudflareContract = new nexus.classes.Contract(
       },
     );
 
+    const itemguesserCloudflareZone = cloudflare.getZoneOutput(
+      {
+        zoneId: projectEsc.esc.zones.itemguessercom.id,
+      },
+      {
+        provider: apexCaptainCloudflareProvider,
+      },
+    );
+
     // ayteneve93com
     const ayteneve93comRecords =
       new components.ayteneve93com.Ayteneve93comRecordsComponent(
@@ -49,12 +60,30 @@ export const cloudflareContract = new nexus.classes.Contract(
         },
       );
 
+    // itemguessercom
+    const itemguessercomRecords =
+      new components.itemguessercom.ItemguessercomRecordsComponent(
+        'itemguessercomRecords',
+        {
+          zoneId: itemguesserCloudflareZone.id,
+          zoneDomain: itemguesserCloudflareZone.name,
+          workstationDomain: commonEsc.esc.workstationIptimeDomain,
+          providers: {
+            cloudflare: apexCaptainCloudflareProvider,
+          },
+        },
+      );
+
     return {
       output: pulumi.output({
         zones: {
           ayteneve93com: {
             domain: apexCaptainCloudflareZone.name,
             records: ayteneve93comRecords.output.records,
+          },
+          itemguessercom: {
+            domain: itemguesserCloudflareZone.name,
+            records: itemguessercomRecords.output.records,
           },
         },
       }),

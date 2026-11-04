@@ -5,7 +5,12 @@
 | **등록일** | 2026-09-06 |
 | **영역** | Vault / VSO / cert-manager (`k8s-workstation-system`) |
 | **관련 코드** | `infra/k8s-workstation-system/src/components/vault/vault.helm-chart.component.ts` |
-| **상태** | **적용** — 2026-10-25 leaf 갱신에서 Reloader 롤 검증 통과. CA 동시 회전으로 인한 신뢰 전파 실패는 [후속 이슈](2026-10-25-vault-ca-rotation-trust-propagation.md)로 이관 |
+| **상태** | **해결** |
+| **해결일** | 2026-11-04 |
+
+## 해결 요약
+
+Reloader + Vault STS `RollingUpdate`로 leaf 갱신 시 자동 롤 검증 완료(2026-10-25). CA 사본 신뢰 전파는 [후속](../active/2026-10-25-vault-ca-rotation-trust-propagation.md).
 
 ## 배경
 
@@ -37,16 +42,16 @@ STS annotation: `secret.reloader.stakater.com/reload: vault-server-certificate-s
 
 ## 다음 확인
 
-2026-10-25 leaf 갱신에서 Reloader 롤·Vault 재기동·서비스 DNS TLS는 통과. 이 이슈 수용 기준은 충족. CA 사본 전파 실패는 [후속 이슈](2026-10-25-vault-ca-rotation-trust-propagation.md)로 이관.
+2026-10-25 leaf 갱신에서 Reloader 롤·Vault 재기동·서비스 DNS TLS는 통과. 이 이슈 수용 기준은 충족. CA 사본 전파 실패는 [후속 이슈](../active/2026-10-25-vault-ca-rotation-trust-propagation.md)로 이관.
 
-leaf는 revision 3, 다음 갱신 **2026-12-24**. Reloader 동작은 이미 검증됨. `docs/issues/resolved` 이동은 사용자 확인 대기.
+leaf는 revision 3, 다음 갱신 **2026-12-24**. Reloader 동작은 이미 검증됨.
 
 ## 수용 기준
 
 - [x] `k8s-workstation-system` prod에 반영
 - [x] Vault STS `updateStrategy: RollingUpdate`
 - [x] STS에 Reloader annotation 존재
-- [x] **2026-10-25** leaf 갱신: Reloader가 vault-0를 롤 (통과). VSO TLS 유지는 **실패** — 원인은 이 이슈 범위 밖인 CA 사본 갱신 누락. 수동 패치로 복구, 근본 대책은 [후속 이슈](2026-10-25-vault-ca-rotation-trust-propagation.md)
+- [x] **2026-10-25** leaf 갱신: Reloader가 vault-0를 롤 (통과). VSO TLS 유지는 **실패** — 원인은 이 이슈 범위 밖인 CA 사본 갱신 누락. 수동 패치로 복구, 근본 대책은 [후속 이슈](../active/2026-10-25-vault-ca-rotation-trust-propagation.md)
 
 ## 범위 밖
 
@@ -65,4 +70,6 @@ VSO `vault-ca-secret`은 Pulumi `Secret.get()` 배포 시점 복사다. CA와 le
 | 2026-10-25 19:03 | CA(`5C222137…`→`5B5E61AB…`)·leaf(`09F5E818…`→`2A359880…`) revision 3 동시 갱신. 만료 2027-01-23, 다음 갱신 2026-12-24. Reloader 10:03:37Z STS 롤, vault-0 새 Pod·unsealed·새 leaf 서빙, 서비스 DNS TLS(새 CA) 통과 |
 | 2026-10-25 19:03 | 배포 시점 CA 사본 4곳이 옛 CA 유지 → `vault.ayteneve93.com` 503 (ingress TLS origination 실패), VSS 8개 `unknown authority`, Pulumi Vault provider preview 실패. `VaultConnection` valid=true라 감지 안 됨 |
 | 2026-10-25 19:19 | 사용자 승인으로 `istio-system/vault-tls-origination-ca`, `vault-secrets-operator/vault-ca-secret`의 `ca.crt`를 새 CA로 패치 → ingress 즉시 200. VSO는 클라이언트 캐시로 순차 회복 (10:21Z jellyfin, 10:36Z price-quest-prod, 11:14Z 나머지). 재시작 없음 |
-| 2026-10-25 20:30 | system 스택 `pulumi preview --refresh`: 268 unchanged (패치 값 = Pulumi 기대값). jellyfin·qbittorrent sftp adapter CA 사본 2개는 아직 옛 CA (tools/apps 스택). CA 전파 문제는 [후속 이슈](2026-10-25-vault-ca-rotation-trust-propagation.md)로 분리. resolved 이동은 사용자 확인 대기 |
+| 2026-10-25 20:30 | system 스택 `pulumi preview --refresh`: 268 unchanged (패치 값 = Pulumi 기대값). jellyfin·qbittorrent sftp adapter CA 사본 2개는 아직 옛 CA (tools/apps 스택). CA 전파 문제는 [후속 이슈](../active/2026-10-25-vault-ca-rotation-trust-propagation.md)로 분리. resolved 이동은 사용자 확인 대기 |
+| 2026-11-04 | active 점검: Vault STS annotation·RollingUpdate 유지, Reloader env `STAKATER_VAULT_SERVER_CERTIFICATE_SECRET_SECRET` 존재. 이 이슈 할 일 없음 — 아카이브만 남음 |
+| 2026-11-04 | 사용자 승인으로 `docs/issues/resolved` 아카이브 |

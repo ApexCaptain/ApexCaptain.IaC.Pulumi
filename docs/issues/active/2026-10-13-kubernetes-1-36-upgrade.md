@@ -133,7 +133,7 @@ devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_
 |---|---|---|---|
 | Cilium | v1.20.2 (Kubespray) | ✅ | [v1.20 compatibility](https://docs.cilium.io/en/v1.20/network/kubernetes/compatibility/): 1.33–1.36 e2e 테스트 |
 | Longhorn | v1.13.0 | ✅ | [1.13.0 best practices](https://longhorn.io/docs/1.13.0/best-practices/): 1.33–1.36 테스트. 최소 버전은 1.34 (CSI provisioner v6.3.0) |
-| Istio | 1.30.6 | ✅ | [supported releases](https://istio.io/latest/docs/releases/supported-releases/): 1.32–1.36 지원. 1.30 EOL은 2026-12 예상 |
+| Istio | 1.30.7 | ✅ | [supported releases](https://istio.io/latest/docs/releases/supported-releases/): 1.32–1.36 지원. 1.30 EOL은 2026-12 예상. 클러스터 `pilot`/`proxyv2` 1.30.7 (2026-11-04) |
 | metrics-server | v0.9.0 (Kubespray) | ✅ | [README 호환표](https://github.com/kubernetes-sigs/metrics-server): 0.9.x는 1.34 이상 |
 | Vault Secrets Operator | 1.6.0 | ✅ | [CHANGELOG 1.6.0](https://github.com/hashicorp/vault-secrets-operator/blob/main/CHANGELOG.md): 1.33–1.37 테스트 |
 | NVIDIA GPU Operator | v26.7.2 | ✅ | [platform support](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html): Ubuntu 26.04 베어메탈에서 1.33–1.37 |
@@ -305,3 +305,4 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 | 2026-10-24 | Sysbox 1.36 공식 지원 없음 재확인. 대체 런타임 선정을 [Sysbox 대체 런타임](2026-10-24-sysbox-runtime-replacement.md)으로 분리 (추천 Kata, 2026-12 PoC). 2027-01-15 판단은 그 PoC 결과와 함께 |
 | 2026-10-31 | 사용자: Kata 베이스 재구성 완료. Sysbox는 당장 유지. 2026-11-06까지 이상 없으면 Sysbox 스택 제거 후 Phase 2. 2027-01-15 지원 대기는 폐기 |
 | 2026-10-31 | 현재 상태 표 갱신: 노드 v1.35.9, Cilium hostNamespaceOnly, 운영 런타임 Kata(`Primary-Kata`). 호환성 표 Sysbox는 잔존·제거 선행 |
+| 2026-11-04 | active 점검: 노드 v1.35.9 Ready, Kata `Primary-Kata` Running, Sysbox 워크스페이스 Pod 없음·옛 PVC 3개 Bound. 호환성 표 Istio 1.30.6→1.30.7 (클러스터 pilot/proxyv2 일치) |
