@@ -5,11 +5,16 @@
 | **등록일** | 2026-11-04 |
 | **영역** | GitHub Actions `pr-validation`, Projen 워크플로, turbo |
 | **관련 코드** | `projenrc/workflows/pr-validation.ts`, `scripts/ci-pr-build-workspaces.sh`, `.github/workflows/pr-validation.yml` |
-| **선행** | [PR CI 검증 파이프라인](../resolved/2026-09-11-pr-ci-validation-pipeline.md) |
-| **관련** | [CI pulumi preview·drift](2026-10-17-ci-pulumi-preview-drift.md) (별 이슈 — preview는 여기 범위 밖) |
+| **선행** | [PR CI 검증 파이프라인](2026-09-11-pr-ci-validation-pipeline.md) |
+| **관련** | [CI pulumi preview·drift](../active/2026-10-17-ci-pulumi-preview-drift.md) (별 이슈 — preview는 여기 범위 밖) |
 | **계획** | [docs/superpowers/plans/2026-11-04-pr-validation-speedup.md](../../superpowers/plans/2026-11-04-pr-validation-speedup.md) |
-| **상태** | **진행중** — Phase 1·2·3 코드·실증 완료. 사용자 아카이브(닫기) 확인 대기 |
+| **상태** | **해결** |
+| **해결일** | 2026-11-04 |
 | **근거** | Grok 자문 `tmp/advisor/pr-validation-speedup.md` + 로컬 코드 대조 (2026-11-04) |
+
+## 해결 요약
+
+Phase 1 중복 제거([#185](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/185), ~190s) → Phase 2 `.turbo` Actions cache([#188](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/188), hit ~41s) → Phase 3 `turbo --affected`([#190](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/190)). 이 레포에서 할 일 없음.
 
 ## 배경
 
@@ -74,3 +79,4 @@
 | 2026-11-04 | [#188](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/188) 2차 CI `41782722013`: restore-key hit → FULL TURBO. job **~41s** (Build ~0s). Phase 2 머지 |
 | 2026-11-04 | Phase 3: checkout `fetch-depth: 0` + `scripts/ci-pr-build-workspaces.sh` (`TURBO_SCM_BASE/HEAD`, 루트 변경 시 전량 / 아니면 `--affected`). 로컬 dry-run: docs-only=0 패키지, utils 변경=의존 전파, leaf infra=소수 패키지 |
 | 2026-11-04 | [#190](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/190) 머지. CI `41784761003`에서 `Root/config change detected — full pnpm build:workspaces`(9 packages) 확인. job ~204s |
+| 2026-11-04 | 사용자 아카이브 요청. 상태 **해결**, `docs/issues/resolved`로 이동, schedule 행 삭제 |
