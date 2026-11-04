@@ -1,7 +1,7 @@
 /**
  * Istio Gateway CR — ingress(HTTPS) + direct(TCP)
  *
- * - **ingress gateway**: `*.zone` 와일드카드 LE 인증서, HTTP→HTTPS 리다이렉트
+ * - **ingress gateway**: zone별 `*.zone` 와일드카드 LE 인증서(SNI), HTTP→HTTPS 리다이렉트
  * - **direct gateway**: Jellyfin/qBittorrent SFTP 등 L4 passthrough
  *
  * VirtualService의 `gateways` 필드는 `{namespace}/{gateway-name}` 형식으로 여기 output을 쓴다.
@@ -14,6 +14,7 @@ import * as pulumi from '@pulumi/pulumi';
 interface IstioGatewayComponentArgsShape {
   namespace: string;
   apexCaptainCloudflareZoneName: string;
+  itemguesserCloudflareZoneName: string;
   letsEncryptProdClusterIssuerName: string;
   letsEncryptStagingClusterIssuerName: string;
   istioIngressGatewayLabel: string;
@@ -37,7 +38,7 @@ export const IstioGatewayComponent = utils.functions.defineComponent(
     opts: pulumi.ComponentResourceOptions,
     resourceName: string,
   ) => {
-    // LE wildcard — prod(실서비스) / staging(디버그·rate limit 회피용)
+    // LE wildcard — ayteneve93.com prod / staging
     const istioIngressGatewayWildcardProdCertSecretName =
       'istio-ingressgateway-wildcard-prod-cert';
     const istioIngressGatewayWildcardProdCertificate =
@@ -94,9 +95,74 @@ export const IstioGatewayComponent = utils.functions.defineComponent(
         },
       );
 
-    const istioIngressGatewayHosts = [
+    // LE wildcard — itemguesser.com prod / staging
+    const itemguesserIngressGatewayWildcardProdCertSecretName =
+      'istio-ingressgateway-itemguesser-wildcard-prod-cert';
+    const itemguesserIngressGatewayWildcardProdCertificate =
+      new customResources.resources.k8s.crd.certManager.CertificateV1(
+        `${resourceName}-itemguesserIngressGatewayProductionCertificate`,
+        {
+          metadata: {
+            name: 'istio-ingressgateway-itemguesser-production',
+            namespace: args.namespace,
+          },
+          spec: {
+            secretName: itemguesserIngressGatewayWildcardProdCertSecretName,
+            issuerRef: {
+              name: args.letsEncryptProdClusterIssuerName,
+              kind: 'ClusterIssuer',
+            },
+            dnsNames: [
+              pulumi.interpolate`*.${args.itemguesserCloudflareZoneName}`,
+              args.itemguesserCloudflareZoneName,
+            ],
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
+
+    const itemguesserIngressGatewayWildcardStagingCertSecretName =
+      'istio-ingressgateway-itemguesser-wildcard-staging-cert';
+    const itemguesserIngressGatewayWildcardStagingCert =
+      new customResources.resources.k8s.crd.certManager.CertificateV1(
+        `${resourceName}-itemguesserIngressGatewayStagingCertificate`,
+        {
+          metadata: {
+            name: 'istio-ingressgateway-itemguesser-staging',
+            namespace: args.namespace,
+          },
+          spec: {
+            secretName: itemguesserIngressGatewayWildcardStagingCertSecretName,
+            issuerRef: {
+              name: args.letsEncryptStagingClusterIssuerName,
+              kind: 'ClusterIssuer',
+            },
+            dnsNames: [
+              pulumi.interpolate`*.${args.itemguesserCloudflareZoneName}`,
+              args.itemguesserCloudflareZoneName,
+            ],
+          },
+        },
+        {
+          ...opts,
+          provider: args.providers.kubernetes,
+        },
+      );
+
+    // staging certs reserved for LE debug; Gateway uses prod secrets only
+    void istioIngressGatewayWildcardStagingCert;
+    void itemguesserIngressGatewayWildcardStagingCert;
+
+    const apexCaptainIngressGatewayHosts = [
       pulumi.interpolate`*.${args.apexCaptainCloudflareZoneName}`,
     ];
+    const itemguesserIngressGatewayHosts = [
+      pulumi.interpolate`*.${args.itemguesserCloudflareZoneName}`,
+    ];
+
     const istioIngressGateway =
       new customResources.resources.k8s.crd.istio.GatewayV1(
         `${resourceName}-istioIngressGateway`,
@@ -116,7 +182,10 @@ export const IstioGatewayComponent = utils.functions.defineComponent(
                   name: 'http',
                   protocol: 'HTTP',
                 },
-                hosts: istioIngressGatewayHosts,
+                hosts: [
+                  ...apexCaptainIngressGatewayHosts,
+                  ...itemguesserIngressGatewayHosts,
+                ],
                 tls: {
                   httpsRedirect: true,
                 },
@@ -124,13 +193,26 @@ export const IstioGatewayComponent = utils.functions.defineComponent(
               {
                 port: {
                   number: 443,
-                  name: 'https',
+                  name: 'https-ayteneve93',
                   protocol: 'HTTPS',
                 },
-                hosts: istioIngressGatewayHosts,
+                hosts: apexCaptainIngressGatewayHosts,
                 tls: {
                   mode: 'SIMPLE',
                   credentialName: istioIngressGatewayWildcardProdCertSecretName,
+                },
+              },
+              {
+                port: {
+                  number: 443,
+                  name: 'https-itemguesser',
+                  protocol: 'HTTPS',
+                },
+                hosts: itemguesserIngressGatewayHosts,
+                tls: {
+                  mode: 'SIMPLE',
+                  credentialName:
+                    itemguesserIngressGatewayWildcardProdCertSecretName,
                 },
               },
             ],
@@ -139,6 +221,10 @@ export const IstioGatewayComponent = utils.functions.defineComponent(
         {
           ...opts,
           provider: args.providers.kubernetes,
+          dependsOn: [
+            istioIngressGatewayWildcardProdCertificate,
+            itemguesserIngressGatewayWildcardProdCertificate,
+          ],
         },
       );
     const istioIngressGatewayPath = pulumi.interpolate`${args.namespace}/${istioIngressGateway.metadata.name}`;

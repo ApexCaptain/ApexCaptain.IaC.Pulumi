@@ -14,7 +14,7 @@
 | **2026-11-06 이후** | 위 제거가 끝나면 Phase 2 (1.35.9 → 1.36). 이상 있으면 보류 | [Kubernetes 1.36 업그레이드](issues/active/2026-10-13-kubernetes-1-36-upgrade.md) | 보류 |
 | **2026-12 초** | VPA 3차 스냅. vault·argo applicationset·reloader 두 번째 OVER면 축소. 11월 주기는 10-30으로 대체 | [VPA 리소스 재조정](issues/active/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-30 2차 반영 완료 |
 | **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/active/2026-09-13-priority-class-resource-protection.md) | 보류 |
-| **2027-01 말** | Vault CA 회전 방법론 재검토: A 적용 결과, 정기 회전 필요성, ①②(trust-manager 배포·VSO Reloader) 또는 ①②③(옛·새 CA 병행) 도입 여부 | [Vault CA 회전 신뢰 전파](issues/active/2026-10-25-vault-ca-rotation-trust-propagation.md) | 진행중 |
+| **2027-01 말** | Vault CA 회전 방법론 재검토: A 적용 결과, 정기 회전 필요성, ①②(trust-manager 배포·VSO Reloader) 또는 ①②③(옛·새 CA 병행) 도입 여부 | [Vault CA 회전 신뢰 전파](issues/active/2026-10-25-vault-ca-rotation-trust-propagation.md) | 적용 · 2027-01 말 재검토 |
 
 12월 PriorityClass는 VPA 3차(2026-12 초) 결과를 함께 본다. Longhorn 1.13 엔진 업그레이드는 **완료** ([resolved](issues/resolved/2026-10-07-longhorn-1-13-0-upgrade.md)) — K8s Phase 1은 2026-10-21 완료. 운영 Coder 런타임은 Kata.
 
@@ -24,7 +24,7 @@
 
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
-| [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/active/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
+| Istio `proxyv2`에 Envoy #45198 픽스 포함 (1.30.7엔 없음. 노트 기준 1.32+). #45198·#60074는 이미 닫힘 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/active/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 | 사용자 재개 결정 (2026-10-19 보류. protect 선행은 충족) | 클러스터 도달·자격 증명 결정 → 일일 drift 감지 → PR preview | [CI preview·drift](issues/active/2026-10-17-ci-pulumi-preview-drift.md) | 보류 |
 | 사용자 착수 결정 (Sysbox 제거·K8s 1.36과 같은 시기 금지) | tools contract phase 분해 + contract 단위 테스트 (system 방식 재사용) | [tools contract 분해](issues/active/2026-10-28-tools-contract-split.md) | 보류 |
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/active/2026-10-17-dr-rebuild-runbook.md) | 보류 |

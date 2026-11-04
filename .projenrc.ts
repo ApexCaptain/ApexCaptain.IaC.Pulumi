@@ -961,11 +961,7 @@ void (async () => {
   const targetMcpServers = (
     target: AiAgentTarget,
   ): src.interfaces.RulesyncMcpServers => ({
-    'cloudflare-api': remoteMcpProxyServer(
-      target,
-      'https://mcp.cloudflare.com/mcp',
-      ['Authorization', 'CLOUDFLARE_MCP_TOKEN', 'bearer'],
-    ),
+    // Cloudflare MCP는 Cursor 공식 플러그인(OAuth) 사용. 레포 stdio 프록시·CLOUDFLARE_MCP_TOKEN 제거.
     // rulesync는 Cursor env 값의 ${workspaceFolder}를 ${env:workspaceFolder}로 바꾼다 → 래퍼 인자로 넘긴다
     'oracle-oci-cloud-mcp-server': {
       type: 'stdio',

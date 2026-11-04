@@ -92,6 +92,8 @@ export const deployMesh = (deps: {
       namespace: istioHelmChart.output.namespace,
       apexCaptainCloudflareZoneName:
         cloudflareContract.output.zones.ayteneve93com.domain,
+      itemguesserCloudflareZoneName:
+        cloudflareContract.output.zones.itemguessercom.domain,
       letsEncryptProdClusterIssuerName:
         certManagerResources.output.letsEncryptProdClusterIssuerName,
       letsEncryptStagingClusterIssuerName:

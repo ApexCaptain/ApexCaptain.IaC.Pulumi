@@ -12,18 +12,6 @@
   },
   "cursor": {
     "mcpServers": {
-      "cloudflare-api": {
-        "type": "stdio",
-        "command": "bash",
-        "args": [
-          "${workspaceFolder}/scripts/mcp-remote-proxy.sh",
-          "https://mcp.cloudflare.com/mcp",
-          "Authorization",
-          "CLOUDFLARE_MCP_TOKEN",
-          "bearer"
-        ],
-        "envFile": "${workspaceFolder}/.devcontainer/.env"
-      },
       "oracle-oci-cloud-mcp-server": {
         "type": "stdio",
         "command": "bash",
@@ -54,17 +42,6 @@
   },
   "claudecode": {
     "mcpServers": {
-      "cloudflare-api": {
-        "type": "stdio",
-        "command": "bash",
-        "args": [
-          "scripts/mcp-remote-proxy.sh",
-          "https://mcp.cloudflare.com/mcp",
-          "Authorization",
-          "CLOUDFLARE_MCP_TOKEN",
-          "bearer"
-        ]
-      },
       "oracle-oci-cloud-mcp-server": {
         "type": "stdio",
         "command": "bash",

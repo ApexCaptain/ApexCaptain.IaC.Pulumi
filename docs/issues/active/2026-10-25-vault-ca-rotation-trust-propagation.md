@@ -5,7 +5,7 @@
 | **등록일** | 2026-10-25 |
 | **영역** | Vault 내부 CA (cert-manager), istio-ingressgateway TLS origination, VSO, sftp adapter (`k8s-workstation-system` / `-tools` / `-apps`) |
 | **관련 코드** | `infra/k8s-workstation-system/src/components/vault/vault.helm-chart.component.ts` (CA Certificate), `.../vault/vault.service-mesh.component.ts`, `.../vault-secrets-operator/vault-secrets-operator.resources.component.ts`, `common/custom-resources/src/components/adapter/sftp.v3.component.ts` |
-| **상태** | **진행중** — A(CA 장수명 + 키 고정) 적용 완료. CA revision 4, 만료 2036-10-22, 다음 CA 갱신 2033-06-23. 남은 것: 2027-01 말 방법론 재검토 |
+| **상태** | **적용** — A(CA 장수명 + 키 고정) 필수 수용 기준 충족. CA revision 4, 만료 2036-10-22, 다음 갱신 2033-06-23 (2026-11-04 클러스터 재확인). 남은 것: **2027-01 말** 방법론 재검토 (+ 선택 알림) |
 | **재검토** | **2027-01 말** — 방법론 재검토 (사용자 요청) |
 
 ## 증상 (2026-10-25 19:03 KST)
@@ -17,7 +17,7 @@ CA·leaf가 동시에 revision 3으로 갱신된 직후:
 - Pulumi Vault provider가 ingress 경유라 `pulumi preview` 실패 → IaC로 복구 불가 (닭과 달걀)
 - `VaultConnection` / `VaultAuth`는 계속 `valid=true` → 상태만으로는 감지 안 됨
 
-경과·조치 상세는 [Vault TLS cert reload](2026-09-06-vault-tls-cert-reload.md) 타임라인.
+경과·조치 상세는 [Vault TLS cert reload](../resolved/2026-09-06-vault-tls-cert-reload.md) 타임라인.
 
 ## 원인
 
@@ -124,7 +124,7 @@ A의 `rotationPolicy: Never`는 재발급해도 **같은 키**를 쓴다. 옛 CA
 
 ## 범위 밖
 
-- Vault leaf 회전·Reloader ([Vault TLS cert reload](2026-09-06-vault-tls-cert-reload.md))
+- Vault leaf 회전·Reloader ([Vault TLS cert reload](../resolved/2026-09-06-vault-tls-cert-reload.md))
 - trust-manager 도입 (A로 부족할 때 별도 이슈)
 
 ## 관련 링크
@@ -145,3 +145,4 @@ A의 `rotationPolicy: Never`는 재발급해도 **같은 키**를 쓴다. 옛 CA
 | 2026-10-25 | 3개 스택 preview에서 사본 Secret이 **replace**로 나옴 (provider 기본: Secret 데이터 변경 = 교체) + 무관 변경(tools·apps `keysBootstrapJob` 생성, tools Cloudflare `ZeroTrustDeviceDefaultProfile`, system authentik Group users unknown) → `up` 대신 사본 4곳을 새 CA로 패치 + 3개 스택 `pulumi refresh`. 재 preview: system 268 unchanged, tools·apps는 무관 변경만. 외부 Vault 200, VSS 8/8 |
 | 2026-10-25 | tools·apps 배포 때 sftp bootstrap Job 2개가 새 CA 사본으로 Vault TLS·로그인·KV 읽기 성공. 전체 점검: 노드 Ready, 비정상 Pod 0, 최근 1시간 재시작 0, Warning 이벤트 0, Certificate 5/5, VSO 13/13, Vault unsealed, Longhorn 19 healthy, CNPG 3 healthy, 외부 엔드포인트 10개 정상 응답 |
 | 2026-10-26 04:01 | 새 10년 CA 사본으로 첫 정기 sftp reconcile CronJob(03:00 KST) jellyfin·qbittorrent 둘 다 성공, x509·unknown authority 오류 없음. 전체 점검 이상 없음 (Certificate 5/5, VSO 13/13, Vault unsealed, 외부 엔드포인트 10/10) |
+| 2026-11-04 | active 점검: CA Certificate revision 4, `duration: 87600h`, `rotationPolicy: Never`, notAfter 2036-10-22, renewalTime 2033-06-23. 필수 수용 기준 충족 → 상태 **적용**. 아카이브 아님(2027-01 말 방법론 재검토·선택 알림 남음) |

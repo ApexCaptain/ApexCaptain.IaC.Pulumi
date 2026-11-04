@@ -5,8 +5,8 @@
 | **발생** | 2026-07-18 (최초), 2026-08-17 (재현·원인 확정) |
 | **서비스** | Jellyfin (`jellyfin.ayteneve93.com`) |
 | **스택** | `k8s-workstation-apps` (PROD) |
-| **Istio** | 1.30.4, profile `ambient` |
-| **상태** | **완화** — sidecar (`dataplane-mode: none` + `istio-injection: enabled`), ingress SA ALLOW. Ambient 재도입은 upstream 픽스 대기 |
+| **Istio** | 1.30.7, profile `ambient` (Jellyfin ns는 sidecar) |
+| **상태** | **완화** — sidecar (`istio-injection: enabled` + PeerAuthentication/Authz). Envoy·Istio 이슈는 닫힘. 사용 중 `proxyv2` 1.30.7엔 픽스 미포함 → ambient 재도입은 Istio 픽스 포함 버전(노트 기준 1.32+) 이후 |
 
 ---
 
@@ -55,7 +55,7 @@ Gateway가 ambient in-mesh destination(Jellyfin namespace `dataplane-mode: ambie
 > Istio maintainer: ambient 전체 문제가 아니라 **Gateway 경유 + HBONE + mid-stream abort** 조합의 Envoy 버그.  
 > ([istio/istio#60074](https://github.com/istio/istio/issues/60074) 코멘트)
 
-Envoy 픽스 [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198)은 이슈 완료 시점(2026-09-06) 기준 **미머지**. Istio 1.30.4 `proxyv2`에도 없음. Ambient 경로로는 해결 불가.
+Envoy 픽스 [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198)은 **2026-09-29 머지**. [istio/istio#60074](https://github.com/istio/istio/issues/60074)는 **2026-10-02 클로즈**. 릴리스 노트 cherry-pick은 `release-1.32`(#62148). 현재 클러스터 `proxyv2:1.30.7-distroless`의 Envoy SHA에는 해당 픽스 테스트·changelog가 없다. Ambient 재도입은 **픽스가 들어간 Istio `proxyv2`로 올린 뒤** 이 이슈에서 검증.
 
 ### 조사 중 배제된 가설
 
@@ -74,7 +74,7 @@ Envoy 픽스 [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/4
 
 ### 1. Sidecar + Gateway SA only (2026-09-06) — 채택
 
-Ambient 재도입은 Envoy 픽스 전까지 불가. Sidecar로 mTLS·Authz를 복원하고 HBONE `connect_originate`를 피했다.
+Ambient 재도입은 픽스가 들어간 `proxyv2` 전까지 불가. Sidecar로 mTLS·Authz를 복원하고 HBONE `connect_originate`를 피했다.
 
 ```yaml
 # jellyfin Namespace
@@ -120,7 +120,7 @@ kubectl rollout restart deploy/istio-ingressgateway -n istio-system
 
 클러스터:
 
-- Pod `3/3 Ready` (`jellyfin` + `sftp-sidecar` + native `istio-proxy` 1.30.4).
+- Pod `3/3 Ready` (`jellyfin` + `sftp-sidecar` + native `istio-proxy`). 2026-11-04 기준 이미지는 Istio 1.30.7.
 - `https://jellyfin.ayteneve93.com/health` → 200 `Healthy`. `/web/` → 200.
 - Pod 내부 `127.0.0.1:8096/health` → 200.
 - ClusterIP·Pod IP plaintext → `Connection reset by peer` (STRICT + Authz).
@@ -133,10 +133,11 @@ kubectl rollout restart deploy/istio-ingressgateway -n istio-system
 
 Jellyfin을 다시 `istio.io/dataplane-mode: ambient`로 올리려면 아래가 끝난 뒤 **이 이슈에서** 검증한다.
 
-- [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 및 사용 중 Istio `proxyv2` 포함
-- [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈
-- Direct Play + 시크 스트레스 (mp4/mkv, 연속 시크 10회+)
-- Gateway `rq_active` vs `cx_active` 1:1 고착 여부
+- [x] [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 (2026-09-29)
+- [x] [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 (2026-10-02)
+- [ ] 사용 중 Istio `proxyv2`에 Envoy 픽스 포함 (1.30.7에는 없음. 노트 기준 1.32+ 또는 픽스 확인된 패치)
+- [ ] Direct Play + 시크 스트레스 (mp4/mkv, 연속 시크 10회+)
+- [ ] Gateway `rq_active` vs `cx_active` 1:1 고착 여부
 
 그때 PeerAuthentication / AuthorizationPolicy는 유지하고 sidecar injection만 제거하면 된다.
 
@@ -149,7 +150,7 @@ Jellyfin을 다시 `istio.io/dataplane-mode: ambient`로 올리려면 아래가 
 | 링크 | 설명 |
 |------|------|
 | [istio/istio#60074](https://github.com/istio/istio/issues/60074) | **Ambient gateway wedges under client-aborted Range requests** — Jellyfin + 시크 repro, `connect_originate` stream leak |
-| [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) | HBONE stream teardown fix (upstream, Istio proxy 반영 대기) |
+| [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) | HBONE stream teardown fix (2026-09-29 머지. Istio `proxyv2` 1.30.7엔 미포함) |
 | [evan-hines-js/istio-hbone-wedge-repro](https://github.com/evan-hines-js/istio-hbone-wedge-repro) | 공식 repro 저장소 (Jellyfin + Big Buck Bunny / stream.mp4) |
 
 ### 동일 계열 (장시간·대용량·클라이언트 abort)
@@ -207,3 +208,4 @@ flowchart LR
 | 2026-09-06 | sidecar + PeerAuthentication STRICT + Authz ingress SA 배포 |
 | 2026-09-06 | Direct Play 시크 정상 확인. 이슈 완료. `docs/issues/` → `docs/resolved/` 아카이브 |
 | 2026-09-06 | 완화·upstream 대기로 `docs/resolved/` → `docs/issues/` 복원 |
+| 2026-11-04 | upstream 재확인: Envoy #45198 머지·Istio #60074 클로즈. 클러스터 Istio 1.30.7 / `proxyv2:1.30.7-distroless`. 해당 Envoy SHA에 픽스 없음 → 트리거를 «픽스 포함 proxyv2 업그레이드»로 갱신. Jellyfin sidecar 완화 유지 (Pod Ready, ns `istio-injection: enabled`) |

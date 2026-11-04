@@ -5,7 +5,12 @@
 | **등록일** | 2026-10-25 |
 | **영역** | sftp adapter v3 (jellyfin `k8s-workstation-apps`, qbittorrent `k8s-workstation-tools`) |
 | **관련 코드** | `common/custom-resources/templates/sftp-v3-issuer-job.sh.tpl`, `common/custom-resources/src/components/adapter/sftp.v3.component.ts`, `common/custom-resources/test/sftp-v3.test.ts` |
-| **상태** | **적용** — 2026-10-25 tools·apps 배포 완료. 두 adapter 모두 bootstrap skip·키 보존 확인 |
+| **상태** | **해결** |
+| **해결일** | 2026-11-04 |
+
+## 해결 요약
+
+bootstrap Job을 멱등화해 KV에 키가 있으면 발급을 skip. tools·apps 배포 후 두 adapter 모두 skip·키 보존 확인(2026-10-25).
 
 ## 증상
 
@@ -59,3 +64,5 @@ bootstrap 분기를 멱등으로 변경:
 |------|------|
 | 2026-10-25 | 등록. CA 사본 정리 중 tools·apps preview의 `keysBootstrapJob` create 원인 확인 (TTL 삭제 → 재생성 → 비멱등 bootstrap이 키 덮어씀). 스크립트 멱등화·테스트 완료. 배포 전 |
 | 2026-10-25 | 사용자 승인으로 tools(update 252: Job create, CronJob 2 update, Cloudflare 프로필 update)·apps(Job create, CronJob 2 update) `pulumi up`. 두 bootstrap Job 로그 `host key exists … skip` / `user key exists … skip`. system은 268 unchanged (versions.config 차트 버전은 사용자가 10-23에 이미 반영, 커밋만 안 된 상태) |
+| 2026-11-04 | active 점검: 수용 기준 전부 체크됨, 코드에 `kv_get_or_empty`·skip 분기 유지. 이 이슈 할 일 없음 — 아카이브만 남음 |
+| 2026-11-04 | 사용자 승인으로 `docs/issues/resolved` 아카이브 |
