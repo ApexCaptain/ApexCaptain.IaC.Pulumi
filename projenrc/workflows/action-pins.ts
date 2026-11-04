@@ -31,4 +31,9 @@ export function pinWorkflowActions(
     'pulumi/actions',
     'pulumi/actions@8e5e406f4007fca908480587cb9893c07090f58d',
   );
+  // v6.1.0 — turbo 로컬 캐시 (pr-validation)
+  actions.set(
+    'actions/cache',
+    'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9',
+  );
 }
