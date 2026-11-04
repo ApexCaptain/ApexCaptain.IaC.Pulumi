@@ -8,7 +8,7 @@
 | **선행** | [PR CI 검증 파이프라인](../resolved/2026-09-11-pr-ci-validation-pipeline.md) |
 | **관련** | [CI pulumi preview·drift](2026-10-17-ci-pulumi-preview-drift.md) (별 이슈 — preview는 여기 범위 밖) |
 | **계획** | [docs/superpowers/plans/2026-11-04-pr-validation-speedup.md](../../superpowers/plans/2026-11-04-pr-validation-speedup.md) |
-| **상태** | **진행중** — Phase 1 로컬 게이트 확인 완료; 커밋·PR·원격 CI·job 시간 측정 대기 |
+| **상태** | **진행중** — Phase 1 원격 실증 완료 ([#185](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/185)). Phase 2·3 착수 여부 대기 |
 | **근거** | Grok 자문 `tmp/advisor/pr-validation-speedup.md` + 로컬 코드 대조 (2026-11-04) |
 
 ## 배경
@@ -49,8 +49,8 @@
 
 - [x] PR 검증에서 각 워크스페이스 패키지의 compile·jest·패키지 ESLint, 그리고 루트 ESLint가 **최소 1회** 실행된다 (0회로 줄지 않음) — CI: `build:workspaces` + `pnpm exec projen eslint` (로컬 워크플로 대조)
 - [x] 같은 PR 경로에서 jest·패키지 ESLint가 **의도적 중복 없이** 1회만 돈다 — CI에서 `test:workspaces`·`posteslint` 경로(`pnpm eslint`) 제거 확인
-- [x] SSOT는 `projenrc/workflows/pr-validation.ts` (+ 필요 시 `.projenrc.ts`). 생성 YAML 손수정 없음. `pnpm exec projen` 후 생성물 커밋 — SSOT·`.github/workflows/pr-validation.yml` 일치 확인 (아직 미커밋)
-- [ ] Phase 1 적용 후 `pr-validation` 전체 job 중앙값이 적용 전(약 471초)보다 유의미하게 감소 (목표: Test workspaces·중복 ESLint분 제거에 해당하는 수준)
+- [x] SSOT는 `projenrc/workflows/pr-validation.ts` (+ 필요 시 `.projenrc.ts`). 생성 YAML 손수정 없음. `pnpm exec projen` 후 생성물 커밋 — [#185](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/185)
+- [x] Phase 1 적용 후 `pr-validation` 전체 job이 적용 전(약 471초)보다 유의미하게 감소 — run `41780087910` job **190초** (Build 168 · ESLint 4 · Test workspaces 없음). 기준 대비 약 **281초(~60%)** 단축. 단, 1회 실측(중앙값 아님)
 - [ ] Phase 2·3은 별 변경으로 분리되고, 각각 머지 전 로컬/CI로 범위 축소 없음을 확인
 
 ## 범위 밖
@@ -67,3 +67,4 @@
 | 2026-11-04 | 등록. Grok 자문 대조 후 1-B 채택·3 Phase 계획 작성 |
 | 2026-11-04 | Phase 1: `test:workspaces` 제거, ESLint를 `pnpm exec projen eslint`로 변경. projen 재생성·로컬 검증 통과 |
 | 2026-11-04 | Phase 1 로컬 게이트 확인. 원격 pr-validation·시간 측정은 커밋/PR 후 |
+| 2026-11-04 | [#185](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/185) `pr-validation` success. job 190s (Build 168 / ESLint 4). 이전 중앙값 ~471s 대비 ~281s 단축. Test workspaces step 없음 확인 |
