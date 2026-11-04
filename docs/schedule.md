@@ -24,6 +24,7 @@
 
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
+| Phase 1 커밋·develop PR → 원격 CI·job 시간 확인 | 측정 후 Phase 2(turbo 캐시) / Phase 3(변경 필터) 착수 여부. 계획: `docs/superpowers/plans/2026-11-04-pr-validation-speedup.md` | [PR 검증 속도](issues/active/2026-11-04-pr-validation-speedup.md) | 진행중 |
 | [envoyproxy/envoy#45198](https://github.com/envoyproxy/envoy/pull/45198) 머지 + 사용 중 Istio `proxyv2` 포함, [istio/istio#60074](https://github.com/istio/istio/issues/60074) 클로즈 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/active/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 | 사용자 재개 결정 (2026-10-19 보류. protect 선행은 충족) | 클러스터 도달·자격 증명 결정 → 일일 drift 감지 → PR preview | [CI preview·drift](issues/active/2026-10-17-ci-pulumi-preview-drift.md) | 보류 |
 | 사용자 착수 결정 (Sysbox 제거·K8s 1.36과 같은 시기 금지) | tools contract phase 분해 + contract 단위 테스트 (system 방식 재사용) | [tools contract 분해](issues/active/2026-10-28-tools-contract-split.md) | 보류 |
