@@ -36,6 +36,10 @@ export function addPrValidationWorkflow(
       {
         name: 'Checkout',
         uses: ActionRefs.ACTIONS_CHECKOUT,
+        with: {
+          // turbo --affected / git diff 에 base…head 이력이 필요
+          'fetch-depth': 0,
+        },
       },
       {
         name: 'Setup pnpm',
@@ -74,7 +78,12 @@ export function addPrValidationWorkflow(
       },
       {
         name: 'Build workspaces',
-        run: 'pnpm build:workspaces',
+        // 루트 설정 변경 시 전량, 아니면 turbo --affected (common/* · infra/*)
+        run: 'bash scripts/ci-pr-build-workspaces.sh',
+        env: {
+          TURBO_SCM_BASE: '${{ github.event.pull_request.base.sha }}',
+          TURBO_SCM_HEAD: '${{ github.event.pull_request.head.sha }}',
+        },
       },
       {
         name: 'Test scripts',

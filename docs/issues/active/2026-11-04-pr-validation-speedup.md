@@ -4,11 +4,11 @@
 |---|---|
 | **등록일** | 2026-11-04 |
 | **영역** | GitHub Actions `pr-validation`, Projen 워크플로, turbo |
-| **관련 코드** | `projenrc/workflows/pr-validation.ts`, `.projenrc.ts` (스크립트·`turbo.json`), `.github/workflows/pr-validation.yml` |
+| **관련 코드** | `projenrc/workflows/pr-validation.ts`, `scripts/ci-pr-build-workspaces.sh`, `.github/workflows/pr-validation.yml` |
 | **선행** | [PR CI 검증 파이프라인](../resolved/2026-09-11-pr-ci-validation-pipeline.md) |
 | **관련** | [CI pulumi preview·drift](2026-10-17-ci-pulumi-preview-drift.md) (별 이슈 — preview는 여기 범위 밖) |
 | **계획** | [docs/superpowers/plans/2026-11-04-pr-validation-speedup.md](../../superpowers/plans/2026-11-04-pr-validation-speedup.md) |
-| **상태** | **진행중** — Phase 1·2 실증 완료. Phase 3(변경 패키지 필터) 착수 여부 대기 |
+| **상태** | **진행중** — Phase 3(변경 패키지 필터) PR 진행 중. 머지·CI 확인 후 아카이브 여부 결정 |
 | **근거** | Grok 자문 `tmp/advisor/pr-validation-speedup.md` + 로컬 코드 대조 (2026-11-04) |
 
 ## 배경
@@ -52,7 +52,7 @@
 - [x] SSOT는 `projenrc/workflows/pr-validation.ts` (+ 필요 시 `.projenrc.ts`). 생성 YAML 손수정 없음. `pnpm exec projen` 후 생성물 커밋 — [#185](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/185)
 - [x] Phase 1 적용 후 `pr-validation` 전체 job이 적용 전(약 471초)보다 유의미하게 감소 — run `41780087910` job **190초** (Build 168 · ESLint 4 · Test workspaces 없음). 기준 대비 약 **281초(~60%)** 단축. 단, 1회 실측(중앙값 아님)
 - [x] Phase 2 별 PR·캐시 동작 확인 — [#188](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/188) miss→save(`41781495261`) + restore hit·FULL TURBO(`41782722013` job **~41s**, Build ~0s)
-- [ ] Phase 3(변경 패키지 필터) 별 PR·범위 유지 확인
+- [ ] Phase 3(변경 패키지 필터) 별 PR·범위 유지 확인 — `scripts/ci-pr-build-workspaces.sh`: 루트/설정 변경 시 전량, 아니면 `turbo --affected` + `./common/*`·`./infra/*`. `ai:doctor`·`test:scripts`·루트 eslint는 항상 실행
 
 ## 범위 밖
 
@@ -72,3 +72,4 @@
 | 2026-11-04 | Phase 2: `pr-validation`에 `actions/cache@v6.1.0`(SHA pin)로 `.turbo` 캐시 추가. turbo inputs 보강은 보류 |
 | 2026-11-04 | [#188](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/188) 1차 CI `41781495261`: cache miss → save (~1.8MB). job ~345s (cold Build ~309) |
 | 2026-11-04 | [#188](https://github.com/ApexCaptain/ApexCaptain.IaC.Pulumi/pull/188) 2차 CI `41782722013`: restore-key hit → FULL TURBO. job **~41s** (Build ~0s). Phase 2 머지 |
+| 2026-11-04 | Phase 3: checkout `fetch-depth: 0` + `scripts/ci-pr-build-workspaces.sh` (`TURBO_SCM_BASE/HEAD`, 루트 변경 시 전량 / 아니면 `--affected`). 로컬 dry-run: docs-only=0 패키지, utils 변경=의존 전파, leaf infra=소수 패키지 |
