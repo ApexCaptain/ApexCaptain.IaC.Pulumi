@@ -5,8 +5,8 @@
 | **등록일** | 2026-10-13 |
 | **영역** | `workstation-0` 단일 노드 (control-plane 겸 worker), Kubespray 기반 클러스터 |
 | **관련 코드** | `ansible/workstation/inventory/group_vars/k8s_cluster/k8s-cluster.yml` (`kube_version`), `ansible/third_party/kubespray` (submodule, `release-2.32` 브랜치), `package.json` (`kubespray:upgradeCluster`) |
-| **예정일** | Phase 1: 2026-10-30 예정이었으나 **2026-10-21 앞당겨 완료** (v1.35.9). 관찰 종료 확인 **2026-10-24**. Phase 2: Kata 실사용 이상 없음 확인(2026-11-06). Sysbox 스택 제거 착수 **2026-11-08** 후. 2027-01-15 Sysbox 지원 대기는 폐기 |
-| **상태** | **보류** — Phase 1(1.35.9) 완료. Phase 2는 [Sysbox 대체](2026-10-24-sysbox-runtime-replacement.md) 제거(**2026-11-08**)가 선행. K8s 1.35 EOL은 2027-02-28 |
+| **예정일** | Phase 1: 2026-10-30 예정이었으나 **2026-10-21 앞당겨 완료** (v1.35.9). 관찰 종료 확인 **2026-10-24**. Phase 2: Kata 실사용 이상 없음 확인(2026-11-06). Sysbox 스택 제거 착수 **2026-11-06**(11-08에서 당김) 후. 2027-01-15 Sysbox 지원 대기는 폐기 |
+| **상태** | **보류** — Phase 1(1.35.9) 완료. 착수일 미정 (사용자 결정). Phase 2는 [Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md) 제거가 선행 — **2026-11-06 완료**, Phase 2 착수 가능. K8s 1.35 EOL은 2027-02-28 |
 
 ## 배경
 
@@ -78,7 +78,7 @@ Kubernetes 1.35 일정 ([릴리스 페이지](https://kubernetes.io/releases/1.3
 
 확인 방법: `install-k8s.md`의 Kubernetes Version Requirements에 v1.36이 들어가는지, [#1036](https://github.com/nestybox/sysbox/issues/1036)이 지원 추가로 닫히는지.
 
-**현재 결정 (2026-10-31, 일정 2026-11-06 갱신):** Kata production으로 이전했다 ([Sysbox 대체](2026-10-24-sysbox-runtime-replacement.md)). Sysbox 1.36 지원 대기(2027-01-15)는 쓰지 않는다. Phase 2는 아래 순서가 끝난 뒤에만 한다.
+**현재 결정 (2026-10-31, 일정 2026-11-06 갱신):** Kata production으로 이전했다 ([Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md)). Sysbox 1.36 지원 대기(2027-01-15)는 쓰지 않는다. Phase 2는 아래 순서가 끝난 뒤에만 한다.
 
 1. ~~2026-11-06까지 Kata 실사용 이상 없음~~ — **확인됨** (2026-11-06 점검)
 2. Sysbox 기반 Coder 템플릿 제거 — 착수 **2026-11-08**
@@ -274,7 +274,7 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 ## 범위 밖
 
 - Kubernetes 1.37 업그레이드 (별도 이슈)
-- Sysbox 스택 제거 ([Sysbox 대체](2026-10-24-sysbox-runtime-replacement.md). Phase 2 선행, **2026-11-08** 착수)
+- Sysbox 스택 제거 ([Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md). Phase 2 선행, **2026-11-08** 착수)
 - Cilium 1.21, CoreDNS·nodelocaldns·kube-vip 이미지 최신화 (Nova 항목. K8s 업그레이드와 분리해 순차 진행)
 - 노드 증설·HA 구성
 
@@ -302,8 +302,10 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 | 2026-10-23 | 관찰 중 점검: 07:00 KST 리더 선출 컨트롤러 일제 재시작은 업그레이드와 무관. 라우터 재부팅 링크 끊김 → 노드 IP 제거 → apiserver↔etcd 단절이 원인 (업그레이드 전부터 발생, 현재 상태 표의 controller-manager·scheduler 재시작 수도 같은 원인). 후속은 [라우터 재부팅 링크 끊김](../resolved/2026-10-23-router-reboot-link-flap-leader-election.md). Phase 1 관찰 판정에서 제외 |
 | 2026-10-23 | 라우터 재부팅 링크 끊김 이슈 해결 → [resolved](../resolved/2026-10-23-router-reboot-link-flap-leader-election.md). 07:00 KST 컨트롤 플레인 재시작은 더 이상 관찰 노이즈로 보지 않음 |
 | 2026-10-24 | Phase 1(1.35.9) 관찰 종료. 특이사항 없음 (사용자 확인). 10-23 07:00 리더 선출 재시작은 라우터 링크 끊김으로 판정 제외. Phase 2(1.36)는 Sysbox 1.36 지원 확인(2027-01-15) 전 착수 금지 유지 |
-| 2026-10-24 | Sysbox 1.36 공식 지원 없음 재확인. 대체 런타임 선정을 [Sysbox 대체 런타임](2026-10-24-sysbox-runtime-replacement.md)으로 분리 (추천 Kata, 2026-12 PoC). 2027-01-15 판단은 그 PoC 결과와 함께 |
+| 2026-10-24 | Sysbox 1.36 공식 지원 없음 재확인. 대체 런타임 선정을 [Sysbox 대체 런타임](../resolved/2026-10-24-sysbox-runtime-replacement.md)으로 분리 (추천 Kata, 2026-12 PoC). 2027-01-15 판단은 그 PoC 결과와 함께 |
 | 2026-10-31 | 사용자: Kata 베이스 재구성 완료. Sysbox는 당장 유지. 2026-11-06까지 이상 없으면 Sysbox 스택 제거 후 Phase 2. 2027-01-15 지원 대기는 폐기 |
 | 2026-10-31 | 현재 상태 표 갱신: 노드 v1.35.9, Cilium hostNamespaceOnly, 운영 런타임 Kata(`Primary-Kata`). 호환성 표 Sysbox는 잔존·제거 선행 |
 | 2026-11-04 | active 점검: 노드 v1.35.9 Ready, Kata `Primary-Kata` Running, Sysbox 워크스페이스 Pod 없음·옛 PVC 3개 Bound. 호환성 표 Istio 1.30.6→1.30.7 (클러스터 pilot/proxyv2 일치) |
-| 2026-11-06 | [Sysbox 대체](2026-10-24-sysbox-runtime-replacement.md): Kata 실사용 이상 없음 확인. Sysbox 제거 착수일을 **2026-11-08**로 확정. Phase 2는 그 제거 완료 후 |
+| 2026-11-06 | [Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md): Kata 실사용 이상 없음 확인. Sysbox 제거 착수일을 **2026-11-08**로 확정. Phase 2는 그 제거 완료 후 |
+| 2026-11-06 | [Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md): 사용자 결정으로 Sysbox 제거를 11-08에서 오늘로 당겨 착수. Phase 2는 제거 적용 완료 후 |
+| 2026-11-06 | Sysbox 스택 제거 완료. Phase 2 선행 조건 충족. 착수일은 사용자 결정 |

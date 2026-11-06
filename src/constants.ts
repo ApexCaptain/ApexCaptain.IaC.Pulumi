@@ -211,9 +211,6 @@ export const constants = (() => {
     'stakater.github.io/stakater-charts':
       'https://stakater.github.io/stakater-charts',
     'argoproj.github.io/argo-helm': 'https://argoproj.github.io/argo-helm',
-    'cndoit18.github.io/lxcfs-on-kubernetes':
-      'https://cndoit18.github.io/lxcfs-on-kubernetes/',
-    'charts.gabe565.com': 'https://charts.gabe565.com',
     'helm.coder.com/v2': 'https://helm.coder.com/v2',
     'open-telemetry.github.io/opentelemetry-helm-charts':
       'https://open-telemetry.github.io/opentelemetry-helm-charts',

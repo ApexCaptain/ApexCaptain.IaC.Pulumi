@@ -13,8 +13,6 @@ export const vaultVersion = '2.0.4';
 export const istioVersion = '1.30.7';
 
 export const helmChartVersions = Object.freeze({
-  lxcfs: '0.2.8',
-  genericDevicePlugin: '0.1.3',
   gpuOperator: 'v26.7.2',
   certManager: 'v1.21.3',
   snapshotController: '5.4.0',

@@ -3,7 +3,6 @@ import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 import * as random from '@pulumi/random';
-import { CoderWorkspaceMeshProxyComponent } from './coder.workspace-mesh-proxy.component';
 
 interface CoderBaseComponentArgsShape {
   pvc: {
@@ -46,40 +45,7 @@ export const CoderBaseComponent = utils.functions.defineComponent(
       },
     );
 
-    const sysboxUbuntuNamespace = new kubernetes.core.v1.Namespace(
-      `${resourceName}-sysboxUbuntuNamespace`,
-      {
-        metadata: {
-          name: 'coder-sysbox-ubuntu',
-          labels: {
-            'istio.io/dataplane-mode': 'ambient',
-          },
-        },
-      },
-      {
-        ...opts,
-        provider: args.providers.kubernetes,
-        ...utils.configs.statefulResourceOptions,
-      },
-    );
-
-    const sysboxUbuntuTestNamespace = new kubernetes.core.v1.Namespace(
-      `${resourceName}-sysboxUbuntuTestNamespace`,
-      {
-        metadata: {
-          name: 'coder-sysbox-ubuntu-test',
-          labels: {
-            'istio.io/dataplane-mode': 'ambient',
-          },
-        },
-      },
-      {
-        ...opts,
-        provider: args.providers.kubernetes,
-      },
-    );
-
-    // Kata 워크스페이스는 ambient가 아니라 파드별 sidecar로 메시에 참여 (Kata는 ambient 리다이렉션이 안 걸림). Mesh Proxy 없음
+    // Kata 워크스페이스는 ambient가 아니라 파드별 sidecar로 메시에 참여 (Kata는 ambient 리다이렉션이 안 걸림).
     const kataUbuntuNamespace = new kubernetes.core.v1.Namespace(
       `${resourceName}-kataUbuntuNamespace`,
       {
@@ -104,35 +70,6 @@ export const CoderBaseComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
-      },
-    );
-
-    const sysboxUbuntuMeshProxy = new CoderWorkspaceMeshProxyComponent(
-      'coderWorkspaceMeshProxy',
-      {
-        namespace: sysboxUbuntuNamespace.metadata.name,
-        providers: {
-          kubernetes: args.providers.kubernetes,
-        },
-      },
-      {
-        ...opts,
-        dependsOn: [sysboxUbuntuNamespace],
-      },
-    );
-
-    const sysboxUbuntuTestMeshProxy = new CoderWorkspaceMeshProxyComponent(
-      'coderWorkspaceTestMeshProxy',
-      {
-        namespace: sysboxUbuntuTestNamespace.metadata.name,
-        providers: {
-          kubernetes: args.providers.kubernetes,
-        },
-      },
-      {
-        ...opts,
-        aliases: [{ parent: pulumi.rootStackResource }],
-        dependsOn: [sysboxUbuntuTestNamespace],
       },
     );
 
@@ -245,14 +182,8 @@ export const CoderBaseComponent = utils.functions.defineComponent(
     return {
       output: pulumi.output({
         namespace: namespace.metadata.name,
-        sysboxUbuntuNamespace: sysboxUbuntuNamespace.metadata.name,
-        sysboxUbuntuTestNamespace: sysboxUbuntuTestNamespace.metadata.name,
         kataUbuntuNamespace: kataUbuntuNamespace.metadata.name,
         kataUbuntuTestNamespace: kataUbuntuTestNamespace.metadata.name,
-        meshProxies: {
-          sysboxUbuntu: sysboxUbuntuMeshProxy.output,
-          sysboxUbuntuTest: sysboxUbuntuTestMeshProxy.output,
-        },
       }),
       secret: pulumi.secret({
         postgresqlDatabase,

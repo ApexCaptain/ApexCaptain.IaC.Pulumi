@@ -6,7 +6,7 @@
 | **우선순위** | 높음 — Home의 rclone remote(시크릿)가 안 붙으면 devContainer initialize가 막힘 |
 | **영역** | `infra/k8s-workstation-tools/assets/coder/kata-ubuntu` (`main`·`test` 동일) |
 | **관련 코드** | `scripts.tf` `coder_script.rclone-mounts`, `locals.tf` `rclone_version`, `assets/files/rclone-mounts.sh`, `agent.tf` metadata `4_rclone_mounts` |
-| **선행** | [Sysbox 교체](../active/2026-10-24-sysbox-runtime-replacement.md) 2026-10-31 — rclone 마운트 도입, 같은 날 `install-devcontainers-cli`와 rclone 스크립트의 **apt 락 경쟁**을 이미 한 번 고침 |
+| **선행** | [Sysbox 교체](2026-10-24-sysbox-runtime-replacement.md) 2026-10-31 — rclone 마운트 도입, 같은 날 `install-devcontainers-cli`와 rclone 스크립트의 **apt 락 경쟁**을 이미 한 번 고침 |
 | **상태** | **해결** — 2차 수정 배포·라이브 재검증 통과. 설치 실패 시 `exit 1` 표시는 로컬 테스트로만 확인(사용자 판단으로 종료) |
 | **해결일** | 2026-11-02 |
 | **관측 워크스페이스** | Coder 위 Kata Ubuntu production 워크스페이스. 1차 장애 13:13, 1차 수정 검증 15:13, 2차 수정 검증 15:35 |

@@ -127,8 +127,6 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
             },
           },
           workspaceNamespaces: [
-            coderBase.output.sysboxUbuntuNamespace,
-            coderBase.output.sysboxUbuntuTestNamespace,
             coderBase.output.kataUbuntuNamespace,
             coderBase.output.kataUbuntuTestNamespace,
           ],
@@ -157,8 +155,6 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
                     .istioIngressGateway,
               },
               allowedNamespaces: [
-                coderBase.output.sysboxUbuntuNamespace,
-                coderBase.output.sysboxUbuntuTestNamespace,
                 coderBase.output.kataUbuntuNamespace,
                 coderBase.output.kataUbuntuTestNamespace,
               ],
@@ -204,64 +200,6 @@ export const k8sWorkstationToolsContract = new nexus.classes.Contract(
         'coderResources',
         {
           templateVariables: {
-            sysboxUbuntu: {
-              namespace: coderBase.output.sysboxUbuntuNamespace,
-              runtimeClassName:
-                k8sWorkstationSystemContract.output.sysbox.runtimeClassName,
-              storageClassNames: {
-                home: k8sWorkstationSystemContract.output.storageClasses
-                  .longhornSsd,
-                docker:
-                  k8sWorkstationSystemContract.output.storageClasses
-                    .longhornSsd,
-                data: k8sWorkstationSystemContract.output.storageClasses
-                  .longhornHdd,
-              },
-              lxcfsHostMountPath:
-                k8sWorkstationSystemContract.output.lxcfs.mountPath,
-              devicePluginFuseKey: pulumi.interpolate`${k8sWorkstationSystemContract.output.genericDevicePlugin.deviceDomain}/fuse`,
-              meshProxy: {
-                host: coderBase.output.meshProxies.sysboxUbuntu.host,
-                port: coderBase.output.meshProxies.sysboxUbuntu.port,
-                url: coderBase.output.meshProxies.sysboxUbuntu.url,
-              },
-              vault: {
-                addr: pulumi.interpolate`https://${vaultHost}`,
-                jwtAuthPath:
-                  k8sWorkstationSystemContract.output.vault.coderJwt.mountPath,
-                jwtRole:
-                  k8sWorkstationSystemContract.output.vault.coderJwt.roleName,
-              },
-            },
-            sysboxUbuntuTest: {
-              namespace: coderBase.output.sysboxUbuntuTestNamespace,
-              runtimeClassName:
-                k8sWorkstationSystemContract.output.sysbox.runtimeClassName,
-              storageClassNames: {
-                home: k8sWorkstationSystemContract.output.storageClasses
-                  .longhornSsd,
-                docker:
-                  k8sWorkstationSystemContract.output.storageClasses
-                    .longhornSsd,
-                data: k8sWorkstationSystemContract.output.storageClasses
-                  .longhornHdd,
-              },
-              lxcfsHostMountPath:
-                k8sWorkstationSystemContract.output.lxcfs.mountPath,
-              devicePluginFuseKey: pulumi.interpolate`${k8sWorkstationSystemContract.output.genericDevicePlugin.deviceDomain}/fuse`,
-              meshProxy: {
-                host: coderBase.output.meshProxies.sysboxUbuntuTest.host,
-                port: coderBase.output.meshProxies.sysboxUbuntuTest.port,
-                url: coderBase.output.meshProxies.sysboxUbuntuTest.url,
-              },
-              vault: {
-                addr: pulumi.interpolate`https://${vaultHost}`,
-                jwtAuthPath:
-                  k8sWorkstationSystemContract.output.vault.coderJwt.mountPath,
-                jwtRole:
-                  k8sWorkstationSystemContract.output.vault.coderJwt.roleName,
-              },
-            },
             kataUbuntu: {
               namespace: coderBase.output.kataUbuntuNamespace,
               runtimeClassName:
