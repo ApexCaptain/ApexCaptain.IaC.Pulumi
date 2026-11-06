@@ -5,7 +5,7 @@
 | **등록일** | 2026-10-24 |
 | **영역** | Coder 워크스페이스 런타임 (`sysbox-runc` RuntimeClass), `workstation-0` 호스트 |
 | **관련 코드** | `ansible/workstation/roles/install-sysbox-runc/`, `ansible/workstation/inventory/group_vars/all/all.yml` (`sysbox_ce_version`), `infra/k8s-workstation-system/src/components/sysbox/`, `infra/k8s-workstation-tools/src/components/coder/`, `infra/k8s-workstation-tools/assets/coder/sysbox-ubuntu/`, `infra/k8s-workstation-tools/assets/coder/kata-ubuntu/`, `infra/k8s-workstation-system/src/components/kata/` |
-| **상태** | **완화** — Kata production(`coder-kata-ubuntu`)으로 환경 재구성 완료. Sysbox 호스트·RuntimeClass·`sysbox-ubuntu` 템플릿은 2026-11-06까지 유지. 그날까지 이상 없으면 Sysbox 템플릿 → lxcfs·Sysbox·generic-device-plugin 제거 후 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) |
+| **상태** | **완화** — Kata 실사용 이상 없음 확인(2026-11-06). Sysbox 스택 제거 착수 **2026-11-08**(일). 제거 후 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
 
 ## 배경
 
@@ -14,8 +14,9 @@
 ## 현재 상태
 
 - 운영 런타임은 Kata. 템플릿 `kata-ubuntu` (main / test), 네임스페이스 `coder-kata-ubuntu` / `coder-kata-ubuntu-test`
-- 라이브 (2026-10-31): 노드 `workstation-0` v1.35.9, containerd 2.3.5. 워크스페이스 `Primary-Kata` Running 2/2 (사이드카 포함). home·docker PVC Block 50Gi, data Filesystem 100Gi
-- Sysbox는 당장 유지. 호스트 CE 0.7.1 (Ansible), RuntimeClass `sysbox-runc`, node label `sysbox-runtime=running`. 템플릿 `sysbox-ubuntu` (main / test) 코드·네임스페이스 잔존
+- 라이브 (2026-11-06): 노드 `workstation-0` v1.35.9. 워크스페이스 `Primary-Kata` Running 2/2, restart 0, `runtimeClassName: kata`. home·docker PVC Block 50Gi·data Filesystem 100Gi (Bound ~5.5일). VolumeAttachment 3개 attached
+- Kata 실사용 관찰(2026-10-31~11-06): 사용자 체감 이상 없음. K8s 레벨 잔존 장애 없음 (아래 "2026-11-06 실사용 점검")
+- Sysbox는 **2026-11-08** 제거 전까지 유지. 호스트 CE 0.7.1 (Ansible), RuntimeClass `sysbox-runc`, node label `sysbox-runtime=running`. 템플릿 `sysbox-ubuntu` (main / test) 코드·네임스페이스 잔존
 - `coder-sysbox-ubuntu`: 워크스페이스 Pod 없음. Mesh Proxy만 Running. 옛 `Primary` PVC 3개 Bound (home 50Gi / docker 100Gi / data 100Gi, Filesystem)
 - 단일 노드, 사용자 1명 (홈랩)
 
@@ -60,15 +61,31 @@ K8s 버전 업그레이드를 런타임 지원 여부에 묶지 않는다. 워�
 
 위 2번은 2026-10-31 결정으로 폐기. 아래 "현재 결정"이 우선.
 
-## 현재 결정 (2026-10-31)
+## 현재 결정 (2026-10-31, 일정 2026-11-06 갱신)
 
-Kata production으로 환경을 재구성했다. Sysbox 자체는 당장 제거하지 않는다. 2027-01-15 Sysbox 1.36 지원 대기는 쓰지 않는다.
+Kata production으로 환경을 재구성했다. 2027-01-15 Sysbox 1.36 지원 대기는 쓰지 않는다.
 
 | 언제 | 할 일 |
 |---|---|
-| 지금 ~ 2026-11-06 | Sysbox 호스트 설치·RuntimeClass `sysbox-runc`·`sysbox-ubuntu` 템플릿 유지. Kata 실사용 관찰 |
-| 2026-11-06, 이상 없음 | 1. Sysbox 기반 Coder 템플릿 제거 2. lxcfs, Sysbox, generic-device-plugin 제거 3. 그다음 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) |
-| 2026-11-06, 이상 있음 | 제거·1.36 보류. 이 문서에 증상 기록 |
+| 2026-10-31 ~ 2026-11-06 | Sysbox 유지. Kata 실사용 관찰 — **이상 없음 확인** (2026-11-06) |
+| **2026-11-08** (일) | 1. Sysbox 기반 Coder 템플릿 제거 2. lxcfs, Sysbox, generic-device-plugin 제거 (체크리스트 아래) 3. 그다음 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
+| 제거 전 이상 재발 | 제거·1.36 보류. 이 문서에 증상 기록 |
+
+## 2026-11-06 실사용 점검
+
+관찰 마감일 점검. 사용자: Kata 워크스페이스 사용 중 체감 이슈 없음. 에이전트: 클러스터·노드 로그 대조.
+
+| 확인 | 결과 |
+|---|---|
+| `Primary-Kata` Pod | Running 2/2, restart 0, Ready. 오늘 stop/start로 Deployment·Pod 재생성(revision 1), 기동 E2E ~19s |
+| Event (`coder-kata-ubuntu`) | Warning 0. Scheduled·Attach·Mount·Started만 Normal |
+| PVC / VolumeAttachment | home·docker·data Bound. CSI attach 3개 `attached=true` |
+| RuntimeClass | `kata` → handler `kata`, overhead 250m / 1Gi |
+| 클러스터 Warning (당시) | `istio-ingressgateway` readiness만 — Kata 무관 |
+| 노드 syslog (과거) | 2026-10-31 저녁 `QEMU exited … signal: killed`·dead shim·Cilium DELETE 404 — 당일 템플릿 반복·워크스페이스 stop/delete teardown. 런타임 중 크래시로 안 봄 |
+| 이슈 타임라인 11-01~11-06 | 신규 K8s 장애 기록 없음. 11-04 점검도 Running만 |
+
+판정: 관찰 기준 "Kata 실사용 이상 없음" 충족. 제거 착수는 사용자 결정으로 **2026-11-08**로 미룸.
 
 ## Kata 트레이드오프
 
@@ -208,7 +225,7 @@ dockerd는 privileged가 필요하다. Kata는 privileged 파드에 호스트 `/
 
 ### Kata 전면 전환 시 제거 가능한 구성요소 (2026-10-31 확인)
 
-Sysbox 워크스페이스를 모두 Kata로 옮기고 Sysbox를 제거하면 아래 두 컴포넌트도 필요 없어진다. 제거는 2026-10-31 결정으로 이 이슈에서 2026-11-06 관찰 후 진행.
+Sysbox 워크스페이스를 모두 Kata로 옮기고 Sysbox를 제거하면 아래 두 컴포넌트도 필요 없어진다. 제거는 이 이슈에서 **2026-11-08** 착수.
 
 | 컴포넌트 | 현재 용도 | 다른 사용처 | Kata에서 |
 |---|---|---|---|
@@ -426,7 +443,7 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
 
 ## Sysbox 제거 체크리스트 (2026-11-03 작성)
 
-2026-11-06 관찰 후 제거할 때 쓴다. 기준 커밋 `f2cd206` (develop). 클러스터에서 먼저 지우고 코드에서 나중에 지우면 drift가 생기므로 **스택 순서대로 코드 제거 → preview → up** 한다. 옛 Sysbox PVC 데이터 이전은 사용자가 직접 한다 (이 체크리스트 범위 밖).
+**2026-11-08** 착수 시 쓴다. 기준 커밋 `f2cd206` (develop). 클러스터에서 먼저 지우고 코드에서 나중에 지우면 drift가 생기므로 **스택 순서대로 코드 제거 → preview → up** 한다. 옛 Sysbox PVC 데이터 이전은 사용자가 직접 한다 (이 체크리스트 범위 밖).
 
 ### 0. 사전
 
@@ -481,9 +498,9 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
   - [ ] 4. 메모리 사용량·기동 시간 관찰, Sysbox 대비 기록 — ③ ⑥ (2026-10-31: 대책 후 실사용 PSS 약 3.4Gi로 request 안. 1차 6.7Gi는 shmem 중복 집계였음. 기동 15초, Sysbox 워크스페이스 기동 비교는 미측정)
 - [ ] (2순위) userns 파드(`hostUsers: false`, 비privileged)에서 `run-dockerd` 스크립트로 dockerd 기동 가능 여부 기록
 - [x] 런타임 판단 — Kata 이전 확정 (2026-10-31). 2027-01-15 Sysbox 지원 확인은 폐기
-- [ ] 2026-11-06까지 Kata 실사용 이상 없음 확인
-- [ ] (이상 없을 때) Sysbox 기반 Coder 템플릿 제거
-- [ ] (이상 없을 때) lxcfs, Sysbox, generic-device-plugin 제거
+- [x] 2026-11-06까지 Kata 실사용 이상 없음 확인 — 2026-11-06 점검 (위 섹션). 제거 착수는 2026-11-08
+- [ ] (2026-11-08) Sysbox 기반 Coder 템플릿 제거
+- [ ] (2026-11-08) lxcfs, Sysbox, generic-device-plugin 제거
 
 ## 범위 밖
 
@@ -526,3 +543,4 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
 | 2026-10-31 | 문서 최신화. 라이브: 노드 v1.35.9, `Primary-Kata` Running 2/2, Sysbox 워크스페이스 Pod 없음(옛 Primary PVC Bound·Mesh Proxy만) |
 | 2026-11-03 | Sysbox 제거 체크리스트 추가 (tools → system → Ansible 순서). 외부 검토에서 빠진 항목 보강: all.yml containerd runtime 정의, nvidia-container-toolkit 롤의 sysbox-runc 검증, 호스트 패키지 제거 절차 없음, 네임스페이스 삭제 시 옛 PVC 동반 삭제 |
 | 2026-11-03 | Kata 템플릿(main·test): 컨테이너 시작 명령의 매 기동 `apt-get update` 제거. update는 필요한 설치 직전에만 (rclone-mounts의 fuse3, curl·e2fsprogs 폴백). 이미지에 apt 목록이 없고 fuse3는 매 기동 설치된다(라이브 확인). 미적용 — tools 스택 `pulumi up` 필요 |
+| 2026-11-06 | Kata 실사용 점검. 사용자 체감 이상 없음. 라이브: `Primary-Kata` 2/2 Running restart 0, Event Warning 0, PVC Bound·attach 정상. syslog의 10-31 QEMU killed·shim cleanup은 stop/delete teardown으로 판정. 관찰 기준 충족. Sysbox 제거·후속 1.36은 당장 안 함 → 착수일 **2026-11-08**(일)로 확정 |

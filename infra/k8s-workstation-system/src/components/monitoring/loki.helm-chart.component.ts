@@ -42,7 +42,8 @@ export const LokiHelmChartComponent = utils.functions.defineComponent(
         },
         waitForJobs: true,
         values: {
-          deploymentMode: 'SingleBinary',
+          // Chart 21+: SingleBinary renamed to Monolithic (old name still accepted, prefer new)
+          deploymentMode: 'Monolithic',
           loki: {
             auth_enabled: false,
             commonConfig: {
