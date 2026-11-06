@@ -1,6 +1,6 @@
 # Pluto Diagnosis Report
 
-Generated at ```2026-11-06T04:25:12.035Z```
+Generated at ```2026-11-06```
 
 Target Kubernetes Version: ```v1.36.0```
 

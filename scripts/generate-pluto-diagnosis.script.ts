@@ -8,6 +8,7 @@ import semver from 'semver';
 import yaml from 'yaml';
 import { KubeConfig } from '../common/utils/src/interfaces/kubeconfig.interface';
 import * as src from '../src';
+import { formatKstDate } from './common';
 
 type PlutoDiagnosisResult = {
   items?: {
@@ -147,7 +148,7 @@ const generatePlutoDiagnosis = async () => {
     {
       h1: 'Pluto Diagnosis Report',
       p: [
-        `Generated at \`\`\`${new Date().toISOString()}\`\`\``,
+        `Generated at \`\`\`${formatKstDate()}\`\`\``,
         `Target Kubernetes Version: \`\`\`${targetK8sVersion}\`\`\``,
       ],
     },
