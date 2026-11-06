@@ -29,7 +29,7 @@ type PlutoDiagnosisResult = {
 };
 
 const getTargetK8sVersion = () => {
-  const rawVersion = process.env.DIAGNOSIS_PLUTO_TARGET_K8S_VERSION ?? '1.36.0';
+  const rawVersion = process.env.DIAGNOSIS_PLUTO_TARGET_K8S_VERSION ?? '1.37.0';
   return rawVersion.startsWith('v') ? rawVersion : `v${rawVersion}`;
 };
 

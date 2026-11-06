@@ -5,8 +5,16 @@
 | **등록일** | 2026-10-13 |
 | **영역** | `workstation-0` 단일 노드 (control-plane 겸 worker), Kubespray 기반 클러스터 |
 | **관련 코드** | `ansible/workstation/inventory/group_vars/k8s_cluster/k8s-cluster.yml` (`kube_version`), `ansible/third_party/kubespray` (submodule, `release-2.32` 브랜치), `package.json` (`kubespray:upgradeCluster`) |
-| **예정일** | Phase 1: 2026-10-30 예정이었으나 **2026-10-21 앞당겨 완료** (v1.35.9). 관찰 종료 확인 **2026-10-24**. Phase 2: Kata 실사용 이상 없음 확인(2026-11-06). Sysbox 스택 제거 착수 **2026-11-06**(11-08에서 당김) 후. 2027-01-15 Sysbox 지원 대기는 폐기 |
-| **상태** | **보류** — Phase 1(1.35.9) 완료. 착수일 미정 (사용자 결정). Phase 2는 [Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md) 제거가 선행 — **2026-11-06 완료**, Phase 2 착수 가능. K8s 1.35 EOL은 2027-02-28 |
+| **예정일** | Phase 1: 2026-10-30 예정이었으나 **2026-10-21 앞당겨 완료** (v1.35.9). 관찰 종료 확인 **2026-10-24**. Phase 2: 선행 조건(Kata 확인·Sysbox 스택 제거) **2026-11-06 충족**. 착수일 미정. 2027-01-15 Sysbox 지원 대기는 폐기 |
+| **상태** | **해결** — 서버 v1.36.5 (2026-11-06) |
+| **해결일** | 2026-11-06 |
+
+## 해결 요약
+
+- 2026-10-21 Phase 1 1.35.4 → 1.35.9, 2026-11-06 Kubespray `42aebca4d`로 1.35.9 재적용(Cilium 1.20.3·containerd 2.3.7) 후 같은 날 Phase 2 1.35.9 → **1.36.5**. 세 번 모두 failed=0, 공통 검증 체크리스트·`pulumi preview` 통과
+- Phase 2를 막던 Sysbox는 Kata로 이전 후 2026-11-06 제거 ([Sysbox 대체](2026-10-24-sysbox-runtime-replacement.md))
+- 진단 기준 갱신: Pluto target `1.37.0` (deprecated·removed API 없음), Nova 재생성
+- 후속 분리: [etcd 인증서 재발급](../active/2026-11-06-etcd-cert-regeneration-on-kubespray-run.md). 1.37 업그레이드는 범위 밖 (필요 시 새 이슈)
 
 ## 배경
 
@@ -15,20 +23,20 @@
 
 Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 apiserver·controller-manager·scheduler 이미지의 최신 패치가 v1.35.9로 나온다. Pluto 진단(`docs/diagnosis/pluto.diagnosis.md`)은 target v1.36.0 기준 deprecated·removed API 없음으로 나왔다 (2026-10-13 03:51Z).
 
-## 현재 상태 (2026-10-31 갱신)
+## 현재 상태 (2026-11-06 갱신)
 
 | 항목 | 값 |
 |---|---|
-| 노드 | `workstation-0` 1대, Ready, **v1.35.9**, Ubuntu 26.04, kernel 7.0.0-38, containerd 2.3.5 |
-| 설치 도구 | Kubespray (`kube_version: 1.35.9`). submodule은 `release-2.32` 추적 |
+| 노드 | `workstation-0` 1대, Ready, **v1.36.5** (2026-11-06), Ubuntu 26.04, kernel 7.0.0-38, containerd **2.3.7** (2026-11-06) |
+| 설치 도구 | Kubespray (`kube_version: 1.36.5`). submodule은 `release-2.32` 추적, **`42aebca4d`** (2026-11-06) |
 | Kubespray가 아는 버전 | kubelet/kubeadm 체크섬에 1.35.4~1.35.9, 1.36.0~1.36.5 존재. **1.36.5가 상한** |
-| CNI | Cilium 1.20.2, `cilium_kube_proxy_replacement: true`, `socketLB.hostNamespaceOnly: true` (Kata ClusterIP용, 2026-10-31) |
+| CNI | Cilium **1.20.3** (2026-11-06), `cilium_kube_proxy_replacement: true`, `socketLB.hostNamespaceOnly: true` (Kata ClusterIP용, 2026-10-31) |
 | 컨트롤 플레인 | kube-apiserver / controller-manager / scheduler static Pod, kube-vip(ARP) VIP |
 | 컨트롤 플레인 재시작 | 과거 높은 재시작 수는 라우터 링크 끊김 ([해결 기록](../resolved/2026-10-23-router-reboot-link-flap-leader-election.md)) |
-| Coder 런타임 | **Kata** production (`Primary-Kata`, RuntimeClass `kata`). Sysbox 호스트·RuntimeClass·템플릿은 잔존, 워크스페이스 Pod 없음 |
-| Sysbox | 호스트 0.7.1 (Ansible), RuntimeClass `sysbox-runc`. `sysbox-deploy-k8s` 미사용. **2026-11-08** 제거 착수 |
+| Coder 런타임 | **Kata** production (`Primary-Kata`, RuntimeClass `kata`). Sysbox 호스트·RuntimeClass·템플릿은 2026-11-06 제거 |
+| Sysbox | **2026-11-06 제거 완료** (호스트·RuntimeClass `sysbox-runc`·템플릿·lxcfs·generic-device-plugin). 클러스터 RuntimeClass는 `kata`·`nvidia*`만 |
 | Kata | 3.32.0 (Kubespray `kata_containers_enabled`), RuntimeClass `kata` (Pulumi). default_memory 1024, free page reporting on |
-| Longhorn | 1.13.0 차트, 운영 PVC `replicas=1`, 엔진 `v1.13.0` 일괄 완료 ([해결 기록](../resolved/2026-10-07-longhorn-1-13-0-upgrade.md)). Jellyfin 백업용 clone VolumeSnapshot PVC는 [pCloud 백업](2026-09-15-pcloud-pvc-encrypted-backup.md) 이슈 |
+| Longhorn | 1.13.0 차트, 운영 PVC `replicas=1`, 엔진 `v1.13.0` 일괄 완료 ([해결 기록](../resolved/2026-10-07-longhorn-1-13-0-upgrade.md)). Jellyfin 백업용 clone VolumeSnapshot PVC는 [pCloud 백업](../active/2026-09-15-pcloud-pvc-encrypted-backup.md) 이슈 |
 | Istio | ambient 1.30.x, 2026-10-12에 재부팅 후 리다이렉트 유실 이슈 해결 ([해결 기록](../resolved/2026-10-12-ambient-reboot-redirect.md)). Kata 워크스페이스는 사이드카 |
 
 ## 문제와 위험
@@ -40,7 +48,7 @@ Nova 진단(`docs/diagnosis/nova.diagnosis.md`)에서 apiserver·controller-mana
 | drain 중단 | Kubespray `upgrade-cluster`는 기본 `drain_nodes: true`. 단일 노드 drain은 전 워크로드 evict. PDB·Longhorn attach 때문에 timeout(360s) 가능 | 아래 "drain 정책" |
 | replica 1 볼륨 | Longhorn 운영 볼륨 전부 replica 1. kubelet·containerd 재시작 시 attach 끊김 가능 | 하드 백업 선행, 쓰기 큰 워크로드 scale 0 검토 |
 | 재부팅·CNI | 재시작 후 Cilium → istio-cni 체인과 ambient 리다이렉트 복구 확인 필요 | 2026-10-12 이슈의 검증 절차 재사용 |
-| Sysbox | 공식 지원은 v1.32~v1.35. v1.36은 지원 목록 밖. 호스트 설치라 DaemonSet 버전 게이트는 안 탐 | Kata로 이전 완료. Sysbox 스택은 **2026-11-08** 제거, 그다음 Phase 2. 지원 등재는 더 이상 기다리지 않음 |
+| Sysbox | 공식 지원은 v1.32~v1.35. v1.36은 지원 목록 밖. 호스트 설치라 DaemonSet 버전 게이트는 안 탐 | Kata로 이전 완료. Sysbox 스택은 **2026-11-06** 제거 완료. 지원 등재는 더 이상 기다리지 않음 |
 | 애드온 호환 | Cilium 1.20.2, Longhorn 1.13.0, Istio 1.30.x, metrics-server 0.9.0, VSO 등의 K8s 1.36 지원 여부 | Phase 0에서 각 릴리스 노트 확인 |
 | Kubespray 버전 | submodule이 `release-2.32` 추적. 1.36 체크섬은 있으나 업그레이드 경로 실검증 없음 | 실행 직전 submodule 상태·`kube_version_min_required` 재확인 |
 
@@ -81,8 +89,8 @@ Kubernetes 1.35 일정 ([릴리스 페이지](https://kubernetes.io/releases/1.3
 **현재 결정 (2026-10-31, 일정 2026-11-06 갱신):** Kata production으로 이전했다 ([Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md)). Sysbox 1.36 지원 대기(2027-01-15)는 쓰지 않는다. Phase 2는 아래 순서가 끝난 뒤에만 한다.
 
 1. ~~2026-11-06까지 Kata 실사용 이상 없음~~ — **확인됨** (2026-11-06 점검)
-2. Sysbox 기반 Coder 템플릿 제거 — 착수 **2026-11-08**
-3. lxcfs, Sysbox, generic-device-plugin 제거 — 같은 날
+2. ~~Sysbox 기반 Coder 템플릿 제거~~ — **완료** (2026-11-06, 11-08에서 당김)
+3. ~~lxcfs, Sysbox, generic-device-plugin 제거~~ — **완료** (2026-11-06)
 
 제거 전 이상 재발하면 Phase 2 보류.
 
@@ -125,6 +133,22 @@ devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_
 
 복원 절차(단일 노드, 큰 줄기만): `etcd.service`와 kubelet 중지 → 기존 data dir(`/etc/etcd.env`의 `ETCD_DATA_DIR`) 이동 → `etcdutl snapshot restore etcd.db --data-dir <ETCD_DATA_DIR> --name <etcd_member_name> --initial-cluster <name>=https://<ip>:2380 --initial-advertise-peer-urls https://<ip>:2380` → 소유권 맞춤 → etcd, kubelet 기동. 실제 복원은 아직 리허설하지 않았다. Phase 2 전에 한 번 문서로 다시 확인한다 (위 "롤백").
 
+**Phase 2 전 재확인 (2026-11-06).** 노드 `/etc/etcd.env` 기준 값: `ETCD_DATA_DIR=/var/lib/etcd` (root:root 700), `ETCD_NAME=workstation-0`, `ETCD_INITIAL_CLUSTER`·`ETCD_INITIAL_ADVERTISE_PEER_URLS`는 노드 IP:2380. `/var/lib` 여유 307G. IP는 문서에 적지 않고 복원 시 env 파일에서 읽는다.
+
+```bash
+# 노드에서 (sudo). <snap>은 호스트 밖 사본에서 다시 올린 etcd.db
+set -a; . /etc/etcd.env; set +a
+systemctl stop kubelet etcd
+mv "$ETCD_DATA_DIR" "${ETCD_DATA_DIR}.bak-$(date +%Y%m%d%H%M)"
+etcdutl snapshot restore <snap> --data-dir "$ETCD_DATA_DIR" \
+  --name "$ETCD_NAME" --initial-cluster "$ETCD_INITIAL_CLUSTER" \
+  --initial-advertise-peer-urls "$ETCD_INITIAL_ADVERTISE_PEER_URLS"
+chmod 700 "$ETCD_DATA_DIR"
+systemctl start etcd kubelet
+```
+
+minor 다운그레이드가 안 되므로, 1.36으로 바뀐 static Pod 매니페스트·kubelet 바이너리 상태에서 1.35 스냅샷을 복원하면 버전이 섞인다. 복원은 Kubespray 1.35.9 재실행과 함께 쓰는 마지막 수단이다.
+
 ### 호환성 표 (2026-10-20 확인)
 
 버전은 클러스터에서 실제 실행 중인 이미지 기준이다 (차트 버전은 `common/utils/src/configs/versions.config.ts`). Phase 1(1.35.9)은 모든 항목의 지원 범위 안이다. 아래 판정은 Phase 2(1.36) 기준이다.
@@ -137,18 +161,42 @@ devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_
 | metrics-server | v0.9.0 (Kubespray) | ✅ | [README 호환표](https://github.com/kubernetes-sigs/metrics-server): 0.9.x는 1.34 이상 |
 | Vault Secrets Operator | 1.6.0 | ✅ | [CHANGELOG 1.6.0](https://github.com/hashicorp/vault-secrets-operator/blob/main/CHANGELOG.md): 1.33–1.37 테스트 |
 | NVIDIA GPU Operator | v26.7.2 | ✅ | [platform support](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/platform-support.html): Ubuntu 26.04 베어메탈에서 1.33–1.37 |
-| Argo Rollouts | v1.10.1 | ⚠️ | v1.10.1 태그의 e2e 매트릭스(`.github/workflows/testing.yaml`)는 1.32–1.35. main은 1.34–1.37을 테스트한다. Phase 2 전에 1.36을 테스트한 릴리스가 나왔는지 다시 보고 있으면 먼저 올린다 |
+| Argo Rollouts | v1.10.2 (2026-11-06 실측. 10-20 기록은 v1.10.1) | ⚠️ | v1.10.1 태그의 e2e 매트릭스(`.github/workflows/testing.yaml`)는 1.32–1.35. main은 1.34–1.37을 테스트한다. Phase 2 전에 1.36을 테스트한 릴리스가 나왔는지 다시 보고 있으면 먼저 올린다. **2026-11-06 재확인:** 안정판 v1.10.2(11-04)도 1.32–1.35. 1.36 테스트는 v1.11.0-rc1(11-05, 1.34–1.37)뿐 |
 | VPA | recommender 1.7.1 | ✅ | [installation.md](https://github.com/kubernetes/autoscaler/blob/master/vertical-pod-autoscaler/docs/installation.md): 1.7.x는 1.35–1.37 |
 | cert-manager | v1.21.2 | ✅ | [supported releases](https://cert-manager.io/docs/releases/): 1.33–1.36 지원·테스트 |
 | CloudNativePG | 1.30.1 | ✅ | [supported releases](https://cloudnative-pg.io/docs/devel/supported_releases): 1.30.x는 1.34–1.36 |
 | Coder | v2.38.0 | ✅ | [K8s 설치 문서](https://coder.com/docs/install/kubernetes): 1.19 이상, 상한 없음. 운영 런타임은 Kata |
 | Kata | 3.32.0 | ✅ | containerd shim. K8s 마이너에 덜 묶임 |
-| Sysbox | 호스트 0.7.1 | 잔존 | 1.32–1.35만 지원. 운영 워크스페이스는 안 씀. **2026-11-08** 제거가 Phase 2 선행 |
+| Sysbox | — | 제거됨 | 2026-11-06 제거 완료. Phase 2 선행 조건 충족 |
 | kube-vip | v1.0.3 (Kubespray static Pod) | ⚠️ | 공식 K8s 호환표 없음. Kubespray `release-2.32`가 1.36.5까지 이 버전을 기본값으로 쓴다. Phase 2 직후 VIP 응답을 확인한다 |
 | CoreDNS | Kubespray 관리 | ✅ | Kubespray `coredns_supported_versions`가 1.36에서 1.14.2로 자동 전환 |
 | 기타 (Reloader v1.4.22, redis-operator v0.27.0, OTel operator 0.161.0, snapshot-controller v8.7.0, Authentik, 모니터링 차트 등) | — | ➖ | 공식 호환표는 확인하지 않았다. Pluto는 1.36 기준 deprecated·removed API 없음. 공통 검증 체크리스트로 확인한다 |
 
-결론: Phase 1에는 막는 항목이 없었다. Phase 2를 막는 것은 잔존 Sysbox 스택(템플릿·lxcfs·호스트·generic-device-plugin)이다. Kata 관찰은 2026-11-06 통과, 제거 착수 **2026-11-08**. Argo Rollouts와 kube-vip은 막지는 않지만 Phase 2 전후에 다시 확인한다.
+결론: Phase 1에는 막는 항목이 없었다. Phase 2를 막던 잔존 Sysbox 스택(템플릿·lxcfs·호스트·generic-device-plugin)은 2026-11-06 제거 완료. Argo Rollouts와 kube-vip은 막지는 않지만 Phase 2 전후에 다시 확인한다.
+
+### Phase 2 사전 확인 (2026-11-06)
+
+**Kubespray submodule.** 현재 `867694464`(2026-09-26). upstream `release-2.32`는 5커밋 앞(`42aebca4d`, 2026-11-06). 1.36 체크섬 상한은 upstream도 **1.36.5** 그대로다.
+
+| 커밋 | 내용 | 이 클러스터 영향 |
+|---|---|---|
+| `42aebca4d` (#13719) | ansible-core 2.19+에서 etcd 인증서가 매 실행 재발급되던 버그 수정 | Phase 1 1차 실행 때 etcd admin·member 인증서 재발급(타임라인 2026-10-21)이 이 버그로 보인다. 받는 게 좋다 |
+| `1beca518d` (#13661) | Cilium 1.20.2 → 1.20.3, cilium-envoy 1.37 → 1.38 | 인벤토리에 `cilium_version` 오버라이드 없음 → upgrade-cluster 때 같이 바뀐다 |
+| `96578b96f` (#13645) | 패치 체크섬 추가. containerd 최신 2.3.5 → **2.3.7** | `containerd_version`이 체크섬 첫 키라 같이 바뀐다 (오버라이드 없음) |
+| `ca3953640` (#13656) | `system_upgrade_reboot: always`가 apt에서도 동작 | `system_upgrade` 미사용. 영향 없음 |
+| `637869c3b` | exoscale terraform | 영향 없음 |
+
+etcd(3.6.15), kube-vip(1.0.3)은 변화 없다.
+
+| 안 | 내용 | 장점 | 단점 |
+|---|---|---|---|
+| **A (추천)** | submodule 올린 뒤 `kube_version: 1.35.9` 그대로 upgrade-cluster 1회 → Cilium 1.20.3·containerd 2.3.7·etcd 인증서 수정 먼저 적용, 안정 확인 후 Phase 2 | 패치급 변경을 1.36과 분리. Phase 2 실패 시 원인 분리 쉬움 | 중단 1회 추가 |
+| B | submodule 올리고 Phase 2에서 한 번에 | 중단 1회 | CNI·런타임·K8s minor 동시 변경 |
+| C | submodule 그대로 Phase 2 | 변경 최소 | etcd 인증서 재발급 버그 그대로 |
+
+**Argo Rollouts.** 안정판은 v1.10.2(2026-11-04)·v1.9.3까지 e2e 1.32–1.35. 1.36을 테스트한 건 **v1.11.0-rc1**(2026-11-05, 1.34–1.37)뿐이다. Pluto 1.36 통과(사용 API 문제 없음)라 차단하지 않는다. **추천:** Phase 2를 막지 않고 직후 Rollout 컨트롤러 로그·Rollout 리소스 상태를 확인한다. v1.11.0 GA가 나오면 별도로 올린다.
+
+**kube-vip.** 변경 없음. Phase 2 직후 VIP 응답 확인 (기존 계획 유지).
 
 ### 1.36 deprecation·removal 대조 (2026-10-20 확인)
 
@@ -175,7 +223,7 @@ devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_
 | swap | kubelet `failSwapOn: true`로 정상 기동 중 (swap 꺼짐) | `kubelet_fail_swap_on: true` | ✅ |
 | containerd | 2.3.5 | `release-2.32` 체크섬 최신값 2.3.5 | ✅ 업그레이드 중 교체 없음 |
 | kube-vip | v1.0.3 static Pod | `kube_vip_version: 1.0.3` | ✅ 버전 변화 없음 |
-| sysbox·nvidia 런타임 | `containerd_additional_runtimes`로 등록 (`SystemdCgroup: 'true'`) | — | ✅ Kubespray가 containerd 설정을 다시 써도 인벤토리 값으로 유지 |
+| nvidia 런타임 (sysbox는 2026-11-06 제거) | `containerd_additional_runtimes`로 등록 (`SystemdCgroup: 'true'`, `group_vars/all/all.yml`) | — | ✅ Kubespray가 containerd 설정을 다시 써도 인벤토리 값으로 유지 |
 
 ### drain 정책 (2026-10-20 확정)
 
@@ -232,7 +280,7 @@ devcontainer에서 SSH할 때는 인벤토리처럼 `WORKSTATION_BOOTSTRAP_NODE_
 
 ### Phase 2 — 1.35.9 → 1.36.5 (minor)
 
-Kata 실사용 이상 없음은 2026-11-06 확인. Sysbox 스택(템플릿·lxcfs·Sysbox·generic-device-plugin) 제거(**2026-11-08** 착수)가 끝나기 전에는 시작하지 않는다. Sysbox 1.36 지원 등재는 선행 조건이 아니다.
+Kata 실사용 이상 없음 확인, Sysbox 스택(템플릿·lxcfs·Sysbox·generic-device-plugin) 제거 모두 2026-11-06 완료. 선행 조건 충족. 착수일은 사용자 결정.
 
 1. 사전 재확인: Phase 1 결과, Sysbox 스택 제거 완료, submodule 변경 여부, 새 릴리스 노트(1.36.x 패치)
 2. `kube_version`을 `1.36.5`로 변경
@@ -242,10 +290,10 @@ Kata 실사용 이상 없음은 2026-11-06 확인. Sysbox 스택(템플릿·lxcf
 
 ### Phase 3 — 후속 정리
 
-- [ ] Nova 진단에서 apiserver·scheduler·controller-manager 항목이 사라지는지 확인
-- [ ] `docs/diagnosis` 재생성 (Pluto target을 다음 minor로 갱신할지 결정)
-- [ ] Sysbox·Longhorn·Cilium 등 호환성 표 확정본 반영
-- [ ] 1.37 업그레이드는 별도 이슈로 분리
+- [x] Nova 진단 재생성 — 2026-11-06. apiserver·scheduler·controller-manager는 v1.36.5 → 최신 v1.37.2로 남음 (1.37 범위)
+- [x] `docs/diagnosis` 재생성, Pluto target `1.37.0`으로 갱신 — 2026-11-06
+- [x] Sysbox·Longhorn·Cilium 등 호환성 표 확정본 반영 — 2026-11-06
+- [x] 1.37 업그레이드는 별도 이슈로 분리 — 범위 밖으로 두고 필요 시 등록 (2026-11-06)
 
 ### 공통 검증 체크리스트 (각 Phase 직후)
 
@@ -266,15 +314,15 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 
 ## 수용 기준
 
-- [ ] 서버 버전 v1.36.x, `kubectl version` skew 경고 없음
-- [ ] 공통 검증 체크리스트 전부 통과
-- [ ] `k8s-cluster.yml`의 `kube_version`이 실제 버전과 일치
-- [ ] 호환성 확인 결과가 이 문서에 기록됨
+- [x] 서버 버전 v1.36.x, `kubectl version` skew 경고 없음 — 2026-11-06
+- [x] 공통 검증 체크리스트 전부 통과 — 2026-11-06
+- [x] `k8s-cluster.yml`의 `kube_version`이 실제 버전과 일치 — 2026-11-06
+- [x] 호환성 확인 결과가 이 문서에 기록됨 — 2026-11-06
 
 ## 범위 밖
 
 - Kubernetes 1.37 업그레이드 (별도 이슈)
-- Sysbox 스택 제거 ([Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md). Phase 2 선행, **2026-11-08** 착수)
+- Sysbox 스택 제거 ([Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md). 2026-11-06 완료)
 - Cilium 1.21, CoreDNS·nodelocaldns·kube-vip 이미지 최신화 (Nova 항목. K8s 업그레이드와 분리해 순차 진행)
 - 노드 증설·HA 구성
 
@@ -309,3 +357,14 @@ kubeadm은 minor 다운그레이드를 지원하지 않는다. 실패 시 복구
 | 2026-11-06 | [Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md): Kata 실사용 이상 없음 확인. Sysbox 제거 착수일을 **2026-11-08**로 확정. Phase 2는 그 제거 완료 후 |
 | 2026-11-06 | [Sysbox 대체](../resolved/2026-10-24-sysbox-runtime-replacement.md): 사용자 결정으로 Sysbox 제거를 11-08에서 오늘로 당겨 착수. Phase 2는 제거 적용 완료 후 |
 | 2026-11-06 | Sysbox 스택 제거 완료. Phase 2 선행 조건 충족. 착수일은 사용자 결정 |
+| 2026-11-06 | 본문의 Sysbox "2026-11-08 제거 착수" 표기를 11-06 완료 기준으로 정리. 클러스터 실측: 노드 v1.35.9 Ready, RuntimeClass `kata`·`nvidia*`만, 비정상 Pod 없음 |
+| 2026-11-06 | Phase 2 사전 확인: Kubespray upstream 5커밋(etcd 인증서 재발급 수정, Cilium 1.20.3, containerd 2.3.7). 1.36 상한 1.36.5 유지. 추천 A(submodule 갱신 + 1.35.9 재적용 선행). Argo Rollouts 안정판은 아직 1.36 미테스트(v1.11.0-rc1만), 비차단 |
+| 2026-11-06 | 추천 A 실행 (사용자 결정). submodule `867694464` → `42aebca4d`. 22:04 KST etcd 스냅샷(revision 98306808, 2828 keys, 180 MB, 노드 원본과 sha256 일치) → `tmp/snapshots/etcd-pre-cilium-1.20.3-20261106-220359/`. Coder 워크스페이스는 이미 정지, qBit scale 0 |
+| 2026-11-06 | `pnpm kubespray:upgradeCluster -e '{"drain_nodes": false}'` (kube 1.35.9 유지) 성공: ok=671 changed=63 failed=0. containerd 2.3.7, Cilium·operator 1.20.3, cilium-envoy 1.38. **etcd admin·member 인증서는 이번에도 재발급**(22:17, CA `ca.pem` 2026-06-17 그대로, etcd active) — #13719 수정 후에도 재발생. 다음 실행에서 또 재발급되는지 보고, 되면 원인 확인 |
+| 2026-11-06 | 검증: 노드 Ready v1.35.9, 비정상 Pod 0, 컨트롤 플레인 재시작 증가 없음, `cilium-dbg status` OK, LB IP 유지, Longhorn 16 attached healthy(qBit 복구 후), ztunnel·istio-cni Running, coder·goldilocks·loki 15008 LISTEN, VaultConnection valid, GPU allocatable 1, Coder `/healthz` 200. qBit scale 1 복구. Warning 이벤트는 재시작 중 프로브 실패·Longhorn 엔진 재attach 중 snapshot 삭제 지연뿐. 남은 확인: `pulumi preview` 드리프트, Coder 워크스페이스 Start(Kata) 후 내부 Docker, 관찰 후 Phase 2 |
+| 2026-11-06 | `pulumi preview --refresh` 3스택 성공: system 263 unchanged, tools·apps는 TTL로 지워진 sftp keys-bootstrap Job 재생성 1건씩(qbittorrent, jellyfin, 10-21과 같은 무관 차이). 재적용 관련 드리프트 없음. `pulumi up` 안 함. 남은 확인: Coder 워크스페이스(Kata) Start 후 내부 Docker, 관찰 후 Phase 2 |
+| 2026-11-06 | Coder 워크스페이스(Kata) Start: Pod Running(restarts 0, istio-proxy sidecar), 게스트 커널 6.18.35, 내부 Docker 29.7.1(cgroup v2, overlayfs) `hello-world` OK. 재적용 검증 완료. 남은 일: 관찰 후 Phase 2 |
+| 2026-11-06 | Phase 2 실행 (관찰 생략, 사용자 결정). 1.36.1~1.36.5 패치 노트 차단 없음, etcd 복원 절차를 `/etc/etcd.env` 기준으로 재확인·문서화. 22:31 KST etcd 스냅샷(revision 98327021, 2953 keys, sha256 일치) → `tmp/snapshots/etcd-pre-1.36.5-20261106-223129/`. 워크스페이스 stop, qBit scale 0 → `kube_version: 1.36.5` → `pnpm kubespray:upgradeCluster -e '{"drain_nodes": false}'` 성공 (ok=676 changed=64 failed=0) |
+| 2026-11-06 | Phase 2 검증: 서버·노드 v1.36.5, 클라이언트 v1.37.2 skew 경고 없음. 비정상 Pod 0, 컨트롤 플레인·CoreDNS 교체, kube-vip VIP `/readyz` 200, Cilium OK·LB IP 유지, Longhorn 16 attached healthy, ambient 15008 LISTEN(coder·goldilocks·loki), VaultConnection valid, GPU 1, Coder `/healthz` 200, Kata 워크스페이스 기동·내부 Docker 29.9.3 `hello-world` OK. Argo Rollouts v1.10.2는 apiserver 교체 중 lease 조회 에러 후 리더 재획득, 이후 에러 0. deprecated API 요청은 core `v1 Endpoints`뿐(제거 예정 없음). `pulumi preview --refresh` 3스택: system 263 unchanged, tools·apps는 sftp keys-bootstrap Job 재생성 1건씩(기존 무관 차이). etcd admin·member 인증서는 **세 번째 연속 재발급** (#13719 반영 후에도) — 원인 확인 필요 |
+| 2026-11-06 | etcd 인증서 반복 재발급 원인 확인: Kubespray 기본값 `force_etcd_cert_refresh: true` (버그 아님). 위 "#13719로 해결" 기대는 틀림. [별도 이슈](../active/2026-11-06-etcd-cert-regeneration-on-kubespray-run.md)로 분리 |
+| 2026-11-06 | Pluto target `1.36.0` → `1.37.0` (`.devcontainer/commands/initializeCommand.sh`, `scripts/generate-pluto-diagnosis.script.ts` 기본값). Pluto 1.37 기준 deprecated·removed API 없음. Nova 재생성. 사용자 결정으로 해결 처리·아카이브 |

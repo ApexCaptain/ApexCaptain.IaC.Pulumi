@@ -5,7 +5,7 @@
 | **등록일** | 2026-10-24 |
 | **영역** | Coder 워크스페이스 런타임 (`sysbox-runc` RuntimeClass), `workstation-0` 호스트 |
 | **관련 코드** | `ansible/workstation/roles/install-sysbox-runc/`, `ansible/workstation/inventory/group_vars/all/all.yml` (`sysbox_ce_version`), `infra/k8s-workstation-system/src/components/sysbox/`, `infra/k8s-workstation-tools/src/components/coder/`, `infra/k8s-workstation-tools/assets/coder/sysbox-ubuntu/`, `infra/k8s-workstation-tools/assets/coder/kata-ubuntu/`, `infra/k8s-workstation-system/src/components/kata/` |
-| **상태** | **해결** — Kata로 이전, Sysbox 스택 전부 제거. 후속은 [K8s 1.36](../active/2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
+| **상태** | **해결** — Kata로 이전, Sysbox 스택 전부 제거. 후속은 [K8s 1.36](../resolved/2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
 | **해결일** | 2026-11-06 |
 
 
@@ -21,7 +21,7 @@
 - K8s 1.36 Phase 2의 선행 조건 충족
 ## 배경
 
-[K8s 1.36 업그레이드](../active/2026-10-13-kubernetes-1-36-upgrade.md)의 Phase 2가 Sysbox 1.36 지원 대기로 막혀 있어, 그 이슈의 범위 밖 항목 "Sysbox 대체 런타임 선정·이전"을 분리한 것. 1.35는 maintenance 2026-12-28, EOL 2027-02-28. 2026-10-31 Kata production 전환으로 지원 대기는 폐기. 아래 "현재 결정".
+[K8s 1.36 업그레이드](../resolved/2026-10-13-kubernetes-1-36-upgrade.md)의 Phase 2가 Sysbox 1.36 지원 대기로 막혀 있어, 그 이슈의 범위 밖 항목 "Sysbox 대체 런타임 선정·이전"을 분리한 것. 1.35는 maintenance 2026-12-28, EOL 2027-02-28. 2026-10-31 Kata production 전환으로 지원 대기는 폐기. 아래 "현재 결정".
 
 ## 현재 상태
 
@@ -62,7 +62,7 @@ K8s 버전 업그레이드를 런타임 지원 여부에 묶지 않는다. 워�
 ## 추천
 
 1. 지금 ~ 2026-12: 1.35 유지. Sysbox 0.7.0 → 0.7.1. Kata PoC
-2. 2027-01-15: Sysbox 1.36 지원 확인 ([업그레이드 이슈](../active/2026-10-13-kubernetes-1-36-upgrade.md) 일정)
+2. 2027-01-15: Sysbox 1.36 지원 확인 ([업그레이드 이슈](../resolved/2026-10-13-kubernetes-1-36-upgrade.md) 일정)
    - 지원 O: 1.36 진행. PoC가 좋으면 Kata 이전은 계속 (다음 마이너에서 같은 문제 반복)
    - 지원 X: Kata 이전 후 1.36. PoC 실패 시 privileged DinD
 3. 결정 전 확인할 것 → 2026-10-24 확정
@@ -79,7 +79,7 @@ Kata production으로 환경을 재구성했다. 2027-01-15 Sysbox 1.36 지원 �
 | 언제 | 할 일 |
 |---|---|
 | 2026-10-31 ~ 2026-11-06 | Sysbox 유지. Kata 실사용 관찰 — **이상 없음 확인** (2026-11-06) |
-| **2026-11-08** (일) | 1. Sysbox 기반 Coder 템플릿 제거 2. lxcfs, Sysbox, generic-device-plugin 제거 (체크리스트 아래) 3. 그다음 [K8s 1.36](../active/2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
+| **2026-11-08** (일) | 1. Sysbox 기반 Coder 템플릿 제거 2. lxcfs, Sysbox, generic-device-plugin 제거 (체크리스트 아래) 3. 그다음 [K8s 1.36](../resolved/2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
 | 제거 전 이상 재발 | 제거·1.36 보류. 이 문서에 증상 기록 |
 
 ## 2026-11-06 실사용 점검
@@ -492,7 +492,7 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
 ### 4. 문서·규칙
 
 - [x] `.rulesync/skills/coder-templates/SKILL.md` description·본문의 sysbox-ubuntu 언급 → `pnpm ai:generate`
-- [x] 이 이슈의 수용 기준 체크, `docs/schedule.md` 행 갱신 후 [K8s 1.36](../active/2026-10-13-kubernetes-1-36-upgrade.md) 착수
+- [x] 이 이슈의 수용 기준 체크, `docs/schedule.md` 행 갱신 후 [K8s 1.36](../resolved/2026-10-13-kubernetes-1-36-upgrade.md) 착수
 
 ### 5. 적용 순서 (2026-11-06)
 
@@ -527,7 +527,7 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
 
 ## 범위 밖
 
-- K8s 1.36 업그레이드 자체 ([업그레이드 이슈](../active/2026-10-13-kubernetes-1-36-upgrade.md)). Sysbox 스택 제거가 끝난 뒤 그 이슈에서 진행
+- K8s 1.36 업그레이드 자체 ([업그레이드 이슈](../resolved/2026-10-13-kubernetes-1-36-upgrade.md)). Sysbox 스택 제거가 끝난 뒤 그 이슈에서 진행
 
 ## 관련 링크
 
