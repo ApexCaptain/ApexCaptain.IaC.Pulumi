@@ -5,19 +5,30 @@
 | **등록일** | 2026-10-24 |
 | **영역** | Coder 워크스페이스 런타임 (`sysbox-runc` RuntimeClass), `workstation-0` 호스트 |
 | **관련 코드** | `ansible/workstation/roles/install-sysbox-runc/`, `ansible/workstation/inventory/group_vars/all/all.yml` (`sysbox_ce_version`), `infra/k8s-workstation-system/src/components/sysbox/`, `infra/k8s-workstation-tools/src/components/coder/`, `infra/k8s-workstation-tools/assets/coder/sysbox-ubuntu/`, `infra/k8s-workstation-tools/assets/coder/kata-ubuntu/`, `infra/k8s-workstation-system/src/components/kata/` |
-| **상태** | **완화** — Kata 실사용 이상 없음 확인(2026-11-06). Sysbox 스택 제거 착수 **2026-11-08**(일). 제거 후 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
+| **상태** | **해결** — Kata로 이전, Sysbox 스택 전부 제거. 후속은 [K8s 1.36](../active/2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
+| **해결일** | 2026-11-06 |
 
+
+## 해결 요약
+
+- 운영 Coder 런타임을 Sysbox에서 Kata Containers(3.32.0, RuntimeClass `kata`)로 이전 (2026-10-31). 2026-10-31~11-06 실사용 이상 없음
+- 2026-11-06 Sysbox 스택 제거: Coder 템플릿 `sysbox-ubuntu`(main·test), 네임스페이스·Mesh Proxy, RuntimeClass `sysbox-runc`, lxcfs, generic-device-plugin, containerd 핸들러, 호스트 패키지 sysbox-ce, 노드 라벨, ESC Helm repo URL
+- 호스트 제거는 일회성 uninstall 롤로 실행한 뒤 롤은 삭제 (커밋 이력 없음). 같은 작업이 다시 필요하면 (예: Sysbox가 있던 시점 이미지로 노드 복원) 수동으로:
+  1. `crictl pods -o json`에 `runtimeHandler == "sysbox-runc"` 샌드박스가 없는지, `crictl info`의 containerd runtimes에 `sysbox-runc`가 없는지 확인 (있으면 Kubespray `cluster.yml --tags container-engine` 먼저)
+  2. `apt-get purge sysbox-ce`, `/tmp/sysbox-ce_*.deb` 삭제
+  3. `/etc/apparmor.d/local/fusermount3`가 `/var/lib/sysboxfs/` 규칙만 담고 있으면 삭제 후 `apparmor_parser -r /etc/apparmor.d/fusermount3`
+  4. `kubectl label node <node> sysbox-runtime-`
+- K8s 1.36 Phase 2의 선행 조건 충족
 ## 배경
 
-[K8s 1.36 업그레이드](2026-10-13-kubernetes-1-36-upgrade.md)의 Phase 2가 Sysbox 1.36 지원 대기로 막혀 있어, 그 이슈의 범위 밖 항목 "Sysbox 대체 런타임 선정·이전"을 분리한 것. 1.35는 maintenance 2026-12-28, EOL 2027-02-28. 2026-10-31 Kata production 전환으로 지원 대기는 폐기. 아래 "현재 결정".
+[K8s 1.36 업그레이드](../active/2026-10-13-kubernetes-1-36-upgrade.md)의 Phase 2가 Sysbox 1.36 지원 대기로 막혀 있어, 그 이슈의 범위 밖 항목 "Sysbox 대체 런타임 선정·이전"을 분리한 것. 1.35는 maintenance 2026-12-28, EOL 2027-02-28. 2026-10-31 Kata production 전환으로 지원 대기는 폐기. 아래 "현재 결정".
 
 ## 현재 상태
 
 - 운영 런타임은 Kata. 템플릿 `kata-ubuntu` (main / test), 네임스페이스 `coder-kata-ubuntu` / `coder-kata-ubuntu-test`
 - 라이브 (2026-11-06): 노드 `workstation-0` v1.35.9. 워크스페이스 `Primary-Kata` Running 2/2, restart 0, `runtimeClassName: kata`. home·docker PVC Block 50Gi·data Filesystem 100Gi (Bound ~5.5일). VolumeAttachment 3개 attached
 - Kata 실사용 관찰(2026-10-31~11-06): 사용자 체감 이상 없음. K8s 레벨 잔존 장애 없음 (아래 "2026-11-06 실사용 점검")
-- Sysbox는 **2026-11-08** 제거 전까지 유지. 호스트 CE 0.7.1 (Ansible), RuntimeClass `sysbox-runc`, node label `sysbox-runtime=running`. 템플릿 `sysbox-ubuntu` (main / test) 코드·네임스페이스 잔존
-- `coder-sysbox-ubuntu`: 워크스페이스 Pod 없음. Mesh Proxy만 Running. 옛 `Primary` PVC 3개 Bound (home 50Gi / docker 100Gi / data 100Gi, Filesystem)
+- Sysbox는 2026-11-06 전부 제거. 클러스터: 템플릿 `sysbox-ubuntu`(main / test), 네임스페이스 `coder-sysbox-ubuntu`·`-test`, Mesh Proxy, RuntimeClass `sysbox-runc`, lxcfs·generic-device-plugin. 호스트: containerd 핸들러 `sysbox-runc`, 패키지 sysbox-ce(purge), fusermount3 AppArmor 드롭인, 노드 라벨 `sysbox-runtime`. RuntimeClass는 `kata`와 nvidia 3종만 남음
 - 단일 노드, 사용자 1명 (홈랩)
 
 ## 문제
@@ -51,7 +62,7 @@ K8s 버전 업그레이드를 런타임 지원 여부에 묶지 않는다. 워�
 ## 추천
 
 1. 지금 ~ 2026-12: 1.35 유지. Sysbox 0.7.0 → 0.7.1. Kata PoC
-2. 2027-01-15: Sysbox 1.36 지원 확인 ([업그레이드 이슈](2026-10-13-kubernetes-1-36-upgrade.md) 일정)
+2. 2027-01-15: Sysbox 1.36 지원 확인 ([업그레이드 이슈](../active/2026-10-13-kubernetes-1-36-upgrade.md) 일정)
    - 지원 O: 1.36 진행. PoC가 좋으면 Kata 이전은 계속 (다음 마이너에서 같은 문제 반복)
    - 지원 X: Kata 이전 후 1.36. PoC 실패 시 privileged DinD
 3. 결정 전 확인할 것 → 2026-10-24 확정
@@ -68,7 +79,7 @@ Kata production으로 환경을 재구성했다. 2027-01-15 Sysbox 1.36 지원 �
 | 언제 | 할 일 |
 |---|---|
 | 2026-10-31 ~ 2026-11-06 | Sysbox 유지. Kata 실사용 관찰 — **이상 없음 확인** (2026-11-06) |
-| **2026-11-08** (일) | 1. Sysbox 기반 Coder 템플릿 제거 2. lxcfs, Sysbox, generic-device-plugin 제거 (체크리스트 아래) 3. 그다음 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
+| **2026-11-08** (일) | 1. Sysbox 기반 Coder 템플릿 제거 2. lxcfs, Sysbox, generic-device-plugin 제거 (체크리스트 아래) 3. 그다음 [K8s 1.36](../active/2026-10-13-kubernetes-1-36-upgrade.md) Phase 2 |
 | 제거 전 이상 재발 | 제거·1.36 보류. 이 문서에 증상 기록 |
 
 ## 2026-11-06 실사용 점검
@@ -447,41 +458,53 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
 
 ### 0. 사전
 
-- [ ] Sysbox 워크스페이스 데이터 이전 완료 확인 (옛 `Primary` PVC 3개, `coder-sysbox-ubuntu`)
-- [ ] Coder에서 Sysbox 템플릿을 쓰는 워크스페이스 0개 확인 (워크스페이스가 남아 있으면 템플릿 삭제가 실패한다). 워크스페이스 삭제 시 PVC도 `Delete` reclaim으로 같이 지워진다
+- [x] Sysbox 워크스페이스 데이터 이전 완료 확인 (옛 `Primary` PVC 3개, `coder-sysbox-ubuntu`)
+- [x] Coder에서 Sysbox 템플릿을 쓰는 워크스페이스 0개 확인 (워크스페이스가 남아 있으면 템플릿 삭제가 실패한다). 워크스페이스 삭제 시 PVC도 `Delete` reclaim으로 같이 지워진다
 
 ### 1. tools 스택 (`infra/k8s-workstation-tools`)
 
-- [ ] `assets/coder/sysbox-ubuntu/` 디렉터리 (main·test)
-- [ ] `src/components/coder/coder.resources.component.ts`: `sysboxUbuntuTemplate`·`sysboxUbuntuTestTemplate`, 출력 `sysboxUbuntuTemplateId`·`sysboxUbuntuTestTemplateId` (사용처 없음), `templateVariables.sysboxUbuntu*` 타입
-- [ ] `src/components/coder/coder.base.component.ts`: 네임스페이스 `coder-sysbox-ubuntu`·`coder-sysbox-ubuntu-test`, `sysboxUbuntuMeshProxy`·`sysboxUbuntuTestMeshProxy`, 출력 `meshProxies`. **네임스페이스 삭제는 안의 옛 PVC를 같이 지운다**
-- [ ] `src/components/coder/coder.workspace-mesh-proxy.component.ts`: Sysbox 네임스페이스에서만 쓰인다 (Kata는 sidecar). 사용처가 없어지면 파일째 제거
-- [ ] `src/contract.ts`: `workspaceNamespaces`(Coder RBAC)·`allowedNamespaces`(AuthorizationPolicy)의 sysbox 두 항목, `templateVariables.sysboxUbuntu`·`sysboxUbuntuTest` (`lxcfsHostMountPath` 포함)
-- [ ] `README.md`, `assets/coder/kata-ubuntu/{main,test}/assets/scripts/lib.js` L30 주석의 Sysbox 언급
+- [x] `assets/coder/sysbox-ubuntu/` 디렉터리 (main·test)
+- [x] `src/components/coder/coder.resources.component.ts`: `sysboxUbuntuTemplate`·`sysboxUbuntuTestTemplate`, 출력 `sysboxUbuntuTemplateId`·`sysboxUbuntuTestTemplateId` (사용처 없음), `templateVariables.sysboxUbuntu*` 타입
+- [x] `src/components/coder/coder.base.component.ts`: 네임스페이스 `coder-sysbox-ubuntu`·`coder-sysbox-ubuntu-test`, `sysboxUbuntuMeshProxy`·`sysboxUbuntuTestMeshProxy`, 출력 `meshProxies`. **네임스페이스 삭제는 안의 옛 PVC를 같이 지운다**
+- [x] `src/components/coder/coder.workspace-mesh-proxy.component.ts`: Sysbox 네임스페이스에서만 쓰인다 (Kata는 sidecar). 사용처가 없어지면 파일째 제거
+- [x] `src/contract.ts`: `workspaceNamespaces`(Coder RBAC)·`allowedNamespaces`(AuthorizationPolicy)의 sysbox 두 항목, `templateVariables.sysboxUbuntu`·`sysboxUbuntuTest` (`lxcfsHostMountPath` 포함)
+- [x] `README.md`, `assets/coder/kata-ubuntu/{main,test}/assets/scripts/lib.js` L30 주석의 Sysbox 언급
 
 ### 2. system 스택 (`infra/k8s-workstation-system`)
 
-- [ ] `src/components/sysbox/` (RuntimeClass `sysbox-runc`)
-- [ ] `src/components/lxcfs/`, `src/components/generic-device-plugin/` (위 "Kata 전면 전환 시 제거 가능한 구성요소")
-- [ ] `src/components/index.ts` export 3개, `src/phases/node-runtime.ts` 생성부·반환값·L6 주석
-- [ ] `src/contract.ts` 출력 `sysbox`·`lxcfs`(·generic-device-plugin)
-- [ ] `test/__snapshots__/contract.test.ts.snap` 갱신 (`sysbox`, `Component:sysbox::sysbox` 등)
-- [ ] `README.md` L35·L53-54·L79·L104·L110
-- [ ] lxcfs 차트 버전·repo: `common/utils/src/configs/versions.config.ts` `lxcfs`, `common/nexus/src/esc/common.esc.ts` L58, `src/constants.ts` L214-215, `.nova-config.json` L14
+- [x] `src/components/sysbox/` (RuntimeClass `sysbox-runc`)
+- [x] `src/components/lxcfs/`, `src/components/generic-device-plugin/` (위 "Kata 전면 전환 시 제거 가능한 구성요소")
+- [x] `src/components/index.ts` export 3개, `src/phases/node-runtime.ts` 생성부·반환값·L6 주석
+- [x] `src/contract.ts` 출력 `sysbox`·`lxcfs`(·generic-device-plugin)
+- [x] `test/__snapshots__/contract.test.ts.snap` 갱신 (`sysbox`, `Component:sysbox::sysbox` 등)
+- [x] `README.md` L35·L53-54·L79·L104·L110
+- [x] lxcfs 차트 버전·repo: `common/utils/src/configs/versions.config.ts` `lxcfs`, `common/nexus/src/esc/common.esc.ts` L58, `src/constants.ts` L214-215, `.nova-config.json` L14
 
 ### 3. Ansible (`ansible/workstation`) — 호스트
 
-- [ ] `inventory/host_vars/workstation-0.yml` L6-9 `node_labels.sysbox-runtime`
-- [ ] `inventory/group_vars/all/all.yml` L13-14 `sysbox_ce_version`, L21-27 containerd runtime `sysbox-runc` 정의
-- [ ] `pre-configure.yml` L11·L15·L28-29 롤 참조, `roles/install-sysbox-runc/` (`files/fusermount3.local` 포함)
-- [ ] **`roles/install-nvidia-container-toolkit/tasks/main.yml` L6·L99-114**: containerd 런타임에 `sysbox-runc`가 있는지 검증한다. runtime 정의만 지우면 이 롤이 실패하므로 같이 고친다
-- [ ] 호스트의 sysbox-ce 패키지·서비스 제거. 제거 롤이 없다 — 수동 절차를 이 이슈에 남기거나 uninstall 태스크를 추가한다. containerd 설정 반영 후 재시작이 필요하다
-- [ ] 노드 라벨 `sysbox-runtime` 제거 확인 (Kubespray가 기존 라벨을 지우지 않으면 수동)
+- [x] `inventory/host_vars/workstation-0.yml` L6-9 `node_labels.sysbox-runtime`
+- [x] `inventory/group_vars/all/all.yml` L13-14 `sysbox_ce_version`, L21-27 containerd runtime `sysbox-runc` 정의
+- [x] `pre-configure.yml` L11·L15·L28-29 롤 참조, `roles/install-sysbox-runc/` (`files/fusermount3.local` 포함)
+- [x] **`roles/install-nvidia-container-toolkit/tasks/main.yml` L6·L99-114**: containerd 런타임에 `sysbox-runc`가 있는지 검증한다. runtime 정의만 지우면 이 롤이 실패하므로 같이 고친다
+- [x] 호스트의 sysbox-ce 패키지·서비스 제거. 제거 롤이 없다 — 수동 절차를 이 이슈에 남기거나 uninstall 태스크를 추가한다. containerd 설정 반영 후 재시작이 필요하다
+- [x] 노드 라벨 `sysbox-runtime` 제거 확인 (Kubespray가 기존 라벨을 지우지 않으면 수동)
 
 ### 4. 문서·규칙
 
-- [ ] `.rulesync/skills/coder-templates/SKILL.md` description·본문의 sysbox-ubuntu 언급 → `pnpm ai:generate`
-- [ ] 이 이슈의 수용 기준 체크, `docs/schedule.md` 행 갱신 후 [K8s 1.36](2026-10-13-kubernetes-1-36-upgrade.md) 착수
+- [x] `.rulesync/skills/coder-templates/SKILL.md` description·본문의 sysbox-ubuntu 언급 → `pnpm ai:generate`
+- [x] 이 이슈의 수용 기준 체크, `docs/schedule.md` 행 갱신 후 [K8s 1.36](../active/2026-10-13-kubernetes-1-36-upgrade.md) 착수
+
+### 5. 적용 순서 (2026-11-06)
+
+코드 제거는 브랜치 `chore/remove-sysbox-runtime`에서 끝냈다. 적용은 아래 순서로 한다.
+
+1. tools 스택: `pulumi state unprotect` (네임스페이스 `coderBase-sysboxUbuntuNamespace`. `statefulResourceOptions`라 protect·retainOnDelete) → `pulumi up`. preview: update 7 (Coder Helm `workspaceNamespaces`, AuthorizationPolicy, Kata 템플릿 2개 `lib.js` 주석), delete 13 (Sysbox 템플릿 2개, Mesh Proxy 2세트, 네임스페이스 2개)
+2. `coder-sysbox-ubuntu` 네임스페이스 수동 삭제. retainOnDelete라 Pulumi는 state에서만 뺀다
+3. system 스택 `pulumi up`. preview: delete 9 (RuntimeClass `sysbox-runc`, lxcfs·generic-device-plugin Release·네임스페이스), update 1 (`outputHashFile`)
+4. Kubespray `cluster.yml --tags container-engine`: containerd config.toml에서 `sysbox-runc` 핸들러를 빼고 containerd를 재시작한다
+5. `pnpm ansible:preConfigure --tags uninstall-sysbox-runc`: 일회성 롤 `roles/uninstall-sysbox-runc/` (적용 후 삭제, 수동 절차는 위 해결 요약). sysbox-runc 파드 샌드박스가 있거나 containerd에 핸들러가 남아 있으면 거부한다. 패키지 purge, `/tmp` deb와 fusermount3 AppArmor 드롭인 제거. 패키지가 없으면 아무것도 안 한다 (새 호스트)
+6. 노드 라벨 `sysbox-runtime` 수동 제거. Kubespray `node-label`은 라벨을 추가만 한다
+7. (선택) `pnpm script:syncPulumiEsc`: ESC의 lxcfs·gabe565 Helm repo URL 정리. 스키마에서 키를 뺐으므로 남아 있어도 파싱은 실패하지 않는다
 
 출처 표시만 남길 것 (지우지 않음): `k8s-cluster.yml`·`k8s-net-cilium.yml`·`configure-kata-containers`의 `@see` 이 이슈 링크, `scripts/common/docs-issue-mirror.test.ts`의 lxcfs 이슈 파일명 픽스처.
 
@@ -490,21 +513,21 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
 - [x] GPU·systemd 필요 여부 결정 (둘 다 불필요, 2026-10-24)
 - [x] Sysbox 0.7.1 적용 (`sysbox_ce_version`) — 2026-10-31
 - [x] Kata 호스트 설치 (Kubespray `kata_containers_enabled` 우선 검토), RuntimeClass `kata`(overhead 포함)를 Pulumi로 추가 — 2026-10-31, Kata 3.32.0
-- [ ] FUSE 사용처 확인 (Kata 변형에서 `squat.ai/fuse` 요청 제거 가능 여부)
+- [x] FUSE 사용처 확인 (Kata 변형에서 `squat.ai/fuse` 요청 제거 가능 여부) — 2026-10-31 게스트 `mknod /dev/fuse`로 대체, rclone 마운트 확인
 - PoC는 위험 큰 순서로. 1·2가 막히면 그 시점에 privileged DinD 폴백과 비교
   - [x] 1. 워크스페이스 → ClusterIP Service 접근 (`coder.coder.svc`, Vault) — 트레이드오프 ⑤ (2026-10-31 Cilium `socketLB.hostNamespaceOnly`로 해결)
   - [x] 2. Block docker PVC 위 overlay2로 dockerd 기동, `hello-world`·devcontainer 빌드 성공 — ① (2026-10-31 파드 수준 + 실제 Kata 워크스페이스 devcontainer 빌드 통과)
   - [x] 3. home I/O 실측 (`pnpm install` 등), Sysbox 대비 기록 — ② (2026-10-31, virtiofs 2~4배 느림)
-  - [ ] 4. 메모리 사용량·기동 시간 관찰, Sysbox 대비 기록 — ③ ⑥ (2026-10-31: 대책 후 실사용 PSS 약 3.4Gi로 request 안. 1차 6.7Gi는 shmem 중복 집계였음. 기동 15초, Sysbox 워크스페이스 기동 비교는 미측정)
-- [ ] (2순위) userns 파드(`hostUsers: false`, 비privileged)에서 `run-dockerd` 스크립트로 dockerd 기동 가능 여부 기록
+  - [ ] 4. 메모리 사용량·기동 시간 관찰, Sysbox 대비 기록 — ③ ⑥ (2026-10-31: 대책 후 실사용 PSS 약 3.4Gi로 request 안. 1차 6.7Gi는 shmem 중복 집계였음. 기동 15초, Sysbox 워크스페이스 기동 비교는 미측정. 2026-11-06 Sysbox 제거로 비교 불가, 미측정으로 종결)
+- [ ] (2순위, Kata 이전으로 불필요해짐) userns 파드(`hostUsers: false`, 비privileged)에서 `run-dockerd` 스크립트로 dockerd 기동 가능 여부 기록
 - [x] 런타임 판단 — Kata 이전 확정 (2026-10-31). 2027-01-15 Sysbox 지원 확인은 폐기
 - [x] 2026-11-06까지 Kata 실사용 이상 없음 확인 — 2026-11-06 점검 (위 섹션). 제거 착수는 2026-11-08
-- [ ] (2026-11-08) Sysbox 기반 Coder 템플릿 제거
-- [ ] (2026-11-08) lxcfs, Sysbox, generic-device-plugin 제거
+- [x] Sysbox 기반 Coder 템플릿 제거 — 2026-11-06
+- [x] lxcfs, Sysbox, generic-device-plugin 제거 — 2026-11-06
 
 ## 범위 밖
 
-- K8s 1.36 업그레이드 자체 ([업그레이드 이슈](2026-10-13-kubernetes-1-36-upgrade.md)). Sysbox 스택 제거가 끝난 뒤 그 이슈에서 진행
+- K8s 1.36 업그레이드 자체 ([업그레이드 이슈](../active/2026-10-13-kubernetes-1-36-upgrade.md)). Sysbox 스택 제거가 끝난 뒤 그 이슈에서 진행
 
 ## 관련 링크
 
@@ -544,3 +567,8 @@ Kata 템플릿 main·test 동일하게 수정, tools 스택 적용 (템플릿 2�
 | 2026-11-03 | Sysbox 제거 체크리스트 추가 (tools → system → Ansible 순서). 외부 검토에서 빠진 항목 보강: all.yml containerd runtime 정의, nvidia-container-toolkit 롤의 sysbox-runc 검증, 호스트 패키지 제거 절차 없음, 네임스페이스 삭제 시 옛 PVC 동반 삭제 |
 | 2026-11-03 | Kata 템플릿(main·test): 컨테이너 시작 명령의 매 기동 `apt-get update` 제거. update는 필요한 설치 직전에만 (rclone-mounts의 fuse3, curl·e2fsprogs 폴백). 이미지에 apt 목록이 없고 fuse3는 매 기동 설치된다(라이브 확인). 미적용 — tools 스택 `pulumi up` 필요 |
 | 2026-11-06 | Kata 실사용 점검. 사용자 체감 이상 없음. 라이브: `Primary-Kata` 2/2 Running restart 0, Event Warning 0, PVC Bound·attach 정상. syslog의 10-31 QEMU killed·shim cleanup은 stop/delete teardown으로 판정. 관찰 기준 충족. Sysbox 제거·후속 1.36은 당장 안 함 → 착수일 **2026-11-08**(일)로 확정 |
+| 2026-11-06 | 사용자 결정으로 제거를 11-08에서 오늘로 당김. 옛 `Primary` 워크스페이스 삭제(사용자, PVC 3개 삭제 확인). 체크리스트 1~4 코드 제거 (브랜치 `chore/remove-sysbox-runtime`). 호스트 제거는 B안(uninstall 롤) 선택, `roles/install-sysbox-runc` → `roles/uninstall-sysbox-runc`. tools·system preview 확인, 적용 대기 |
+| 2026-11-06 | 적용 완료. tools `up` (state unprotect 후; update 7·delete 14) → 남은 `coder-sysbox-ubuntu` 네임스페이스 수동 삭제(retainOnDelete) → system `up` (update 1·delete 9) → Kubespray `cluster.yml --tags container-engine` (containerd 재시작, 런타임 kata·kata-qemu·nvidia·runc) → `ansible:preConfigure --tags uninstall-sysbox-runc` (purge, AppArmor 드롭인 제거, 재실행 시 no-op) → 노드 라벨 `sysbox-runtime` 수동 제거. 노드 Ready, Running 아닌 파드 없음. ESC의 lxcfs·gabe565 repo URL 정리(`script:syncPulumiEsc`)는 미실행 |
+| 2026-11-06 | `pnpm script:syncPulumiEsc`로 ESC `common/prod`·`common/dev`의 lxcfs·gabe565 repo URL 제거 확인. system preview 변경 없음. 사용자 요청으로 해결·아카이브 |
+| 2026-11-06 | 제거 후 `Primary-Kata` 재시작 확인. 2/2 Running restart 0, Warning 이벤트 0, `runtimeClassName: kata`, 게스트 커널 6.18.35, dockerd 29.7.1(overlayfs) 동작, `/dev/fuse`·inotify 524288 적용, PVC 3개 Bound. 사용자 체감 정상 |
+| 2026-11-06 | `roles/uninstall-sysbox-runc` 삭제 (호스트 정리 끝나 no-op, 재설치 경로 없음). 수동 절차는 해결 요약에 남김 |

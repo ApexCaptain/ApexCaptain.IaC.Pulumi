@@ -10,22 +10,13 @@ ntp_enabled: true
 ntp_package: ntpsec
 ntp_timezone: 'Asia/Seoul'
 
-# Sysbox CE — pre-configure install-sysbox-runc (deb; sysbox-deploy-k8s DaemonSet 미사용)
-sysbox_ce_version: '0.7.1'
-
 # NVIDIA GPU — 노드별 host_vars (nvidia_enabled, nvidia_driver_package)
 #   preConfigure    install-nvidia-driver + verify-nvidia-driver (수동 reboot 안내, 자동 reboot 없음)
 #   postConfigure   install-nvidia-container-toolkit
 
 # containerd 추가 runtime (Kubespray)
-#   sysbox-runc  pre-configure + host_vars node_labels → RuntimeClass sysbox-runc
 #   nvidia       post-configure toolkit → /usr/bin/nvidia-container-runtime
 containerd_additional_runtimes:
-  - name: sysbox-runc
-    type: 'io.containerd.runc.v2'
-    options:
-      BinaryName: /usr/bin/sysbox-runc
-      SystemdCgroup: 'true'
   - name: nvidia
     type: 'io.containerd.runc.v2'
     options:

@@ -23,7 +23,7 @@ cilium_cni_exclusive: false
 # 소켓 LB를 호스트 netns에서만 쓰고 파드 netns는 tc LB로 처리.
 # Kata(VM) 파드는 게스트 커널 소켓이라 소켓 LB가 안 걸려 ClusterIP가 timeout 된다 (istiod 접속 포함).
 # @see https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/ (Socket LoadBalancer Bypass in Pod Namespace)
-# @see docs/issues/active/2026-10-24-sysbox-runtime-replacement.md
+# @see docs/issues/resolved/2026-10-24-sysbox-runtime-replacement.md
 cilium_extra_values:
   socketLB:
     hostNamespaceOnly: true
