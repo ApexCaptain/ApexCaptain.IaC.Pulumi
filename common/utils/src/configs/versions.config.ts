@@ -13,8 +13,6 @@ export const vaultVersion = '2.0.4';
 export const istioVersion = '1.30.7';
 
 export const helmChartVersions = Object.freeze({
-  lxcfs: '0.2.8',
-  genericDevicePlugin: '0.1.3',
   gpuOperator: 'v26.7.2',
   certManager: 'v1.21.3',
   snapshotController: '5.4.0',
@@ -24,19 +22,19 @@ export const helmChartVersions = Object.freeze({
   redisOperator: '0.27.0',
   longhorn: '1.13.0',
   authentik: '2026.8.5',
-  vpa: '5.1.0',
-  goldilocks: '11.2.0',
+  vpa: '5.2.0',
+  goldilocks: '11.2.1',
   vaultSecretOperator: '1.6.2',
   reloader: '2.2.19',
-  argoRollouts: '2.43.8',
-  argoCd: '10.11.6',
-  opentelemetryOperator: '0.128.0',
+  argoRollouts: '2.43.9',
+  argoCd: '10.14.0',
+  opentelemetryOperator: '0.129.0',
   victoriaMetrics: '0.50.0',
-  loki: '20.2.0',
+  loki: '21.0.0',
   tempo: '3.2.1',
-  grafana: '14.2.0',
+  grafana: '14.4.0',
   jellyfin: '3.2.0',
-  coder: '2.38.5',
+  coder: '2.39.0',
   vikunja: '0.16.0',
 } as const);
 

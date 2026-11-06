@@ -43,8 +43,6 @@ services:
       # Anonymous Volume
       ## Cache
       - ..:${containerWorkspaceFolder}:cached
-      ## Workspace Hub
-      - ${WORKSPACE_HUB_APEX_CAPTAIN:-$HOME/workspace-hub}:${WORKSPACE_HUB_CONTAINER_DIR_PATH}:ro
       ## Settings
       - ./data/workspace/docker-daemon.json:/etc/docker/daemon.json
       ## Rclone Mounts (Google Drive 등). .secrets는 common/linkSecrets.sh가 링크

@@ -8,6 +8,7 @@ import semver from 'semver';
 import yaml from 'yaml';
 import { KubeConfig } from '../common/utils/src/interfaces/kubeconfig.interface';
 import * as src from '../src';
+import { formatKstDate } from './common';
 
 type PlutoDiagnosisResult = {
   items?: {
@@ -28,7 +29,7 @@ type PlutoDiagnosisResult = {
 };
 
 const getTargetK8sVersion = () => {
-  const rawVersion = process.env.DIAGNOSIS_PLUTO_TARGET_K8S_VERSION ?? '1.36.0';
+  const rawVersion = process.env.DIAGNOSIS_PLUTO_TARGET_K8S_VERSION ?? '1.37.0';
   return rawVersion.startsWith('v') ? rawVersion : `v${rawVersion}`;
 };
 
@@ -147,7 +148,7 @@ const generatePlutoDiagnosis = async () => {
     {
       h1: 'Pluto Diagnosis Report',
       p: [
-        `Generated at \`\`\`${new Date().toISOString()}\`\`\``,
+        `Generated at \`\`\`${formatKstDate()}\`\`\``,
         `Target Kubernetes Version: \`\`\`${targetK8sVersion}\`\`\``,
       ],
     },

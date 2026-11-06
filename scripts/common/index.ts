@@ -6,3 +6,4 @@ export * from './readme-docs-context';
 export * from './readme-manifest';
 export * from './ssh';
 export * from './skills';
+export * from './time';

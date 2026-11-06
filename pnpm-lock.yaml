@@ -124,8 +124,8 @@ importers:
         specifier: ^3.9.10
         version: 3.9.10
       projen:
-        specifier: ^0.104.19
-        version: 0.104.19(constructs@10.8.1)
+        specifier: ^0.104.21
+        version: 0.104.21(constructs@10.8.1)
       repomix:
         specifier: ^1.18.1
         version: 1.18.1(typescript@6.0.3)
@@ -4468,8 +4468,8 @@ packages:
     resolution: {integrity: sha512-MbA4R+WQT76ZBm/5JUpV9yqcJt92175+Y0Bodg3HgiXzrmKu7Ggq+bpn6y6wHH+gN9NcyKn3yg1+d47VaKwNAQ==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  projen@0.104.19:
-    resolution: {integrity: sha512-XJQW4vTXMgTk5u8HFAlUrs8K14e+ujp4Zw2y6j7yjBXPe/st0WDnMyoTf+ArI910T9IcgfLA2fMG3fCTqSUEvQ==}
+  projen@0.104.21:
+    resolution: {integrity: sha512-/nR9d0ZyL9IoSKMhpncc9ADEfLgUa/Ma1+3vh908vgKgt47b2syd9UrgWGCd5WkK9rFRNBciJUW50Z9jp+9iVw==}
     engines: {node: '>= 16.0.0'}
     hasBin: true
     peerDependencies:
@@ -9967,7 +9967,7 @@ snapshots:
 
   proggy@4.0.0: {}
 
-  projen@0.104.19(constructs@10.8.1):
+  projen@0.104.21(constructs@10.8.1):
     dependencies:
       constructs: 10.8.1
 

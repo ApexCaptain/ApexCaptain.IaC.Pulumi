@@ -4,7 +4,7 @@ resource "coder_script" "install-devcontainers-cli" {
   icon         = local.icons_base64_data_url["devcontainer.png"]
   script       = <<EOF
         #!/bin/bash
-        command -v curl >/dev/null 2>&1 || sudo apt-get install -y -o DPkg::Lock::Timeout=300 curl
+        command -v curl >/dev/null 2>&1 || { sudo apt-get update -y -o DPkg::Lock::Timeout=300 && sudo apt-get install -y -o DPkg::Lock::Timeout=300 curl; }
         curl -fsSL https://raw.githubusercontent.com/devcontainers/cli/v0.87.0/scripts/install.sh | sh -s -- --prefix /tmp/devcontainer-cli --version 0.87.0
         sudo cp -R /tmp/devcontainer-cli/* /usr
     EOF
@@ -20,7 +20,7 @@ resource "coder_script" "run-dockerd" {
         # docker PVC가 블록 장치로 들어온다. 첫 기동에 ext4 포맷 후 마운트
         if [ -b ${local.docker_device_path} ] && ! mountpoint -q /var/lib/docker; then
           if ! sudo blkid ${local.docker_device_path} >/dev/null 2>&1; then
-            command -v mkfs.ext4 >/dev/null 2>&1 || sudo apt-get install -y e2fsprogs
+            command -v mkfs.ext4 >/dev/null 2>&1 || { sudo apt-get update -y -o DPkg::Lock::Timeout=300 && sudo apt-get install -y -o DPkg::Lock::Timeout=300 e2fsprogs; }
             sudo mkfs.ext4 -q -L docker ${local.docker_device_path}
           fi
           sudo mkdir -p /var/lib/docker
@@ -55,30 +55,41 @@ resource "coder_script" "rclone-mounts" {
   icon         = local.icons_base64_data_url["cloud.png"]
   script       = <<EOF
         #!/bin/bash
-        RCLONE_VERSION=${local.rclone_version}
+        set -uo pipefail
+        # RCLONE_* 이름은 쓰지 않는다. rclone이 환경변수를 플래그로 읽는다
+        rclone_version=${local.rclone_version}
+        SYNC_LOG="$HOME/.cache/rclone-mounts/sync.log"
+        mkdir -p "$(dirname "$SYNC_LOG")"
+        : >"$SYNC_LOG"
+        rc=0
         # fuse3: fusermount3. 미리 만든 /etc/fuse.conf가 있어도 묻지 않게 confold
-        sudo apt-get install -y -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confold fuse3
-        if [ "$(rclone version 2>/dev/null | head -n 1)" != "rclone v$RCLONE_VERSION" ]; then
-          deb=$(mktemp --suffix=.deb)
-          curl -fsSL -o "$deb" "https://downloads.rclone.org/v$RCLONE_VERSION/rclone-v$RCLONE_VERSION-linux-amd64.deb"
-          sudo apt-get install -y -o DPkg::Lock::Timeout=300 "$deb"
-          rm -f "$deb"
+        # 이미지에 apt 목록이 없어 설치 전에 update한다. 컨테이너 시작 명령에서 하면 agent 기동이 미러 응답만큼 늦어진다
+        if ! command -v fusermount3 >/dev/null 2>&1; then
+          { sudo apt-get update -y -o DPkg::Lock::Timeout=300 \
+            && sudo apt-get install -y -o DPkg::Lock::Timeout=300 -o Dpkg::Options::=--force-confold fuse3; } || rc=1
         fi
         # devContainer(dockerd, root)가 FUSE 마운트를 bind하려면 allow_other가 필요하다
         grep -qxF user_allow_other /etc/fuse.conf 2>/dev/null || echo user_allow_other | sudo tee -a /etc/fuse.conf >/dev/null
         echo '${local.files["rclone-mounts.sh"]}' | base64 -d | sudo tee /usr/local/bin/rclone-mounts >/dev/null
         sudo chmod 755 /usr/local/bin/rclone-mounts
 
-        mkdir -p "$HOME/.cache/rclone-mounts"
-        : >"$HOME/.cache/rclone-mounts/sync.log"
-        rclone-mounts sync
+        # 설치 결과는 Coder 스크립트 로그와 sync.log 양쪽에 남긴다
+        if rclone-mounts install "$rclone_version" 2>&1 | tee -a "$SYNC_LOG"; then
+          rclone-mounts sync
+        else
+          rc=1
+        fi
+        # 설치가 빠졌으면 루프가 다시 설치한다
         (
           while true; do
             sleep 30
+            command -v rclone >/dev/null 2>&1 || rclone-mounts install "$rclone_version"
             rclone-mounts sync --auto
           done
-        ) >>"$HOME/.cache/rclone-mounts/sync.log" 2>&1 &
+        ) >>"$SYNC_LOG" 2>&1 &
         disown
+        # 설치 실패를 대시보드 스크립트 상태로 드러낸다
+        exit $rc
     EOF
   run_on_start = true
 }

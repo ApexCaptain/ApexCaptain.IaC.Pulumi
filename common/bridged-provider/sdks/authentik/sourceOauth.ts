@@ -44,9 +44,9 @@ export class SourceOauth extends pulumi.CustomResource {
     }
 
     /**
-     * Only required for OAuth1.
+     * Only required for OAuth1. Generated.
      */
-    declare public readonly accessTokenUrl: pulumi.Output<string | undefined>;
+    declare public readonly accessTokenUrl: pulumi.Output<string>;
     declare public readonly additionalScopes: pulumi.Output<string | undefined>;
     declare public readonly authenticationFlow: pulumi.Output<string | undefined>;
     /**
@@ -57,9 +57,9 @@ export class SourceOauth extends pulumi.CustomResource {
      */
     declare public readonly authorizationCodeAuthMethod: pulumi.Output<string | undefined>;
     /**
-     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set.
+     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set. Generated.
      */
-    declare public readonly authorizationUrl: pulumi.Output<string | undefined>;
+    declare public readonly authorizationUrl: pulumi.Output<string>;
     /**
      * Generated.
      */
@@ -85,9 +85,9 @@ export class SourceOauth extends pulumi.CustomResource {
      */
     declare public readonly oidcJwks: pulumi.Output<string>;
     /**
-     * Automatically configure JWKS if not specified by <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span>.
+     * Automatically configure JWKS if not specified by <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span>. Generated.
      */
-    declare public readonly oidcJwksUrl: pulumi.Output<string | undefined>;
+    declare public readonly oidcJwksUrl: pulumi.Output<string>;
     /**
      * Automatically configure source from OIDC well-known endpoint. URL is taken as is, and should end with `.well-known/openid-configuration`.
      */
@@ -108,9 +108,9 @@ export class SourceOauth extends pulumi.CustomResource {
      */
     declare public readonly policyEngineMode: pulumi.Output<string | undefined>;
     /**
-     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set.
+     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set. Generated.
      */
-    declare public readonly profileUrl: pulumi.Output<string | undefined>;
+    declare public readonly profileUrl: pulumi.Output<string>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
      */
@@ -258,7 +258,7 @@ export class SourceOauth extends pulumi.CustomResource {
  */
 export interface SourceOauthState {
     /**
-     * Only required for OAuth1.
+     * Only required for OAuth1. Generated.
      */
     accessTokenUrl?: pulumi.Input<string | undefined>;
     additionalScopes?: pulumi.Input<string | undefined>;
@@ -271,7 +271,7 @@ export interface SourceOauthState {
      */
     authorizationCodeAuthMethod?: pulumi.Input<string | undefined>;
     /**
-     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set.
+     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set. Generated.
      */
     authorizationUrl?: pulumi.Input<string | undefined>;
     /**
@@ -299,7 +299,7 @@ export interface SourceOauthState {
      */
     oidcJwks?: pulumi.Input<string | undefined>;
     /**
-     * Automatically configure JWKS if not specified by <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span>.
+     * Automatically configure JWKS if not specified by <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span>. Generated.
      */
     oidcJwksUrl?: pulumi.Input<string | undefined>;
     /**
@@ -322,7 +322,7 @@ export interface SourceOauthState {
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     /**
-     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set.
+     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set. Generated.
      */
     profileUrl?: pulumi.Input<string | undefined>;
     /**
@@ -382,7 +382,7 @@ export interface SourceOauthState {
  */
 export interface SourceOauthArgs {
     /**
-     * Only required for OAuth1.
+     * Only required for OAuth1. Generated.
      */
     accessTokenUrl?: pulumi.Input<string | undefined>;
     additionalScopes?: pulumi.Input<string | undefined>;
@@ -395,7 +395,7 @@ export interface SourceOauthArgs {
      */
     authorizationCodeAuthMethod?: pulumi.Input<string | undefined>;
     /**
-     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set.
+     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set. Generated.
      */
     authorizationUrl?: pulumi.Input<string | undefined>;
     consumerKey: pulumi.Input<string>;
@@ -419,7 +419,7 @@ export interface SourceOauthArgs {
      */
     oidcJwks?: pulumi.Input<string | undefined>;
     /**
-     * Automatically configure JWKS if not specified by <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span>.
+     * Automatically configure JWKS if not specified by <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span>. Generated.
      */
     oidcJwksUrl?: pulumi.Input<string | undefined>;
     /**
@@ -442,7 +442,7 @@ export interface SourceOauthArgs {
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
     /**
-     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set.
+     * Manually configure OAuth2 URLs when <span pulumi-lang-nodejs="`oidcWellKnownUrl`" pulumi-lang-dotnet="`OidcWellKnownUrl`" pulumi-lang-go="`oidcWellKnownUrl`" pulumi-lang-python="`oidc_well_known_url`" pulumi-lang-yaml="`oidcWellKnownUrl`" pulumi-lang-java="`oidcWellKnownUrl`" pulumi-lang-hcl="`oidc_well_known_url`">`oidcWellKnownUrl`</span> is not set. Generated.
      */
     profileUrl?: pulumi.Input<string | undefined>;
     /**

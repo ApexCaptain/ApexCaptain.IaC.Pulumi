@@ -19,6 +19,8 @@ jobs:
       - name: Checkout
         id: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
       - name: Setup pnpm
         id: setup_pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
@@ -33,18 +35,27 @@ jobs:
       - name: Install dependencies
         id: install_dependencies
         run: pnpm i --frozen-lockfile
+      - name: Cache turbo
+        id: cache_turbo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |-
+            turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            turbo-${{ runner.os }}-
       - name: Validate AI agent config
         id: validate_ai_agent_config
         run: pnpm ai:doctor
       - name: Build workspaces
         id: build_workspaces
-        run: pnpm build:workspaces
-      - name: Test workspaces
-        id: test_workspaces
-        run: pnpm test:workspaces
+        env:
+          TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
+          TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: bash scripts/ci-pr-build-workspaces.sh
       - name: Test scripts
         id: test_scripts
         run: pnpm test:scripts
       - name: ESLint
         id: eslint
-        run: pnpm eslint
+        run: pnpm exec projen eslint

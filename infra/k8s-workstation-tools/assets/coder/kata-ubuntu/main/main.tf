@@ -358,7 +358,6 @@ resource "kubernetes_deployment_v1" "main" {
                 sudo $IPT -t raw -C PREROUTING -i "$ifc" -p udp --dport 53 -j CT --zone 1 2>/dev/null \
                   || sudo $IPT -t raw -I PREROUTING 1 -i "$ifc" -p udp --dport 53 -j CT --zone 1
               done
-              sudo apt-get update -y
               if [ ! -f /home/coder/.bashrc ]; then
                 echo '${local.files["default.bashrc"]}' | base64 -d > /home/coder/.bashrc
               fi

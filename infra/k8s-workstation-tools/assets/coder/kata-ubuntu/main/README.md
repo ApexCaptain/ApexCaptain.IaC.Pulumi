@@ -79,6 +79,7 @@ tail ~/.cache/rclone-mounts/<이름>.log
 ```
 
 대시보드 **Rclone Mounts**에 정상 수/항목 수가 보입니다. rclone이 죽으면 다시 마운트하고, 실패한 항목은 5분마다 다시 시도합니다.
+rclone은 기동마다 공식 .deb로 설치합니다(실패 시 GitHub release로 재시도). 설치가 실패하면 **Rclone Mounts** 스크립트가 실패로 표시되고 대시보드에 `rclone 없음`이 보이며, 30초마다 다시 설치합니다. 원인은 `~/.cache/rclone-mounts/sync.log`에 남습니다.
 기본 옵션은 `--vfs-cache-mode writes --dir-cache-time 1m --poll-interval 1m`이고, 캐시는 `~/.cache/rclone`에 있습니다.
 
 DevContainer에서 쓰려면 `devcontainer.json`에 한 번 넣습니다. 나중에 추가한 마운트도 자동으로 보입니다.
@@ -146,6 +147,10 @@ node /tmp/auto-stop-workspace/autostop-workspace.js
 - 셸 설정을 초기화하려면 `~/.bashrc`를 지우고 워크스페이스를 재시작하세요. 기본 설정이 다시 복사됩니다.
 
 ## 변경 사항
+
+### 2026-11-02
+
+- rclone 설치 실패를 감지합니다. 다운로드 재시도·fallback·아카이브 검증, 실패 시 스크립트 실패 표시, 백그라운드 루프에서 재설치. 바이너리가 없으면 마운트를 시도하지 않습니다(`rclone-mounts install` 추가).
 
 ### 2026-10-31
 

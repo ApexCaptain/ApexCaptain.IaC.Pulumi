@@ -74,6 +74,10 @@ export class SourceKerberos extends pulumi.CustomResource {
      */
     declare public readonly policyEngineMode: pulumi.Output<string | undefined>;
     /**
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     */
+    declare public readonly promoted: pulumi.Output<boolean | undefined>;
+    /**
      * Kerberos realm
      */
     declare public readonly realm: pulumi.Output<string>;
@@ -163,6 +167,7 @@ export class SourceKerberos extends pulumi.CustomResource {
             resourceInputs["name"] = state?.name;
             resourceInputs["passwordLoginUpdateInternalPassword"] = state?.passwordLoginUpdateInternalPassword;
             resourceInputs["policyEngineMode"] = state?.policyEngineMode;
+            resourceInputs["promoted"] = state?.promoted;
             resourceInputs["realm"] = state?.realm;
             resourceInputs["slug"] = state?.slug;
             resourceInputs["sourceKerberosId"] = state?.sourceKerberosId;
@@ -195,6 +200,7 @@ export class SourceKerberos extends pulumi.CustomResource {
             resourceInputs["name"] = args?.name;
             resourceInputs["passwordLoginUpdateInternalPassword"] = args?.passwordLoginUpdateInternalPassword;
             resourceInputs["policyEngineMode"] = args?.policyEngineMode;
+            resourceInputs["promoted"] = args?.promoted;
             resourceInputs["realm"] = args?.realm;
             resourceInputs["slug"] = args?.slug;
             resourceInputs["sourceKerberosId"] = args?.sourceKerberosId;
@@ -253,6 +259,10 @@ export interface SourceKerberosState {
      *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
+    /**
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     */
+    promoted?: pulumi.Input<boolean | undefined>;
     /**
      * Kerberos realm
      */
@@ -357,6 +367,10 @@ export interface SourceKerberosArgs {
      *      Defaults to <span pulumi-lang-nodejs="`any`" pulumi-lang-dotnet="`Any`" pulumi-lang-go="`any`" pulumi-lang-python="`any`" pulumi-lang-yaml="`any`" pulumi-lang-java="`any`" pulumi-lang-hcl="`any`">`any`</span>.
      */
     policyEngineMode?: pulumi.Input<string | undefined>;
+    /**
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     */
+    promoted?: pulumi.Input<boolean | undefined>;
     /**
      * Kerberos realm
      */

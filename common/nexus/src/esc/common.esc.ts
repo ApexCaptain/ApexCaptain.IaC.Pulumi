@@ -55,8 +55,6 @@ const commonEscSchema = z
         'ot-container-kit.github.io/helm-charts': z.string(),
         'stakater.github.io/stakater-charts': z.string(),
         'argoproj.github.io/argo-helm': z.string(),
-        'cndoit18.github.io/lxcfs-on-kubernetes': z.string(),
-        'charts.gabe565.com': z.string(),
         'helm.coder.com/v2': z.string(),
         'open-telemetry.github.io/opentelemetry-helm-charts': z.string(),
         'victoriametrics.github.io/helm-charts': z.string(),

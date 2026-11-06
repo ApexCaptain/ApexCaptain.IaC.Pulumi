@@ -27,7 +27,7 @@ function formatLocalStamp(date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}-${pad(date.getMinutes())}-${pad(date.getSeconds())}`;
 }
 
-// Sysbox 워크스페이스는 컨테이너 부팅 = 워크스페이스 시작.
+// Kata 워크스페이스는 VM 부팅 = 워크스페이스 시작 (/proc/uptime은 게스트 커널 기준).
 // 이전 세션의 Coder last_used_at과 구분할 때 이 시각을 하한으로 쓴다.
 function workspaceStartEpoch() {
   try {

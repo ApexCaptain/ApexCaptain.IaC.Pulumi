@@ -24,10 +24,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
     const providers = phases.deployProviders();
 
     const {
-      sysbox,
       kata,
-      lxcfsHelmChart,
-      genericDevicePluginHelmChart,
       gpuRuntimeClass,
       gpuOperatorHelmChart,
     } = phases.deployNodeRuntime({ providers });
@@ -147,10 +144,7 @@ export const k8sWorkstationSystemContract = new nexus.classes.Contract(
           directGatewayPath: istioGateway.output.istioDirectGatewayPath,
         },
         storageClasses: longhornResources.output.storageClasses,
-        sysbox: sysbox.output,
         kata: kata.output,
-        lxcfs: lxcfsHelmChart.output,
-        genericDevicePlugin: genericDevicePluginHelmChart.output,
         gpu: {
           runtimeClassName: gpuRuntimeClass.output.runtimeClassName,
           namespace: gpuOperatorHelmChart.output.namespace,

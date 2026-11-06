@@ -3,7 +3,6 @@
 #
 # 변수  host_vars/<hostname>.yml — nvidia_enabled (driver role과 동일)
 # 선행  pre-configure install-nvidia-driver, Kubespray cluster (containerd)
-# 유지  sysbox-runc runtime — nvidia-ctk merge configure
 
 - name: Detect PCI devices
   ansible.builtin.command: lspci -nn
@@ -96,7 +95,7 @@
       - nvidia_container_runtime_binary.stat.exists
     fail_msg: /usr/bin/nvidia-container-runtime was not found after toolkit install.
 
-- name: Verify containerd reports nvidia and sysbox-runc runtimes
+- name: Verify containerd reports nvidia runtime
   ansible.builtin.shell: |
     set -o pipefail
     crictl info | jq -r '.config.containerd.runtimes | keys[]'
@@ -109,9 +108,8 @@
   ansible.builtin.assert:
     that:
       - "'nvidia' in nvidia_containerd_runtimes.stdout"
-      - "'sysbox-runc' in nvidia_containerd_runtimes.stdout"
     fail_msg: >-
-      containerd runtimes missing nvidia and/or sysbox-runc.
+      containerd runtimes missing nvidia.
       stdout={{ nvidia_containerd_runtimes.stdout }}
 
 - name: Show configured containerd runtimes

@@ -6,7 +6,7 @@
  * 단일 노드라 scheduling.nodeSelector 없음.
  *
  * @see https://github.com/kata-containers/kata-containers/blob/main/docs/how-to/how-to-use-k8s-with-containerd-and-kata.md
- * @see docs/issues/active/2026-10-24-sysbox-runtime-replacement.md
+ * @see docs/issues/resolved/2026-10-24-sysbox-runtime-replacement.md
  */
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
