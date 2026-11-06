@@ -148,7 +148,7 @@ export const constants = (() => {
         name: 'authentik',
         converterVersion: terraformBridgeConverterVersion,
         providerSource: 'goauthentik/authentik',
-        providerVersion: '2026.8.0',
+        providerVersion: '2026.8.2',
       }),
       // https://registry.terraform.io/providers/argoproj-labs/argocd/latest
       argocd: new TerraformBridgedProvider({

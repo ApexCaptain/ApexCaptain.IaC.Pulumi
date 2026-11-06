@@ -101,7 +101,7 @@ export async function getPackage(): Promise<string | undefined> {
 		baseProviderVersion: "1.5.1",
 		baseProviderDownloadUrl: "",
 		packageName: "authentik",
-		packageVersion: "2026.8.0",
-		base64Parameter: "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2dvYXV0aGVudGlrL2F1dGhlbnRpayIsInZlcnNpb24iOiIyMDI2LjguMCJ9fQ==",
+		packageVersion: "2026.8.2",
+		base64Parameter: "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2dvYXV0aGVudGlrL2F1dGhlbnRpayIsInZlcnNpb24iOiIyMDI2LjguMiJ9fQ==",
 	});
 }

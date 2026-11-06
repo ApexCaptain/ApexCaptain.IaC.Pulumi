@@ -10,8 +10,8 @@
 
 | 언제 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
-| **2026-11-06** | Kata 실사용 이상 없으면 Sysbox Coder 템플릿 제거 → lxcfs·Sysbox·generic-device-plugin 제거 | [Sysbox 대체 런타임](issues/active/2026-10-24-sysbox-runtime-replacement.md) | 완화 |
-| **2026-11-06 이후** | 위 제거가 끝나면 Phase 2 (1.35.9 → 1.36). 이상 있으면 보류 | [Kubernetes 1.36 업그레이드](issues/active/2026-10-13-kubernetes-1-36-upgrade.md) | 보류 |
+| **2026-11-08** | Sysbox Coder 템플릿 제거 → lxcfs·Sysbox·generic-device-plugin 제거 (Kata 실사용 이상 없음은 2026-11-06 확인) | [Sysbox 대체 런타임](issues/active/2026-10-24-sysbox-runtime-replacement.md) | 완화 |
+| **2026-11-08 이후** | 위 제거가 끝나면 Phase 2 (1.35.9 → 1.36) | [Kubernetes 1.36 업그레이드](issues/active/2026-10-13-kubernetes-1-36-upgrade.md) | 보류 |
 | **2026-12 초** | VPA 3차 스냅. vault·argo applicationset·reloader 두 번째 OVER면 축소. 11월 주기는 10-30으로 대체 | [VPA 리소스 재조정](issues/active/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-30 2차 반영 완료 |
 | **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/active/2026-09-13-priority-class-resource-protection.md) | 보류 |
 | **2027-01 말** | Vault CA 회전 방법론 재검토: A 적용 결과, 정기 회전 필요성, ①②(trust-manager 배포·VSO Reloader) 또는 ①②③(옛·새 CA 병행) 도입 여부 | [Vault CA 회전 신뢰 전파](issues/active/2026-10-25-vault-ca-rotation-trust-propagation.md) | 적용 · 2027-01 말 재검토 |
