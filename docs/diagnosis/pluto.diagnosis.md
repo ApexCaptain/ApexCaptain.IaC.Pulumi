@@ -2,7 +2,7 @@
 
 Generated at ```2026-11-06```
 
-Target Kubernetes Version: ```v1.36.0```
+Target Kubernetes Version: ```v1.37.0```
 
 ## Pluto CLI Version Mismatch
 
@@ -14,4 +14,4 @@ Please update your Pluto CLI to the latest version.
 
 ### Deprecated or Removed API Versions
 
-No deprecated or removed API versions found for Kubernetes target ```v1.36.0```.
+No deprecated or removed API versions found for Kubernetes target ```v1.37.0```.
