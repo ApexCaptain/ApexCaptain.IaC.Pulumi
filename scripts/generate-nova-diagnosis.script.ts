@@ -9,6 +9,7 @@ import semver from 'semver';
 import yaml from 'yaml';
 import { KubeConfig } from '../common/utils/src/interfaces/kubeconfig.interface';
 import * as src from '../src';
+import { formatKstDate } from './common';
 
 /**
  * Fairwinds Nova CLI JSON 출력 결과 타입 정의
@@ -212,7 +213,7 @@ const generateNovaDiagnosis = async (): Promise<void> => {
   const markdownDocuments: json2md.DataObject[] = [
     {
       h1: 'Nova Diagnosis Report',
-      p: `Generated at \`\`\`${new Date().toISOString()}\`\`\``,
+      p: `Generated at \`\`\`${formatKstDate()}\`\`\``,
     },
   ];
 
