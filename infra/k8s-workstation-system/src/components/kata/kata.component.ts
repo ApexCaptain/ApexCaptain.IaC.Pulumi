@@ -44,11 +44,13 @@ export const KataComponent = utils.functions.defineComponent(
         },
         handler: KATA_RUNTIME_HANDLER,
         // VM은 limit + default_memory(Kubespray kata_containers_qemu_default_memory=1024)까지 쓸 수 있다.
-        // 게스트 페이지 캐시가 그만큼 찰 수 있어 memory는 default_memory와 맞춘다 (대기 RSS 실측 약 330Mi)
+        // 게스트 페이지 캐시가 그만큼 차면 게스트 RAM(shmem)만으로 memcg가 가득 찬다.
+        // 그래서 default_memory(1Gi) + 호스트 측 여유(QEMU·virtiofsd·I/O) 1Gi. 1Gi(여유 0)일 때 qemu OOM kill (2026-11-10·11)
+        // @see docs/issues/active/2026-11-11-kata-workspace-qemu-memcg-oom.md
         overhead: {
           podFixed: {
             cpu: '250m',
-            memory: '1Gi',
+            memory: '2Gi',
           },
         },
       },
