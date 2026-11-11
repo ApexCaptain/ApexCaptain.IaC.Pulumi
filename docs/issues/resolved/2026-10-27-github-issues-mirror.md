@@ -28,14 +28,14 @@ GitHub Issues에 미러하면 얻는 것: 커밋·PR에서 `#N` 참조, 모바�
 | 매핑 | Issue 본문 첫 줄 숨김 마커 `<!-- docs-issue: <파일명 slug> -->`. md에 Issue 번호를 쓰지 않음 |
 | 생성·갱신 | `docs/issues/active/<f>.md` 존재 → open 상태로 본문 덮어씀. 제목은 md `#` 제목 |
 | 종료 | 같은 slug가 `docs/issues/resolved/`로 이동 → close (`state_reason: completed`) |
-| 삭제 | md가 양쪽 다 없음 → close (`not_planned`) + 라벨 `docs:removed`. Issue 삭제하지 않음 |
+| 삭제 | md가 양쪽 다 없음 → GitHub Issue **영구 삭제** (`deleteIssue`). 예전 `docs:removed` tombstone은 폐기 |
 | 본문 상단 | "SSOT: `<경로 링크>`. 여기서 수정 금지" 배너 |
 | 라벨 | 메타 `상태`(조사중/진행중/완화/적용/보류) → `status:*`. `영역`은 자유 텍스트라 일단 매핑 안 함 |
 | 상대 링크 | md 안 상대 링크를 blob URL로 변환 |
 | 댓글 | 동기화 대상 아님. 필요하면 lock |
 | 일정 | `docs/schedule.md`는 미러하지 않음. milestone 안 씀 |
 
-구현 형태: `scripts/sync-github-issues.script.ts` + projen이 생성하는 workflow 하나. 토큰은 workflow 기본 `GITHUB_TOKEN`(`issues: write`)으로 충분한지 먼저 확인.
+구현 형태: `scripts/sync-github-issues.script.ts` + projen이 생성하는 workflow 하나. Issue 삭제는 repo admin이 필요하므로 CI는 `WORKFLOW_TOKEN`을 쓴다.
 
 ## 확인할 것
 
@@ -69,3 +69,4 @@ GitHub Issues에 미러하면 얻는 것: 커밋·PR에서 `#N` 참조, 모바�
 | 2026-10-27 | PR #106 머지, workflow 첫 실행 성공 — Issue 49개 생성 (open 18 / closed 31). 재실행 dry-run에서 `lxcfs-on-kubernetes-0.2.8-upgrade`만 다시 create로 잡힘: slug 마커 정규식이 `.`을 허용하지 않아 기존 Issue를 못 찾음. 정규식 수정 + 테스트 추가 후 dry-run 동작 0개 |
 | 2026-10-28 | 점검: 미러 49/49, drift 0. resolved 이동은 아직 실제 사례 없음 — 사본 dry-run에서 `#155 → closed/completed` 계획 확인. 버그 수정: 본문 비교가 Issue의 hash 마커만 읽어, 웹에서 마커를 남기고 본문만 고치면 덮어쓰지 않았음 → 실제 본문을 다시 hash해 비교 + 테스트 추가. 남은 한계: 웹에서 slug 마커나 `docs-mirror` 라벨을 지우면 기존 Issue를 못 찾아 중복 생성 (배너로 수정 금지 안내, 수용) |
 | 2026-10-28 | 첫 실사례: PR #161로 `system-contract-split`·`infra-component-tests`를 resolved로 이동 → develop push 후 workflow 성공, #141·#138 closed(completed), 신규 `tools-contract-split` → #162 open. 해결 |
+| 2026-11-11 | 정책 변경: md 소실 시 close+`docs:removed` 대신 Issue 영구 삭제. workflow 토큰을 `WORKFLOW_TOKEN`으로 전환. 레거시 `docs:removed` 라벨은 싱크 시 제거 |

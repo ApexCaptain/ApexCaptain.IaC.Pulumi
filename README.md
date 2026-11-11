@@ -83,4 +83,4 @@ pnpm pulumi:up
 - [docs/issues/resolved/](docs/issues/resolved/) — 완료 이슈 아카이브
 - [docs/diagnosis/](docs/diagnosis/) — Nova·Pluto 등 운영 진단 (별도 SSOT)
 
-이슈 SSOT는 위 마크다운입니다. GitHub Issues(`docs-mirror` 라벨)는 단방향 미러이며, Issue에서 고치면 다음 싱크에 덮어씁니다. 일정 표는 언제 무엇을 볼지만 담고, 기능 목록이나 로드맵 대체용이 아닙니다.
+이슈 SSOT는 위 마크다운입니다. GitHub Issues(`docs-mirror` 라벨)는 단방향 미러이며, Issue에서 고치면 다음 싱크에 덮어씁니다. md가 `active`/`resolved` 양쪽에서 사라지면 대응 Issue는 삭제됩니다. 일정 표는 언제 무엇을 볼지만 담고, 기능 목록이나 로드맵 대체용이 아닙니다.

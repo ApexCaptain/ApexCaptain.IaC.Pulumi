@@ -13,7 +13,6 @@ import {
   MirrorIssue,
   parseIssueDoc,
   planSync,
-  REMOVED_LABEL,
   RepoRef,
   RESOLVED_DIR,
   STATUS_LABEL_PREFIX,
@@ -24,18 +23,23 @@ import {
 /**
  * docs/issues/{active,resolved} → GitHub Issues 단방향 미러.
  * 기본은 dry-run(계획만 출력). `--apply`로 반영. `--ref <branch>`로 링크 기준 브랜치 지정.
- * docs/issues/active/2026-10-27-github-issues-mirror.md
+ * md가 양쪽에서 사라지면 Issue를 삭제한다 (admin 토큰 필요 — CI는 WORKFLOW_TOKEN).
+ * docs/issues/resolved/2026-10-27-github-issues-mirror.md
  */
 
 const API = 'https://api.github.com';
+const GRAPHQL = `${API}/graphql`;
 /** 콘텐츠 생성 secondary rate limit 회피용 간격 */
 const MUTATION_INTERVAL_MS = 1000;
+/** 예전 tombstone 라벨. 새 싱크는 쓰지 않고, 남아 있으면 지운다. */
+const LEGACY_REMOVED_LABEL = 'docs:removed';
 
 type GithubIssueResponse = {
   number: number;
   title: string;
   body: string | null;
   state: 'open' | 'closed';
+  node_id: string;
   labels: Array<{ name?: string } | string>;
   pull_request?: unknown;
 };
@@ -122,7 +126,41 @@ function createClient(token: string, repo: RepoRef) {
     return result;
   }
 
-  return { request, paginate };
+  async function graphql<T>(
+    query: string,
+    variables: Record<string, unknown>,
+  ): Promise<T> {
+    const response = await fetch(GRAPHQL, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      body: JSON.stringify({ query, variables }),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `GitHub GraphQL → ${response.status}: ${(await response.text()).slice(0, 300)}`,
+      );
+    }
+    const payload = (await response.json()) as {
+      data?: T;
+      errors?: Array<{ message: string }>;
+    };
+    if (payload.errors?.length) {
+      throw new Error(
+        `GitHub GraphQL: ${payload.errors.map(each => each.message).join('; ')}`,
+      );
+    }
+    if (!payload.data) {
+      throw new Error('GitHub GraphQL: empty data');
+    }
+    return payload.data;
+  }
+
+  return { request, paginate, graphql };
 }
 
 function readDocs(repo: RepoRef): DesiredIssue[] {
@@ -161,10 +199,6 @@ const LABEL_SPECS: Record<string, { color: string; description: string }> = {
     color: '5319e7',
     description: 'docs/issues 미러. 수정은 md에서',
   },
-  [REMOVED_LABEL]: {
-    color: 'b60205',
-    description: '원본 md가 사라진 미러 Issue',
-  },
   ...Object.fromEntries(
     KNOWN_STATUSES.map(status => [
       `${STATUS_LABEL_PREFIX}${status}`,
@@ -179,13 +213,15 @@ async function main(): Promise<void> {
   const client = createClient(resolveToken(), repo);
 
   const desired = readDocs(repo);
-  const existing = (
+  const existingRaw = (
     await client.paginate<GithubIssueResponse>(
       `/issues?labels=${encodeURIComponent(MIRROR_LABEL)}&state=all&per_page=100`,
     )
-  )
-    .filter(issue => !issue.pull_request)
-    .map(toMirrorIssue);
+  ).filter(issue => !issue.pull_request);
+  const existing = existingRaw.map(toMirrorIssue);
+  const nodeIdByNumber = new Map(
+    existingRaw.map(issue => [issue.number, issue.node_id]),
+  );
 
   const actions = planSync(desired, existing);
   console.log(
@@ -199,7 +235,6 @@ async function main(): Promise<void> {
     console.log(chalk.yellow('dry-run. 반영하려면 --apply'));
     return;
   }
-  if (actions.length === 0) return;
 
   const existingLabels = new Set(
     (await client.paginate<{ name: string }>('/labels?per_page=100')).map(
@@ -211,9 +246,16 @@ async function main(): Promise<void> {
     await client.request('POST', '/labels', { name, ...spec });
     console.log(chalk.gray(`  label 생성: ${name}`));
   }
+  if (existingLabels.has(LEGACY_REMOVED_LABEL)) {
+    await client.request(
+      'DELETE',
+      `/labels/${encodeURIComponent(LEGACY_REMOVED_LABEL)}`,
+    );
+    console.log(chalk.gray(`  label 삭제: ${LEGACY_REMOVED_LABEL}`));
+  }
 
   for (const action of actions) {
-    await applyAction(client, action);
+    await applyAction(client, action, nodeIdByNumber);
     console.log(chalk.green(`  ✓ ${describeAction(action)}`));
     await sleep(MUTATION_INTERVAL_MS);
   }
@@ -222,6 +264,7 @@ async function main(): Promise<void> {
 async function applyAction(
   client: ReturnType<typeof createClient>,
   action: SyncAction,
+  nodeIdByNumber: Map<number, string>,
 ): Promise<void> {
   if (action.kind === 'create') {
     const { desired } = action;
@@ -240,6 +283,22 @@ async function applyAction(
         state_reason: 'completed',
       });
     }
+    return;
+  }
+
+  if (action.kind === 'delete') {
+    const issueId = nodeIdByNumber.get(action.number);
+    if (!issueId) {
+      throw new Error(`node_id 없음: #${action.number} ${action.slug}`);
+    }
+    await client.graphql<{ deleteIssue: { clientMutationId: string | null } }>(
+      `mutation($issueId: ID!) {
+        deleteIssue(input: { issueId: $issueId }) {
+          clientMutationId
+        }
+      }`,
+      { issueId },
+    );
     return;
   }
 
