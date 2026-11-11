@@ -12,7 +12,6 @@ export const ACTIVE_DIR = `${ISSUES_ROOT_DIR}/active`;
 export const RESOLVED_DIR = `${ISSUES_ROOT_DIR}/resolved`;
 
 export const MIRROR_LABEL = 'docs-mirror';
-export const REMOVED_LABEL = 'docs:removed';
 export const STATUS_LABEL_PREFIX = 'status:';
 export const KNOWN_STATUSES = [
   '조사중',
@@ -68,8 +67,9 @@ export type SyncAction =
       changes: Partial<
         Pick<DesiredIssue, 'title' | 'body' | 'state' | 'labels'>
       >;
-      stateReason?: 'completed' | 'not_planned' | 'reopened';
-    };
+      stateReason?: 'completed' | 'reopened';
+    }
+  | { kind: 'delete'; number: number; slug: string };
 
 export type RepoRef = {
   owner: string;
@@ -188,11 +188,7 @@ function actualHash(body: string): string {
 }
 
 function isManagedLabel(label: string): boolean {
-  return (
-    label === MIRROR_LABEL ||
-    label === REMOVED_LABEL ||
-    label.startsWith(STATUS_LABEL_PREFIX)
-  );
+  return label === MIRROR_LABEL || label.startsWith(STATUS_LABEL_PREFIX);
 }
 
 /** 사람이 붙인 라벨은 유지하고 미러가 관리하는 라벨만 맞춘다. */
@@ -257,19 +253,7 @@ export function planSync(
 
   for (const [slug, issue] of bySlug) {
     if (seen.has(slug)) continue;
-    const labels = mergeLabels(issue.labels, [MIRROR_LABEL, REMOVED_LABEL]);
-    const changes: Extract<SyncAction, { kind: 'update' }>['changes'] = {};
-    if (!sameLabels(issue.labels, labels)) changes.labels = labels;
-    if (issue.state !== 'closed') changes.state = 'closed';
-    if (Object.keys(changes).length > 0) {
-      actions.push({
-        kind: 'update',
-        number: issue.number,
-        slug,
-        changes,
-        stateReason: changes.state ? 'not_planned' : undefined,
-      });
-    }
+    actions.push({ kind: 'delete', number: issue.number, slug });
   }
 
   return actions;
@@ -278,6 +262,9 @@ export function planSync(
 export function describeAction(action: SyncAction): string {
   if (action.kind === 'create') {
     return `create  ${action.desired.slug} (${action.desired.state})`;
+  }
+  if (action.kind === 'delete') {
+    return `delete  #${action.number} ${action.slug}`;
   }
   const fields = Object.keys(action.changes).join(',');
   const state = action.changes.state
