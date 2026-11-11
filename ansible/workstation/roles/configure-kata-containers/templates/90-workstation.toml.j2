@@ -1,3 +1,6 @@
 # Ansible configure-kata-containers 관리. Kubespray configuration-qemu.toml 위에 덮어쓴다
 [hypervisor.qemu]
 reclaim_guest_freed_memory = {{ kata_containers_reclaim_guest_freed_memory | bool | lower }}
+# block PVC: cache_set이 true여야 cache_direct가 QEMU에 반영된다. noflush는 기본(false) 유지
+block_device_cache_set = {{ kata_containers_block_device_cache_direct | bool | lower }}
+block_device_cache_direct = {{ kata_containers_block_device_cache_direct | bool | lower }}

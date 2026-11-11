@@ -10,6 +10,7 @@
 
 | 언제 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
+| **2026-11-18** | Kata qemu memcg OOM 재점검: 노드 kern.log OOM 재발·파드 `memory.peak`/`memory.events` 확인 → 이상 없으면 resolved 이동 | [Kata qemu memcg OOM](issues/active/2026-11-11-kata-workspace-qemu-memcg-oom.md) | 적용 · 2026-11-18 재점검 |
 | **2026-12 초** | VPA 3차 스냅. vault·argo applicationset·reloader 두 번째 OVER면 축소. 11월 주기는 10-30으로 대체 | [VPA 리소스 재조정](issues/active/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-30 2차 반영 완료 |
 | **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/active/2026-09-13-priority-class-resource-protection.md) | 보류 |
 | **2027-01 말** | Vault CA 회전 방법론 재검토: A 적용 결과, 정기 회전 필요성, ①②(trust-manager 배포·VSO Reloader) 또는 ①②③(옛·새 CA 병행) 도입 여부 | [Vault CA 회전 신뢰 전파](issues/active/2026-10-25-vault-ca-rotation-trust-propagation.md) | 적용 · 2027-01 말 재검토 |
