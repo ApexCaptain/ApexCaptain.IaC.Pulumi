@@ -101,7 +101,7 @@ export async function getPackage(): Promise<string | undefined> {
 		baseProviderVersion: "1.5.1",
 		baseProviderDownloadUrl: "",
 		packageName: "argocd",
-		packageVersion: "7.17.2",
-		base64Parameter: "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2FyZ29wcm9qLWxhYnMvYXJnb2NkIiwidmVyc2lvbiI6IjcuMTcuMiJ9fQ==",
+		packageVersion: "7.18.0",
+		base64Parameter: "eyJyZW1vdGUiOnsidXJsIjoicmVnaXN0cnkub3BlbnRvZnUub3JnL2FyZ29wcm9qLWxhYnMvYXJnb2NkIiwidmVyc2lvbiI6IjcuMTguMCJ9fQ==",
 	});
 }
