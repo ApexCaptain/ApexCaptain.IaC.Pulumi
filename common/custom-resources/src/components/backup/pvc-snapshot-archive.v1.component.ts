@@ -102,6 +102,14 @@ const DEFAULT_WORKER_ENV: Record<string, string> = {
   ZSTD_ARGS: '-T1 -6',
 };
 
+/** Alpine CDN hang 시 apk가 무한 대기하지 않도록 (busybox timeout) */
+const APK_INSTALL_TIMEOUT_SEC = 600;
+/**
+ * Forbid + deadline 없음이면 stalled Job이 다음 Cron을 영구 차단.
+ * jellyfin-config(~2Gi upload) 여유 포함.
+ */
+const ORCHESTRATOR_ACTIVE_DEADLINE_SECONDS = 7200;
+
 function workerEnvForTarget(
   target: PvcSnapshotArchiveTargetShape,
 ): Array<{ name: string; value: string }> {
@@ -368,7 +376,11 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
           ),
         },
       },
-      k8sOpts,
+      {
+        ...k8sOpts,
+        // 고정 metadata.name — create-before-delete replace는 AlreadyExists
+        deleteBeforeReplace: true,
+      },
     );
 
     const buildOrchestratorPodTemplate = (
@@ -397,7 +409,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             args: [
               [
                 'echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories',
-                'apk add --no-cache bash curl jq kubectl coreutils tzdata',
+                `timeout ${APK_INSTALL_TIMEOUT_SEC} apk add --no-cache bash curl jq kubectl coreutils tzdata`,
                 'exec bash /scripts/run.sh',
               ].join('\n'),
             ],
@@ -543,6 +555,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
               },
               spec: {
                 backoffLimit: 1,
+                activeDeadlineSeconds: ORCHESTRATOR_ACTIVE_DEADLINE_SECONDS,
                 ttlSecondsAfterFinished: 86400,
                 template: podTemplate,
               },
@@ -574,6 +587,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             },
             spec: {
               backoffLimit: 1,
+              activeDeadlineSeconds: ORCHESTRATOR_ACTIVE_DEADLINE_SECONDS,
               ttlSecondsAfterFinished: 86400,
               template: podTemplate,
             },
