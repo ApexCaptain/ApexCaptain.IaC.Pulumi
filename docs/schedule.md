@@ -24,9 +24,8 @@
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
 | Istio `proxyv2`에 Envoy #45198 픽스 포함 (1.30.7엔 없음. 노트 기준 1.32+). #45198·#60074는 이미 닫힘 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/active/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
-| 다음 Kubespray 실행 전 | 기본값 유지(A, 추천) / `force_etcd_cert_refresh: false`(B) 결정 | [etcd 인증서 재발급](issues/active/2026-11-06-etcd-cert-regeneration-on-kubespray-run.md) | 보류 |
+| A/B 사용자 결정 (다음 Kubespray 전. A면 즉시 아카이브, B면 오버라이드 후 다음 실행에서 Gen_certs skip 확인) | 기본값 유지(A, 추천) / `force_etcd_cert_refresh: false`(B) | [etcd 인증서 재발급](issues/active/2026-11-06-etcd-cert-regeneration-on-kubespray-run.md) | 보류 |
 | 사용자 재개 결정 (2026-10-19 보류. protect 선행은 충족) | 클러스터 도달·자격 증명 결정 → 일일 drift 감지 → PR preview | [CI preview·drift](issues/active/2026-10-17-ci-pulumi-preview-drift.md) | 보류 |
-| 사용자 착수 결정 (K8s 1.36과 같은 시기 금지. Sysbox 제거는 2026-11-06 완료) | tools contract phase 분해 + contract 단위 테스트 (system 방식 재사용) | [tools contract 분해](issues/active/2026-10-28-tools-contract-split.md) | 보류 |
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/active/2026-10-17-dr-rebuild-runbook.md) | 보류 |
 | [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso) manifest에 Jellyfin 12 `targetAbi` 버전 등장 | 플러그인 호환 확인 → config 백업 → 차트 3.4.0+ (앱 12.x) 업그레이드 → 재스캔 → SSO 확인 | [Jellyfin 12 업그레이드](issues/active/2026-10-21-jellyfin-12-upgrade.md) | 보류 |
 | CI가 GitOps `main`에 이미지 태그 자동 push 시작 | `repos/gitops` behind 상태에서 commit 시 guard hook deny 실확인 → 통과 시 `docs/issues/resolved` 이동 | [GitOps 로컬 클론](issues/active/2026-10-21-gitops-repo-local-clone.md) | 적용 |
