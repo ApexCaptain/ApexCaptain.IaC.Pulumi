@@ -115,6 +115,7 @@ export const deployVikunja = (deps: { providers: ToolsProviders }) => {
     {
       namespace: vikunjaBase.output.namespace,
       runOnceOnCreate: false,
+      notifyOnSuccess: false,
       dr: {
         targets: [
           {

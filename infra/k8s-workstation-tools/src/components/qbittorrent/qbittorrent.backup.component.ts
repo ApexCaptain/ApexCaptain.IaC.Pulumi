@@ -36,6 +36,11 @@ interface QbittorrentBackupComponentArgsShape {
    * @see PvcSnapshotArchiveV1 `runOnceOnCreate`
    */
   runOnceOnCreate?: boolean;
+  /**
+   * 성공 시 #infra-info Slack. 기본 true.
+   * @see PvcSnapshotArchiveV1 `notifyOnSuccess`
+   */
+  notifyOnSuccess?: boolean;
   providers: {
     kubernetes: k8s.Provider;
   };
@@ -66,6 +71,7 @@ export const QbittorrentBackupComponent = utils.functions.defineComponent(
           targets: args.dr.targets,
           platform: args.platform,
           runOnceOnCreate: args.runOnceOnCreate === true,
+          notifyOnSuccess: args.notifyOnSuccess !== false,
           providers: args.providers,
         },
         opts,

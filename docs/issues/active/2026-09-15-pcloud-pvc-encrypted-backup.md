@@ -369,3 +369,5 @@ ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또�
 | 2026-11-03 | Coder 워크스페이스 PVC 백업 전부 보류. home 용량이 커 pCloud 부담. Kata home 백업 경로 재확인 안 함 |
 | 2026-11-11 | qBit DR Job `…-29901780` ~3일 Running: orchestrator `apk add`가 Alpine CDN HTTPS에서 stall (스크립트 미진입). `concurrencyPolicy=Forbid`로 이후 Cron 스킵. hung Job·고아 Pod 삭제 → 즉시 재스케줄 Job `…-29904660` 진행. 공유 컴포넌트 보강: `timeout 600 apk` + Job `activeDeadlineSeconds=7200`(orch)·worker `5400` (`PvcSnapshotArchiveV1`·`VaultRaftArchiveV1`). qBit vs Vikunja 레인 차이는 target PVC만 (동일 컴포넌트·스케줄·keepWithin=10d) |
 | 2026-11-11 | prod up 반영: system#652 (Vault Cron), tools#280 (qBit·Vikunja CM replace+Cron), apps#167 (Jellyfin). script ConfigMap에 `deleteBeforeReplace` 추가. 클러스터 실측: orch `timeout 600 apk`·`activeDeadlineSeconds=7200` |
+| 2026-11-12 | DR Slack `notifyOnSuccess` 플래그 추가(기본 true). Vault·qBit·Vikunja·Jellyfin 전부 `false`로 배포 — 성공 `#infra-info` 생략, 실패 `#infra-error`만. system#654 / tools#281(백업 `--target`) / apps#168. CronJob env·script CM 실측 |
+| 2026-11-12 | `#infra-error` 실패 경로 probe: Job `vault-backup-slack-error-probe` → `backup_slack_on_finish 42` → 채널에 `probe/slack-error` 수신 확인. Job 삭제 |

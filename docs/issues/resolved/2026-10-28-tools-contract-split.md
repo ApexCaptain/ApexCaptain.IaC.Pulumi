@@ -7,7 +7,8 @@
 | **영역** | `infra/k8s-workstation-tools` |
 | **관련 코드** | `infra/k8s-workstation-tools/src/contract.ts` (36줄), `src/phases/` (5개) |
 | **선행** | [system contract 분해](../resolved/2026-10-17-system-contract-split.md) — 같은 방식 재사용. Sysbox 제거·K8s 1.36은 2026-11-06 완료 |
-| **상태** | **적용** — phase 분해·contract 테스트·preview diff 0 완료. 사용자 아카이브 대기 |
+| **상태** | **해결** |
+| **해결일** | 2026-11-11 |
 
 ## 해결 요약
 
@@ -60,3 +61,4 @@ system과 같은 방식.
 | 2026-11-04 | 줄 수 751→799로 갱신. 상태 보류 유지 |
 | 2026-11-11 | 실측 737줄(Sysbox 제거 후). `phases/`·contract 테스트 미착수. Sysbox·K8s 1.36 선행 해소 → 착수 가능, 사용자 결정 대기로 보류 유지 |
 | 2026-11-11 | phase 분해 적용. contract 737→36줄. preview tools 133·apps 66 unchanged. contract 테스트 추가. 상태 **적용** |
+| 2026-11-11 | 사용자 아카이브 승인. `docs/issues/resolved`로 이동 |

@@ -46,6 +46,10 @@ backup_slack_on_finish() {
 
   slack_read_urls
   if [[ "${code}" -eq 0 ]]; then
+    # IaC: SLACK_NOTIFY_ON_SUCCESS=true|false (unset → true)
+    if [[ "${SLACK_NOTIFY_ON_SUCCESS:-true}" != "true" ]]; then
+      return 0
+    fi
     slack_post_payload "${SLACK_INFO_URL}" "$(jq -n \
       --arg header 'DR 백업 완료' \
       --arg label "${label}" \
