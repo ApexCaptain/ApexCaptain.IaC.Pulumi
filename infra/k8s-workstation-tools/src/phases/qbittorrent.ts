@@ -150,6 +150,7 @@ export const deployQbittorrent = (deps: { providers: ToolsProviders }) => {
       {
         namespace: qbittorrentApp.output.namespace,
         runOnceOnCreate: false,
+        notifyOnSuccess: false,
         dr: {
           targets: [
             {

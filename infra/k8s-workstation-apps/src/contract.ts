@@ -207,6 +207,7 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
         {
           namespace: jellyfinHelmChart.output.namespace,
           runOnceOnCreate: false,
+          notifyOnSuccess: false,
           dr: {
             targets: [
               {

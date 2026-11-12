@@ -169,6 +169,7 @@ export const deployVaultAccess = (deps: {
       namespace: vaultHelmChart.output.namespace,
       leafName: 'data-vault-0',
       runOnceOnCreate: false,
+      notifyOnSuccess: false,
       schedule: {
         cron: CronTime.everyDayAt(12),
         timezone: Timezone['Asia/Seoul'],

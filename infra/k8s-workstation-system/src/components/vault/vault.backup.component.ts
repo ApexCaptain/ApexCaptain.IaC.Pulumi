@@ -46,6 +46,11 @@ interface VaultBackupComponentArgsShape {
    * @see VaultRaftArchiveV1 `runOnceOnCreate`
    */
   runOnceOnCreate?: boolean;
+  /**
+   * 성공 시 #infra-info Slack. 기본 true.
+   * @see VaultRaftArchiveV1 `notifyOnSuccess`
+   */
+  notifyOnSuccess?: boolean;
   providers: {
     kubernetes: k8s.Provider;
     vault: vault.Provider;
@@ -120,6 +125,7 @@ export const VaultBackupComponent = utils.functions.defineComponent(
             kubernetesAuthRoleName: roleName,
           },
           runOnceOnCreate: args.runOnceOnCreate === true,
+          notifyOnSuccess: args.notifyOnSuccess !== false,
           providers: {
             kubernetes: args.providers.kubernetes,
           },

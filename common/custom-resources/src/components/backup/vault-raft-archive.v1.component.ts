@@ -92,6 +92,11 @@ interface VaultRaftArchiveV1ArgsShape {
    * 기본 false. create 시에만 실행; spec 변경 ignore.
    */
   runOnceOnCreate?: boolean;
+  /**
+   * 성공 시 #infra-info Slack. 기본 true.
+   * false면 실패(#infra-error)만 전송.
+   */
+  notifyOnSuccess?: boolean;
   providers: {
     kubernetes: k8s.Provider;
   };
@@ -121,6 +126,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
     const namePrefix = args.namePrefix as string;
     const leafName = args.leafName as string;
     const runOnceOnCreate = args.runOnceOnCreate === true;
+    const notifyOnSuccess = args.notifyOnSuccess !== false;
     // DeepPulumiInput makes optional fields Output|undefined; mount key는 평문 고정
     const caSecretKey =
       typeof args.vault.caSecretKey === 'string' && args.vault.caSecretKey.length > 0
@@ -289,6 +295,10 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
               {
                 name: 'BACKUP_NOTIFY_LABEL',
                 value: pulumi.interpolate`${args.namespace}/${leafName}`,
+              },
+              {
+                name: 'SLACK_NOTIFY_ON_SUCCESS',
+                value: notifyOnSuccess ? 'true' : 'false',
               },
               { name: 'LANE', value: 'dr' },
               { name: 'KEEP_WITHIN', value: args.keepWithin },
@@ -461,6 +471,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
         cronJobName,
         onceJobNames,
         runOnceOnCreate,
+        notifyOnSuccess,
         kubernetesAuthRoleName: args.vault.kubernetesAuthRoleName,
       }),
       secret: pulumi.secret({}),

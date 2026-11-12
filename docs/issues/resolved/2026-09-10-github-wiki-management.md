@@ -5,7 +5,8 @@
 | **등록일** | 2026-09-10 |
 | **영역** | 레포 문서 (`docs/`), GitHub Wiki |
 | **관련 코드** | `docs/issues/active/`, `docs/issues/resolved/`, `docs/schedule.md`, `.rulesync/rules/use-docs-issues.md`, `.rulesync/rules/use-docs-schedule.md` |
-| **상태** | **보류** — 급하지 않음. 일정표 미등록. 시간 될 때 결정 |
+| **상태** | **해결** — E 확정 (`docs/` SSOT, Wiki 미사용). 나중에 Wiki 필요하면 이 이슈 참고해 재개 |
+| **해결일** | 2026-11-11 |
 
 ## 배경
 
@@ -55,9 +56,11 @@ github.com/ApexCaptain/ApexCaptain.IaC.Pulumi.wiki.git    ← Wiki (조직 Repos
 
 결정만. 구현은 후속.
 
-- [ ] SSOT를 `docs/`로 둘지, Wiki로 둘지, 둘 다(D 미러) 할지 결정
+- [x] SSOT를 `docs/`로 둘지, Wiki로 둘지, 둘 다(D 미러) 할지 결정 → **E** (`docs/`만)
 - [ ] Wiki 탭이 필요하면 미러 범위(`docs/` 전체 vs 일부)와 트리거(push to `main` vs 태그) 결정
 - [ ] 구현하기로 하면 별도 이슈로 분리 (워크플로, 토큰, 첫 페이지 부트스트랩)
+
+Wiki 탭 요청이 다시 나오면 이 문서를 `active`로 되돌리거나 후속 이슈에서 D를 검토.
 
 ## 범위 밖
 
@@ -70,3 +73,4 @@ github.com/ApexCaptain/ApexCaptain.IaC.Pulumi.wiki.git    ← Wiki (조직 Repos
 | 일시 | 내용 |
 |---|---|
 | 2026-09-10 | 등록. 추천은 `docs/` 유지, Wiki 필요 시 CI 미러. 일정 없음, 보류 |
+| 2026-11-11 | E 확정. Wiki 이사·CI 미러 없음. `resolved` 이동 |

@@ -171,6 +171,11 @@ interface PvcSnapshotArchiveV1ArgsShape {
    * 다시 돌리려면 Job 삭제 후 up, 또는 이 플래그를 false→true 전환.
    */
   runOnceOnCreate?: boolean;
+  /**
+   * 성공 시 #infra-info Slack. 기본 true.
+   * false면 실패(#infra-error)만 전송.
+   */
+  notifyOnSuccess?: boolean;
   providers: {
     kubernetes: k8s.Provider;
   };
@@ -200,6 +205,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
     const namePrefix = args.namePrefix as string;
     const targets = args.targets as PvcSnapshotArchiveTargetShape[];
     const runOnceOnCreate = args.runOnceOnCreate === true;
+    const notifyOnSuccess = args.notifyOnSuccess !== false;
     const k8sOpts = {
       ...opts,
       provider: args.providers.kubernetes,
@@ -441,6 +447,10 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
                 value: pulumi.interpolate`${args.namespace}/${target.pvcName}`,
               },
               {
+                name: 'SLACK_NOTIFY_ON_SUCCESS',
+                value: notifyOnSuccess ? 'true' : 'false',
+              },
+              {
                 name: 'SA',
                 value: serviceAccount.metadata.name,
               },
@@ -612,6 +622,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
         cronJobNames,
         onceJobNames,
         runOnceOnCreate,
+        notifyOnSuccess,
       }),
       secret: pulumi.secret({}),
     };
