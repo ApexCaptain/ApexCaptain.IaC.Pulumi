@@ -5,12 +5,16 @@
 | **등록일** | 2026-11-11 |
 | **영역** | workstation-0 · Kata(QEMU) · Coder `kata-ubuntu` 워크스페이스 |
 | **관련 코드** | `infra/k8s-workstation-system/src/components/kata/kata.component.ts`, `ansible/workstation/roles/configure-kata-containers/`, `ansible/workstation/inventory/group_vars/k8s_cluster/k8s-cluster.yml` |
-| **상태** | **적용** — 배포·검증 완료. 2026-11-18 재점검 |
-| **재점검일** | 2026-11-18 — 노드 kern.log qemu OOM 재발 여부, 워크스페이스 파드 memcg `memory.peak`·`memory.events` 확인 → 이상 없으면 resolved 이동 |
+| **상태** | **해결** — O_DIRECT + overhead 2Gi 적용. 재점검에서 memcg OOM 재발 없음 |
+| **해결일** | 2026-11-12 |
+
+## 해결 요약
+
+A(`block_device_cache_direct`)·B(overhead 2Gi) 배포·부하 검증 완료. 2026-11-12 조기 재점검: kern.log `CONSTRAINT_MEMCG`/`Memory cgroup out of memory`는 수정 전(11-11 13:31)이 마지막. 현재 Primary-Kata 파드 memcg `oom`·`oom_kill` 0, peak 18456Mi / max 19456Mi. 드롭인·RuntimeClass overhead 2Gi 유지.
 
 ## 배경
 
-Coder 런타임은 Kata (Sysbox 2026-11-06 제거, [sysbox 교체](../resolved/2026-10-24-sysbox-runtime-replacement.md)). 2026-10-31 설정: `default_memory` 1024, RuntimeClass overhead 1Gi, `reclaim_guest_freed_memory`, 홈 Block PVC.
+Coder 런타임은 Kata (Sysbox 2026-11-06 제거, [sysbox 교체](2026-10-24-sysbox-runtime-replacement.md)). 2026-10-31 설정: `default_memory` 1024, RuntimeClass overhead 1Gi, `reclaim_guest_freed_memory`, 홈 Block PVC.
 
 ## 증상
 
@@ -78,7 +82,7 @@ limit 크기와 무관 (11-10은 VM 14GB에서 발생). limit을 키우면 VM도
 ## 범위 밖
 
 - 게스트 페이지 캐시 상한 조절(guest `vm.*` 튜닝)·virtio-mem — 재발 시 후속 이슈
-- PriorityClass·eviction — [PriorityClass·eviction](2026-09-13-priority-class-resource-protection.md)
+- PriorityClass·eviction — [PriorityClass·eviction](../active/2026-09-13-priority-class-resource-protection.md)
 
 ## 타임라인
 
@@ -90,3 +94,4 @@ limit 크기와 무관 (11-10은 VM 14GB에서 발생). limit을 키우면 VM도
 | 2026-11-11 | 워크스페이스 Start. 새 파드 `spec.overhead.memory` 2Gi, limits memory 19Gi. qemu block fd `/dev/sds`·`/dev/sdt` flags `02140002` → O_DIRECT 확인 |
 | 2026-11-11 | 부하 검증: 20GiB dd OOM 없음, memcg peak 18720Mi / max 19456Mi, oom_kill 0. pnpm offline·rm 벤치 저하 없음. 테스트 파일·이미지 정리. 상태 → 적용 |
 | 2026-11-11 | 재점검일 2026-11-18 지정 (사용자) |
+| 2026-11-12 | 조기 재점검: memcg OOM 재발 없음, peak/events 정상, 드롭인·overhead 유지. 사용자 요청으로 resolved 이동 |
