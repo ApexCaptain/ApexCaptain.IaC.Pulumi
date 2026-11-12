@@ -97,7 +97,7 @@ export interface ApplicationSetSpec {
      */
     template: outputs.ApplicationSetSpecTemplate;
     /**
-     * Application set template patch, as in the [Argo CD ApplicationSet spec](https://argocd-applicationset.readthedocs.io/en/stable/fields/#templatepatch).
+     * Application set template patch, as in the [Argo CD ApplicationSet spec](https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Template/#template-patch).
      */
     templatePatch?: string;
 }
@@ -33610,7 +33610,7 @@ export interface ProjectSpecRole {
      */
     name: string;
     /**
-     * List of casbin formatted strings that define access policies for the role in the project. For more information, see the [ArgoCD RBAC reference](https://argoproj.github.io/argo-cd/operator-manual/rbac/#rbac-permission-structure).
+     * List of casbin formatted strings that define access policies for the role in the project. For more information, see the [ArgoCD RBAC reference](https://argo-cd.readthedocs.io/en/stable/operator-manual/rbac/#rbac-model-structure).
      */
     policies: string[];
 }

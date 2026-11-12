@@ -47,6 +47,11 @@ const ASSETS_DIR = path.join(
   TEMPLATE_DIR,
 );
 
+/** Alpine CDN hang 시 apk가 무한 대기하지 않도록 (busybox timeout) */
+const APK_INSTALL_TIMEOUT_SEC = 600;
+/** Forbid + deadline 없음이면 stalled Job이 다음 Cron을 영구 차단 */
+const ORCHESTRATOR_ACTIVE_DEADLINE_SECONDS = 7200;
+
 interface VaultRaftArchiveV1ArgsShape {
   /**
    * K8s 리소스 이름 prefix (DNS-1123). SA 이름과 동일.
@@ -87,6 +92,11 @@ interface VaultRaftArchiveV1ArgsShape {
    * 기본 false. create 시에만 실행; spec 변경 ignore.
    */
   runOnceOnCreate?: boolean;
+  /**
+   * 성공 시 #infra-info Slack. 기본 true.
+   * false면 실패(#infra-error)만 전송.
+   */
+  notifyOnSuccess?: boolean;
   providers: {
     kubernetes: k8s.Provider;
   };
@@ -116,6 +126,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
     const namePrefix = args.namePrefix as string;
     const leafName = args.leafName as string;
     const runOnceOnCreate = args.runOnceOnCreate === true;
+    const notifyOnSuccess = args.notifyOnSuccess !== false;
     // DeepPulumiInput makes optional fields Output|undefined; mount key는 평문 고정
     const caSecretKey =
       typeof args.vault.caSecretKey === 'string' && args.vault.caSecretKey.length > 0
@@ -233,7 +244,11 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
           ),
         },
       },
-      k8sOpts,
+      {
+        ...k8sOpts,
+        // 고정 metadata.name — create-before-delete replace는 AlreadyExists
+        deleteBeforeReplace: true,
+      },
     );
 
     const cronJobName = namePrefix;
@@ -262,7 +277,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
             args: [
               [
                 'echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories',
-                'apk add --no-cache bash curl jq kubectl rclone coreutils tzdata unzip',
+                `timeout ${APK_INSTALL_TIMEOUT_SEC} apk add --no-cache bash curl jq kubectl rclone coreutils tzdata unzip`,
                 'exec bash /scripts/run.sh',
               ].join('\n'),
             ],
@@ -280,6 +295,10 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
               {
                 name: 'BACKUP_NOTIFY_LABEL',
                 value: pulumi.interpolate`${args.namespace}/${leafName}`,
+              },
+              {
+                name: 'SLACK_NOTIFY_ON_SUCCESS',
+                value: notifyOnSuccess ? 'true' : 'false',
               },
               { name: 'LANE', value: 'dr' },
               { name: 'KEEP_WITHIN', value: args.keepWithin },
@@ -396,6 +415,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
             },
             spec: {
               backoffLimit: 1,
+              activeDeadlineSeconds: ORCHESTRATOR_ACTIVE_DEADLINE_SECONDS,
               ttlSecondsAfterFinished: 86400,
               template: podTemplate,
             },
@@ -427,6 +447,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
           },
           spec: {
             backoffLimit: 1,
+            activeDeadlineSeconds: ORCHESTRATOR_ACTIVE_DEADLINE_SECONDS,
             ttlSecondsAfterFinished: 86400,
             template: podTemplate,
           },
@@ -450,6 +471,7 @@ export const VaultRaftArchiveV1Component = utils.functions.defineComponent(
         cronJobName,
         onceJobNames,
         runOnceOnCreate,
+        notifyOnSuccess,
         kubernetesAuthRoleName: args.vault.kubernetesAuthRoleName,
       }),
       secret: pulumi.secret({}),

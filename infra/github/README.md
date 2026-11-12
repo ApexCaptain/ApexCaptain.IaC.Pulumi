@@ -1,36 +1,37 @@
 # @infra/github
 
-ApexCaptain GitHub 계정의 IaC·GitOps 레포지토리 정체성을 Pulumi 한 스택에서 관리한다.
+ApexCaptain GitHub 계정의 IaC·GitOps 레포지터리 정체성을 Pulumi 한 스택에서 관리한다.
 
 ## 역할
 
-- `ApexCaptain.IaC.Pulumi` 레포는 이미 존재하는 리소스로 등록하며, 스택 destroy 시 GitHub에서 삭제되지 않도록 `retainOnDelete`를 적용한다.
-- `ApexCaptain.IaC.GitOps` 레포는 이 스택이 생성하며 `protect`로 Pulumi가 GitHub에서 삭제하지 않도록 한다.
-- Actions용 시크릿(예: Pulumi access token, workflow token)은 IaC Pulumi 레포 컴포넌트에서 ESC 값을 참조해 설정한다.
-- 스택 출력으로 각 레포의 메타데이터(`name`, clone URL 등)를 노출하며, GitOps 쪽 deploy key·webhook은 `@infra/k8s-workstation-system`에서 붙인다.
+- GitHub 레포 카탈로그를 단일 contract(`githubContract`)로 정의하고, 레포 메타·보호 정책·Actions 시크릿을 코드로 유지한다.
+- **ApexCaptain.IaC.Pulumi** 레포는 이미 존재하는 전제로 `retainOnDelete`를 적용해 스택 destroy 시 GitHub에서 삭제되지 않게 한다.
+- **ApexCaptain.IaC.GitOps** 레포는 스택이 생성하며 `protect`로 Pulumi가 GitHub에서 삭제하지 못하게 한다.
+- GitOps의 `name`·`sshCloneUrl`은 `@infra/k8s-workstation-system`이 참조하며, deploy key·webhook은 해당 스택에서 연결한다.
 
 ## Pulumi 프로젝트
 
-- GitHub Provider·레포 이름·토큰 등은 `@common/nexus`의 GitHub ESC(`githubEsc`)에서 읽는다.
-- 스택 출력: `repositories.apexCaptainIacPulumi`, `repositories.apexCaptainIacGitOps`.
+- Pulumi ESC: `nexus.esc.githubEsc`(ApexCaptain owner·token, 레포 이름, Actions 시크릿 등).
+- GitHub Provider는 ESC의 `apexCaptain.owner`·`apexCaptain.token`으로 구성한다.
 
-## 현재 레포
+## 현재 앱/도구
 
-| 컴포넌트 | 대상 | 패턴 |
-| -------- | ---- | ---- |
-| `ApexCaptain.IaC.Pulumi` | IaC Pulumi 레포 | `retainOnDelete`, Actions secrets |
-| `ApexCaptain.IaC.GitOps` | GitOps 레포 | 스택 생성, `protect` |
+| 컴포넌트 | 대상 | 동작 |
+| --- | --- | --- |
+| `ApexCaptainIaCPulumiRepositoryComponent` | IaC(Pulumi) 레포 | 레포 정체성·Actions 시크릿(`pulumiAccessToken`, `workflowToken`) |
+| `ApexCaptainIaCGitOpsRepositoryComponent` | GitOps 레포 | 레포 생성·보호(`protect`) |
 
 ## 배포 순서
 
-- `@infra/k8s-workstation-system`이 GitOps 레포 `name`·`sshCloneUrl`을 참조하므로, 해당 스택보다 **먼저** 배포한다.
-- Cloudflare·K8s 워크스테이션 스택과 직렬 의존은 없으나, GitOps 연동을 위해 워크스테이션 system 스택 전에 적용하는 것이 안전하다.
+- `@infra/k8s-workstation-system`이 GitOps 레포 출력을 쓰므로, **GitHub 스택을 workstation-system보다 먼저** 배포·갱신한다.
+- Cloudflare·Kubernetes 스택 체인(`cloudflare → k8s-workstation-system → apps/tools`)과 병행 가능하나, Argo CD·GitOps 연동 전에 본 스택 출력이 있어야 한다.
 
 ## upstream / downstream
 
-| 방향 | 패키지 | 내용 |
-| ---- | ------ | ---- |
-| downstream | `@infra/k8s-workstation-system` | GitOps 레포 출력(`name`, `sshCloneUrl` 등) 참조, deploy key·webhook 설정 |
+| 방향 | 패키지 | 관계 |
+| --- | --- | --- |
+| downstream | `@infra/k8s-workstation-system` | GitOps 레포 `name`·`sshCloneUrl` 등 contract 출력 참조 |
+| upstream | — | 별도 infra 스택 의존 없음(GitHub·ESC만 사용) |
 
 ## 구조
 
@@ -67,3 +68,9 @@ pnpm --filter @infra/github test
 pnpm --filter @infra/github pulumi:preview
 pnpm --filter @infra/github pulumi:up
 ```
+
+## 관련 문서
+
+- [Projen `CronScheduleOptions`에 GitHub Actions schedule timezone 타입 없음](docs/issues/resolved/2026-09-09-projen-workflow-schedule-timezone.md)
+- [GitHub Wiki 관리 방식 — 보류, 나중에 결정](docs/issues/resolved/2026-09-10-github-wiki-management.md)
+- [docs/issues → GitHub Issues 단방향 미러](docs/issues/resolved/2026-10-27-github-issues-mirror.md)

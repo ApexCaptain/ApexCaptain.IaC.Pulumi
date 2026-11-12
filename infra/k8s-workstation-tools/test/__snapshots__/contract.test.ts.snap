@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`k8sWorkstationToolsContract output and secret key order is stable (contract hash) 1`] = `
+{
+  "output": [],
+  "secret": [],
+}
+`;
+
+exports[`k8sWorkstationToolsContract top-level resources keep type and name (URN) 1`] = `
+[
+  "Component:coder-resources::coderResources",
+  "Component:coder-service-mesh::coderServiceMesh",
+  "Component:coderAuthentik::coderAuthentik",
+  "Component:coderBase::coderBase",
+  "Component:coderHelmChart::coderHelmChart",
+  "Component:qbittorrent-backup::qbittorrentBackup",
+  "Component:qbittorrent-service-mesh::qbittorrentServiceMesh",
+  "Component:qbittorrent::qbittorrentApp",
+  "Component:vikunja-backup::vikunjaBackup",
+  "Component:vikunja-service-mesh::vikunjaServiceMesh",
+  "Component:vikunjaAuthentik::vikunjaAuthentik",
+  "Component:vikunjaBase::vikunjaBase",
+  "Component:vikunjaHelmChart::vikunjaHelmChart",
+  "Component:zeroTrustAccess::zeroTrustAccess",
+  "Component:zeroTrustAuthentik::zeroTrustAuthentik",
+  "Component:zeroTrustConnector::zeroTrustConnector",
+  "Component:zeroTrustGateway::zeroTrustGateway",
+  "Component:zeroTrustTunnel::zeroTrustTunnel",
+  "pulumi:providers:authentik::authentikProvider",
+  "pulumi:providers:cloudflare::cloudflareProvider",
+  "pulumi:providers:coderd::coderdProvider",
+  "pulumi:providers:kubernetes::workstationK8sProvider",
+  "pulumi:providers:vault::vaultProvider",
+  "random:index/randomPassword:RandomPassword::vikunjaBase-postgresqlPassword",
+  "random:index/randomString:RandomString::vikunjaHelmChart-vikunjaServiceSecretString",
+]
+`;

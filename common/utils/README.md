@@ -1,14 +1,14 @@
 # @common/utils
 
-Pulumi 기반 IaC 모노레포에서 공통으로 쓰는 설정, 타입, 유틸 함수를 모아 둔 패키지다.
+Pulumi 기반 IaC 모노레포에서 공통으로 쓰는 설정, 타입, 유틸 함수·테스트 헬퍼를 모아 둔 라이브러리입니다.
 
 ## 역할
 
-- 스택 단계(`StackStage`)·버전·stateful 리소스 보호 옵션(`statefulResourceOptions`) 등 **공통 설정**을 `configs`와 `enums`로 제공한다.
-- Pulumi 컴포넌트 정의(`defineComponent`), lodash 병합 커스터마이저, kebab-case 변환 등 **컴포넌트·리소스 작성 보조** 함수를 제공한다.
-- Cloudflare DNS FQDN, OCI 정책 문구, Argo CD 정책 CSV, 만료 간격 생성 등 **인프라 연동용 헬퍼**를 제공한다.
-- `DeepPartial`, `DeepPulumiInput`, `Kubeconfig` 등 **타입·인터페이스**로 스택 코드의 입력 모델을 맞춘다.
-- 테스트 전용 헬퍼는 `@common/utils/src/testing`에서 직접 import한다. 런타임 `src/index`에는 넣지 않는다 (`installPulumiMocks`, `unwrap`, `flat` CJS shim).
+- 인프라·공통 패키지에서 재사용하는 Helm·컨테이너·도구 버전 등 중앙 설정(`configs`)을 제공합니다.
+- 스택 단계·상태 리소스 옵션 등 Pulumi 스택 공통 규약을 코드로 고정합니다.
+- 컴포넌트 정의, Cloudflare FQDN·OCI 정책 문구·Argo CD policy CSV 등 인프라 작성 시 반복되는 로직을 함수로 제공합니다.
+- `kubeconfig` 등 공통 인터페이스와 Pulumi 입력용 깊은 partial 타입을 export합니다.
+- 단위 테스트용 Pulumi mock·shim(`testing`)을 포함합니다.
 
 ## 구조
 
@@ -53,7 +53,7 @@ src/
 - `dedent` (^1.7.2)
 - `lodash` (^4.18.1)
 - `yaml` (^2.8.3)
-- `zod` (^4.4.3)
+- `zod` (^4.6.7)
 
 ## 명령
 
@@ -62,3 +62,7 @@ pnpm --filter @common/utils build
 pnpm --filter @common/utils eslint
 pnpm --filter @common/utils test
 ```
+
+## 참조
+
+- `@common/nexus`, `@common/custom-resources`, `@common/bridged-provider`, `@infra/*` 등 workspace 패키지가 이 라이브러리를 의존합니다.

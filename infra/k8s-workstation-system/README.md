@@ -1,93 +1,85 @@
 # @infra/k8s-workstation-system
 
-Workstation Kubernetes 클러스터에 플랫폼·GitOps·IdP·스토리지·DB/캐시 오퍼레이터를 올리는 Pulumi 시스템 스택이다.
+Workstation Kubernetes 클러스터에 인증·서비스 메시·스토리지·백업·GitOps 등 클러스터 공통 시스템 레이어를 Pulumi로 배포하는 스택이다.
 
 ## 역할
 
-- Cilium, cert-manager, Vault, Istio, Longhorn, CNPG·Redis Operator, Authentik, Argo CD 등 클러스터 공통 인프라를 한 스택에서 정의한다.
-- `@infra/cloudflare`의 DNS/API 자격 증명으로 cert-manager Issuer를 구성하고, `@infra/github`의 GitOps 레포 정체성에 deploy key·webhook만 연결한다.
-- `src/contract.ts`는 `src/phases/` 조립 함수를 순서대로 호출하고 `output`·`secret`만 매핑한다. 컴포넌트 생성은 각 phase가 담당한다.
-- `output`·`secret`을 `@infra/k8s-workstation-apps`, `@infra/k8s-workstation-tools`가 참조한다.
+- `@infra/cloudflare` 등 upstream 출력(DNS·레코드 등)을 참조해 클러스터 단위 시스템 컴포넌트를 조립한다.
+- Istio 기반 서비스 메시, cert-manager, Vault, Authentik, Longhorn, 데이터 오퍼레이터, 모니터링·Argo 등을 단계(`./phases`) 순서로 배포한다.
+- 스택 output·secret을 `@infra/k8s-workstation-apps`, `@infra/k8s-workstation-tools` 등 downstream 스택이 참조한다.
 
 ## Pulumi 프로젝트
 
-- 패키지 루트의 Pulumi 프로젝트 설정을 따른다. ESC는 `commonEsc`, `k8sWorkstationSystemEsc`, `githubEsc`, `ociEsc` 등 nexus ESC 바인딩을 사용한다.
-- Workstation 클러스터에는 `workstationKubeconfig`(common ESC)로 Kubernetes Provider를 붙인다.
+- 패키지 루트의 `Pulumi.yaml` 및 스택별 설정 파일이 프로젝트·스택 이름을 정의한다.
+- 시크릿·환경 값은 ESC 등 프로젝트 표준 방식으로 주입하며, README에는 실제 값을 기재하지 않는다.
 
 ## 배포 순서
 
-모노레포 infra 스택 순서:
+모노레포 infra 스택 관점의 선행 관계는 다음과 같다.
 
 ```
 cloudflare → k8s-workstation-system → k8s-workstation-apps
                                    → k8s-workstation-tools
 ```
 
-이 스택 내부에서 의존이 얽히기 쉬운 구간:
+본 스택 내부는 `contract.ts`가 호출하는 `phases` 함수 순서가 배포 순서이며, 단계 간 의존은 인자로 넘긴 이전 단계 결과와 각 컴포넌트의 `dependsOn`으로 표현된다.
 
-1. **Cilium** → **cert-manager**(Helm + Cloudflare Issuer/CA 리소스)
-2. **cert-manager CA** → **Vault**; **Let's Encrypt wildcard** → **Istio ingress gateway**
-3. **snapshot-controller** → Longhorn·Platform VolumeSnapshotClass 등 스냅샷 선행
-4. **Longhorn**(SSD StorageClass 등) → **Authentik** PostgreSQL; **Authentik proxy outpost** → Longhorn UI 등 mesh·프록시 보호 대상
-5. **Vault**·**vault-secrets-operator** → 앱 시크릿 패턴; **postgresql-operator**·**redis-operator** → Argo·Authentik 등 데이터 계층
-6. **Authentik**·**Istio** → Argo·Goldilocks·Monitoring 등 service-mesh·Authentik 연동 컴포넌트
+대략적인 단계 흐름은 아래와 같다.
 
-호스트 측 **Kata**(Kubespray `kata_containers_enabled`)·**GPU driver/toolkit** 설치는 Ansible/Kubespray; 이 스택은 RuntimeClass·Operator·Helm 위주다. Coder 런타임은 Kata.
+1. Providers, 노드 런타임(Kata, GPU Operator)
+2. cert-manager, pCloud 백업 플랫폼
+3. Vault 서버(cert-manager CA 의존)
+4. Istio 메시(ingress는 LE wildcard 인증서 등 cert-manager에 의존)
+5. 데이터 오퍼레이터(PostgreSQL·Redis Operator 등)
+6. Vault 접근 경로(ingress·Provider 등, 메시 이후)
+7. Longhorn
+8. Authentik(Longhorn SSD StorageClass에 PG PVC 의존, Outpost는 이후 단계로 분리)
+9. Vault Identity(Authentik 연동)
+10. Longhorn 서비스 메시(Authentik proxy·ProviderProxy)
+11. Authentik Outpost(Longhorn provider bootstrap)
+12. 오토스케일링(Goldilocks, VPA 등, proxy outpost 이후)
+13. Vault Secrets Operator, Reloader
+14. Argo CD·Rollouts·GitOps
+15. Monitoring
+
+꼬이기 쉬운 구간은 contract JSDoc과 동일하다. Vault는 cert-manager CA에, mesh ingress는 LE wildcard에 의존한다. Longhorn UI는 Authentik proxy outpost(Istio ext-authz)로 보호되며, Authentik PostgreSQL PVC는 Longhorn storage class에 의존하므로 Longhorn↔Authentik은 `deployAuthentik` → `deployLonghornServiceMesh` → `deployAuthentikOutpost` 세 단계로 나뉜다. apps·tools에서 추가되는 proxy outpost 앱은 OutpostProviderAttachment로 연결한다.
+
+리소스 이름·parent 변경 시 URN이 바뀌므로 단계 이동은 `pulumi:preview` diff 0으로 확인한다. output 객체 키 순서는 contract hash에 포함되므로 변경하지 않는다.
 
 ## upstream / downstream
 
-| 방향 | 패키지 | 참조 내용 |
-|------|--------|-----------|
-| upstream | `@infra/cloudflare` | Cloudflare API token·email(cert-manager DNS-01 등) |
-| upstream | `@infra/github` | GitOps 레포·조직 정체성 |
-| downstream | `@infra/k8s-workstation-apps` | 시스템 스택 `output`·`secret` |
-| downstream | `@infra/k8s-workstation-tools` | 시스템 스택 `output`·`secret` |
+| 방향 | 패키지 | 관계 |
+|------|--------|------|
+| upstream | `@infra/cloudflare` | `cloudflareContract`(예: Vault 호스트 DNS 레코드 등) 참조 |
+| upstream | `@infra/github` | GitHub 관련 리소스·설정 의존(패키지 의존성 기준) |
+| downstream | `@infra/k8s-workstation-apps` | 본 스택 `output`·`secret` 참조 |
+| downstream | `@infra/k8s-workstation-tools` | 본 스택 `output`·`secret` 참조 |
 
-## 시스템 컴포넌트
+export 진입점은 `src/index.ts`의 `output`, `secret`(`k8sWorkstationSystemContract`).
 
-| 디렉터리 | 담당 |
-|----------|------|
-| `cilium` | CNI·클러스터 네트워킹 리소스 |
-| `kata` | Kata RuntimeClass (`kata`, handler `kata`, overhead 250m / 1Gi) |
-| `gpu-operator` | GPU RuntimeClass·NVIDIA GPU Operator |
-| `cert-manager` | cert-manager Helm·Issuer/CA·wildcard 등 |
-| `snapshot-controller` | VolumeSnapshot CRD·controller |
-| `vault` | Vault 클러스터·정책 등 |
-| `vault-secrets-operator` | Vault Secrets Operator |
-| `istio` | Istio Helm·gateway·CNI reboot repair |
-| `longhorn` | Longhorn Helm·StorageClass·UI·리소스 |
-| `postgresql-operator` | CloudNative PG Operator |
-| `redis-operator` | Redis Operator |
-| `authentik` | Authentik Helm·outpost·mesh 연동 |
-| `argo` | Argo CD·Rollouts·GitOps·Redis·Authentik·mesh |
-| `monitoring` | 모니터링 스택 |
-| `goldilocks` | Goldilocks·mesh |
-| `vpa` | Vertical Pod Autoscaler |
-| `reloader` | Stakater Reloader |
-| `pcloud-backup` | pCloud 백업 연동 |
+## 현재 시스템 컴포넌트
 
-## 단계 모듈 (`src/phases/`)
+`src/components` 기준으로 관리하는 영역이다.
 
-contract 호출 순서가 배포 순서다. Longhorn ↔ Authentik은 Outpost 순환을 피하려고 3단계로 나눈다.
+| 영역 | 구성 요약 |
+|------|-----------|
+| **cert-manager** | CA·와일드카드 인증서, Vault·mesh ingress 선행 요건 |
+| **istio** | Helm, Gateway(ingress·direct 경로), CNI 재부팅 복구 등 |
+| **cilium** | CNI 관련 리소스 |
+| **vault** | Vault 서버, mesh·백업·K8s auth, Authentik·Coder JWT identity |
+| **vault-secrets-operator** | VSO Helm·Vault 연결 리소스 |
+| **longhorn** | 분산 스토리지, StorageClass output |
+| **authentik** | IdP Helm, flows·groups, proxy outpost(3단계 분리) |
+| **postgresql-operator / redis-operator** | 클러스터 데이터 오퍼레이터 |
+| **pcloud-backup** | pCloud 백업 플랫폼·클러스터 메타 output |
+| **snapshot-controller** | 볼륨 스냅샷 컨트롤러 |
+| **gpu-operator / kata** | GPU RuntimeClass·Kata 런타임 |
+| **goldilocks / vpa** | 리소스 권장·Vertical Pod Autoscaler |
+| **reloader** | 설정 변경 시 워크로드 재시작 |
+| **argo** | Argo CD, Rollouts, GitOps, Redis, Authentik·mesh 연동 |
+| **monitoring** | 클러스터 모니터링 스택 |
 
-| 파일 | 함수 | 담당 |
-|------|------|------|
-| `providers.ts` | `deployProviders` | Kubernetes 등 Provider |
-| `node-runtime.ts` | `deployNodeRuntime` | Cilium 리소스, Kata RuntimeClass, GPU |
-| `cert-manager.ts` | `deployCertManager` | cert-manager Helm·Issuer/CA |
-| `backup-platform.ts` | `deployBackupPlatform` | snapshot-controller, pCloud |
-| `vault.ts` | `deployVaultServer`, `deployVaultAccess`, `deployVaultIdentity`, `deployVaultSecretsOperator` | Vault 서버 → 접근 경로 → Identity → VSO |
-| `mesh.ts` | `deployMesh` | Istio Helm·gateway |
-| `data-operators.ts` | `deployDataOperators` | CloudNative PG, Redis Operator |
-| `longhorn.ts` | `deployLonghorn`, `deployLonghornServiceMesh` | Longhorn, 이후 Authentik proxy 연동 |
-| `authentik.ts` | `deployAuthentik`, `deployAuthentikOutpost` | 그룹/플로 (Outpost 없음) → Longhorn mesh 이후 Outpost |
-| `autoscaling.ts` | `deployAutoscaling` | Goldilocks, VPA |
-| `reloader.ts` | `deployReloader` | Stakater Reloader |
-| `argo.ts` | `deployArgo` | Argo CD·Rollouts·GitOps |
-| `monitoring.ts` | `deployMonitoring` | 모니터링 스택 |
-| `constants.ts` | `authentikNames` | Authentik 리소스 이름 상수 |
-
-리소스 이름·parent를 바꾸면 URN이 바뀐다. output 객체 키 순서는 contract hash에 들어가므로 바꾸지 않는다.
+스택 output 예시(키만): `namespaces.istio`, `serviceMesh`, `gatewayPaths`, `storageClasses`, `kata`, `gpu`, `authentik`(flow·groupIds·proxy outpost), `vaultSecretsOperator`, `vault`(host·coderJwt·identityGroupIds), `pcloudBackup` 등. 전체 스키마는 `contract.ts`의 return `output`을 본다.
 
 ## 구조
 
@@ -95,42 +87,58 @@ contract 호출 순서가 배포 순서다. Longhorn ↔ Authentik은 Outpost �
 src/
 └── components/
 └──   argo/
+└──     argo.authentik.component.ts
+└──     argo.cd.component.ts
+└──     argo.cd.redis.ts
+└──     argo.git-ops.component.ts
+└──     argo.redis-acl.ts
+└──     argo.resources.component.ts
+└──     argo.rollouts.component.ts
+└──     argo.service-mesh.component.ts
+└──     index.ts
 └──   authentik/
+└──     authentik.helm-chart.component.ts
+└──     authentik.outpost.component.ts
+└──     authentik.resources.component.ts
+└──     authentik.service-mesh.component.ts
+└──     index.ts
 └──   cert-manager/
+└──     cert-manager.helm-chart.component.ts
+└──     cert-manager.resources.component.ts
+└──     index.ts
 └──   cilium/
-└──   kata/
+└──     cilium.resources.component.ts
+└──     index.ts
 └──   goldilocks/
+└──     goldilocks.helm-chart.component.ts
+└──     goldilocks.service-mesh.component.ts
+└──     index.ts
 └──   gpu-operator/
-└──   istio/
-└──   longhorn/
-└──   monitoring/
-└──   pcloud-backup/
-└──   postgresql-operator/
-└──   redis-operator/
-└──   reloader/
-└──   snapshot-controller/
-└──   vault/
-└──   vault-secrets-operator/
-└──   vpa/
-└── contract.ts
-└── index.ts
-└── phases/
-└──   argo.ts
-└──   authentik.ts
-└──   autoscaling.ts
-└──   backup-platform.ts
-└──   cert-manager.ts
-└──   constants.ts
-└──   data-operators.ts
+└──     gpu-operator.helm-chart.component.ts
+└──     gpu-runtime-class.component.ts
+└──     index.ts
 └──   index.ts
-└──   longhorn.ts
-└──   mesh.ts
-└──   monitoring.ts
-└──   node-runtime.ts
-└──   providers.ts
-└──   reloader.ts
-└──   vault.ts
+└──   istio/
+└──     assets/
+└──       istio-cni-reboot-repair.sh
+└──       istio-cni-reboot-repair.test.sh
+└──     index.ts
+└──     istio-cni-reboot-repair.component.ts
+└──     istio.gateway.component.ts
+└──     istio.helm-chart.component.ts
+└──   kata/
+└──     index.ts
+└──     kata.component.ts
+└──   longhorn/
+└──     index.ts
+└──     longhorn.helm-chart.component.ts
+└──     longhorn.resources.component.ts
+└──     …
+└──   …
+└── …
 ```
+
+배포 조립 로직은 `src/phases`에 단계별로 분리되어 있으며, contract 비대화 분해 이력은 [docs/issues/resolved/2026-10-17-system-contract-split.md](docs/issues/resolved/2026-10-17-system-contract-split.md)를 참조한다.
 
 ## 의존성
 

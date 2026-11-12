@@ -174,17 +174,13 @@ void describe('planSync', () => {
     assert.deepEqual(action.changes.labels, ['docs-mirror', 'status:보류']);
   });
 
-  void test('md 사라짐 → not_planned close + docs:removed, 이후엔 no-op', () => {
+  void test('md 사라짐 → delete', () => {
     const [action] = planSync([], [synced()]);
-    assert.ok(action.kind === 'update');
-    if (action.kind !== 'update') return;
-    assert.equal(action.stateReason, 'not_planned');
-    assert.deepEqual(action.changes.labels, ['docs-mirror', 'docs:removed']);
-    const after = synced({
-      state: 'closed',
-      labels: ['docs-mirror', 'docs:removed'],
+    assert.deepEqual(action, {
+      kind: 'delete',
+      number: 7,
+      slug: '2026-01-02-b',
     });
-    assert.deepEqual(planSync([], [after]), []);
   });
 
   void test('같은 slug 중복 Issue는 번호 작은 것만 관리', () => {

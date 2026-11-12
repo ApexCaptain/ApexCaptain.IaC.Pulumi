@@ -102,6 +102,14 @@ const DEFAULT_WORKER_ENV: Record<string, string> = {
   ZSTD_ARGS: '-T1 -6',
 };
 
+/** Alpine CDN hang 시 apk가 무한 대기하지 않도록 (busybox timeout) */
+const APK_INSTALL_TIMEOUT_SEC = 600;
+/**
+ * Forbid + deadline 없음이면 stalled Job이 다음 Cron을 영구 차단.
+ * jellyfin-config(~2Gi upload) 여유 포함.
+ */
+const ORCHESTRATOR_ACTIVE_DEADLINE_SECONDS = 7200;
+
 function workerEnvForTarget(
   target: PvcSnapshotArchiveTargetShape,
 ): Array<{ name: string; value: string }> {
@@ -163,6 +171,11 @@ interface PvcSnapshotArchiveV1ArgsShape {
    * 다시 돌리려면 Job 삭제 후 up, 또는 이 플래그를 false→true 전환.
    */
   runOnceOnCreate?: boolean;
+  /**
+   * 성공 시 #infra-info Slack. 기본 true.
+   * false면 실패(#infra-error)만 전송.
+   */
+  notifyOnSuccess?: boolean;
   providers: {
     kubernetes: k8s.Provider;
   };
@@ -192,6 +205,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
     const namePrefix = args.namePrefix as string;
     const targets = args.targets as PvcSnapshotArchiveTargetShape[];
     const runOnceOnCreate = args.runOnceOnCreate === true;
+    const notifyOnSuccess = args.notifyOnSuccess !== false;
     const k8sOpts = {
       ...opts,
       provider: args.providers.kubernetes,
@@ -368,7 +382,11 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
           ),
         },
       },
-      k8sOpts,
+      {
+        ...k8sOpts,
+        // 고정 metadata.name — create-before-delete replace는 AlreadyExists
+        deleteBeforeReplace: true,
+      },
     );
 
     const buildOrchestratorPodTemplate = (
@@ -397,7 +415,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             args: [
               [
                 'echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories',
-                'apk add --no-cache bash curl jq kubectl coreutils tzdata',
+                `timeout ${APK_INSTALL_TIMEOUT_SEC} apk add --no-cache bash curl jq kubectl coreutils tzdata`,
                 'exec bash /scripts/run.sh',
               ].join('\n'),
             ],
@@ -427,6 +445,10 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
               {
                 name: 'BACKUP_NOTIFY_LABEL',
                 value: pulumi.interpolate`${args.namespace}/${target.pvcName}`,
+              },
+              {
+                name: 'SLACK_NOTIFY_ON_SUCCESS',
+                value: notifyOnSuccess ? 'true' : 'false',
               },
               {
                 name: 'SA',
@@ -543,6 +565,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
               },
               spec: {
                 backoffLimit: 1,
+                activeDeadlineSeconds: ORCHESTRATOR_ACTIVE_DEADLINE_SECONDS,
                 ttlSecondsAfterFinished: 86400,
                 template: podTemplate,
               },
@@ -574,6 +597,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
             },
             spec: {
               backoffLimit: 1,
+              activeDeadlineSeconds: ORCHESTRATOR_ACTIVE_DEADLINE_SECONDS,
               ttlSecondsAfterFinished: 86400,
               template: podTemplate,
             },
@@ -598,6 +622,7 @@ export const PvcSnapshotArchiveV1Component = utils.functions.defineComponent(
         cronJobNames,
         onceJobNames,
         runOnceOnCreate,
+        notifyOnSuccess,
       }),
       secret: pulumi.secret({}),
     };

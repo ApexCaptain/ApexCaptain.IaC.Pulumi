@@ -398,6 +398,7 @@ metadata:
     backup.apexcaptain.com/pvc: ${SRC_PVC}
 spec:
   backoffLimit: 1
+  activeDeadlineSeconds: 5400
   ttlSecondsAfterFinished: 3600
   template:
     metadata:
@@ -417,7 +418,7 @@ spec:
           args:
             - |
               echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories
-              apk add --no-cache bash curl rclone zstd tar coreutils
+              timeout 600 apk add --no-cache bash curl rclone zstd tar coreutils
               exec bash /scripts/worker.sh
           env:
             - name: TIMESTAMP
@@ -466,7 +467,7 @@ wait_job_complete "${WORKER_JOB}"
 
 # prune needs rclone on orchestrator
 echo "https://dl-cdn.alpinelinux.org/alpine/v3.21/community" >> /etc/apk/repositories
-apk add --no-cache rclone >/dev/null
+timeout 600 apk add --no-cache rclone >/dev/null
 prune_old
 
 log "success ${REMOTE_PREFIX}/${TIMESTAMP}"

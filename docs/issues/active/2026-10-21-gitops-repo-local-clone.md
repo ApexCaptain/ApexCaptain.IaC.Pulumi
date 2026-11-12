@@ -4,8 +4,8 @@
 |------|------|
 | **등록일** | 2026-10-21 |
 | **영역** | 개발 환경 (devcontainer bootstrap, AI 에이전트 hooks) |
-| **관련 코드** | `scripts/bootstrap-local-env.script.ts`, `scripts/hooks/gitops-git-guard.sh`, `.rulesync/hooks.jsonc`, `.rulesync/rules/use-gitops-repo.md`, `.projenrc.ts` (gitignore·rulesync targets) |
-| **상태** | **적용** — CI 이미지 태그 자동 push 연결 후 hook behind 검사 실검증 남음 |
+| **관련 코드** | `scripts/bootstrap-local-env.script.ts`, `scripts/hooks/gitops-git-guard.sh`, `.rulesync/hooks.jsonc`, `.rulesync/rules/use-gitops-repo.md`, `.projenrc.ts` (gitignore·rulesync targets), `.devcontainer/commands/common/synchronizeProject.sh` |
+| **상태** | **적용** — GitOps 원격·로컬 모두 빈 레포. CI 이미지 태그 자동 push 연결 후 hook behind 검사 실검증 남음 |
 
 ## 배경
 
@@ -23,9 +23,12 @@ IaC와 Argo CD 소스 레포 `ApexCaptain.IaC.GitOps`를 한 작업공간에서 
 
 ## 현재 상태
 
-- `pnpm script:bootstrapLocalEnv`가 clone(없으면) 또는 `pull --ff-only`(로컬 변경 없음·`main`·원격 브랜치 있음일 때만). 실패는 경고만.
-- `gitops-git-guard.sh` (Claude Code PreToolUse / Cursor beforeShellExecution): `repos/gitops` commit/push 시 `origin/main`보다 behind면 deny, push는 ask. 빈 레포·오프라인이면 behind 검사만 건너뛰고 push ask 유지.
-- 2026-10-21 기준 GitOps 레포는 빈 레포(커밋 0).
+- `pnpm script:bootstrapLocalEnv`가 clone(없으면) 또는 `pull --ff-only`(로컬 변경 없음·`main`·원격 브랜치 있음일 때만). 실패는 경고만. devcontainer `synchronizeProject.sh`가 동기화 시 호출.
+- `gitops-git-guard.sh` (Claude Code PreToolUse / Cursor beforeShellExecution): `repos/gitops` commit/push 시 `origin/main`보다 behind면 deny, push는 ask. 빈 레포·오프라인이면 behind 검사만 건너뛰고 push ask 유지. 생성물 `.cursor/hooks.json`·`.claude/settings.json`에 연결됨.
+- `/repos` gitignore. 로컬 클론 `repos/gitops` 존재 (이 워크스페이스 기준 2026-11-06 clone 관측).
+- **2026-11-11 재확인:** GitHub `ApexCaptain.IaC.GitOps`는 여전히 빈 레포(`isEmpty`, 브랜치 0·커밋 0). 로컬도 `main`에 커밋 없음, `origin/main [gone]`. bootstrap은 `origin/main` 없음 경고 후 pull 건너뜀.
+- 레포 자체는 `@infra/github`가 생성·`protect`. Argo deploy key·webhook은 `@infra/k8s-workstation-system`이 붙이지만, GitOps 내용(앱 매니페스트)과 CI→태그 자동 push는 아직 없음.
+- CI 이미지 태그 자동 push 파이프라인은 미착수 — behind deny 실검증 대기.
 
 ## 수용 기준
 
@@ -37,9 +40,11 @@ IaC와 Argo CD 소스 레포 `ApexCaptain.IaC.GitOps`를 한 작업공간에서 
 ## 범위 밖
 
 - CI(이미지 빌드 → GitOps 태그 갱신) 파이프라인 자체 — 별도 이슈.
+- GitOps 레포 초기 커밋·앱 매니페스트·Argo Application 본문.
 
 ## 타임라인
 
 | 일시 | 내용 |
 |------|------|
 | 2026-10-21 | 등록. 로컬 클론·bootstrap·guard hook·rule 적용 |
+| 2026-11-11 | 재확인. 원격·로컬 모두 빈 레포 유지. CI 자동 push 없음. 수용 기준·스케줄 트리거 동일. 관련 경로에 synchronizeProject·생성 hooks 반영 |

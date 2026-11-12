@@ -1,43 +1,38 @@
 # @infra/k8s-workstation-tools
 
-워크스테이션 Kubernetes 클러스터에 Coder·qBittorrent·Vikunja·Zero Trust 등 운영 도구를 배포하는 Pulumi infra 패키지.
+워크스테이션 Kubernetes 클러스터에 Coder, Vikunja, qBittorrent, Zero Trust 도구를 배포하는 Pulumi 인프라 스택이다.
 
 ## 역할
 
-- `@infra/k8s-workstation-system` 위에서 동작하는 **도구(tools)** 스택을 정의한다.
-- qBittorrent 등 일부 워크로드는 **NordLynx VPN sidecar**로 클러스터 밖 터널 경로만 사용하도록 구성한다.
-- qBittorrent Web UI는 Longhorn과 동일하게 **Authentik Proxy + OutpostProviderAttachment** 패턴, Coder·Vikunja는 Authentik **OIDC**로 인증한다.
-- **Zero Trust**: Cloudflare WARP + cloudflared + Authentik OIDC/MFA로 LAN 대상(Windows RDP)에 공인 inbound 포트 없이 접근하게 한다.
-- `pulumi.getStack()`이 `prod`일 때만 Coder·Vikunja·qBittorrent·Zero Trust 리소스를 생성한다.
+- `prod` 스택에서만 Coder, Vikunja, qBittorrent, Zero Trust를 `./phases` 조립 순서대로 배포한다.
+- NordLynx VPN 사이드카로 특정 트래픽만 터널 밖으로 보낸다.
+- Web UI는 Longhorn과 동일하게 Authentik Proxy와 OutpostProviderAttachment 패턴을 쓴다.
+- 스택 산출물은 `output`·`secret`을 re-export하며, contract hash에 맞추기 위해 output 객체 키 순서를 바꾸지 않는다.
 
 ## Pulumi 프로젝트
 
-- **스택:** `prod` (도구 컴포넌트는 production 스택에서만 프로비저닝)
-- **ESC:** `nexus.esc.commonEsc`(kubeconfig, `workstationMainPcIp` 등), `nexus.esc.cloudflareEsc`(API 토큰·zone, `zeroTrust.allowedEmails`), `nexus.esc.k8sWorkstationToolsEsc`
-- **Provider:** Kubernetes, Authentik·Vault(system contract `providerConfigs`), Cloudflare(Zero Trust, PROD 블록 안에서만 생성)
+- 기본 스택: `prod` (도구 배포는 이 스택에서만 수행)
+- 인프라 코드: `src/contract.ts`, 단계별 조립은 `src/phases/`
 
 ## 배포 순서
 
-1. `@infra/cloudflare`
-2. `@infra/k8s-workstation-system`
-3. `@infra/k8s-workstation-tools` (본 패키지)
+모노레포 인프라 스택 순서상 `@infra/cloudflare` → `@infra/k8s-workstation-system` 이후에 이 패키지를 preview·up 한다. `k8s-workstation-apps`와 병렬에 가깝게 배포할 수 있다.
+
+스택 내부 단계 순서: `deployProviders` → Coder → Vikunja → qBittorrent → Zero Trust. 단계 간 의존은 `providers` 인자와 각 컴포넌트의 `dependsOn`으로 표현된다.
 
 ## upstream / downstream
 
-| 방향 | 패키지 | 용도 |
-|------|--------|------|
-| upstream | `@infra/cloudflare` | DNS 호스트(`coder`, `todo`, `torrent`, `auth`), zone 도메인(`windows` FQDN 구성) |
-| upstream | `@infra/k8s-workstation-system` | kubeconfig, Authentik·Vault provider, Longhorn SSD, Istio·Authentik 그룹/플로우 |
-| downstream | (없음) | contract `output`/`secret`은 스택 내부·연동용 |
+- **upstream:** `@infra/cloudflare`, `@infra/k8s-workstation-system` (네트워크·클러스터·공통 프로바이더 전제)
+- **downstream:** manifest 기준으로 이 스택을 contract로 참조하는 별도 infra 패키지는 없음
 
 ## 현재 앱/도구
 
-| 컴포넌트 | 개요 | 저장·DB | 인증 | 메시/노출 |
-|----------|------|---------|------|-----------|
-| **coder** | 원격 개발(Coder Helm). 운영 워크스페이스는 Kata NS(`coder-kata-ubuntu` / `-test`, Istio sidecar). | PostgreSQL 클러스터(Longhorn SSD PVC) | Authentik OIDC, GitHub external auth | Istio AuthorizationPolicy, ingress `coder` 호스트 |
-| **vikunja** | 할 일(Vikunja Helm) | CNPG PostgreSQL(Longhorn SSD) + data PVC, pCloud 백업 | Authentik OIDC(`toolsUserGroup`) | ambient mesh, `todo` 호스트 |
-| **qbittorrent** | BitTorrent 클라이언트 | Longhorn SSD/HDD PVC, pCloud 백업 | Authentik Proxy(`toolsManagerGroup`) | service-mesh, NordLynx sidecar, SFTP(direct gateway) |
-| **zero-trust** | Cloudflare Zero Trust — WARP로 LAN Windows RDP(`windows` FQDN) 접근 | 무상태 (cloudflared 2 replica) | Authentik OIDC + MFA(`toolsManagerGroup`), Cloudflare 허용 이메일 | mesh 밖 `zero-trust` ns, outbound 터널만. Gateway DNS override + L4 allow/block, Split Tunnel Include |
+| 구성 요소 | 요약 |
+| -------- | ---- |
+| **Coder** | Helm·리소스·Authentik·서비스 메시 단계로 원격 개발 환경 |
+| **Vikunja** | 할 일 관리 앱 (Helm, Authentik, 백업, 서비스 메시) |
+| **qBittorrent** | 토렌트 클라이언트 (앱, 백업, 서비스 메시) |
+| **Zero Trust** | 액세스·Authentik·커넥터·게이트웨이·터널 구성 |
 
 ## 구조
 
@@ -50,7 +45,6 @@ src/
 └──     coder.helm-chart.component.ts
 └──     coder.resources.component.ts
 └──     coder.service-mesh.component.ts
-└──     coder.workspace-mesh-proxy.component.ts
 └──     index.ts
 └──   index.ts
 └──   qbittorrent/
@@ -74,6 +68,13 @@ src/
 └──     zero-trust.tunnel.component.ts
 └── contract.ts
 └── index.ts
+└── phases/
+└──   coder.ts
+└──   index.ts
+└──   providers.ts
+└──   qbittorrent.ts
+└──   vikunja.ts
+└──   zero-trust.ts
 ```
 
 ## 의존성
@@ -84,7 +85,7 @@ src/
 - `@common/utils` (workspace:*)
 - `@infra/cloudflare` (workspace:*)
 - `@infra/k8s-workstation-system` (workspace:*)
-- `@pulumi/cloudflare` (^6.17.0)
+- `@pulumi/cloudflare` (^6.23.1)
 - `@pulumi/kubernetes` (^4.31.1)
 - `@pulumi/pulumi` (^3.242.0)
 - `@pulumi/random` (^4.21.0)
@@ -104,3 +105,7 @@ pnpm --filter @infra/k8s-workstation-tools test
 pnpm --filter @infra/k8s-workstation-tools pulumi:preview
 pnpm --filter @infra/k8s-workstation-tools pulumi:up
 ```
+
+## 참조
+
+- [`k8s-workstation-tools` contract.ts 비대화 — 단계 모듈로 분해](docs/issues/resolved/2026-10-28-tools-contract-split.md)

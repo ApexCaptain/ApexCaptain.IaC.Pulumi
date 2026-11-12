@@ -5,8 +5,9 @@ import * as src from '../../src';
 
 /**
  * docs/issues → GitHub Issues 단방향 미러. md가 SSOT, Issue는 읽기용.
- * 시크릿 없음 — 기본 GITHUB_TOKEN(issues: write)만 쓴다.
- * docs/issues/active/2026-10-27-github-issues-mirror.md
+ * md가 active/resolved 양쪽에서 사라지면 Issue를 삭제한다.
+ * 삭제는 repo admin 권한이 필요해서 WORKFLOW_TOKEN을 쓴다.
+ * docs/issues/resolved/2026-10-27-github-issues-mirror.md
  */
 export function addDocsIssueMirrorWorkflow(
   rootProject: typescript.TypeScriptProject,
@@ -40,7 +41,6 @@ export function addDocsIssueMirrorWorkflow(
     runsOn: ['ubuntu-latest'],
     permissions: {
       contents: JobPermission.READ,
-      issues: JobPermission.WRITE,
     },
     steps: [
       {
@@ -70,7 +70,7 @@ export function addDocsIssueMirrorWorkflow(
         name: 'Sync',
         run: `pnpm script:syncGithubIssues --apply --ref ${src.constants.branches.develop}`,
         env: {
-          GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
+          GH_TOKEN: '${{ secrets.WORKFLOW_TOKEN }}',
         },
       },
     ],

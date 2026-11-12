@@ -11,7 +11,7 @@ cursor:
 ---
 # 이슈 문서 (`docs/issues/active` → `docs/issues/resolved`)
 
-이 레포의 이슈 SSOT는 GitHub Issue가 아니라 마크다운이다. GitHub Issues(라벨 `docs-mirror`)는 `develop` push 때 workflow `docs-issue-mirror`가 만드는 **단방향 미러**다. 제목·본문·라벨·상태는 md만 고친다 (Issue에서 고치면 덮어씀). 댓글은 자유.
+이 레포의 이슈 SSOT는 GitHub Issue가 아니라 마크다운이다. GitHub Issues(라벨 `docs-mirror`)는 `develop` push 때 workflow `docs-issue-mirror`가 만드는 **단방향 미러**다. 제목·본문·라벨·상태는 md만 고친다 (Issue에서 고치면 덮어씀). 댓글은 자유. md가 `active`/`resolved` 양쪽에서 사라지면 대응 GitHub Issue는 **영구 삭제**된다. 끝낸 이슈는 삭제하지 말고 `resolved/`로 옮긴다.
 
 | 상태 | 위치 |
 |------|------|
@@ -101,4 +101,4 @@ cursor:
 
 - `docs/issues/` 밖(채팅 전용, `docs/diagnosis/` 등 자동 생성 리포트, 임의 경로)에 이슈 SSOT를 만들지 않는다
 - 해결 파일을 `docs/issues/active`에 남기거나, 열린 이슈를 `docs/issues/resolved`에 두지 않는다
-- 사용자 요청 없이 기존 이슈를 삭제하지 않는다
+- 사용자 요청 없이 기존 이슈 md를 삭제하지 않는다 (삭제 = GitHub Issue도 삭제. 아카이브는 `resolved/` 이동)

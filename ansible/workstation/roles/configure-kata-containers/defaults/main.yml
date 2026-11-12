@@ -4,3 +4,7 @@ kata_containers_config_dir: /etc/kata-containers
 # 게스트가 비운 페이지를 호스트에 반환 (virtio-balloon free page reporting)
 # 롤 단독 기본값은 끔. 운영은 group_vars/k8s_cluster/k8s-cluster.yml에서 true
 kata_containers_reclaim_guest_freed_memory: false
+# block 디바이스를 O_DIRECT로 연다 (호스트 페이지 캐시 우회). 게스트가 이미 캐시하므로 이중 캐시 방지
+# 끄면 QEMU 버퍼드 쓰기가 파드 memcg에 잡혀 VM이 OOM으로 죽는다 (2026-11-10·11 실측)
+# 롤 단독 기본값은 끔. 운영은 group_vars/k8s_cluster/k8s-cluster.yml에서 true
+kata_containers_block_device_cache_direct: false

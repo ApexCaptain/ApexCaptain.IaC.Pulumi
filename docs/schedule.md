@@ -10,6 +10,7 @@
 
 | 언제 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
+| **2026-11-18** | Kata qemu memcg OOM 재점검: 노드 kern.log OOM 재발·파드 `memory.peak`/`memory.events` 확인 → 이상 없으면 resolved 이동 | [Kata qemu memcg OOM](issues/active/2026-11-11-kata-workspace-qemu-memcg-oom.md) | 적용 · 2026-11-18 재점검 |
 | **2026-12 초** | VPA 3차 스냅. vault·argo applicationset·reloader 두 번째 OVER면 축소. 11월 주기는 10-30으로 대체 | [VPA 리소스 재조정](issues/active/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-30 2차 반영 완료 |
 | **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/active/2026-09-13-priority-class-resource-protection.md) | 보류 |
 | **2027-01 말** | Vault CA 회전 방법론 재검토: A 적용 결과, 정기 회전 필요성, ①②(trust-manager 배포·VSO Reloader) 또는 ①②③(옛·새 CA 병행) 도입 여부 | [Vault CA 회전 신뢰 전파](issues/active/2026-10-25-vault-ca-rotation-trust-propagation.md) | 적용 · 2027-01 말 재검토 |
@@ -22,10 +23,9 @@
 
 | 트리거 | 할 일 | 이슈 | 상태 |
 |---|---|---|---|
-| Istio `proxyv2`에 Envoy #45198 픽스 포함 (1.30.7엔 없음. 노트 기준 1.32+). #45198·#60074는 이미 닫힘 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/active/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
-| 다음 Kubespray 실행 전 | 기본값 유지(A, 추천) / `force_etcd_cert_refresh: false`(B) 결정 | [etcd 인증서 재발급](issues/active/2026-11-06-etcd-cert-regeneration-on-kubespray-run.md) | 보류 |
-| 사용자 재개 결정 (2026-10-19 보류. protect 선행은 충족) | 클러스터 도달·자격 증명 결정 → 일일 drift 감지 → PR preview | [CI preview·drift](issues/active/2026-10-17-ci-pulumi-preview-drift.md) | 보류 |
-| 사용자 착수 결정 (K8s 1.36과 같은 시기 금지. Sysbox 제거는 2026-11-06 완료) | tools contract phase 분해 + contract 단위 테스트 (system 방식 재사용) | [tools contract 분해](issues/active/2026-10-28-tools-contract-split.md) | 보류 |
+| Istio **1.32.0+** 업그레이드 (2026-11-09 GA에 `hbone-stream-leak` 포함. 클러스터·SSOT는 1.30.7, 1.30.8엔 픽스 없음). #45198·#60074는 이미 닫힘 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/active/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
+| A/B 사용자 결정 (다음 Kubespray 전. A면 즉시 아카이브, B면 오버라이드 후 다음 실행에서 Gen_certs skip 확인) | 기본값 유지(A, 추천) / `force_etcd_cert_refresh: false`(B) | [etcd 인증서 재발급](issues/active/2026-11-06-etcd-cert-regeneration-on-kubespray-run.md) | 보류 |
+| 사용자 재개 결정 (2026-10-19 보류. 2026-11-11 재점검: CI·CronJob 여전히 없음. protect 선행 충족) | 클러스터 도달·자격 증명 결정 → 일일 drift 감지 → PR preview | [CI preview·drift](issues/active/2026-10-17-ci-pulumi-preview-drift.md) | 보류 |
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/active/2026-10-17-dr-rebuild-runbook.md) | 보류 |
 | [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso) manifest에 Jellyfin 12 `targetAbi` 버전 등장 | 플러그인 호환 확인 → config 백업 → 차트 3.4.0+ (앱 12.x) 업그레이드 → 재스캔 → SSO 확인 | [Jellyfin 12 업그레이드](issues/active/2026-10-21-jellyfin-12-upgrade.md) | 보류 |
 | CI가 GitOps `main`에 이미지 태그 자동 push 시작 | `repos/gitops` behind 상태에서 commit 시 guard hook deny 실확인 → 통과 시 `docs/issues/resolved` 이동 | [GitOps 로컬 클론](issues/active/2026-10-21-gitops-repo-local-clone.md) | 적용 |
