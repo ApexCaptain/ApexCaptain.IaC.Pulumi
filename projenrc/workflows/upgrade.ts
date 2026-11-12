@@ -28,6 +28,18 @@ export async function modifyUpgradeWorkflow(
     setupPulumiCliStep(),
   );
 
+  // sdks/ is gitignored; file:sdks/* needs pulumi install before pnpm i
+  upgradeJobSteps.splice(
+    upgradeJobSteps.findIndex(
+      eachStep => eachStep.name == 'Install dependencies',
+    ),
+    0,
+    {
+      name: 'Install bridged provider SDKs',
+      run: 'pnpm pulumi:install',
+    },
+  );
+
   // Build Projects Step 추가
   upgradeJobSteps.splice(
     upgradeJobSteps.findIndex(
