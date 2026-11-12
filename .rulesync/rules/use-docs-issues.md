@@ -2,11 +2,11 @@
 root: false
 targets:
   - '*'
-description: '열린 이슈는 docs/issues/active, 해결되면 docs/issues/resolved로 아카이브. 이슈 문서 작성·갱신 규칙'
+description: '열린 이슈는 docs/issues/active, 해결되면 docs/issues/resolved. 마감 없는 주기 루프는 docs/ops'
 globs: []
 cursor:
   alwaysApply: true
-  description: '열린 이슈는 docs/issues/active, 해결되면 docs/issues/resolved로 아카이브. 이슈 문서 작성·갱신 규칙'
+  description: '열린 이슈는 docs/issues/active, 해결되면 docs/issues/resolved. 마감 없는 주기 루프는 docs/ops'
   globs: []
 ---
 # 이슈 문서 (`docs/issues/active` → `docs/issues/resolved`)
@@ -17,14 +17,16 @@ cursor:
 |------|------|
 | 열림 (조사·진행·완화·후속 남음) | `docs/issues/active/` |
 | 닫힘 (이 레포에서 할 일 없음) | `docs/issues/resolved/` |
+| 마감 없이 주기 반복 | **이슈 아님** → `docs/ops/` (규칙: `use-docs-ops`) |
 
-관련 작업 시작 전 두 디렉터리를 검색한다. 이슈 문서 간 상대 링크는 `../resolved/<file>`·`../active/<file>`처럼 형제 디렉터리 기준으로 쓴다. 같은 주제면 **기존 파일을 갱신**하고 새 파일을 만들지 않는다. 재검토일·확인 트리거가 있는 열린 이슈는 `docs/schedule.md`에도 올린다 (규칙: `use-docs-schedule`).
+관련 작업 시작 전 `docs/issues/active`·`resolved`·필요 시 `docs/ops`를 검색한다. 이슈 문서 간 상대 링크는 `../resolved/<file>`·`../active/<file>`처럼 형제 디렉터리 기준으로 쓴다. 같은 주제면 **기존 파일을 갱신**하고 새 파일을 만들지 않는다. 재검토일·확인 트리거가 있는 열린 이슈는 `docs/schedule.md`에도 올린다 (규칙: `use-docs-schedule`).
 
 ## 언제 쓰는가
 
 - 사용자가 이슈 문서화·기록·아카이브를 요청할 때
 - 원인·재현·결정이 세션을 넘어 남아야 할 때
 - 같은 턴에 고친 원라이너, 질문만 있는 대화, 이미 `docs/issues/resolved`에 있는 건은 쓰지 않는다
+- **마감 조건 없이** 매월 등 무조건 반복하는 운영 루프는 이슈로 만들지 않는다 → `docs/ops/` + schedule (`use-docs-ops`)
 
 ## 파일 이름
 
@@ -95,10 +97,11 @@ cursor:
 3. 조사 본문은 역사 기록으로 유지한다. 삭제·전면 재작성 금지
 4. `docs/issues/active/<file>` → `docs/issues/resolved/<file>` 로 이동 (파일명 유지, `git mv`)
 5. `docs/issues/resolved/`가 없으면 만든다
-6. `docs/schedule.md`에서 해당 행을 지운다
+6. `docs/schedule.md`에서 해당 **이슈** 행을 지운다. (주기 루프를 ops로 이사한 경우 행은 유지하고 링크만 `ops/…`로 — `use-docs-ops`)
 
 ## 하지 않을 것
 
-- `docs/issues/` 밖(채팅 전용, `docs/diagnosis/` 등 자동 생성 리포트, 임의 경로)에 이슈 SSOT를 만들지 않는다
+- `docs/issues/` 밖(채팅 전용, `docs/diagnosis/` 등 자동 생성 리포트, 임의 경로)에 이슈 SSOT를 만들지 않는다. **예외:** 마감 없는 주기 루프는 `docs/ops/` (`use-docs-ops`)
+- 마감 없는 반복 작업을 `docs/issues/active`에 신규 등록하지 않는다
 - 해결 파일을 `docs/issues/active`에 남기거나, 열린 이슈를 `docs/issues/resolved`에 두지 않는다
 - 사용자 요청 없이 기존 이슈 md를 삭제하지 않는다 (삭제 = GitHub Issue도 삭제. 아카이브는 `resolved/` 이동)

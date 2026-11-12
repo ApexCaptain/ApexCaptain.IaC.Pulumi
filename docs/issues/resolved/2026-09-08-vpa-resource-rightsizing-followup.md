@@ -3,12 +3,16 @@
 | 항목 | 내용 |
 |---|---|
 | **등록일** | 2026-09-08 |
-| **재검토 예정** | **2026-12 초** (매월 초 주기. 11월 주기는 2026-10-30 2차로 대체) |
 | **영역** | workstation 클러스터 워크로드 requests/limits · Pulumi IaC |
 | **관련 코드** | `infra/k8s-workstation-{system,tools,apps}`, `common/custom-resources/.../sftp.v3.component.ts` |
 | **선행** | [Goldilocks + VPA 배포](../resolved/2026-09-08-goldilocks-vpa-deploy.md) (해결) |
-| **관련 이슈** | [PriorityClass·eviction](2026-09-13-priority-class-resource-protection.md) — 축출 순서. qBit request는 이 이슈에서 |
-| **상태** | **적용** — 2026-10-30 2차 스냅·IaC 패치·`pulumi up` 완료. 다음 2026-12 초 |
+| **관련 이슈** | [PriorityClass·eviction](../active/2026-09-13-priority-class-resource-protection.md) — 축출 순서 |
+| **상태** | **해결** |
+| **해결일** | 2026-11-12 |
+
+## 해결 요약
+
+월간 루프(마감 없음)는 이슈가 아니라 ops로 옮김. 이후 실행·정책·체크리스트: [docs/ops/vpa-monthly.md](../../ops/vpa-monthly.md). 일정: `docs/schedule.md`. 본 문서는 1·2차 스냅·IaC 패치 이력.
 
 ## 배경
 
@@ -132,3 +136,4 @@ Missing requests: Longhorn CSI·UI·driver-deployer·engine-image, Authentik out
 | 2026-10-24 | 진행일 2026-10-30 확정 (사용자). 오늘 진행 시 10-21 업그레이드 피크·qBit 옛 히스토리(~19Gi)가 VPA 기본 8일 메모리 윈도에 남아 qBit 추천 신뢰 불가 → 10-30이면 둘 다 윈도 밖 |
 | 2026-10-30 | 2차 스냅(63 VPA / 68 컨테이너, 8일 윈도). OOMKilled 없음. UNDER만 반영: grafana 896Mi/1280Mi, jellyfin request 640Mi, vmsingle request 320Mi. OVER(vault·applicationset·reloader)는 10-22 재시작 뒤 값이라 보류, qBit·coder는 정책 유지. preview: system 2 update, apps 1 update. `pulumi up` 대기. 다음 주기 2026-12 초 |
 | 2026-10-30 | `pulumi up` prod: system(update 626, grafana·vmsingle 2 updated) / apps(update 163, jellyfin 1 updated). 세 Pod 새 값으로 Running·Ready 확인 |
+| 2026-11-12 | 월간 루프를 [docs/ops/vpa-monthly.md](../../ops/vpa-monthly.md) + schedule로 이전. 이슈 **해결** 아카이브 |
