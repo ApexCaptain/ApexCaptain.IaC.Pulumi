@@ -51,7 +51,7 @@
 ## 후속 (범위 밖)
 
 - rulesync 버전 업그레이드 재검토 (`docs/schedule.md`)
-- rule 본문 에이전트 중립화 (Cursor 전용 표현, SpecStory rule `targets`)
+- rule 본문 에이전트 중립화 (Cursor 전용 표현, 타깃별 `targets`)
 - Codex 타깃 추가 (`codexcli`): `AGENTS.md`, `.codex/config.toml`. `codexcli`·`agentsmd` 중 하나만 rules로 켜고, `AGENTS.md`·`.agents/memories/`·`CLAUDE.md` gitignore, Cursor·Claude의 `AGENTS.md` 중복 로드 실측 (실측 #9·#10)
 - `.claude/settings.json` permissions·hooks를 rulesync `permissions`/`hooks`로 관리
 - 검증 스크립트(`mcp-probe`)를 `scripts/`에 정식 편입할지 결정
