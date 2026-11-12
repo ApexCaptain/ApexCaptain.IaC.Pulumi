@@ -1,13 +1,13 @@
 # @common/custom-resources
 
-Pulumi 기반으로 Kubernetes·Vault·Coder 등에 걸친 재사용 컴포넌트, 커스텀 리소스, 데이터 소스를 한곳에 모은 공통 라이브러리.
+Pulumi용 커스텀 컴포넌트·리소스·데이터 소스를 모아 infra 스택에서 재사용하는 공통 패키지.
 
 ## 역할
 
-- **components**: SFTP 어댑터, PVC/Vault Raft 백업 아카이브, TLS 개인키, Vault 시크릿·KV 정책 등 인프라 패턴을 컴포넌트로 캡슐화함.
-- **resources**: Coder 관리 API 토큰, kubeconfig 파일, 로컬 텍스트 파일, Vault 부트스트랩 토큰, cert-manager·Cilium·CloudNativePG·Istio·Longhorn·Redis Operator·VSO 등 CRD 정의를 Pulumi 리소스로 제공함.
-- **data**: Authentik 정책 표현식 등 외부 API·설정을 Pulumi data 소스로 조회함.
-- `@common/bridged-provider`·`@common/utils`와 함께 `@infra/*` 및 기타 workspace 패키지에서 IaC 조합의 빌딩 블록으로 사용함.
+- **컴포넌트(`components`)**: SFTP 발급 Job, PVC 스냅샷·Vault Raft 아카이브, TLS 개인키, Vault KV 시크릿·정책 등 고수준 추상화를 제공한다.
+- **리소스(`resources`)**: Coder API 토큰, kubeconfig 파일, 로컬 텍스트 파일, Vault 부트스트랩 토큰, Kubernetes CRD 래퍼(cert-manager, Cilium, CNPG, Istio, Longhorn, Redis Operator, VSO 등)를 선언한다.
+- **데이터(`data`)**: Authentik 정책 표현식 등 런타임 조회용 데이터 소스를 export한다.
+- `@common/bridged-provider`, `@common/utils`와 함께 모노레포 infra 패키지에서 일관된 IaC 패턴을 쓰기 위한 기반 레이어이다.
 
 ## 구조
 
@@ -72,7 +72,7 @@ src/
 - `@pulumi/random` (^4.21.0)
 - `@pulumi/tls` (^5.5.0)
 - `@pulumi/vault` (^7.10.0)
-- `axios` (^1.15.2)
+- `axios` (^1.20.0)
 - `dedent` (^1.7.2)
 - `flat` (^6.0.1)
 - `lodash` (^4.18.1)

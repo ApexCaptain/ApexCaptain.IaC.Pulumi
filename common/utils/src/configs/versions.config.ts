@@ -10,7 +10,7 @@
 export const vaultVersion = '2.0.4';
 
 /** Istio 차트 = control plane = sidecar proxyv2. 올린 뒤에는 sidecar 워크로드를 재시작한다. */
-export const istioVersion = '1.30.7';
+export const istioVersion = '1.30.8';
 
 export const helmChartVersions = Object.freeze({
   gpuOperator: 'v26.7.2',
@@ -25,16 +25,16 @@ export const helmChartVersions = Object.freeze({
   vpa: '5.2.0',
   goldilocks: '11.2.1',
   vaultSecretOperator: '1.6.2',
-  reloader: '2.2.19',
-  argoRollouts: '2.43.9',
-  argoCd: '10.14.0',
+  reloader: '2.2.20',
+  argoRollouts: '2.43.12',
+  argoCd: '10.18.0',
   opentelemetryOperator: '0.129.0',
-  victoriaMetrics: '0.50.0',
-  loki: '21.0.0',
+  victoriaMetrics: '0.51.0',
+  loki: '21.2.1',
   tempo: '3.2.1',
-  grafana: '14.4.0',
+  grafana: '14.4.1',
   jellyfin: '3.2.0',
-  coder: '2.39.0',
+  coder: '2.39.1',
   vikunja: '0.16.0',
 } as const);
 

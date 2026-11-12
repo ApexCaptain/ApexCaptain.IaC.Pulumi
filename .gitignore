@@ -34,7 +34,6 @@ jspm_packages/
 Pulumi*.yaml
 Pulumi*.yml
 inventory.ini
-.specstory
 .superpowers
 docs/superpowers
 /.cursor/rules/

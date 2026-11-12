@@ -16,7 +16,7 @@ cursor:
 - 매칭은 영어 트리거 문구만이 아니다. 한국어 의역·구어(“짧게”, “왜 안 돼”, “커밋 메시지 써줘”)도 동일하게 본다.
 - 후보가 보이면 추측으로 진행하지 말고 `SKILL.md`를 읽는다. 목록에 있다고 본문을 매 턴 전부 로드하지는 않는다.
 - 동시에 여러 스킬이 맞으면 모두 적용하되, **레포 전용이 범용보다 우선**한다 (구분은 아래 "스킬 위치 참고").
-- `disable-model-invocation: true`이거나, 스킬/기존 룰이 “사용자가 명시할 때만”이라고 한 것은 자동 적용하지 않는다. 현재: `pulumi-neo-handoff`, `cleanup-specstory-history`.
+- `disable-model-invocation: true`이거나, 스킬/기존 룰이 “사용자가 명시할 때만”이라고 한 것은 자동 적용하지 않는다. 현재: `pulumi-neo-handoff`.
 
 ## 스크립트 vs 스킬
 
@@ -45,7 +45,6 @@ cursor:
 | feature PR 열기 / 브랜치 이름 | `pnpm script:openPullRequest` (보호 브랜치면 AI 브랜치명) |
 | develop→main 동기화 PR | `pnpm script:promoteDevelopToMain` |
 | README 작성·갱신 | `pnpm script:synthProjectReadme` (기본 루트; `--all-workspace` / `--package`) 또는 `generate-readme` 스킬 |
-| SpecStory 히스토리 정리·삭제·요약 | `cleanup-specstory-history` (**사용자 명시·승인 시만**) |
 | 원인 불명·간헐 실패·왜 안 되는지 먼저 | `investigate-first` |
 | 작은 버그 수정 | `surgical-patch` |
 | 리팩터·추출·이동 | `safe-refactor` |
@@ -64,5 +63,5 @@ cursor:
 
 ## 스킬 위치 참고
 
-- **레포 전용:** `.rulesync/skills/`의 실제 디렉토리 — `coder-templates`, `cleanup-specstory-history`, `generate-readme`
+- **레포 전용:** `.rulesync/skills/`의 실제 디렉토리 — `coder-templates`, `generate-readme`
 - **범용:** `.agents/skills/` (`skills-lock.json` 관리) — Pulumi·디버깅·리팩터·caveman 등. `.rulesync/skills/`에 symlink로 연결되어 함께 생성된다

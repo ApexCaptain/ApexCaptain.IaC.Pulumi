@@ -182,9 +182,7 @@ Jellyfin을 다시 `istio.io/dataplane-mode: ambient`로 올리려면 아래가 
 
 ### 내부 맥락
 
-| 링크 | 설명 |
-|------|------|
-| `.specstory/history/2026-07-18_16-05-20Z-jellyfin-service-outage-logs.md` | 7/18 최초 장애 (헤일메리 Direct Play, WAN 포화 가설, bandwidth limit 도입 배경) |
+2026-07-18 최초 장애 시 헤일메리 Direct Play·WAN 포화 가설을 두고 bandwidth limit EnvoyFilter를 넣었으나, 이후 조사에서 ambient HBONE stream leak이 근본 원인으로 확정됐고 bandwidth limit은 배제(악화 가능)됐다. 본문 「발생」「배제된 가설」「조치」에 정리됨.
 
 ---
 
