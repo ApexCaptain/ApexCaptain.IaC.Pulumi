@@ -1,6 +1,7 @@
 import { typescript } from 'projen';
 import { ActionRefs, GithubWorkflow } from 'projen/lib/github';
 import { JobPermission } from 'projen/lib/github/workflows-model';
+import { setupPulumiCliStep } from './setup-pulumi';
 import * as src from '../../src';
 
 /** PR 정적 검증 — 시크릿 없음. docs/issues/resolved/2026-09-11-pr-ci-validation-pipeline.md */
@@ -55,6 +56,12 @@ export function addPrValidationWorkflow(
           'node-version': '24',
           cache: 'pnpm',
         },
+      },
+      // sdks/ is gitignored; file:sdks/* needs pulumi install before pnpm i
+      setupPulumiCliStep(),
+      {
+        name: 'Install bridged provider SDKs',
+        run: 'pnpm pulumi:install',
       },
       {
         name: 'Install dependencies',
