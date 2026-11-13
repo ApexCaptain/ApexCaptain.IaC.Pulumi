@@ -148,6 +148,10 @@ node /tmp/auto-stop-workspace/autostop-workspace.js
 
 ## 변경 사항
 
+### 2026-11-13
+
+- DevContainer·Docker 컨테이너에 메모리 제한(`--memory`, Compose `deploy.resources.limits`)을 걸 수 있습니다. 이전에는 컨테이너 생성이 `it is in threaded mode` 오류로 실패했습니다. 반영하려면 워크스페이스를 Update(재시작)하세요.
+
 ### 2026-11-02
 
 - rclone 설치 실패를 감지합니다. 다운로드 재시도·fallback·아카이브 검증, 실패 시 스크립트 실패 표시, 백그라운드 루프에서 재설치. 바이너리가 없으면 마운트를 시도하지 않습니다(`rclone-mounts install` 추가).
