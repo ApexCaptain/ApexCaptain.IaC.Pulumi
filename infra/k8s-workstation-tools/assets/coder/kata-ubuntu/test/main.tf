@@ -304,6 +304,30 @@ resource "kubernetes_deployment_v1" "main" {
             "sh",
             "-c",
             <<-EOT
+              # cgroup v2 nesting: 컨테이너 cgroup 루트에 프로세스가 있으면 domain controller(memory·io)를 하위로 못 넘긴다 (no internal process)
+              # → dockerd가 memory limit 컨테이너를 못 만든다 ("it is in threaded mode"). agent·dockerd가 뜨기 전에 프로세스를 /init 으로 옮기고
+              # 전체 controller를 위임한다 (moby hack/dind 방식). 이후 프로세스는 /init 을 상속한다. 실패해도 기동은 계속한다
+              # @see docs/issues/resolved/2026-11-13-kata-nested-docker-cgroup-v2-memory-limit.md
+              if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
+                sudo sh -c '
+                  cg=/sys/fs/cgroup
+                  log=/tmp/cgroup-nesting.log
+                  : >"$log"
+                  mkdir -p "$cg/init"
+                  for try in 1 2 3 4 5; do
+                    # cgroup.procs 는 write 한 번에 PID 하나. 이미 끝난 PID 오류는 무시한다
+                    xargs -rn1 <"$cg/cgroup.procs" >"$cg/init/cgroup.procs" 2>/dev/null || :
+                    missing=""
+                    for c in $(cat "$cg/cgroup.controllers"); do
+                      echo "+$c" >"$cg/cgroup.subtree_control" 2>/dev/null || :
+                      grep -qw "$c" "$cg/cgroup.subtree_control" || missing="$missing $c"
+                    done
+                    [ -z "$missing" ] && break
+                    sleep 0.2
+                  done
+                  echo "type=$(cat "$cg/cgroup.type") subtree=$(cat "$cg/cgroup.subtree_control") missing=$${missing:-none}" >>"$log"
+                ' || true
+              fi
               # home PVC(Block): 첫 기동에 ext4 포맷, 매 기동 마운트·온라인 확장(resize2fs)
               if ! mountpoint -q /home/coder; then
                 if ! sudo blkid ${local.home_device_path} >/dev/null 2>&1; then
