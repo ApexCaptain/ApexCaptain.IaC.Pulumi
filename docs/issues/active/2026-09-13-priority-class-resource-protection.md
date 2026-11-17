@@ -6,7 +6,7 @@
 | **재검토 예정** | **2026-12 초** — 그때 IaC·Ansible 착수. 그 전 적용 없음 |
 | **영역** | workstation-0 단일 노드. `k8s-workstation-system/tools/apps` · Coder 템플릿 · Kubespray kubelet |
 | **관련 코드** | `infra/k8s-workstation-system` (우선순위 클래스·Helm), `infra/k8s-workstation-tools` (qBit, Coder `assets/coder/kata-ubuntu/*/main.tf` — 운영. `sysbox-ubuntu`는 2026-11-06까지 잔존), `ansible/workstation/inventory/group_vars/k8s_cluster/k8s-cluster.yml` |
-| **관련 이슈** | [VPA 리소스 재조정](2026-09-08-vpa-resource-rightsizing-followup.md) — qBit 등 request 축소는 그쪽. 이 이슈는 축출 순서·kubelet 가드레일 |
+| **관련** | [VPA 월간 ops](../../ops/vpa-monthly.md) — request 재조정. 이력: [resolved](../resolved/2026-09-08-vpa-resource-rightsizing-followup.md). 이 이슈는 축출 순서·kubelet 가드레일 |
 | **상태** | **보류** — 2026-12 초까지 설계만 유지. 그때 진행 |
 
 ## 배경
@@ -68,7 +68,7 @@ PriorityClass는 보조다. 본체는 kubelet이 커널 OOM보다 먼저 움직�
 ### QoS
 
 - 보호 대상(Vault, istiod, ztunnel, Longhorn manager): request≈limit (Guaranteed), 실측에 맞게.
-- 희생 대상 request 축소(qBit 4Gi 등): **이 이슈에서 하지 않는다.** [VPA 리소스 재조정](2026-09-08-vpa-resource-rightsizing-followup.md) 2026-10 초 재검토에서.
+- 희생 대상 request 축소(qBit 등): **이 이슈에서 하지 않는다.** [VPA 월간 ops](../../ops/vpa-monthly.md).
 
 ### 적용 순서
 
@@ -78,7 +78,7 @@ PriorityClass는 보조다. 본체는 kubelet이 커널 OOM보다 먼저 움직�
 4. Vault / istiod / ztunnel에 기존 `k8s-cluster-critical` 부여. Longhorn은 차트 기본 `longhorn-critical` 유지
 5. 보호 대상 Guaranteed는 실측 숫자 확인 후. 추측으로 limit을 request에 맞추지 않음
 
-2026-10-05 [VPA 1차 IaC 반영](2026-09-08-vpa-resource-rightsizing-followup.md) 완료. 2026-10-30 2차도 반영됨. 12월 착수 때 VPA 3차(2026-12 초) 결과를 함께 본다.
+2026-10-05·10-30 VPA IaC 반영 완료 ([이력](../resolved/2026-09-08-vpa-resource-rightsizing-followup.md)). 12월 착수 때 [VPA 3차](../../ops/vpa-monthly.md) 결과를 함께 본다.
 
 Helm values 필드명은 사용 중 차트 버전으로 확인한다. `pilot.cni.enabled` 형태는 현재 Istio ambient 배포(`base → cni → istiod → ztunnel`)와 다르다.
 

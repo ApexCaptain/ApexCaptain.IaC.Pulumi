@@ -1,17 +1,16 @@
-# 열린 이슈 일정
+# 일정 (이슈 · ops)
 
-`docs/issues/active/` 기준. 날짜가 있는 확인·재개만 달력에 넣고, 나머지는 트리거 대기.
+`docs/issues/active/` + `docs/ops/` 기준. 날짜가 있는 확인·재개·월간 ops만 달력에 넣고, 나머지는 트리거 대기.
 
-원문·수용 기준은 각 이슈 문서. 이 표는 언제 무엇을 볼지만.
+이슈 원문·수용 기준은 이슈 문서. 마감 없는 반복 루프는 `docs/ops/`. 이 표는 언제 무엇을 볼지만.
 
 ---
 
 ## 달력
 
-| 언제 | 할 일 | 이슈 | 상태 |
+| 언제 | 할 일 | 문서 | 상태 |
 |---|---|---|---|
-| **2026-11-18** | Kata qemu memcg OOM 재점검: 노드 kern.log OOM 재발·파드 `memory.peak`/`memory.events` 확인 → 이상 없으면 resolved 이동 | [Kata qemu memcg OOM](issues/active/2026-11-11-kata-workspace-qemu-memcg-oom.md) | 적용 · 2026-11-18 재점검 |
-| **2026-12 초** | VPA 3차 스냅. vault·argo applicationset·reloader 두 번째 OVER면 축소. 11월 주기는 10-30으로 대체 | [VPA 리소스 재조정](issues/active/2026-09-08-vpa-resource-rightsizing-followup.md) | 적용 · 2026-10-30 2차 반영 완료 |
+| **2026-12 초** | VPA 3차 스냅. vault·argo applicationset·reloader 두 번째 OVER면 축소. 11월 주기는 10-30으로 대체 | [VPA 월간](ops/vpa-monthly.md) | ops · 매월 초 |
 | **2026-12 초** | kubelet eviction/reserved → `workload-batch` → Coder/qBit 부여 → 플랫폼은 기존 1e9 재사용. 11월 VPA 결과가 있으면 같이 보고 착수. 그 전 적용 없음 | [PriorityClass·eviction](issues/active/2026-09-13-priority-class-resource-protection.md) | 보류 |
 | **2027-01 말** | Vault CA 회전 방법론 재검토: A 적용 결과, 정기 회전 필요성, ①②(trust-manager 배포·VSO Reloader) 또는 ①②③(옛·새 CA 병행) 도입 여부 | [Vault CA 회전 신뢰 전파](issues/active/2026-10-25-vault-ca-rotation-trust-propagation.md) | 적용 · 2027-01 말 재검토 |
 
@@ -21,7 +20,7 @@
 
 ## 날짜 없음 (트리거 대기)
 
-| 트리거 | 할 일 | 이슈 | 상태 |
+| 트리거 | 할 일 | 문서 | 상태 |
 |---|---|---|---|
 | Istio **1.32.0+** 업그레이드 (2026-11-09 GA에 `hbone-stream-leak` 포함. 클러스터·SSOT는 1.30.7, 1.30.8엔 픽스 없음). #45198·#60074는 이미 닫힘 | Jellyfin을 ambient로 되돌린 뒤 Direct Play 시크 스트레스. sidecar injection만 제거하고 PeerAuthentication / AuthorizationPolicy는 유지 | [Jellyfin ambient Direct Play](issues/active/2026-08-17-jellyfin-ambient-mesh-direct-play-seek.md) | 완화 |
 | A/B 사용자 결정 (다음 Kubespray 전. A면 즉시 아카이브, B면 오버라이드 후 다음 실행에서 Gen_certs skip 확인) | 기본값 유지(A, 추천) / `force_etcd_cert_refresh: false`(B) | [etcd 인증서 재발급](issues/active/2026-11-06-etcd-cert-regeneration-on-kubespray-run.md) | 보류 |
@@ -34,4 +33,4 @@
 
 ## 갱신
 
-이슈 상태가 바뀌거나 날짜가 확정되면 이 파일과 해당 이슈를 같이 고친다. 아카이브된 항목은 여기서 지운다.
+이슈·ops 상태가 바뀌거나 날짜가 확정되면 이 파일과 해당 문서를 같이 고친다. 아카이브된 **이슈** 행은 지운다. **ops** 행은 다음 주기로 갱신만 한다.

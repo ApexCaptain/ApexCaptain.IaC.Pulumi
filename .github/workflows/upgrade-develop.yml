@@ -29,6 +29,8 @@ jobs:
         uses: pulumi/actions@8e5e406f4007fca908480587cb9893c07090f58d
         with:
           pulumi-version: 3.273.0
+      - name: Install bridged provider SDKs
+        run: pnpm pulumi:install
       - name: Install dependencies
         id: install_dependencies
         run: pnpm i --frozen-lockfile

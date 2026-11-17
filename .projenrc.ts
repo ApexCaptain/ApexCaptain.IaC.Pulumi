@@ -211,6 +211,9 @@ const rootProject = new typescript.TypeScriptProject(
         '.DS_STORE',
         'Pulumi*.yaml',
         'Pulumi*.yml',
+        // cold start: pulumi:install needs this before pnpm i (sdks are generated)
+        '!/common/bridged-provider/Pulumi.yaml',
+        'common/bridged-provider/sdks/',
         'inventory.ini',
         '.superpowers',
         'docs/superpowers',

@@ -1,6 +1,7 @@
 import { typescript } from 'projen';
 import { ActionRefs, GithubWorkflow } from 'projen/lib/github';
 import { JobPermission } from 'projen/lib/github/workflows-model';
+import { setupPulumiCliStep } from './setup-pulumi';
 import * as src from '../../src';
 
 /**
@@ -61,6 +62,12 @@ export function addDocsIssueMirrorWorkflow(
           'node-version': '24',
           cache: 'pnpm',
         },
+      },
+      // sdks/ is gitignored; file:sdks/* needs pulumi install before pnpm i
+      setupPulumiCliStep(),
+      {
+        name: 'Install bridged provider SDKs',
+        run: 'pnpm pulumi:install',
       },
       {
         name: 'Install dependencies',

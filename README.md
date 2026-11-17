@@ -52,7 +52,7 @@ pnpm pulumi:up
 
 - `build:infra` — `turbo run build --filter "./infra/*"`
 - `build:workspaces` — common·infra 워크스페이스 일괄 빌드
-- `pulumi:install` — `./common/bridged-provider`에서 Pulumi provider 설치
+- `pulumi:install` — `./common/bridged-provider`에서 bridged SDK(`sdks/`, gitignore) 생성. `pnpm i`보다 먼저
 - `pulumi:preview` / `pulumi:up` — infra 패키지 preview·up (TUI)
 - `postpulumi:up` — kubeconfig 병합 후 Nova·Pluto 진단 생성
 - `script:bootstrapLocalEnv` — 로컬 개발 환경 초기화

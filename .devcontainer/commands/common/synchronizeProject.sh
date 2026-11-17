@@ -116,6 +116,11 @@ npm install -g \
     @anthropic-ai/claude-code
 echo "✅ Installed Global Packages"
 
+# sdks/ is gitignored; file:sdks/* needs Pulumi.yaml + pulumi install before pnpm i
+echo "🔄 Installing bridged provider SDKs"
+pnpm pulumi:install
+echo "✅ Installed bridged provider SDKs"
+
 echo "🔄 Installing dependencies"
 pnpm i --no-frozen-lockfile
 echo "✅ Installed dependencies"

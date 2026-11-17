@@ -1,0 +1,139 @@
+# VPA 추천 기반 리소스 갭 재분석 및 IaC 반영
+
+| 항목 | 내용 |
+|---|---|
+| **등록일** | 2026-09-08 |
+| **영역** | workstation 클러스터 워크로드 requests/limits · Pulumi IaC |
+| **관련 코드** | `infra/k8s-workstation-{system,tools,apps}`, `common/custom-resources/.../sftp.v3.component.ts` |
+| **선행** | [Goldilocks + VPA 배포](../resolved/2026-09-08-goldilocks-vpa-deploy.md) (해결) |
+| **관련 이슈** | [PriorityClass·eviction](../active/2026-09-13-priority-class-resource-protection.md) — 축출 순서 |
+| **상태** | **해결** |
+| **해결일** | 2026-11-12 |
+
+## 해결 요약
+
+월간 루프(마감 없음)는 이슈가 아니라 ops로 옮김. 이후 실행·정책·체크리스트: [docs/ops/vpa-monthly.md](../../ops/vpa-monthly.md). 일정: `docs/schedule.md`. 본 문서는 1·2차 스냅·IaC 패치 이력.
+
+## 배경
+
+2026-09-08에 VPA recommender + Goldilocks를 배포하고 19개 NS에 opt-in 라벨을 달았다. 당일 스냅샷으로 requests vs VPA target 갭 분석을 돌렸으나, 추천 히스토리가 **수 시간** 수준이라 idle 편향이 큼 (특히 Jellyfin encode, qBittorrent 피크, Coder idle/busy).
+
+바로 IaC에 반영하지 않고 **약 1달 관찰 후** 다시 갭을 보고 조정한다. 1차 2026-10-05, 2차 2026-10-30(11월 주기 대체). 다음: **2026-12 초**.
+
+## 문제
+
+- 수동 추정 requests/limits와 실사용량 불일치 가능.
+- 초기 갭 결과는 참고용일 뿐, 지금 깎으면 피크 OOM/스로틀 위험.
+- requests 미설정 컨테이너(Longhorn CSI, Tempo, GPU operator 일부 등)는 스케줄링 가시성 부족.
+
+## 2026-09-08 초기 스냅샷 (참고만)
+
+컨테이너 62개 비교. 분류: ratio = target ÷ request. UNDER ≥1.5×, OVER ≤0.67×.
+
+| | Missing | Over ≥2× | Under ≥1.5× | OK |
+|---|---|---|---|---|
+| CPU | 23 | 19 | 3 | 15 |
+| MEM | 23 | 4 | 21 | 14 |
+
+두드러진 후보 (재검토 시 재확인):
+
+| 방향 | 예시 |
+|---|---|
+| MEM 과다 후보 | qbittorrent 4Gi→~283Mi, jellyfin 768→~363Mi, coder 512→~156Mi |
+| MEM 부족 후보 | Argo CD redis 32→100Mi, Authentik PG / Longhorn manager 256→~392Mi |
+| requests 없음 | tempo(~1.22Gi target), nvidia-dcgm-exporter(~561Mi), Authentik outpost, Longhorn UI/CSI |
+| 이미 양호 | authentik-server / authentik-worker |
+
+캔버스 스냅샷: `.cursor/projects/.../canvases/goldilocks-gap-analysis.canvas.tsx` (로컬 IDE).
+
+## 2026-10-05 재스냅샷 (68 VPA 컨테이너)
+
+| | Missing | Under | Over | OK |
+|---|---|---|---|---|
+| MEM | 27 | 27 | 3 | 11 |
+| CPU | 27 | 3 | 24 | 14 |
+
+**정책 (1차 반영):**
+
+- **메모리**: VPA `target`(+ 필요 시 `upperBound`) 기준으로 IaC `requests` 조정. request ≤ limit 검증.
+- **CPU**: VPA target이 대부분 ~25m로 idle 편향 → **기존 CPU request/limit 유지** (IaC 미변경).
+- **버스티**: jellyfin request 768→512Mi (upperBound ~380Mi + headroom). qbittorrent 4→11Gi (VPA UNDER, upperBound ~10.6Gi). coder 512Mi→1Gi.
+- **범위 밖**: GPU operator·Longhorn CSI 등 차트 기본/서브컴포넌트-only — IaC values 없으면 미패치.
+
+## 2026-10-12 중간 스냅샷
+
+사용자 요청으로 11월 정기 재검토보다 앞서 반영. 기준은 1차와 같다.
+
+- 메모리 request는 VPA `target` 이상, limit은 `upperBound` 이상. request ≤ limit.
+- CPU는 idle 바닥(~15m)으로 내리지 않음. limit이 target보다 낮은 경우만 올림 (jellyfin SFTP sidecar 100m→200m, 백업 잡).
+- CronJob upperBound(수십 코어·수십 Gi)는 짧은 잡 스파이크. target만 쓰고 limit은 target의 약 2배.
+- jellyfin 메모리 limit 3Gi, coder 1Gi/2Gi는 피크 여유라 유지. qBit은 target 11.5Gi / upper 15Gi라 request 12Gi, limit 16Gi.
+- Longhorn CSI·UI, Istio, Authentik outpost는 차트/CR에 resource values가 없어 미패치.
+
+## 2026-10-30 2차 스냅샷 (63 VPA, 68 컨테이너)
+
+윈도: 메모리 8일(10-22~10-30). 10-21 업그레이드·qBit 옛 히스토리는 빠짐. 단 10-22 22:00 다수 Pod 재시작이 윈도 시작에 걸림. OOMKilled 없음.
+
+target `100Mi` / `15m`은 recommender 바닥값이라 실사용이 더 낮다는 뜻만 있다. 바닥값 컨테이너는 판단하지 않는다.
+
+| 방향 | 컨테이너 | request / limit | VPA target / upper | 결정 |
+|---|---|---|---|---|
+| UNDER | grafana | 640Mi / 768Mi | 878Mi / 899Mi | **896Mi / 1280Mi**. limit이 target보다 낮았음 |
+| UNDER | jellyfin | 512Mi / 3Gi | 600Mi / 619Mi | **request 640Mi**. limit 유지 |
+| UNDER | vmsingle | 256Mi / 512Mi | 283Mi / 289Mi | **request 320Mi**. limit 유지 |
+| UNDER(바닥) | cloudflared | 32Mi / 128Mi | 100Mi (바닥) | 유지. 라이브 ~24Mi |
+| OVER | qbittorrent | 512Mi / 2Gi | 105Mi / 108Mi | 유지. 재해시 여유 (10-21 결정). 윈도에 재해시 없음 |
+| OVER | coder | 1Gi / 2Gi | 335Mi / 342Mi | 유지. 피크 여유 정책 |
+| OVER | vault | 384Mi / 512Mi | 156Mi / 159Mi | 보류. 10-12 target 363Mi |
+| OVER | argo applicationset | 320Mi / 384Mi | 105Mi / 107Mi | 보류. 10-05 target ~272Mi |
+| OVER | reloader | 224Mi / 320Mi | 105Mi / 107Mi | 보류. 10-12 target 194Mi |
+
+**축소 보류 근거**: vault·applicationset·reloader는 10-22 재시작 뒤 8일만 본 값. 업타임 따라 메모리가 커지는 패턴일 수 있다 (가설). 두 주기 연속 OVER일 때만 줄인다.
+
+CPU: 정책 유지 (limit < target인 컨테이너 없음). 백업 CronJob: request > target이라 변경 없음.
+
+Missing requests: Longhorn CSI·UI·driver-deployer·engine-image, Authentik outpost — 차트/CR에 values 없음. 기존대로 미패치.
+
+## 목표
+
+1. **매월 초** VPA status 재조회 → 동일 기준으로 갭 재분석.
+2. 안전한 항목만 Pulumi `resources.requests`(/limits) 패치.
+3. 버스티 워크로드(jellyfin, qbittorrent, coder)는 upperBound·피크 교차 확인 후 축소/증가.
+
+## 수용 기준
+
+- [x] 2026-10 초 VPA 추천 재스냅샷
+- [x] 갭 표 갱신 (위 2026-10-05)
+- [x] IaC 패치 + 적용/보류 결정 (본문 정책)
+- [x] `pulumi up` (system / tools / apps prod) 및 워크로드 Ready 확인
+- [x] 2026-10-30 2차 스냅·패치 (PoC 전)
+- [x] 2026-10-30 패치 `pulumi up` (system: grafana·vmsingle / apps: jellyfin) 및 Ready 확인
+- [ ] 2026-12 초 3차 스냅. vault·applicationset·reloader 두 번째 OVER면 축소
+
+## 범위 밖
+
+- VPA updater/admission 자동 적용 (Off 모드 유지).
+- Goldilocks/VPA 차트 자체 재구성 (이미 해결됨).
+- CPU 일괄 25m 축소 (VPA idle 편향).
+
+## 체크리스트 (2026-12 초 재개 시)
+
+- [ ] `kubectl get vpa -A` / Goldilocks UI로 추천 성숙도 확인
+- [ ] requests vs target 갭 스크립트 재실행
+- [ ] jellyfin / qbittorrent / coder — Grafana·실사용 피크와 교차 확인
+- [ ] missing requests 중 IaC로 건드릴 수 있는 것만 선별
+
+## 타임라인
+
+| 일시 | 내용 |
+|---|---|
+| 2026-09-08 | 등록. Goldilocks 배포 직후 초기 갭 분석 → 히스토리 부족으로 IaC 보류. 재검토 목표 2026-10 초 |
+| 2026-09-13 | 관련: PriorityClass 이슈 등록. qBit 등 request 축소는 계속 이 VPA 이슈(10월 초). 축출 클래스·kubelet은 그쪽 |
+| 2026-10-05 | 1차 재스냅(68 컨테이너). 메모리 중심 IaC 패치 — Argo CD, cert-manager, monitoring(Loki/Tempo/Grafana/VM), Longhorn manager, Authentik PG, Reloader, LXCFS, VSO, snapshot-controller, CNPG operator, jellyfin, qbittorrent, coder, vikunja, SFTP v3 sidecar. `k8s-workstation-{system,tools,apps}` prod `pulumi up` 성공. Argo dex request>limit 한 번 실패 → dex limit 256Mi 수정 후 재적용. 다음 주기 **2026-11 초** |
+| 2026-10-12 | 중간 스냅. 메모리 request/limit 재조정. UNDER: Vault, Authentik server/worker, Argo dex/notifications, qBit, VSO manager, Tempo request. OVER limit 축소: Grafana, Loki, VM, Longhorn manager, Tempo limit, OTel, Reloader, CNPG, Argo server/repo/controller. 신규 request: GPU operator(device plugin, DCGM, GFD, validator, NFD), Longhorn global manager, generic-device-plugin, Loki canary/sidecar/exporter. 백업 CronJob은 target만 반영. 11월 정기 재검토는 유지 |
+| 2026-10-21 | qBit 12Gi/16Gi가 mmap+OS cache. WebUI를 POSIX·cache off로 바꾼 뒤 라이브 ~30Mi. IaC request 512Mi / limit 2Gi로 축소. VPA ~19Gi는 옛 히스토리. 11월 정기 재검토 유지 |
+| 2026-10-24 | 2차 재스냅을 2026-10-30까지로 앞당김 (사용자). 10-31 Kata PoC(Kubespray 재실행·테스트 워크스페이스)가 추천 히스토리를 오염시키지 않게. 참고: 10-21 K8s 1.35.9 업그레이드 재시작이 히스토리에 섞여 있음 |
+| 2026-10-24 | 진행일 2026-10-30 확정 (사용자). 오늘 진행 시 10-21 업그레이드 피크·qBit 옛 히스토리(~19Gi)가 VPA 기본 8일 메모리 윈도에 남아 qBit 추천 신뢰 불가 → 10-30이면 둘 다 윈도 밖 |
+| 2026-10-30 | 2차 스냅(63 VPA / 68 컨테이너, 8일 윈도). OOMKilled 없음. UNDER만 반영: grafana 896Mi/1280Mi, jellyfin request 640Mi, vmsingle request 320Mi. OVER(vault·applicationset·reloader)는 10-22 재시작 뒤 값이라 보류, qBit·coder는 정책 유지. preview: system 2 update, apps 1 update. `pulumi up` 대기. 다음 주기 2026-12 초 |
+| 2026-10-30 | `pulumi up` prod: system(update 626, grafana·vmsingle 2 updated) / apps(update 163, jellyfin 1 updated). 세 Pod 새 값으로 Running·Ready 확인 |
+| 2026-11-12 | 월간 루프를 [docs/ops/vpa-monthly.md](../../ops/vpa-monthly.md) + schedule로 이전. 이슈 **해결** 아카이브 |

@@ -33,6 +33,8 @@ jspm_packages/
 .DS_STORE
 Pulumi*.yaml
 Pulumi*.yml
+!/common/bridged-provider/Pulumi.yaml
+common/bridged-provider/sdks/
 inventory.ini
 .superpowers
 docs/superpowers
