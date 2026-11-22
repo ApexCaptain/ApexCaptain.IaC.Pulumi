@@ -5,7 +5,24 @@
 | **등록일** | 2026-10-21 |
 | **영역** | apps 스택 Jellyfin (`jellyfin` 네임스페이스), Authentik SSO |
 | **관련 코드** | `common/utils/src/configs/versions.config.ts` (`helmChartVersions.jellyfin`), `infra/k8s-workstation-apps/src/components/jellyfin/jellyfin.helm-chart.component.ts`, `jellyfin.authentik.component.ts` |
-| **상태** | **적용** — 2026-11-22 Jellyfin 12.4.0 (차트 3.7.0) + SSO MaxRink fork 6.1.0.0. 남은 것: ApexCaptainCorp·azure153 SSO 링크 이전 확인, 안정화 후 롤백 자원 정리 |
+| **상태** | **해결** — Jellyfin 12.4.0 (차트 3.7.0) + SSO MaxRink fork 6.1.0.0 |
+| **해결일** | 2026-11-22 |
+
+## 해결 요약
+
+- 원본 SSO 플러그인(9p4)이 2026-05-12 아카이브돼 기존 트리거가 소멸. 같은 GUID·라우트의 MaxRink fork 6.1.0.0으로 전환
+- 미사용 확인된 EDL Creator·ThePornDB 제거. Session Cleaner 6.0·TMDb Box Sets 15.0으로 갱신
+- 내장 백업이 5GiB 여유 공간을 요구해 config PVC 5Gi → 10Gi. 내장 백업 + Longhorn 스냅샷 후 차트 3.7.0 배포. 차트 3.5+ `/media` readOnly 기본값은 `readOnly: false`로 막음
+- 마이그레이션 39개 성공, 재스캔, ApexCaptain SSO 링크 이메일 키로 이전 확인, NVENC·SFTP sidecar 정상. PR #219로 develop 반영
+- 사용자 요청으로 남은 항목이 있는 채로 닫음 (아래 "닫을 때 남긴 항목")
+
+### 닫을 때 남긴 항목
+
+이 레포에서 추적하지 않는다. 필요하면 Jellyfin에서 직접 처리한다.
+
+- ApexCaptainCorp·azure153 SSO 링크 이전 — 각자 다음 SSO 로그인 때 fork가 자동 처리
+- 롤백 자원 정리: Longhorn 스냅샷 `longhorn/jellyfin-config-pre-12-upgrade-20261122`, `/config/plugins-removed-20261122/`, `/config/config/system.xml.pre-12-20261122`, `/config/data/backups/jellyfin-backup-20261122022454.zip`
+- (선택) `영화` 라이브러리 fetcher 순서의 ThePornDB 이름, 미사용 intro-skipper 레포 항목
 
 ## 배경
 
@@ -259,3 +276,4 @@ fork 6.x 영향:
 | 2026-11-22 | 4단계 완료 (플러그인 3개 격리 이동, 레포 목록 교체). 5단계: 차트 3.7.0 + `media.readOnly: false` 코드 변경·preview 완료, `pulumi up` 대기 |
 | 2026-11-22 | 5단계 완료: 차트 3.7.0 배포, Jellyfin 12.4.0 기동. 마이그레이션 39개 전부 성공, ERR 0. 6~7단계(SSO fork 설치·재시작·재스캔) 대기 |
 | 2026-11-22 | 6~7단계 완료: SSO-Auth 6.1.0.0 설치·설정 유지, 재스캔 21초, ApexCaptain SSO 로그인 성공(링크 이메일 키로 이전, 새 계정 없음). NVENC·SFTP sidecar 정상, ERR 0. 상태 적용 — 나머지 2계정 링크 이전·롤백 자원 정리 남음 |
+| 2026-11-22 | 사용자 요청으로 해결 처리. 2계정 링크 이전·롤백 자원 정리는 레포 추적 밖으로 남김. `docs/issues/resolved` 이동 |
