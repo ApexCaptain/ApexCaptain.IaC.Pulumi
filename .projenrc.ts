@@ -16,7 +16,7 @@ import * as utils from './common/utils/src';
 import { inflateCommonProject } from './projenrc/projects/common-projects';
 import { inflatePulumiProject } from './projenrc/projects/pulumi-projects';
 import { pinWorkflowActions } from './projenrc/workflows/action-pins';
-import { addAutoMergeDevelopWorkflow } from './projenrc/workflows/auto-merge-develop';
+import { addAutoMergeWorkflow } from './projenrc/workflows/auto-merge';
 import { addDocsIssueMirrorWorkflow } from './projenrc/workflows/docs-issue-mirror';
 import { addPrValidationWorkflow } from './projenrc/workflows/pr-validation';
 import { assertDevContainerPulumiCliVersion } from './projenrc/workflows/setup-pulumi';
@@ -271,8 +271,6 @@ const rootProject = new typescript.TypeScriptProject(
 
         'repomix',
 
-        '@cursor/sdk',
-
         'rulesync@26.0.0',
 
         'concurrently',
@@ -288,7 +286,7 @@ void (async () => {
   assertDevContainerPulumiCliVersion();
   await modifyUpgradeWorkflow(rootProject);
   addPrValidationWorkflow(rootProject);
-  addAutoMergeDevelopWorkflow(rootProject);
+  addAutoMergeWorkflow(rootProject);
   addDocsIssueMirrorWorkflow(rootProject);
   pinWorkflowActions(rootProject);
 
@@ -743,8 +741,8 @@ void (async () => {
         protected=0
         while read -r local_ref local_sha remote_ref remote_sha; do
           case "$remote_ref" in
-            refs/heads/main|refs/heads/develop)
-              echo "pre-push: '$remote_ref' 직접 push 금지. feature 브랜치 → PR → develop → main 흐름을 쓰세요." >&2
+            refs/heads/main)
+              echo "pre-push: '$remote_ref' 직접 push 금지. main 승격은 pnpm git:promote 를 쓰세요." >&2
               protected=1
               ;;
           esac
@@ -765,7 +763,7 @@ void (async () => {
         branch="$(git rev-parse --abbrev-ref HEAD)"
         case "$branch" in
           main|develop)
-            echo "post-commit: '$branch'에서는 자동 push 안 함 (ruleset). feature 브랜치에서 커밋하거나 pnpm script:openPullRequest 를 쓰세요."
+            echo "post-commit: '$branch'에서는 자동 push 안 함. develop은 직접 git push, main은 pnpm git:promote 를 쓰세요."
             exit 0
             ;;
           HEAD)
@@ -1032,8 +1030,8 @@ void (async () => {
   // Scripts
   rootProject.addScripts({
     'git:commit': `git commit -F ${src.constants.paths.files.githubGeneratedCommitMessageFile}`,
-    'git:pr': `ts-node scripts/create-github-pr.script.ts --base develop`,
-    'git:pr:to-main': `ts-node scripts/create-github-pr.script.ts --base main --head develop`,
+    'git:pr': `ts-node scripts/create-github-pr.script.ts`,
+    'git:promote': `ts-node scripts/promote-develop-to-main.script.ts`,
 
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     posttest: 'pnpm test:workspaces',
@@ -1049,14 +1047,9 @@ void (async () => {
     'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
     'script:generatePlutoDiagnosis': `ts-node scripts/generate-pluto-diagnosis.script.ts`,
     'script:fetchWorkstationKubeconfig': `ts-node scripts/fetch-workstation-kubeconfig.script.ts`,
-    'script:generateCommitMessage': `ts-node scripts/generate-commit-message.script.ts`,
-    'script:generatePullRequest': `ts-node scripts/generate-pull-request.script.ts`,
-    'script:openPullRequest': `ts-node scripts/open-pull-request.script.ts`,
-    'script:promoteDevelopToMain': `ts-node scripts/promote-develop-to-main.script.ts`,
     'script:syncPulumiEsc': `ts-node scripts/sync-pulumi-esc.script.ts`,
     'script:generateVentoyUserData': `ts-node scripts/generate-ventoy-user-data.script.ts`,
     'script:bootstrapLocalEnv': `ts-node scripts/bootstrap-local-env.script.ts`,
-    'script:synthProjectReadme': `ts-node scripts/synth-project-readme.script.ts`,
     'script:syncGithubIssues': `ts-node scripts/sync-github-issues.script.ts`,
 
     // Pulumi — refresh는 PULUMI_REFRESH=1 로 선택 (기본 off)
