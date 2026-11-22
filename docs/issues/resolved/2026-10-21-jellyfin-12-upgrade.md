@@ -277,3 +277,4 @@ fork 6.x 영향:
 | 2026-11-22 | 5단계 완료: 차트 3.7.0 배포, Jellyfin 12.4.0 기동. 마이그레이션 39개 전부 성공, ERR 0. 6~7단계(SSO fork 설치·재시작·재스캔) 대기 |
 | 2026-11-22 | 6~7단계 완료: SSO-Auth 6.1.0.0 설치·설정 유지, 재스캔 21초, ApexCaptain SSO 로그인 성공(링크 이메일 키로 이전, 새 계정 없음). NVENC·SFTP sidecar 정상, ERR 0. 상태 적용 — 나머지 2계정 링크 이전·롤백 자원 정리 남음 |
 | 2026-11-22 | 사용자 요청으로 해결 처리. 2계정 링크 이전·롤백 자원 정리는 레포 추적 밖으로 남김. `docs/issues/resolved` 이동 |
+| 2026-11-22 | 롤백 자원 정리: Longhorn 스냅샷 `jellyfin-config-pre-12-upgrade-20261122`, `/config/plugins-removed-20261122/`, `system.xml.pre-12-20261122`, 내장 백업 zip 삭제. `/config` 사용 2.1G / 9.8G |
