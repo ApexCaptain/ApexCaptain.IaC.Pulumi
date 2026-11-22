@@ -7,7 +7,8 @@ import * as pulumi from '@pulumi/pulumi';
  *
  * ## 구성 방식
  *
- * Jellyfin은 네이티브 OIDC가 없어 [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso)가
+ * Jellyfin은 네이티브 OIDC가 없어 [jellyfin-plugin-sso MaxRink fork](https://github.com/MaxRink/jellyfin-plugin-sso)가
+ * (원본 9p4는 2026-05 아카이브, Jellyfin 12 미지원)
  * 앱 내부에서 authorization code flow를 처리한다. qBittorrent·Longhorn처럼 Istio + Authentik Proxy
  * (Outpost)로 끝낼 수 없고, 플러그인 설치·OIDC 설정·브랜딩·라이브러리 권한은 Jellyfin Admin UI에서
  * 수동으로 해야 한다.
@@ -30,13 +31,14 @@ import * as pulumi from '@pulumi/pulumi';
  * ## Pulumi 배포 후 Jellyfin 수동 설정
  *
  * 1. Plugins → Catalog → repo:
- *    `https://raw.githubusercontent.com/9p4/jellyfin-plugin-sso/manifest-release/manifest.json`
- * 2. SSO-Auth 설치·활성화
+ *    `https://raw.githubusercontent.com/MaxRink/jellyfin-plugin-sso/manifest-release/manifest.json`
+ * 2. SSO-Auth 설치·활성화 (Jellyfin 12는 6.x)
  * 3. OID provider: Name = `oidcProviderName`, Endpoint = `output.oidc.discoveryUrl`,
  *    Client ID/Secret = `secret.oidc`, Scheme Override = `https`
  * 4. (선택) Branding 로그인 버튼: `output.oidc.launchUrl`을 form action으로 사용
  *
  * admin 계정은 SSO가 아닌 로컬 로그인으로 두는 것을 권장한다 (SSO 장애 시 복구용).
+ * 6.x는 OpenID 링크를 `sub`(여기서는 `subMode: 'user_email'` = 이메일) 기준으로 저장한다.
  */
 interface JellyfinAuthentikComponentArgsShape {
   hosts: {
