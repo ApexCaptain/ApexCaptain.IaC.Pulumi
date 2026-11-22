@@ -71,15 +71,6 @@ export const constants = (() => {
     githubGeneratedDir,
     'pull-request-labels.txt',
   );
-  const githubGeneratedBranchNameFile = path.join(
-    githubGeneratedDir,
-    'branch-name.txt',
-  );
-  const githubGeneratedReadmeDir = path.join(githubGeneratedDir, 'readme');
-  const githubGeneratedRootReadmeFile = path.join(
-    githubGeneratedReadmeDir,
-    'ROOT.md',
-  );
   const ociConfigFile = path.join(ociConfigDir, 'oci.config');
   const ociApexCaptainSshPrivateKeyFile = path.join(
     keysDir,
@@ -107,7 +98,6 @@ export const constants = (() => {
       venvDir,
       keysDir,
       githubGeneratedDir,
-      githubGeneratedReadmeDir,
       ociConfigDir,
       reposDir,
     },
@@ -123,8 +113,6 @@ export const constants = (() => {
       githubGeneratedPullRequestTitleFile,
       githubGeneratedPullRequestBodyFile,
       githubGeneratedPullRequestLabelsFile,
-      githubGeneratedBranchNameFile,
-      githubGeneratedRootReadmeFile,
       ociConfigFile,
       ociApexCaptainSshPrivateKeyFile,
     },

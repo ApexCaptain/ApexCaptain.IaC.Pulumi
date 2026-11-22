@@ -26,8 +26,8 @@
 | A/B 사용자 결정 (다음 Kubespray 전. A면 즉시 아카이브, B면 오버라이드 후 다음 실행에서 Gen_certs skip 확인) | 기본값 유지(A, 추천) / `force_etcd_cert_refresh: false`(B) | [etcd 인증서 재발급](issues/active/2026-11-06-etcd-cert-regeneration-on-kubespray-run.md) | 보류 |
 | 사용자 재개 결정 (2026-10-19 보류. 2026-11-11 재점검: CI·CronJob 여전히 없음. protect 선행 충족) | 클러스터 도달·자격 증명 결정 → 일일 drift 감지 → PR preview | [CI preview·drift](issues/active/2026-10-17-ci-pulumi-preview-drift.md) | 보류 |
 | pCloud 백업 복원 검증 착수 | 재구축·복원 런북 작성 + 실복원 1회 | [DR 런북](issues/active/2026-10-17-dr-rebuild-runbook.md) | 보류 |
-| [jellyfin-plugin-sso](https://github.com/9p4/jellyfin-plugin-sso) manifest에 Jellyfin 12 `targetAbi` 버전 등장 | 플러그인 호환 확인 → config 백업 → 차트 3.4.0+ (앱 12.x) 업그레이드 → 재스캔 → SSO 확인 | [Jellyfin 12 업그레이드](issues/active/2026-10-21-jellyfin-12-upgrade.md) | 보류 |
 | CI가 GitOps `main`에 이미지 태그 자동 push 시작 | `repos/gitops` behind 상태에서 commit 시 guard hook deny 실확인 → 통과 시 `docs/issues/resolved` 이동 | [GitOps 로컬 클론](issues/active/2026-10-21-gitops-repo-local-clone.md) | 적용 |
+| VSO 2.0.0 공식 릴리스 노트 공개 (2026-11-21 기준 CHANGELOG 1.6.2까지, `v2.0.0` release 404) | breaking change 확인 → `kubeRbacProxy` values 삭제 → 차트 2.0.0 단독 배포 | [VSO 2.0.0 업그레이드](issues/active/2026-11-21-vault-secrets-operator-2-0-upgrade.md) | 보류 |
 | Phase 2(Lane A 확장)·Lane B 순차 / 유료 플랜 | Lane A 확장 후 Lane B (jellyfin-media·qbit-complete). Coder 워크스페이스 백업은 보류 (2026-11-03) | [pCloud PVC 백업](issues/active/2026-09-15-pcloud-pvc-encrypted-backup.md) | 진행중 |
 ---
 

@@ -140,7 +140,7 @@ export const k8sWorkstationAppsContract = new nexus.classes.Contract(
                 storageClass:
                   k8sWorkstationSystemContract.output.storageClasses
                     .longhornSsdRetain,
-                size: '5Gi',
+                size: '10Gi',
               },
               jellyfinMedia: {
                 storageClass:

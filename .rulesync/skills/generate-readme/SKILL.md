@@ -8,13 +8,10 @@ targets:
 
 사용자가 **README 작성**, **README 갱신**, **서브모듈 README** 등을 요청하면 아래를 따른다.
 
-**CLI (Cursor SDK):** 루트 기본 — `pnpm script:synthProjectReadme` (생성만), `pnpm script:synthProjectReadme --apply` (반영). 서브모듈 전체 — `--all-workspace`, 하나만 — `--package common/utils`. 출력은 `.github/generated/readme/`; docs는 `schedule.md` 전문 + `docs/issues/active`·`docs/issues/resolved` 메타만 (`docs/superpowers`, `docs/diagnosis` 제외).
-
-채팅에서 수동 작성 시 **루트 `README.md`는 사용자가 명시하지 않으면 제외**한다 (`docs/diagnosis/` Nova·Pluto 리포트 등 별도 용도).
+**루트 `README.md`는 사용자가 명시하지 않으면 제외**한다 (`docs/diagnosis/` Nova·Pluto 리포트 등 별도 용도).
 
 > **범위:** `pnpm-workspace.yaml`의 `common/*`, `infra/*` 패키지 각각의 `README.md`.  
-> 특정 패키지만 지정했으면 그 패키지만, 전체 요청이면 workspace 전 패키지를 갱신한다.  
-> **CLI** `script:synthProjectReadme`는 루트 `README.md`가 기본 대상이다. 아래 「루트 제외」는 **채팅 수동 작성**에만 해당한다.
+> 특정 패키지만 지정했으면 그 패키지만, 전체 요청이면 workspace 전 패키지를 갱신한다.
 
 ## 1. 대상 패키지 확인
 
@@ -33,7 +30,7 @@ targets:
 
 **제외:**
 
-- 루트 `/README.md` — **채팅 수동 작성만.** CLI 합성은 루트가 기본
+- 루트 `/README.md` — 사용자가 명시하지 않으면
 - `common/bridged-provider/sdks/**` (Pulumi/Terraform gen 산출물 — 사용자가 명시하지 않는 한 수정하지 않음)
 - `ansible/**`, `scripts/**` 등 workspace 밖 디렉터리
 
@@ -124,7 +121,7 @@ cloudflare → k8s-workstation-system → k8s-workstation-apps
 
 ## 하지 않을 것
 
-- 루트 `README.md` 수정 — 채팅에서 사용자가 명시하지 않으면. CLI `script:synthProjectReadme`는 루트가 기본 대상
+- 루트 `README.md` 수정 — 사용자가 명시하지 않으면
 - `sdks/authentik/README.md` 등 generated SDK 문서 수정
 - workspace에 없는 디렉터리에 README 신규 생성
 - 코드 변경 없이 README만 stale하게 두기 — 요청 시 반드시 2단계 조사 후 갱신

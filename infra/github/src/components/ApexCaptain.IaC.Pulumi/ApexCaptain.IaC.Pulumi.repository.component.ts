@@ -124,8 +124,8 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
           allowMergeCommit: true,
           allowSquashMerge: true,
           allowRebaseMerge: true,
-          // develop PR은 Validate 통과 뒤 auto-merge. develop→main 은 수동.
-          // 예약은 스크립트와 auto-merge-develop 워크플로. ruleset 이 체크를 기다린다.
+          // develop·main PR 머지는 projen `auto-merge` 워크플로가 체크를 폴링한 뒤 한다.
+          // native auto-merge 는 쓰지 않지만 켜 둬도 무해하다.
           allowAutoMerge: true,
           deleteBranchOnMerge: true,
           allowUpdateBranch: false,
@@ -145,13 +145,18 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
         },
       );
 
-      // gitflow 보호 브랜치. 두 ruleset이 같이 쓴다.
+      // main: PR 경유 + Validate 필수. develop: 직접 push 허용, 삭제·force-push만 금지.
+      // develop 에 required status check 를 걸면 직접 push 도 막히므로 main 에만 건다.
+      const mainRef = {
+        includes: ['refs/heads/main'],
+        excludes: [],
+      };
       const protectedRefs = {
         includes: ['refs/heads/main', 'refs/heads/develop'],
         excludes: [],
       };
 
-      // projen `pr-validation` job 이름 `Validate`
+      // main 전용: PR 경유 + projen `pr-validation` job `Validate` 통과
       new github.RepositoryRuleset(
         `${resourceName}-prValidationRuleset`,
         {
@@ -160,13 +165,17 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
           target: 'branch',
           enforcement: 'active',
           conditions: {
-            refName: protectedRefs,
+            refName: mainRef,
           },
           rules: {
             requiredStatusChecks: {
               doNotEnforceOnCreate: true,
               strictRequiredStatusChecksPolicy: false,
               requiredChecks: [{ context: 'Validate' }],
+            },
+            // PR 경유 필수. 1인 레포 + auto-merge 워크플로라 승인 0.
+            pullRequest: {
+              requiredApprovingReviewCount: 0,
             },
           },
         },
@@ -177,7 +186,7 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
         },
       );
 
-      // 삭제·force-push 금지, PR 경유 필수. 1인 레포 + develop auto-merge 라 승인 0.
+      // 삭제·force-push 금지. develop→main PR(head=develop) 머지 후 자동 삭제도 이 규칙이 막는다.
       new github.RepositoryRuleset(
         `${resourceName}-branchDeletionRuleset`,
         {
@@ -191,9 +200,6 @@ export const ApexCaptainIaCPulumiRepositoryComponent =
           rules: {
             deletion: true,
             nonFastForward: true,
-            pullRequest: {
-              requiredApprovingReviewCount: 0,
-            },
           },
         },
         {

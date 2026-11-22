@@ -61,9 +61,9 @@ pnpm pulumi:up
 - `script:generateNovaDiagnosis` / `script:generatePlutoDiagnosis` — 클러스터 진단 문서 생성
 - `script:syncPulumiEsc` — Pulumi ESC 동기화
 - `script:syncGithubIssues` — `docs/issues`와 GitHub Issues 미러
-- `script:synthProjectReadme` — README 합성 (옵션 `--apply`로 반영)
-- `script:generateCommitMessage` / `git:commit` — 커밋 메시지 생성·커밋
-- `git:pr` / `git:pr:to-main` — develop·main 대상 PR 생성 보조
+- `git:commit` — `.github/generated/commit-message.txt`로 커밋
+- `git:pr` — 현재 브랜치 push 후 develop 대상 PR 생성 (`.github/generated/pull-request-*`)
+- `git:promote` — develop → main 승격 PR 생성. 머지는 `auto-merge` 워크플로
 - `test:workspaces` / `test:scripts` — 워크스페이스·`scripts/` 테스트
 
 ## 검증
