@@ -288,6 +288,8 @@ export const JellyfinHelmChartComponent = utils.functions.defineComponent(
             },
             media: {
               existingClaim: jellyfinMediaPvc.metadata.name,
+              // 차트 3.5+ 기본값은 /media readOnly: true. 자막 저장(SaveSubtitlesWithMedia) 등 쓰기가 필요해 현행 유지
+              readOnly: false,
             },
             cache: {
               enabled: true,

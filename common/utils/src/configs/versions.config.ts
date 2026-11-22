@@ -33,7 +33,7 @@ export const helmChartVersions = Object.freeze({
   loki: '21.4.3',
   tempo: '3.2.1',
   grafana: '14.5.0',
-  jellyfin: '3.2.0',
+  jellyfin: '3.7.0',
   coder: '2.39.4',
   vikunja: '0.16.0',
 } as const);
