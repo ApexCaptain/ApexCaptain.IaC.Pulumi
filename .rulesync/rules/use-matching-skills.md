@@ -18,15 +18,9 @@ cursor:
 - 동시에 여러 스킬이 맞으면 모두 적용하되, **레포 전용이 범용보다 우선**한다 (구분은 아래 "스킬 위치 참고").
 - `disable-model-invocation: true`이거나, 스킬/기존 룰이 “사용자가 명시할 때만”이라고 한 것은 자동 적용하지 않는다. 현재: `pulumi-neo-handoff`.
 
-## 스크립트 vs 스킬
+## Git 작업
 
-일부 작업은 **스킬이 아니라 npm 스크립트**가 SSOT다. 채팅에서 직접 문구를 쓰지 말고 스크립트를 실행한다.
-
-| 작업 | 실행 | 규칙 SSOT | 결과 파일 |
-|------|------|-----------|-----------|
-| 커밋 메시지 | `pnpm script:generateCommitMessage` | `scripts/prompts/` | `.github/generated/commit-message.txt` |
-| PR Title/Body | `pnpm script:generatePullRequest` | `scripts/prompts/` | `.github/generated/pull-request-title.txt`, `pull-request-body.md` |
-| README 합성 (루트·서브모듈) | `pnpm script:synthProjectReadme` | `scripts/prompts/project-readme/`, `generate-readme` 스킬 | `.github/generated/readme/` |
+커밋·PR 흐름은 `use-git-flow` 규칙이 SSOT. 문구는 레포 전용 스킬이 `.github/generated/`에 쓰고, `pnpm git:*`가 그 파일로 실행한다.
 
 ## caveman (상시 ON)
 
@@ -40,11 +34,11 @@ cursor:
 | 사용자 패턴 | 적용 |
 |-------------|------|
 | 짧게/간결히/토큰 줄여/말 줄여 | `caveman` 강도 상향 (기본 full → ultra 등). **활성화 트리거 아님** |
-| 커밋 메시지/commit-message.txt | `pnpm script:generateCommitMessage` 실행 |
-| PR 본문·초안/pull-request | `pnpm script:generatePullRequest` 실행 |
-| feature PR 열기 / 브랜치 이름 | `pnpm script:openPullRequest` (보호 브랜치면 AI 브랜치명) |
-| develop→main 동기화 PR | `pnpm script:promoteDevelopToMain` |
-| README 작성·갱신 | `pnpm script:synthProjectReadme` (기본 루트; `--all-workspace` / `--package`) 또는 `generate-readme` 스킬 |
+| 커밋 메시지/commit-message.txt | `generate-commit-message` 스킬 → (요청 시) `pnpm git:commit` |
+| PR 본문·초안/pull-request | `generate-pull-request` 스킬 → (요청 시) `pnpm git:pr` |
+| feature PR 열기 / 브랜치 이름 | `generate-pull-request` 스킬 (브랜치명 규칙 포함) → `pnpm git:pr` |
+| develop→main 승격 PR | `pnpm git:promote` (`use-git-flow`) |
+| README 작성·갱신 | `generate-readme` 스킬 |
 | 원인 불명·간헐 실패·왜 안 되는지 먼저 | `investigate-first` |
 | 작은 버그 수정 | `surgical-patch` |
 | 리팩터·추출·이동 | `safe-refactor` |
@@ -63,5 +57,5 @@ cursor:
 
 ## 스킬 위치 참고
 
-- **레포 전용:** `.rulesync/skills/`의 실제 디렉토리 — `coder-templates`, `generate-readme`
+- **레포 전용:** `.rulesync/skills/`의 실제 디렉토리 — `coder-templates`, `generate-readme`, `generate-commit-message`, `generate-pull-request`
 - **범용:** `.agents/skills/` (`skills-lock.json` 관리) — Pulumi·디버깅·리팩터·caveman 등. `.rulesync/skills/`에 symlink로 연결되어 함께 생성된다

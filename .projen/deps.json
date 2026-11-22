@@ -1,10 +1,6 @@
 {
   "dependencies": [
     {
-      "name": "@cursor/sdk",
-      "type": "build"
-    },
-    {
       "name": "@pulumi/esc-sdk",
       "type": "build"
     },
