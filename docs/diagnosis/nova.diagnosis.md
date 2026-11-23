@@ -1,6 +1,6 @@
 # Nova Diagnosis Report
 
-Generated at ```2026-11-21```
+Generated at ```2026-11-23```
 
 ## Context: ```ws```
 
@@ -8,7 +8,6 @@ Generated at ```2026-11-21```
 
 | Release | Chart | Namespace | Installed Version | Latest Version | Outdated | Deprecated |
 | ------- | ----- | --------- | ----------------- | -------------- | -------- | ---------- |
-| jellyfin | jellyfin | jellyfin | 3.2.0 (app: 10.11.8) | 3.7.0 (app: 12.4) | Yes | No |
 | cilium | cilium | kube-system | 1.20.3 (app: 1.20.3) | 1.21.0-pre.4 (app: 1.21.0-pre.4) | Yes | No |
 | vault-secrets-operator | vault-secrets-operator | vault-secrets-operator | 1.6.2 (app: 1.6.2) | 2.0.0 (app: 2.0.0) | Yes | No |
 
@@ -16,25 +15,24 @@ Generated at ```2026-11-21```
 
 | Image | Current Version | Latest Version | Latest Minor | Latest Patch |
 | ----- | --------------- | -------------- | ------------ | ------------ |
+| registry.k8s.io/cpa/cluster-proportional-autoscaler | v1.10.3 | v1.11.0 | v1.11.0 | v1.10.3 |
 | registry.k8s.io/autoscaling/vpa-recommender | 1.7.1 | 1.8.1 | 1.8.1 | 1.7.3 |
-| registry.k8s.io/metrics-server/metrics-server | v0.9.0 | v0.9.1 | v0.9.0 | v0.9.1 |
 | registry.k8s.io/dns/k8s-dns-node-cache | 1.25.0 | 1.27.1 | 1.27.1 | 1.25.0 |
 | registry.k8s.io/coredns/coredns | v1.14.2 | v1.15.0 | v1.15.0 | v1.14.7 |
-| registry.k8s.io/cpa/cluster-proportional-autoscaler | v1.10.3 | v1.11.0 | v1.11.0 | v1.10.3 |
-| ghcr.io/kube-vip/kube-vip | v1.0.3 | v1.3.2 | v1.3.2 | v1.0.4 |
-| ghcr.io/goauthentik/proxy | 2026.8.5 | 2026.8.6 | 2026.8.6 | 2026.8.6 |
-| registry.k8s.io/kube-scheduler | v1.36.5 | v1.37.2 | v1.37.2 | v1.36.6 |
+| registry.k8s.io/metrics-server/metrics-server | v0.9.0 | v0.9.1 | v0.9.0 | v0.9.1 |
 | registry.k8s.io/kube-controller-manager | v1.36.5 | v1.37.2 | v1.37.2 | v1.36.6 |
-| registry.k8s.io/kube-apiserver | v1.36.5 | v1.37.2 | v1.37.2 | v1.36.6 |
+| registry.k8s.io/kube-scheduler | v1.36.5 | v1.37.2 | v1.37.2 | v1.36.6 |
 | ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator | 0.162.0 | 0.163.0 | 0.162.0 | 0.162.0 |
+| registry.k8s.io/kube-apiserver | v1.36.5 | v1.37.2 | v1.37.2 | v1.36.6 |
 | quay.io/opstree/redis | v7.0.15 | v8.10.1 | v7.4.11 | v7.0.15 |
 | docker.io/alpine/k8s | 1.35.4 | 1.37.2 | 1.37.2 | 1.35.10 |
-| registry.istio.io/release/proxyv2 | 1.30.4-distroless | 1.30.8-distroless | 1.30.8-distroless | 1.30.8-distroless |
-| docker.io/longhornio/csi-resizer | v2.2.1 | v2.3.0 | v2.3.0 | v2.2.1 |
-| ghcr.io/stakater/reloader | v1.4.24 | v1.4.25 | v1.4.25 | v1.4.25 |
-| hashicorp/vault-secrets-operator | 1.6.2 | 2.0.0 | 1.6.2 | 1.6.2 |
-| hashicorp/vault | 2.0.4 | 2.2.2 | 2.2.2 | 2.0.4 |
 | hashicorp/vault | 2.0.3 | 2.2.2 | 2.2.2 | 2.0.4 |
+| ghcr.io/kube-vip/kube-vip | v1.0.3 | v1.3.2 | v1.3.2 | v1.0.4 |
+| hashicorp/vault | 2.0.4 | 2.2.2 | 2.2.2 | 2.0.4 |
+| ghcr.io/stakater/reloader | v1.4.24 | v1.4.25 | v1.4.25 | v1.4.25 |
 | docker.io/longhornio/csi-snapshotter | v8.6.0 | v8.7.0 | v8.7.0 | v8.6.0 |
+| hashicorp/vault-secrets-operator | 1.6.2 | 2.0.0 | 1.6.2 | 1.6.2 |
+| docker.io/longhornio/csi-resizer | v2.2.1 | v2.3.0 | v2.3.0 | v2.2.1 |
+| registry.istio.io/release/proxyv2 | 1.30.4-distroless | 1.30.8-distroless | 1.30.8-distroless | 1.30.8-distroless |
 | ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib | 0.156.0 | 0.165.0 | 0.156.0 | 0.156.0 |
 | quay.io/brancz/kube-rbac-proxy | v0.18.1 | v0.23.1 | v0.18.1 | v0.18.2 |

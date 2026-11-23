@@ -48,7 +48,7 @@ export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Auth Service',
       },
       {
@@ -82,7 +82,7 @@ export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Longhorn Service',
       },
       {
@@ -133,7 +133,7 @@ export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Vault Service',
       },
       {
@@ -167,7 +167,7 @@ export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Argo CD Service',
       },
       {
@@ -190,7 +190,7 @@ export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
           .apply(resolvedApexCaptainGithubOwner => {
             return `${resolvedApexCaptainGithubOwner.toLowerCase()}.github.io`;
           }),
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Blog Service',
       },
       {
@@ -224,7 +224,7 @@ export const Ayteneve93comRecordsComponent = utils.functions.defineComponent(
         zoneId: args.zoneId,
         type: 'CNAME',
         content: args.workstationDomain,
-        proxied: true,
+        proxied: false,
         comment: 'Cloudflare DNS Record for Grafana Service',
       },
       {

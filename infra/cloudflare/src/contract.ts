@@ -4,7 +4,8 @@
  * - `ayteneve93.com`: 기존 workstation 서비스 CNAME
  * - `itemguesser.com`: 공개 HTTPS 경로·앱용 (현재 test POC)
  *
- * proxied 여부는 서비스마다 다름 — 각 records 컴포넌트 주석 참고.
+ * 모든 레코드는 DNS only(`proxied: false`). 한국 트래픽이 Cloudflare 해외 엣지(SEA·LAX 등)로
+ * 빠져 지연이 커짐 — docs/issues/resolved/2026-11-23-cloudflare-proxy-disable.md
  */
 import * as nexus from '@common/nexus';
 import * as cloudflare from '@pulumi/cloudflare';

@@ -165,7 +165,8 @@ export const IstioHelmChartComponent = utils.functions.defineComponent(
           meshConfig: {
             defaultConfig: {
               gatewayTopology: {
-                numTrustedProxies: 1,
+                // 앞단 L7 프록시 없음 (Cloudflare DNS only + 공유기 L4 포워딩)
+                numTrustedProxies: 0,
               },
               proxyMetadata: {
                 ISTIO_META_DNS_CAPTURE: true.toString(),
