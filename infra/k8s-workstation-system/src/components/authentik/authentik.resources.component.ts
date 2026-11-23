@@ -386,7 +386,9 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
      * Flow Stage 오버라이드.
      * Authentik 기본 stage를 import한 뒤 필요한 필드만 덮어쓴다.
      */
-    // 기본 로그인 flow의 첫 단계. 이메일/유저명 입력 + federated source(Google) 버튼 표시.
+    // 기본 로그인 flow의 첫 단계. 아이디·비밀번호 입력 없이 Google source 하나만 둔다.
+    // userFields 비움 + source 1개 + passwordlessFlow 없음 → Authentik이 Google로 자동 리디렉션한다.
+    // 로컬 계정(akadmin) 비상 접근은 `scripts/runbook/authentik-recovery.sh` 일회용 복구 URL.
     const dataDefaultAuthenticationIdentification = await authentik.getStage(
       {
         name: 'default-authentication-identification',
@@ -401,7 +403,7 @@ export const AuthentikResourcesComponent = utils.functions.defineComponent(
         `${resourceName}-defaultAuthenticationIdentification`,
         {
           name: dataDefaultAuthenticationIdentification.name,
-          userFields: ['email', 'username'],
+          userFields: [],
           sources: [googleSourceOauth.uuid],
           showSourceLabels: true,
         },

@@ -46,6 +46,8 @@ cloudflare → k8s-workstation-system → k8s-workstation-apps
 
 리소스 이름·parent 변경 시 URN이 바뀌므로 단계 이동은 `pulumi:preview` diff 0으로 확인한다. output 객체 키 순서는 contract hash에 포함되므로 변경하지 않는다.
 
+Authentik 로그인은 Google로 바로 리디렉션된다(identification stage `userFields: []` + source 1개). `akadmin` 비상 접근은 본인 터미널에서 `bash scripts/runbook/authentik-recovery.sh [분]`으로 일회용 복구 URL을 만들어 연다. 출력 URL은 로그인 권한이므로 어디에도 붙이지 않는다.
+
 ## upstream / downstream
 
 | 방향 | 패키지 | 관계 |
