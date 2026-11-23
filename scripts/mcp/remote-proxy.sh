@@ -4,10 +4,10 @@
 # process environment (or envFile) and forwards them as headers via mcp-remote.
 #
 # Usage (single header — legacy):
-#   mcp-remote-proxy.sh <url> <header-name> <env-var-name> [raw|bearer]
+#   mcp/remote-proxy.sh <url> <header-name> <env-var-name> [raw|bearer]
 #
 # Usage (multiple headers):
-#   mcp-remote-proxy.sh <url> \
+#   mcp/remote-proxy.sh <url> \
 #     --header <header-name> <env-var-name> [raw|bearer] \
 #     [--header <header-name> <env-var-name> [raw|bearer] ...]
 #
@@ -15,7 +15,7 @@
 #   bearer — header value is "Bearer <env var>"
 set -euo pipefail
 
-URL="${1:?usage: mcp-remote-proxy.sh <url> ...}"
+URL="${1:?usage: mcp/remote-proxy.sh <url> ...}"
 shift
 
 header_args=()

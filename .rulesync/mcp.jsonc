@@ -16,7 +16,7 @@
         "type": "stdio",
         "command": "bash",
         "args": [
-          "${workspaceFolder}/scripts/mcp-oci.sh",
+          "${workspaceFolder}/scripts/mcp/oci.sh",
           ".oci/oci.config",
           "ApexCaptain"
         ]
@@ -25,7 +25,7 @@
         "type": "stdio",
         "command": "bash",
         "args": [
-          "${workspaceFolder}/scripts/mcp-remote-proxy.sh",
+          "${workspaceFolder}/scripts/mcp/remote-proxy.sh",
           "https://mcp.ai.pulumi.com/mcp",
           "--header",
           "Authorization",
@@ -46,7 +46,7 @@
         "type": "stdio",
         "command": "bash",
         "args": [
-          "scripts/mcp-oci.sh",
+          "scripts/mcp/oci.sh",
           ".oci/oci.config",
           "ApexCaptain"
         ]
@@ -55,7 +55,7 @@
         "type": "stdio",
         "command": "bash",
         "args": [
-          "scripts/mcp-remote-proxy.sh",
+          "scripts/mcp/remote-proxy.sh",
           "https://mcp.ai.pulumi.com/mcp",
           "--header",
           "Authorization",

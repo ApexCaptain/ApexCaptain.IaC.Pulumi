@@ -3,7 +3,7 @@ import path from 'node:path';
 
 /**
  * docs/issues → GitHub Issues 단방향 미러의 순수 로직 (파싱·본문 변환·동기화 계획).
- * IO(파일 읽기·GitHub API)는 scripts/sync-github-issues.script.ts.
+ * IO(파일 읽기·GitHub API)는 scripts/docs/sync-github-issues.script.ts.
  * docs/issues/active/2026-10-27-github-issues-mirror.md
  */
 

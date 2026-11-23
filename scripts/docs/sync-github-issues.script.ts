@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import chalk from 'chalk';
-import * as src from '../src';
 import {
   ACTIVE_DIR,
   describeAction,
@@ -18,7 +17,8 @@ import {
   STATUS_LABEL_PREFIX,
   SyncAction,
   toDesiredIssue,
-} from './common/docs-issue-mirror';
+} from './issue-mirror';
+import * as src from '../../src';
 
 /**
  * docs/issues/{active,resolved} → GitHub Issues 단방향 미러.

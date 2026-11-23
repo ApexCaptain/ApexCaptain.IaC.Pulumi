@@ -153,7 +153,7 @@ Job 없이 플랫폼만:
 | 조각 | 위치 |
 |---|---|
 | ESC `pcloudBackup` | `common/nexus/src/esc/k8s-workstation-system.esc.ts` |
-| sync 매핑 | `scripts/sync-pulumi-esc.script.ts` ← `PCLOUD_*` |
+| sync 매핑 | `scripts/esc/sync.script.ts` ← `PCLOUD_*` |
 | Platform | `.../pcloud-backup/` — NS · Secret · ConfigMap(`clusterName`) · Lease `dr`/`media` · `longhorn-snap` |
 | contract output | `namespace` / `configMapName` / `credentialsSecretName` / `drLeaseName` / `mediaLeaseName` / `volumeSnapshotClassName` |
 
@@ -245,7 +245,7 @@ PCLOUD_CRYPT_PASSWORD=
 PCLOUD_CRYPT_PASSWORD2=
 ```
 
-ESC 스키마·`sync-pulumi-esc` 매핑은 Phase 2. Phase 1 POC는 위 env(또는 로컬 rclone.conf)만으로 가능.
+ESC 스키마·`scripts/esc/sync.script.ts` 매핑은 Phase 2. Phase 1 POC는 위 env(또는 로컬 rclone.conf)만으로 가능.
 
 권장 순서:
 

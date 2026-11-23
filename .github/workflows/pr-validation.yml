@@ -60,7 +60,7 @@ jobs:
         env:
           TURBO_SCM_BASE: ${{ github.event.pull_request.base.sha }}
           TURBO_SCM_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: bash scripts/ci-pr-build-workspaces.sh
+        run: bash scripts/toolchain/ci-pr-build-workspaces.sh
       - name: Test scripts
         id: test_scripts
         run: pnpm test:scripts

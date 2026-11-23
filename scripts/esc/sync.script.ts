@@ -1,8 +1,8 @@
 import dns from 'dns/promises';
 import * as pulumiEscSdk from '@pulumi/esc-sdk';
 import axios from 'axios';
-import * as NexusEsc from '../common/nexus/src/esc';
-import * as src from '../src';
+import * as NexusEsc from '../../common/nexus/src/esc';
+import * as src from '../../src';
 
 function requireEnv(name: string): string {
   const value = process.env[name];

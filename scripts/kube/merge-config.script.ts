@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
 import yaml from 'yaml';
-import { KubeConfig } from '../common/utils/src/interfaces/kubeconfig.interface';
+import { KubeConfig } from '../../common/utils/src/interfaces/kubeconfig.interface';
 
 /**
  * .kube 디렉터리 내에 개별적으로 생성된 모든 KubeConfig YAML 파일들을 읽어

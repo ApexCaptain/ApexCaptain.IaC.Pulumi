@@ -14,7 +14,7 @@
 ## 현재 상태 (2026-11-11 코드·클러스터 대조)
 
 - **증상 그대로.** CI에 `pulumi preview` / drift 감지 워크플로·Job 없음. 로컬 `pnpm pulumi:preview` / 스택별 `pulumi:preview`만 존재.
-- **`pr-validation`** (`ubuntu-latest`, 시크릿 없음): Checkout(`fetch-depth: 0`) → pnpm/Node → install → turbo `.turbo` cache → `ai:doctor` → `scripts/ci-pr-build-workspaces.sh`(`turbo --affected` 또는 루트 변경 시 전량) → `test:scripts` → `pnpm exec projen eslint`. preview 단계 없음.
+- **`pr-validation`** (`ubuntu-latest`, 시크릿 없음): Checkout(`fetch-depth: 0`) → pnpm/Node → install → turbo `.turbo` cache → `ai:doctor` → `scripts/toolchain/ci-pr-build-workspaces.sh`(`turbo --affected` 또는 루트 변경 시 전량) → `test:scripts` → `pnpm exec projen eslint`. preview 단계 없음.
 - **워크플로 목록** (`.github/workflows/`): `pr-validation`, `upgrade-develop`, `auto-merge-develop`, `pull-request-lint`, `docs-issue-mirror`. preview/drift 전용 없음.
 - **`upgrade-develop`**: 주간 의존성 업그레이드. Pulumi CLI + `PULUMI_ACCESS_TOKEN`은 `projen upgrade`용. preview/검증 없음 → 업그레이드 PR도 preview 없이 머지 가능.
 - **스택 5개** (`infra/`): `cloudflare`, `github`, `k8s-workstation-system`, `k8s-workstation-apps`, `k8s-workstation-tools`. 각각 `pulumi:preview` / `pulumi:up`(`preview --expect-no-changes \|\| up`) 스크립트 있음.

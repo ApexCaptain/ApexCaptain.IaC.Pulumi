@@ -30,8 +30,8 @@ export function addDocsIssueMirrorWorkflow(
       branches: [src.constants.branches.develop],
       paths: [
         'docs/issues/**',
-        'scripts/sync-github-issues.script.ts',
-        'scripts/common/docs-issue-mirror.ts',
+        `${src.constants.paths.dirs.scriptDir}/docs/sync-github-issues.script.ts`,
+        `${src.constants.paths.dirs.scriptDir}/docs/issue-mirror.ts`,
       ],
     },
     workflowDispatch: {},

@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import Handlebars from 'handlebars';
 import { sha512 } from 'sha512-crypt-ts';
-import * as src from '../src';
+import * as src from '../../src';
 
 function requireEnv(name: string): string {
   const value = process.env[name];

@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import chalk from 'chalk';
-import * as src from '../src';
+import * as src from '../../src';
 
 function readFlag(name: string): string | undefined {
   const index = process.argv.indexOf(name);

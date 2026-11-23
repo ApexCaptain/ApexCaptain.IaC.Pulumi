@@ -7,8 +7,8 @@ on:
       - develop
     paths:
       - docs/issues/**
-      - scripts/sync-github-issues.script.ts
-      - scripts/common/docs-issue-mirror.ts
+      - scripts/docs/sync-github-issues.script.ts
+      - scripts/docs/issue-mirror.ts
   workflow_dispatch: {}
 concurrency:
   group: ${{ github.workflow }}

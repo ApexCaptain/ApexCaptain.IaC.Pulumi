@@ -8,7 +8,7 @@ import {
   renderIssueBody,
   rewriteRelativeLinks,
   toDesiredIssue,
-} from './docs-issue-mirror';
+} from './issue-mirror';
 
 const repo = { owner: 'o', repo: 'r', ref: 'develop' };
 const blob = 'https://github.com/o/r/blob/develop';

@@ -86,7 +86,7 @@ export function addPrValidationWorkflow(
       {
         name: 'Build workspaces',
         // 루트 설정 변경 시 전량, 아니면 turbo --affected (common/* · infra/*)
-        run: 'bash scripts/ci-pr-build-workspaces.sh',
+        run: `bash ${src.constants.paths.dirs.scriptDir}/toolchain/ci-pr-build-workspaces.sh`,
         env: {
           TURBO_SCM_BASE: '${{ github.event.pull_request.base.sha }}',
           TURBO_SCM_HEAD: '${{ github.event.pull_request.head.sha }}',

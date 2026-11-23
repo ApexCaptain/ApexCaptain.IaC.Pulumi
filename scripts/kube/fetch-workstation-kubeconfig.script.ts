@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { Client } from 'ssh2';
 import yaml from 'yaml';
-import { connectSsh, execSsh } from './common';
-import { KubeConfig } from '../common/utils/src/interfaces/kubeconfig.interface';
+import { KubeConfig } from '../../common/utils/src/interfaces/kubeconfig.interface';
+import { connectSsh, execSsh } from '../lib';
 
 /**
  * 원격 Workstation 노드에 SSH로 접속하여 Kubernetes admin.conf를 가져온 뒤,

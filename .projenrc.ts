@@ -719,8 +719,7 @@ void (async () => {
   // lint-staged — staged TS only. Env must live in the hook: lint-staged does not expand shell env in commands.
   // cwd per nearest .eslintrc.json — root eslint would resolve ./test/tsconfig.json to the repo, not the package.
   rootProject.package.addField('lint-staged', {
-    '**/*.{ts,tsx}':
-      'ts-node --transpile-only scripts/lint-staged-eslint.script.ts',
+    '**/*.{ts,tsx}': `ts-node --transpile-only ${src.constants.paths.dirs.scriptDir}/toolchain/lint-staged-eslint.script.ts`,
   });
 
   // Husky
@@ -923,7 +922,7 @@ void (async () => {
     args: [
       toRepoPath(
         target,
-        `${src.constants.paths.dirs.scriptDir}/mcp-remote-proxy.sh`,
+        `${src.constants.paths.dirs.scriptDir}/mcp/remote-proxy.sh`,
       ),
       url,
       ...proxyArgs,
@@ -941,7 +940,7 @@ void (async () => {
       type: 'stdio',
       command: 'bash',
       args: [
-        toRepoPath(target, `${src.constants.paths.dirs.scriptDir}/mcp-oci.sh`),
+        toRepoPath(target, `${src.constants.paths.dirs.scriptDir}/mcp/oci.sh`),
         ociConfigFile.path,
         apexCaptainOciProfile,
       ],
@@ -1030,8 +1029,8 @@ void (async () => {
   // Scripts
   rootProject.addScripts({
     'git:commit': `git commit -F ${src.constants.paths.files.githubGeneratedCommitMessageFile}`,
-    'git:pr': `ts-node scripts/create-github-pr.script.ts`,
-    'git:promote': `ts-node scripts/promote-develop-to-main.script.ts`,
+    'git:pr': `ts-node ${src.constants.paths.dirs.scriptDir}/git/create-pr.script.ts`,
+    'git:promote': `ts-node ${src.constants.paths.dirs.scriptDir}/git/promote-to-main.script.ts`,
 
     'build:workspaces': `turbo run build --filter ${workspacePackageFilters}`,
     posttest: 'pnpm test:workspaces',
@@ -1043,14 +1042,14 @@ void (async () => {
     posteslint: `turbo run eslint --filter ${workspacePackageFilters} --concurrency=3`,
 
     // Scripts
-    'script:mergeKubeConfig': `ts-node scripts/merge-kube-config.script.ts`,
-    'script:generateNovaDiagnosis': `ts-node scripts/generate-nova-diagnosis.script.ts`,
-    'script:generatePlutoDiagnosis': `ts-node scripts/generate-pluto-diagnosis.script.ts`,
-    'script:fetchWorkstationKubeconfig': `ts-node scripts/fetch-workstation-kubeconfig.script.ts`,
-    'script:syncPulumiEsc': `ts-node scripts/sync-pulumi-esc.script.ts`,
-    'script:generateVentoyUserData': `ts-node scripts/generate-ventoy-user-data.script.ts`,
-    'script:bootstrapLocalEnv': `ts-node scripts/bootstrap-local-env.script.ts`,
-    'script:syncGithubIssues': `ts-node scripts/sync-github-issues.script.ts`,
+    'script:mergeKubeConfig': `ts-node ${src.constants.paths.dirs.scriptDir}/kube/merge-config.script.ts`,
+    'script:generateNovaDiagnosis': `ts-node ${src.constants.paths.dirs.scriptDir}/diagnosis/nova.script.ts`,
+    'script:generatePlutoDiagnosis': `ts-node ${src.constants.paths.dirs.scriptDir}/diagnosis/pluto.script.ts`,
+    'script:fetchWorkstationKubeconfig': `ts-node ${src.constants.paths.dirs.scriptDir}/kube/fetch-workstation-kubeconfig.script.ts`,
+    'script:syncPulumiEsc': `ts-node ${src.constants.paths.dirs.scriptDir}/esc/sync.script.ts`,
+    'script:generateVentoyUserData': `ts-node ${src.constants.paths.dirs.scriptDir}/workstation/generate-ventoy-user-data.script.ts`,
+    'script:bootstrapLocalEnv': `ts-node ${src.constants.paths.dirs.scriptDir}/toolchain/bootstrap-local-env.script.ts`,
+    'script:syncGithubIssues': `ts-node ${src.constants.paths.dirs.scriptDir}/docs/sync-github-issues.script.ts`,
 
     // Pulumi — refresh는 PULUMI_REFRESH=1 로 선택 (기본 off)
     'pulumi:preview': `turbo run pulumi:preview --filter ${infraPackageFilter}`,

@@ -4,7 +4,7 @@
 |------|------|
 | **등록일** | 2026-10-21 |
 | **영역** | 개발 환경 (devcontainer bootstrap, AI 에이전트 hooks) |
-| **관련 코드** | `scripts/bootstrap-local-env.script.ts`, `scripts/hooks/gitops-git-guard.sh`, `.rulesync/hooks.jsonc`, `.rulesync/rules/use-gitops-repo.md`, `.projenrc.ts` (gitignore·rulesync targets), `.devcontainer/commands/common/synchronizeProject.sh` |
+| **관련 코드** | `scripts/toolchain/bootstrap-local-env.script.ts`, `scripts/hooks/gitops-git-guard.sh`, `.rulesync/hooks.jsonc`, `.rulesync/rules/use-gitops-repo.md`, `.projenrc.ts` (gitignore·rulesync targets), `.devcontainer/commands/common/synchronizeProject.sh` |
 | **상태** | **적용** — GitOps 원격·로컬 모두 빈 레포. CI 이미지 태그 자동 push 연결 후 hook behind 검사 실검증 남음 |
 
 ## 배경

@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import chalk from 'chalk';
-import * as src from '../src';
-import { formatKstDate, getGitOutput } from './common';
+import * as src from '../../src';
+import { formatKstDate, getGitOutput } from '../lib';
 
 /**
  * develop → main 승격 PR을 연다 (head=develop).
