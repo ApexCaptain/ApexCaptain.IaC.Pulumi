@@ -46,6 +46,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "bpat86.nightcall",
         "PKief.material-icon-theme",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",

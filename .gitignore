@@ -78,6 +78,7 @@ tmp
 !/.github/workflows/docs-issue-mirror.yml
 !/scripts/tsconfig.json
 !/turbo.json
+!/.vscode/extensions.json
 !/.vscode/settings.json
 !/.nova-config.json
 !/ventoy/ventoy.json

@@ -107,12 +107,14 @@ const rootProject = new typescript.TypeScriptProject(
             typescript: '$typescript',
             axios: '$axios',
             'shell-quote': '1.12.0',
-            'follow-redirects': '1.16.1',
+            'follow-redirects': '1.16.2',
             undici: '6.29.1',
             'fast-uri@3': '3.1.9',
             'ip-address@10': '10.7.5',
             '@modelcontextprotocol/sdk@1': '1.32.2',
-            'hono@4': '4.13.14',
+            'hono@4': '4.13.16',
+            '@hono/node-server@2': '2.1.6',
+            'qs@6': '6.16.1',
             'proxy-addr@2': '2.0.8',
             'postcss-selector-parser@7': '7.1.7',
             '@grpc/grpc-js@1': '1.14.6',
@@ -590,8 +592,13 @@ void (async () => {
     },
   });
 
-  // VsCode Settings
-  new VsCode(rootProject).settings.addSettings(
+  // VsCode Settings / recommended extensions
+  const vsCode = new VsCode(rootProject);
+  vsCode.extensions.addRecommendations(
+    'bpat86.nightcall',
+    'PKief.material-icon-theme',
+  );
+  vsCode.settings.addSettings(
     src.functions.flatley(
       {
         files: {
@@ -616,7 +623,8 @@ void (async () => {
           exclude: ['**/node_modules/**', '.vscode'],
         },
         workbench: {
-          colorTheme: 'Monokai',
+          // package.json contributes.themes[].label (displayName 아님)
+          colorTheme: 'Nightcall',
         },
         'material-icon-theme': {
           files: {

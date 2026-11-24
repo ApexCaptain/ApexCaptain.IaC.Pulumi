@@ -19,6 +19,7 @@
     ".projen/files.json",
     ".projen/tasks.json",
     ".rulesync/mcp.jsonc",
+    ".vscode/extensions.json",
     ".vscode/settings.json",
     "ansible/workstation/inventory/inventory.ini",
     "LICENSE",

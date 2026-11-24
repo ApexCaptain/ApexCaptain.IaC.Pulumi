@@ -20,6 +20,7 @@
 /.projen/files.json linguist-generated
 /.projen/tasks.json linguist-generated
 /.rulesync/mcp.jsonc linguist-generated linguist-language=JSON-with-Comments
+/.vscode/extensions.json linguist-generated linguist-language=JSON-with-Comments
 /.vscode/settings.json linguist-generated
 /LICENSE linguist-generated
 /package.json linguist-generated
