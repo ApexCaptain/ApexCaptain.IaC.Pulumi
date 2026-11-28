@@ -1,8 +1,14 @@
 # Pluto Diagnosis Report
 
-Generated at ```2026-11-23```
+Generated at ```2026-11-28```
 
 Target Kubernetes Version: ```v1.37.0```
+
+## Pluto CLI Version Mismatch
+
+Remote version ```5.24.6``` is greater than local version ```5.24.5```
+
+Please update your Pluto CLI to the latest version.
 
 ## Context: ```ws```
 
