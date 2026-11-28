@@ -2,7 +2,7 @@
  * Helm 차트·컨테이너 이미지 버전 SSOT.
  *
  * 같은 소프트웨어 버전은 여기 상수 하나만 참조한다. 값을 바꾸면 이 상수를 쓰는 모든 스택을 preview한다.
- * floating 태그(busybox, gluetun:v3 등)는 아직 여기로 옮기지 않았다.
+ * floating 태그(busybox 등)는 아직 여기로 옮기지 않았다.
  * @see docs/issues/resolved/2026-10-17-version-pin-ssot.md
  */
 
@@ -48,6 +48,11 @@ export const containerImages = Object.freeze({
   otelCollectorContrib:
     'ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.156.0',
   vuetorrentMod: 'ghcr.io/vuetorrent/vuetorrent-lsio-mod:2.36.1',
+  /**
+   * qBittorrent NordLynx sidecar. floating `:v3` 금지 —
+   * 라우팅/방화벽 동작이 태그마다 달라질 수 있음 (eth0 bind stall).
+   */
+  gluetun: 'qmcgaw/gluetun:v3.41.3',
   /** sidecar 주입 템플릿의 istio-validation을 덮어쓸 때(Kata 워크스페이스) 쓰는 이미지. istio 차트 기본 hub·variant */
   istioProxyv2: `registry.istio.io/release/proxyv2:${istioVersion}-distroless`,
   cloudflared:

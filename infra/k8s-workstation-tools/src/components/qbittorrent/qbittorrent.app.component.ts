@@ -10,7 +10,13 @@
  * - DNS는 DoT(Cloudflare/Google)로 터널 안에서 처리해 ISP DNS 유출을 줄임
  * - gluetun은 K8s native sidecar(initContainers + restartPolicy: Always)로
  *   VPN이 뜬 뒤에야 qbittorrent/sftp가 시작되도록 함
+ * - BitTorrent는 tun0에 바인드 (gluetun rule 100이 pod eth0 출구를
+ *   killswitch DROP으로 막음 — eth0 bind 시 Stall)
+ * - readiness는 WebUI만이 아니라 tun0·DHT·session 상태까지 검사
  */
+import * as fs from 'fs';
+import * as path from 'path';
+
 import * as customResources from '@common/custom-resources/src';
 import * as utils from '@common/utils/src';
 import * as kubernetes from '@pulumi/kubernetes';
@@ -18,6 +24,19 @@ import * as pulumi from '@pulumi/pulumi';
 import * as vault from '@pulumi/vault';
 import dedent from 'dedent';
 import Timezone from 'timezone-enum';
+
+const bindVpnTun0Script = fs.readFileSync(
+  path.join(__dirname, 'assets', '50-bind-vpn-tun0.sh'),
+  'utf8',
+);
+const poststartBindTun0Script = fs.readFileSync(
+  path.join(__dirname, 'assets', 'poststart-bind-tun0.sh'),
+  'utf8',
+);
+const torrentReadyScript = fs.readFileSync(
+  path.join(__dirname, 'assets', 'torrent-ready.sh'),
+  'utf8',
+);
 
 interface QbittorrentAppComponentArgsShape {
   nordLynx: {
@@ -239,6 +258,30 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
     const tunDeviceVolumeName = 'tun-device';
     // gluetun 런타임 상태(공인 IP 파일 등). emptyDir라 Pod 재생성 시 초기화됨
     const gluetunStateVolumeName = 'gluetun-state';
+    const scriptsVolumeName = 'qbittorrent-scripts';
+    const bindVpnTun0ScriptFileName = '50-bind-vpn-tun0.sh';
+    const poststartBindTun0ScriptFileName = 'poststart-bind-tun0.sh';
+    const torrentReadyScriptFileName = 'torrent-ready.sh';
+
+    // LSIO cont-init + postStart + readiness (BT→tun0 강제, torrent 실동작 probe)
+    const qbittorrentScriptsConfigMap = new kubernetes.core.v1.ConfigMap(
+      `${resourceName}-scriptsConfigMap`,
+      {
+        metadata: {
+          name: 'qbittorrent-scripts',
+          namespace: namespace.metadata.name,
+        },
+        data: {
+          [bindVpnTun0ScriptFileName]: bindVpnTun0Script,
+          [poststartBindTun0ScriptFileName]: poststartBindTun0Script,
+          [torrentReadyScriptFileName]: torrentReadyScript,
+        },
+      },
+      {
+        ...opts,
+        provider: args.providers.kubernetes,
+      },
+    );
 
     // WebUI용 ClusterIP 서비스 (메시 ingress → 여기로)
     const qbittorrentService = new kubernetes.core.v1.Service(
@@ -373,9 +416,9 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                   // native sidecar: VPN이 Ready여야 qbittorrent/sftp 시작
                   // (killswitch 켜진 동안 앱이 먼저 뜨면 외부 통신이 막힘)
                   name: 'gluetun',
-                  // 최신 안정 라인. 내장 servers.json도 이미지와 함께 갱신됨
-                  image: 'qmcgaw/gluetun:v3',
-                  imagePullPolicy: 'Always',
+                  // 버전 핀: floating :v3 금지 (라우팅/방화벽 회귀 위험)
+                  image: utils.configs.containerImages.gluetun,
+                  imagePullPolicy: 'IfNotPresent',
                   restartPolicy: 'Always',
                   env: [
                     {
@@ -553,7 +596,34 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                       name: qbittorrentIncompleteDownloadsVolumeName,
                       mountPath: '/incomplete',
                     },
+                    {
+                      // LSIO: /custom-cont-init.d/* 는 서비스 기동 전 실행
+                      name: scriptsVolumeName,
+                      mountPath: `/custom-cont-init.d/${bindVpnTun0ScriptFileName}`,
+                      subPath: bindVpnTun0ScriptFileName,
+                    },
+                    {
+                      name: scriptsVolumeName,
+                      mountPath: `/healthcheck/${poststartBindTun0ScriptFileName}`,
+                      subPath: poststartBindTun0ScriptFileName,
+                    },
+                    {
+                      name: scriptsVolumeName,
+                      mountPath: `/healthcheck/${torrentReadyScriptFileName}`,
+                      subPath: torrentReadyScriptFileName,
+                    },
                   ],
+                  // WebUI 기동 후 API로 tun0 강제 (conf만으로는 eth0 리슨이 남음)
+                  lifecycle: {
+                    postStart: {
+                      exec: {
+                        command: [
+                          '/bin/sh',
+                          `/healthcheck/${poststartBindTun0ScriptFileName}`,
+                        ],
+                      },
+                    },
+                  },
                   // 2026-10-21: Disk IO POSIX + OS cache off. 라이브 ~30Mi.
                   // 예전 12Gi/16Gi는 mmap 파일 캐시. VPA ~19Gi는 그 히스토리. 재해시 여유만 둠.
                   resources: {
@@ -566,7 +636,7 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                       memory: '2Gi',
                     },
                   },
-                  // WebUI 포트만 봄 — VPN 상태는 gluetun readiness가 담당
+                  // startup/liveness: 프로세스 생존만 (WebUI). DHT 일시 저하로 재시작 금지.
                   startupProbe: {
                     tcpSocket: {
                       port: qbittorrentWebUiPort,
@@ -581,6 +651,19 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                     },
                     periodSeconds: 15,
                     failureThreshold: 3,
+                  },
+                  // readiness: postStart(tun0) + DHT 워밍업 여유
+                  readinessProbe: {
+                    exec: {
+                      command: [
+                        '/bin/sh',
+                        `/healthcheck/${torrentReadyScriptFileName}`,
+                      ],
+                    },
+                    initialDelaySeconds: 90,
+                    periodSeconds: 30,
+                    timeoutSeconds: 20,
+                    failureThreshold: 10,
                   },
                 },
 
@@ -600,6 +683,13 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
                   {
                     name: gluetunStateVolumeName,
                     emptyDir: {},
+                  },
+                  {
+                    name: scriptsVolumeName,
+                    configMap: {
+                      name: qbittorrentScriptsConfigMap.metadata.name,
+                      defaultMode: 0o755,
+                    },
                   },
                   {
                     name: qbittorrentModCacheVolumeName,
@@ -635,12 +725,18 @@ export const QbittorrentAppComponent = utils.functions.defineComponent(
       {
         ...opts,
         provider: args.providers.kubernetes,
+        // VPN + postStart(tun0) + DHT warmup can exceed default 10m Ready wait
+        customTimeouts: {
+          create: '20m',
+          update: '20m',
+        },
         dependsOn: [
           qbittorrentModCachePvc,
           qbittorrentConfigPvc,
           qbittorrentCompleteDownloadsPvc,
           qbittorrentIncompleteDownloadsPvc,
           qbittorrentSftpAdapter,
+          qbittorrentScriptsConfigMap,
         ],
       },
     );
